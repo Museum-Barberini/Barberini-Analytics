@@ -24,7 +24,7 @@ class CsvToDb(CopyToTable):
 	
 	def copy(self, cursor, file):
 		self.assure_schema(cursor) # Hacked because there is no better hook ¯\_(ツ)_/¯
-		cursor.copy_expert(load_sql_script("copy").format(self.table, self.table + '_tmp'), file)
+		cursor.copy_expert(load_sql_script("copy", self.table, self.table + '_tmp'), file)
 	
 	def rows(self):
 		rows = super().rows()
@@ -32,14 +32,15 @@ class CsvToDb(CopyToTable):
 		return rows
 	
 	def assure_schema(self, cursor):
-		exists = cursor.execute(load_sql_script("check_existence").format(self.table)).fetchone()[0]
+		exists = cursor.execute(load_sql_script("check_existence", self.table)).fetchone()[0]
 		if exists:
 			return
 		# LATEST TODO: Hope that exists work like we expect. Next put queries to create table with named constraints\
 		# as declared in subclasses. Rename sql files. Maybe a subfolder?
+		cursor.execute(load_sql_script("copy", >>>TODO: INSERT FILE BY SUBCLASS HERE<<<)
 
 
 sql_file_path_pattern = 'src/_utils/csv_to_db.{0}.sql'
-def load_sql_script(name):
+def load_sql_script(name, *args):
 		with open(sql_file_path_pattern.format(name)) as sql_file:
-			return sql_file.read()
+			return sql_file.read().format(args)
