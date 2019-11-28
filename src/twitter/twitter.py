@@ -4,6 +4,7 @@ from luigi.format import UTF8
 import datetime as dt
 import pandas as pd
 import twitterscraper as ts
+import json
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
@@ -19,63 +20,123 @@ class FetchTwitter(luigi.Task):
     table = luigi.Parameter(default="tweets")
 
     def output(self):
-        return luigi.LocalTarget("output/tweets.csv", format=UTF8)
+        return luigi.LocalTarget("output/raw_tweets.csv", format=UTF8)
 
     def run(self):
         
-        tweets = ts.query_tweets(self.query, begindate=self.get_latest_timestamp())
+        tweets = ts.query_tweets(self.query, begindate=dt.date(2015, 1, 1))
         
         with self.output().open('w') as output_file:
             df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
             df.to_csv(output_file, index=False, header=True)
 
-    def get_latest_timestamp(self):
 
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
-            cur = conn.cursor()
-            cur.execute("SELECT MAX(timestamp) FROM {0}".format(self.table))
-            return cur.fetchone()[0]
-            conn.close()
-        
-        # In case an error occurs (e.g. the DB is empty)
-        except psycopg2.DatabaseError as error:
-            print(error)
-            return dt.date(2015, 1, 1)
-            if conn is not None:
-                conn.close()
+class ExtractBarberiniTweets(luigi.Task):
+    def requires(self):
+        return FetchTwitter()
+    
 
-class TweetsToDB(CsvToDb):
+    def barberini_user_id(self):
+        with open('data/barberini-facts.json') as facts_json:
+            barberini_facts = json.load(facts_json)
+            return barberini_facts['ids']['twitter']['user_id']
 
-    table = "tweets"
+    def run(self):
+        df = pd.read_csv(self.input().path)
+        filtered_df = df[df['user_id'] == self.barberini_user_id()]
+        projected_df = filtered_df.filter(['tweet_id', 'text', 'parent_tweet_id', 'timestamp'])
+        projected_df.columns = ['tweet_id', 'text', 'response_to', 'post_date']
+        with self.output().open('w') as output_file:
+            projected_df.to_csv(output_file, index=False, header=True)
+
+
+    def output(self):
+        return luigi.LocalTarget("output/barberini_tweets.csv", format=UTF8)
+
+
+#TODO: GET RID OF THIS TERRIBLE CODE DUPLICATION
+class ExtractUserTweets(luigi.Task):
+    def requires(self):
+        return FetchTwitter()
+    
+
+    def barberini_user_id(self):
+        with open('data/barberini-facts.json') as facts_json:
+            barberini_facts = json.load(facts_json)
+            return barberini_facts['ids']['twitter']['user_id']
+
+    def run(self):
+        df = pd.read_csv(self.input().path)
+        filtered_df = df[df['user_id'] != self.barberini_user_id()]
+        projected_df = filtered_df.filter(['tweet_id', 'user_id', 'text', 'parent_tweet_id', 'timestamp'])
+        projected_df.columns = ['tweet_id', 'user_id', 'text', 'response_to', 'post_date']
+        with self.output().open('w') as output_file:
+            projected_df.to_csv(output_file, index=False, header=True)
+
+    
+    def output(self):
+        return luigi.LocalTarget("output/user_tweets.csv", format=UTF8)
+
+
+class ExtractPerformanceTweets(luigi.Task):
+    def requires(self):
+        return FetchTwitter()
+
+    def run(self):
+        df = pd.read_csv(self.input().path)
+        projected_df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
+        current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        projected_df['timestamp'] = current_timestamp
+        with self.output().open('w') as output_file:
+            projected_df.to_csv(output_file, index=False, header=True)
+
+    
+    def output(self):
+        return luigi.LocalTarget("output/performance_tweets.csv", format=UTF8)
+
+
+class BarberiniTweetsToDB(CsvToDb):
+
+    table = "barberini_tweet"
 
     columns = [
-        ("screen_name", "TEXT"),
-        ("username", "TEXT"),
-        ("user_id", "TEXT"),
         ("tweet_id", "TEXT"),
-        ("tweet_url", "TEXT"),
-        ("timestamp", "DATE"),
-        ("timestamp_epochs", "INT"),
         ("text", "TEXT"),
-        ("text_html", "TEXT"),
-        ("links", "TEXT"),
-        ("hashtags", "TEXT"),
-        ("has_media", "TEXT"),
-        ("img_urls", "TEXT"),
-        ("video_url", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("is_replied", "TEXT"),
-        ("is_reply_to", "TEXT"),
-        ("parent_tweet_id", "TEXT"),
-        ("reply_to_users", "TEXT")
+        ("response_to", "TEXT"),
+        ("post_date", "DATE")
     ]
 
     def requires(self):
-        return FetchTwitter()
- 
+        return ExtractBarberiniTweets()
+
+
+class UserTweetsToDB(CsvToDb):
+
+    table = "user_tweet"
+
+    columns = [
+        ("tweet_id", "TEXT"),
+        ("user_id", "TEXT"),
+        ("text", "TEXT"),
+        ("response_to", "TEXT"),
+        ("post_date", "DATE")
+    ]
+
+    def requires(self):
+        return ExtractUserTweets()
+
+
+class PerformanceTweetsToDB(CsvToDb):
+
+    table = "performance_tweet"
+
+    columns = [
+        ("tweet_id", "TEXT"),
+        ("likes", "INT"),
+        ("retweets", "INT"),
+        ("replies", "INT"),
+        ("timestamp", "DATE")
+    ]
+
+    def requires(self):
+        return ExtractPerformanceTweets()

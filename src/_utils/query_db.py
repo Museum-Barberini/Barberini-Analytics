@@ -12,7 +12,7 @@ class QueryDB(luigi.Task):
         set_db_connection_options(self)
 
     tables   = luigi.Parameter(
-        default=["tweets", "gtrends_topics", "gtrends_interests"]
+        default=["barberini_tweet", "user_tweet", "gtrends_topics", "gtrends_interests"]
     )
     # TODO: Parse tables from metaquery below
 
