@@ -18,5 +18,5 @@ services:
                         - POSTGRES_PASSWORD=docker
                         - POSTGRES_DB=barberini
                 volumes:
-                        - ./volumes/test:/var/lib/postgresql/data/
+                        - ./volumes/test:/var/lib/postgresql/data/"
 

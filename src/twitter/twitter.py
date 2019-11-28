@@ -24,12 +24,15 @@ class FetchTwitter(luigi.Task):
     def run(self):
         
         tweets = ts.query_tweets(self.query, begindate=self.get_latest_timestamp())
+        tweets_df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+        tweets_df = tweets_df.drop_duplicates(subset=["tweet_id"])
         
         with self.output().open('w') as output_file:
-            df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
-            df.to_csv(output_file, index=False, header=True)
-
+            tweets_df.to_csv(output_file, index=False, header=True)
+    
     def get_latest_timestamp(self):
+
+        min_timestamp = dt.date(2015, 1, 1)
 
         try:
             conn = psycopg2.connect(
@@ -37,16 +40,15 @@ class FetchTwitter(luigi.Task):
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
-            cur.execute("SELECT MAX(timestamp) FROM {0}".format(self.table))
-            return cur.fetchone()[0]
+            cur.execute(f"SELECT MAX(timestamp) FROM {self.table}")
+            return cur.fetchone()[0] or min_timestamp
             conn.close()
         
-        # In case an error occurs (e.g. the DB is empty)
         except psycopg2.DatabaseError as error:
             print(error)
-            return dt.date(2015, 1, 1)
             if conn is not None:
                 conn.close()
+            return self.min_timestmap
 
 class TweetsToDB(CsvToDb):
 
