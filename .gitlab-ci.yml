@@ -1,0 +1,12 @@
+image: docker:latest
+
+build:
+  stage: build
+  script:
+    - docker build -t test .
+
+test:
+  stage: test
+  script:
+    - docker build -t test-luigi .
+    - docker run --volume $(pwd):/app:ro --entrypoint "make" test-luigi test

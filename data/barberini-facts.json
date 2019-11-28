@@ -1,0 +1,16 @@
+{
+	"geo_id": "de",
+	"// ct: I wanted to name it 'geo', but that gave me a syntax error ^^": 42,
+	"foundingDate": "2017-01-01T00:00:00.000Z",
+	
+	"exhibitions": [
+		"van Gogh",
+		"Picasso"
+	],
+	
+	"ids": {
+		"google": {
+			"keyword": "/g/11bwnd3skz"
+		}
+	}
+}

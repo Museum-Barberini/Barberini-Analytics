@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+        luigi:
+                build: .
+                volumes:
+                        - .:/app
+                ports:
+                        - "8082:8082"
+                stdin_open: true
+                tty: true
+
+        db:
+                image: postgres
+                environment: 
+                        - PGDATA=/var/lib/postgresql/data/pg-data/
+                        - POSTGRES_USER=postgres
+                        - POSTGRES_PASSWORD=docker
+                        - POSTGRES_DB=barberini
+                volumes:
+                        - ./volumes/test:/var/lib/postgresql/data/
+
