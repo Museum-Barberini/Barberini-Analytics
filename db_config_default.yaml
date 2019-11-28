@@ -1,0 +1,4 @@
+host:           host.docker.internal
+database:       barberini
+user:           postgres
+password:       docker
