@@ -12,7 +12,9 @@ import xlrd
 report_ids = {
     'customers_7days': 1186,
     'orders_7days': 1188,
-    'bookings_7days': 0
+    'bookings_7days': 0,
+
+    'bookings_1year' : -1
 }
 
 def parse_arguments(args=sys.argv[1:]):
@@ -31,9 +33,11 @@ def parse_arguments(args=sys.argv[1:]):
             
 def direct_download_url(base_url, report, timespan):
     today = datetime.date.today()
+    end_time = today - datetime.timedelta(days=1)
     if timespan == '7days': # grab everything from yesterday till a week before
-        end_time = today - datetime.timedelta(days=1)
         start_time = today - datetime.timedelta(weeks=1)
+    elif timespan == '1year':
+        start_time = today - datetime.timedelta(days=365)
     
     end_time = end_time.strftime("%Y-%m-%d")
     start_time = start_time.strftime("%Y-%m-%d")
