@@ -31,7 +31,7 @@ class FetchTwitter(luigi.Task):
             df.to_csv(output_file, index=False, header=True)
 
 
-class ExtractBarberiniTweets(luigi.Task):
+class ExtractTweets(luigi.Task):
     def requires(self):
         return FetchTwitter()
     
@@ -43,39 +43,15 @@ class ExtractBarberiniTweets(luigi.Task):
 
     def run(self):
         df = pd.read_csv(self.input().path)
-        filtered_df = df[df['user_id'] == self.barberini_user_id()]
-        projected_df = filtered_df.filter(['tweet_id', 'text', 'parent_tweet_id', 'timestamp'])
-        projected_df.columns = ['tweet_id', 'text', 'response_to', 'post_date']
+        df = df.filter(['user_id', 'tweet_id', 'text', 'parent_tweet_id', 'timestamp'])
+        df.columns = ['user_id', 'tweet_id', 'text', 'response_to', 'post_date']
+        df['is_from_barberini'] = df['user_id'] == self.barberini_user_id()
         with self.output().open('w') as output_file:
-            projected_df.to_csv(output_file, index=False, header=True)
+            df.to_csv(output_file, index=False, header=True)
 
 
     def output(self):
-        return luigi.LocalTarget("output/barberini_tweets.csv", format=UTF8)
-
-
-#TODO: GET RID OF THIS TERRIBLE CODE DUPLICATION
-class ExtractUserTweets(luigi.Task):
-    def requires(self):
-        return FetchTwitter()
-    
-
-    def barberini_user_id(self):
-        with open('data/barberini-facts.json') as facts_json:
-            barberini_facts = json.load(facts_json)
-            return barberini_facts['ids']['twitter']['user_id']
-
-    def run(self):
-        df = pd.read_csv(self.input().path)
-        filtered_df = df[df['user_id'] != self.barberini_user_id()]
-        projected_df = filtered_df.filter(['tweet_id', 'user_id', 'text', 'parent_tweet_id', 'timestamp'])
-        projected_df.columns = ['tweet_id', 'user_id', 'text', 'response_to', 'post_date']
-        with self.output().open('w') as output_file:
-            projected_df.to_csv(output_file, index=False, header=True)
-
-    
-    def output(self):
-        return luigi.LocalTarget("output/user_tweets.csv", format=UTF8)
+        return luigi.LocalTarget("output/tweets.csv", format=UTF8)
 
 
 class ExtractPerformanceTweets(luigi.Task):
@@ -84,49 +60,36 @@ class ExtractPerformanceTweets(luigi.Task):
 
     def run(self):
         df = pd.read_csv(self.input().path)
-        projected_df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
+        df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        projected_df['timestamp'] = current_timestamp
+        df['timestamp'] = current_timestamp
         with self.output().open('w') as output_file:
-            projected_df.to_csv(output_file, index=False, header=True)
+            df.to_csv(output_file, index=False, header=True)
 
     
     def output(self):
         return luigi.LocalTarget("output/performance_tweets.csv", format=UTF8)
 
 
-class BarberiniTweetsToDB(CsvToDb):
 
-    table = "barberini_tweet"
+class TweetsToDB(CsvToDb):
 
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "DATE")
-    ]
-
-    def requires(self):
-        return ExtractBarberiniTweets()
-
-
-class UserTweetsToDB(CsvToDb):
-
-    table = "user_tweet"
+    table = "tweet"
 
     columns = [
-        ("tweet_id", "TEXT"),
         ("user_id", "TEXT"),
+        ("tweet_id", "TEXT"),
         ("text", "TEXT"),
         ("response_to", "TEXT"),
-        ("post_date", "DATE")
+        ("post_date", "DATE"),
+        ("is_from_barberini", "TEXT")
     ]
 
     def requires(self):
-        return ExtractUserTweets()
+        return ExtractTweets()
 
 
-class PerformanceTweetsToDB(CsvToDb):
+class TweetPerformanceToDB(CsvToDb):
 
     table = "performance_tweet"
 
