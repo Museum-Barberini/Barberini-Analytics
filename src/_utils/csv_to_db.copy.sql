@@ -1,3 +1,6 @@
+-- {0} -- target table name
+-- {1} -- temporary table name
+
 BEGIN;
 CREATE TEMPORARY TABLE {1} (LIKE {0} INCLUDING ALL);
 COPY {1} FROM stdin WITH (FORMAT CSV);
@@ -5,5 +8,5 @@ COPY {1} FROM stdin WITH (FORMAT CSV);
 ANALYZE {1};
 INSERT INTO {0}
 	SELECT * FROM {1}
-	ON CONFLICT DO NOTHING;
+	ON CONFLICT DO UPDATE;
 COMMIT;

@@ -1,6 +1,7 @@
 from luigi.contrib.postgres import CopyToTable
 import luigi
 from datetime import datetime
+from abc import abstractmethod
 
 from set_db_connection_options import set_db_connection_options
 
@@ -23,7 +24,6 @@ class CsvToDb(CopyToTable):
 	column_separator = ","
 	
 	def copy(self, cursor, file):
-		self.assure_schema(cursor) # Hacked because there is no better hook ¯\_(ツ)_/¯
 		cursor.copy_expert(load_sql_script("copy", self.table, self.table + '_tmp'), file)
 	
 	def rows(self):
@@ -31,13 +31,20 @@ class CsvToDb(CopyToTable):
 		next(rows) # skip csv header
 		return rows
 	
-	def assure_schema(self, cursor):
-		exists = cursor.execute(load_sql_script("check_existence", self.table)).fetchone()[0]
-		if exists:
-			return
+	def create_table(self, connection):
+		super.create_table(connection)
+		self.create_primary_key(connection)
+	
+	def create_primary_key(self, connection):
 		# LATEST TODO: Hope that exists work like we expect. Next put queries to create table with named constraints\
 		# as declared in subclasses. Rename sql files. Maybe a subfolder?
-		cursor.execute(load_sql_script("copy", >>>TODO: INSERT FILE BY SUBCLASS HERE<<<)
+		connection.cursor().execute(load_sql_script("set_primary_key", self.table, self.primary_key()))
+	
+	@property
+	@abstractmethod
+	# To be overridden, should return a tuple of column names
+	def primary_key(self):
+		pass
 
 
 sql_file_path_pattern = 'src/_utils/csv_to_db.{0}.sql'

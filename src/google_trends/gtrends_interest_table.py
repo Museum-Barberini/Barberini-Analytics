@@ -19,6 +19,8 @@ class GtrendsInterestToDB(CsvToDb):
         ("date", "TEXT"),
         ("interest_value", "TEXT"),
     ]
+    
+    primary_key = "topic_id"
 
     def requires(self):
         return GTrendsInterestTable()

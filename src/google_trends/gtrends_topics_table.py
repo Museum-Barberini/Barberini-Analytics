@@ -22,6 +22,8 @@ class GtrendsTopicsToDB(CsvToDb):
         ("topic_id", "TEXT"),
         ("name", "TEXT"),
     ]
+    
+    primary_key = "topic_id"
 
     def requires(self):
         return GTrendsTopicsTable()

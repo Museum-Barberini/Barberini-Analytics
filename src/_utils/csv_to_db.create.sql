@@ -1,3 +1,0 @@
-BEGIN;
-{0};
-COMMIT;
