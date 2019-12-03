@@ -41,4 +41,3 @@ psql:
 
 test:
 	PYTHONPATH="./src:./src/_utils" python3 -m unittest tests/test*.py -v
-
