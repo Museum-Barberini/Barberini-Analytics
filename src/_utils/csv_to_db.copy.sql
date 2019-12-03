@@ -2,11 +2,10 @@
 -- {1} -- temporary table name
 
 BEGIN;
-CREATE TEMPORARY TABLE {1} (LIKE {0} INCLUDING ALL);
-COPY {1} FROM stdin WITH (FORMAT CSV);
--- If there are many thousands of rows
-ANALYZE {1};
+CREATE TEMPORARY TABLE {0}_tmp (LIKE {0} INCLUDING ALL);
+COPY {0}_tmp FROM stdin WITH (FORMAT CSV);
+
 INSERT INTO {0}
-	SELECT * FROM {1}
-	ON CONFLICT DO UPDATE;
+	SELECT * FROM {0}_tmp
+	ON CONFLICT DO UPDATE SET {1};
 COMMIT;

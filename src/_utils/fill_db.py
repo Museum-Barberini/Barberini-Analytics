@@ -10,5 +10,5 @@ class FillDB(luigi.WrapperTask):
 		yield TweetsToDB()
 		yield GtrendsInterestToDB()
 		yield GtrendsTopicsToDB()
-		yield AppstoreReviewsToDB()
+	#	yield AppstoreReviewsToDB()
 
