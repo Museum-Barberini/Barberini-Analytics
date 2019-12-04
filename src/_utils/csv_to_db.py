@@ -9,9 +9,9 @@ class CsvToDb(CopyToTable):
 
 	# These attributes are set in __init__. They need to be defined
 	# here because they are abstract methods in CopyToTable.
-	host     = None
+	host	 = None
 	database = None
-	user     = None
+	user	 = None
 	password = None
 
 	def __init__(self, *args, **kwargs):
@@ -38,18 +38,18 @@ class CsvToDb(CopyToTable):
 	def create_primary_key(self, connection):
 		# LATEST TODO: Hope that exists work like we expect. Next put queries to create table with named constraints\
 		# as declared in subclasses. Rename sql files. Maybe a subfolder?
-                prim_key = self.primary_key
-                if not isinstance(prim_key, tuple):
-                    prim_key = f"({prim_key})"
+		prim_key = self.primary_key
+		if not isinstance(prim_key, tuple):
+			prim_key = f"({prim_key})"
 		connection.cursor().execute(load_sql_script("set_primary_key", self.table, prim_key))
 	
 	@property
 	def primary_key(self):
-            raise NotImplemented()
+			raise NotImplemented()
 
 
 # TODO 
 sql_file_path_pattern = 'src/_utils/csv_to_db.{0}.sql'
 def load_sql_script(name, *args):
 		with open(sql_file_path_pattern.format(name)) as sql_file:
-                    return sql_file.read().format(*args)
+					return sql_file.read().format(*args)
