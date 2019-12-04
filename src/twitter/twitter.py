@@ -41,14 +41,14 @@ class FetchTwitter(luigi.Task):
 			)
 			cur = conn.cursor()
 			cur.execute(f"SELECT MAX(timestamp) FROM {self.table}")
-			return cur.fetchone()[0] or min_timestamp
+			return cur.fetchone()[0] or self.min_timestamp
 			conn.close()
 		
 		except psycopg2.DatabaseError as error:
 			print(error)
 			if conn is not None:
 				conn.close()
-			return self.min_timestmap
+			return self.min_timestamp
 
 class TweetsToDB(CsvToDb):
 
