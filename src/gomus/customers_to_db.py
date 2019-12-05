@@ -47,8 +47,6 @@ class CustomersToDB(CsvToDb):
 		reader = csv.reader(self.input().open('r'))
 		next(reader)
 		for row in reader:
-		#for row in super().rows():
-
 			c_id = int(float(row[0]))
 
 			post_string = str(row[11])
