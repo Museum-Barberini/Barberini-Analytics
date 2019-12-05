@@ -17,9 +17,9 @@ class FetchCustomers(luigi.Task):
 	def run(self):
 		sess_id = os.environ['GOMUS_SESS_ID']
 
-		#request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', 'refresh'])
-		#print('Waiting 60 seconds for the report to refresh')
-		#time.sleep(60)
+		request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', 'refresh'])
+		print('Waiting 60 seconds for the report to refresh')
+		time.sleep(60)
 
 		res_content = request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', '-l'])
 		with self.output().open('w') as target_csv:
