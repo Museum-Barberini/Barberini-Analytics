@@ -17,7 +17,7 @@ report_ids = {
     'bookings_1year' : -1
 }
 
-def parse_arguments(args=sys.argv[1:]):
+def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Refresh and fetch reports from go~mus')
     report_group = parser.add_mutually_exclusive_group(required=True)
 
@@ -28,6 +28,8 @@ def parse_arguments(args=sys.argv[1:]):
     parser.add_argument('-s', '--session-id', type=str, help='Session ID to use for authentication', required=True)
 
     parser.add_argument('-o', '--output-file', type=str, help='Name of Output file (for fetching)')
+
+    parser.add_argument('-l', '--luigi', help='Set true if run as part of a Luigi task', action='store_true')
 
     return parser.parse_args(args)
             
@@ -47,25 +49,24 @@ def direct_download_url(base_url, report, timespan):
 
 def get_request(url, sess_id):
     cookies = dict(_session_id=sess_id)
-    req = requests.get(url, cookies=cookies)
-    if not req.status_code == 200:
-        print(f'Error with HTTP request: Status code {req.status_code}')
+    res = requests.get(url, cookies=cookies)
+    if not res.status_code == 200:
+        print(f'Error with HTTP request: Status code {res.status_code}')
         exit(1)
     else:
         print('HTTP request successful')
     
-    return req.content
+    return res.content
 
 def csv_from_excel(xlsx_content, target_csv):
     workbook = xlrd.open_workbook(file_contents=xlsx_content)
     sheet = workbook.sheet_by_index(0)
-    with open(target_csv, 'w') as csv_file:
-        writer = csv.writer(csv_file, quoting=csv.QUOTE_NONNUMERIC)
-        for row_num in range(sheet.nrows):
-            writer.writerow(sheet.row_values(row_num))
+    writer = csv.writer(target_csv, quoting=csv.QUOTE_NONNUMERIC)
+    for row_num in range(sheet.nrows):
+        writer.writerow(sheet.row_values(row_num))
 
-def request_report():
-    args = parse_arguments()
+def request_report(args=sys.argv[1:]):
+    args = parse_arguments(args)
     if args.report_id:
         report_id = args.report_id
     else:
@@ -100,13 +101,18 @@ def request_report():
             exit(1)
         url = direct_download_url(base_url, report_parts[0], report_parts[1])
     
-    req_content = get_request(url, args.session_id)
+    res_content = get_request(url, args.session_id)
 
     if args.action == 'fetch':
-        filename = args.output_file
-        if not filename: filename = report_ids_inv[report_id] + '.csv'
-        csv_from_excel(req_content, filename)
-        print(f'Saved report to file "{filename}"')
+        if not args.luigi:
+            filename = args.output_file
+            if not filename: filename = report_ids_inv[report_id] + '.csv'
+            with open(filename, 'w', encoding='utf-8') as csv_file:
+                csv_from_excel(res_content, csv_file)
+            print(f'Saved report to file "{filename}"')
+        else:
+            print('Running as Luigi task, returning response content')
+            return res_content
 
 if __name__ == '__main__':
     request_report()

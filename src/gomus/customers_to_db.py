@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 import luigi
+from luigi.format import UTF8
 import os
 import time
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from fetch_gomus import request_report
+from fetch_gomus import request_report, csv_from_excel
 
-class FetchCustomers(luigi.ExternalTask):
+class FetchCustomers(luigi.Task):
 	def output(self):
-		return luigi.LocalTarget('output/customers_7days.csv')
+		return luigi.LocalTarget('output/customers_7days.csv', format=UTF8)
 
 	def run(self):
-		request_report(['-s', f'{os.environ['GOMUS_SESS_ID']}', \
-			'-t', 'customers_7days', 'refresh'])
-		print('Waiting 30 seconds for the report to refresh')
-		time.sleep(30)
-		request_report(['-s', f'{os.environ['GOMUS_SESS_ID']}', \
-			'-t', 'customers_7days'])
+		sess_id = os.environ['GOMUS_SESS_ID']
+
+		#request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', 'refresh'])
+		#print('Waiting 60 seconds for the report to refresh')
+		#time.sleep(60)
+
+		res_content = request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', '-l'])
+		with self.output().open('w') as target_csv:
+			csv_from_excel(res_content, target_csv)
+
 
 class CustomersToDB(CsvToDb):
 	table = 'gomus_customers'
