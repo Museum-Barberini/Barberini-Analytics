@@ -9,6 +9,9 @@
 	],
 	
 	"ids": {
+		"apple": {
+			"appId": 1150432552
+		},
 		"google": {
 			"keyword": "/g/11bwnd3skz"
 		}
