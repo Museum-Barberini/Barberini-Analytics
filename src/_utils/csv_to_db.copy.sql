@@ -7,6 +7,6 @@ COPY {0}_tmp FROM stdin WITH (FORMAT CSV);
 
 INSERT INTO {0}
 	SELECT * FROM {0}_tmp
-ON CONFLICT ON CONSTRAINT the_primary_key_constraint
+ON CONFLICT ON CONSTRAINT {0}_the_primary_key_constraint
 	DO UPDATE SET {1};
 COMMIT;

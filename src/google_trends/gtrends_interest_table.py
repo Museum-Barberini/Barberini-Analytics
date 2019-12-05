@@ -20,7 +20,7 @@ class GtrendsInterestToDB(CsvToDb):
         ("interest_value", "TEXT"),
     ]
     
-    primary_key = "topic_id"
+    primary_key = "topic_id", "date"
 
     def requires(self):
         return GTrendsInterestTable()
