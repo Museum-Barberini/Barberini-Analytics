@@ -31,7 +31,7 @@ luigi-task:
 	PYTHONPATH="${PYTHONPATH}:./src:./src/_utils" luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
-	rm -r output
+	rm -rf output
 
 psql:
 	sudo -u postgres psql
