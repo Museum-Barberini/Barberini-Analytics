@@ -17,7 +17,7 @@ report_ids = {
     'bookings_1year' : -1
 }
 
-def parse_arguments(args):
+def parse_arguments(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description='Refresh and fetch reports from go~mus')
     report_group = parser.add_mutually_exclusive_group(required=True)
 
@@ -64,8 +64,8 @@ def csv_from_excel(xlsx_content, target_csv):
         for row_num in range(sheet.nrows):
             writer.writerow(sheet.row_values(row_num))
 
-def request_report(args=sys.argv[1:]):
-    args = parse_arguments(args)
+def request_report():
+    args = parse_arguments()
     if args.report_id:
         report_id = args.report_id
     else:
