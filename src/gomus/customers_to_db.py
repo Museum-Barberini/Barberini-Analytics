@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import csv
+from datetime import datetime
 import luigi
 from luigi.format import UTF8
 import os
@@ -25,6 +27,7 @@ class FetchCustomers(luigi.Task):
 
 
 class CustomersToDB(CsvToDb):
+	
 	table = 'gomus_customers'
 
 	columns = [
@@ -32,16 +35,41 @@ class CustomersToDB(CsvToDb):
 		('postal_code', 'TEXT'), # e.g. non-german
 		('newsletter', 'BOOL'),
 		('gender', 'TEXT'),
+		('category', 'TEXT'),
 		('language', 'TEXT'),
 		('country', 'TEXT'),
 		('type', 'TEXT'), # shop, shop guest or normal
 		('register_date', 'DATE'),
-		('annual_ticket', 'TEXT')
+		('annual_ticket', 'BOOL')
 	]
 
 	def rows(self):
-		rows = super().rows()
-		print(rows)
+		reader = csv.reader(self.input().open('r'))
+		next(reader)
+		for row in reader:
+		#for row in super().rows():
+
+			c_id = int(float(row[0]))
+
+			post_string = str(row[11])
+			postal_code = post_string[:-2] if post_string[-2:] == '.0' else post_string
+
+			newsletter = True if row[16] == 'ja' else False
+
+			if row[1] == 'Frau': gender = 'w'
+			elif row[1] == 'Herr': gender = 'm'
+			else: gender = ''
+
+			category = row[9]
+			language = row[8]
+			country = row[13]
+			c_type = row[14]
+
+			register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
+
+			annual_ticket = True if row[17] == 'ja' else False
+			yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
+		
 
 	def requires(self):
 		return FetchCustomers()
