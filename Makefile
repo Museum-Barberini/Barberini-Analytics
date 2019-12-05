@@ -28,7 +28,7 @@ luigi:
 luigi-task:
 	mkdir -p output
 	#bash -c "PYTHONPATH=\"./src$(find ../src/ -type d < sed '/\/\./d' | tr '\n' ':' | sed 's/:$//')\" luigi --module $(LMODULE) $(LTASK)"
-	PYTHONPATH="./src:./src/_utils" luigi --module $(LMODULE) $(LTASK)
+	PYTHONPATH="${PYTHONPATH}:./src:./src/_utils" luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
 	rm -r output
