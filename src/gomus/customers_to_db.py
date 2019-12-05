@@ -47,18 +47,13 @@ class CustomersToDB(CsvToDb):
 		reader = csv.reader(self.input().open('r'))
 		next(reader)
 		for row in reader:
-		#for row in super().rows():
-			
 			c_id = int(float(row[0]))
 			
 			post_string = str(row[11])
 			postal_code = post_string[:-2] if post_string[-2:] == '.0' else post_string
 			
-			newsletter = True if row[16] == 'ja' else False
-			
-			if row[1] == 'Frau': gender = 'w'
-			elif row[1] == 'Herr': gender = 'm'
-			else: gender = ''
+			newsletter = parse_boolean(row[16])
+			gender = parse_gender(row[1])
 			
 			category = row[9]
 			language = row[8]
@@ -67,9 +62,16 @@ class CustomersToDB(CsvToDb):
 			
 			register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
 			
-			annual_ticket = True if row[17] == 'ja' else False
+			annual_ticket = parse_boolean(row[17])
 			yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
-		
 
 	def requires(self):
 		return FetchCustomers()
+
+def parse_boolean(string):
+	return string == 'ja'
+
+def parse_gender(string):
+	if string == 'Frau': return 'w'
+	elif string == 'Herr': return 'm'
+	return ''
