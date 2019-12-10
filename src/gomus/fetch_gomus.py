@@ -26,7 +26,9 @@ report_ids = {
 	'orders_7days': 1188,
 	'bookings_7days': 0,
 
-	'bookings_1year' : -1
+	'bookings_1year': -1,
+
+	'guides': -2
 }
 
 def parse_arguments(args):
@@ -46,18 +48,24 @@ def parse_arguments(args):
 	return parser.parse_args(args)
 			
 def direct_download_url(base_url, report, timespan):
+	no_time = False
 	today = datetime.date.today()
 	end_time = today - datetime.timedelta(days=1)
 	if timespan == '7days': # grab everything from yesterday till a week before
 		start_time = today - datetime.timedelta(weeks=1)
 	elif timespan == '1year':
 		start_time = today - datetime.timedelta(days=365)
+	else: no_time = True
 	
 	end_time = end_time.strftime("%Y-%m-%d")
 	start_time = start_time.strftime("%Y-%m-%d")
 	print(f'Requesting report for timespan from {start_time} to {end_time}')
 
-	return base_url + f'/{report}.xlsx?end_at={end_time}&start_at={start_time}'
+	base_return = base_url + f'/{report}.xlsx'
+	if not no_time:
+		return base_return + '?end_at={end_time}&start_at={start_time}'
+	return base_return
+	
 
 def get_request(url, sess_id):
 	cookies = dict(_session_id=sess_id)
@@ -111,7 +119,12 @@ def request_report(args=sys.argv[1:]):
 		if args.action == 'refresh':
 			print('Error: Directly downloaded reports cannot be refreshed')
 			exit(1)
-		url = direct_download_url(base_url, report_parts[0], report_parts[1])
+		if len(report_parts) < 2:
+			timespan = ''
+		else:
+			timespan = report_parts[1]
+		
+		url = direct_download_url(base_url, report_parts[0], timespan)
 	
 	res_content = get_request(url, args.session_id)
 
