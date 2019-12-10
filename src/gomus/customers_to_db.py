@@ -1,30 +1,10 @@
 #!/usr/bin/env python3
 import csv
 from datetime import datetime
-import luigi
-from luigi.format import UTF8
-import os
-import time
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from fetch_gomus import request_report, csv_from_excel
-
-class FetchCustomers(luigi.Task):
-	def output(self):
-		return luigi.LocalTarget('output/customers_7days.csv', format=UTF8)
-
-	def run(self):
-		sess_id = os.environ['GOMUS_SESS_ID']
-
-		request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', 'refresh'])
-		print('Waiting 60 seconds for the report to refresh')
-		time.sleep(60)
-
-		res_content = request_report(args=['-s', f'{sess_id}', '-t', 'customers_7days', '-l'])
-		with self.output().open('w') as target_csv:
-			csv_from_excel(res_content, target_csv)
-
+from gomus.gomus_report import FetchGomusReport
 
 class CustomersToDB(CsvToDb):
 	
@@ -44,32 +24,35 @@ class CustomersToDB(CsvToDb):
 	]
 
 	def rows(self):
-		reader = csv.reader(self.input().open('r'))
-		next(reader)
-		for row in reader:
-		#for row in super().rows():
+		with self.input().open('r') as csvfile:
+			reader = csv.reader(csvfile)
+			next(reader)
+			for row in reader:
+				c_id = int(float(row[0]))
 
-			c_id = int(float(row[0]))
+				post_string = row[11]
+				if len(post_string) >= 2:
+					postal_code = post_string[:-2] if post_string[-2:] == '.0' else post_string
+				else:
+					postal_code = post_string
 
-			post_string = str(row[11])
-			postal_code = post_string[:-2] if post_string[-2:] == '.0' else post_string
+				newsletter = True if row[16] == 'ja' else False
 
-			newsletter = True if row[16] == 'ja' else False
+				if row[1] == 'Frau': gender = 'w'
+				elif row[1] == 'Herr': gender = 'm'
+				else: gender = ''
 
-			if row[1] == 'Frau': gender = 'w'
-			elif row[1] == 'Herr': gender = 'm'
-			else: gender = ''
+				category = row[9]
+				language = row[8]
+				country = row[13]
+				c_type = row[14]
 
-			category = row[9]
-			language = row[8]
-			country = row[13]
-			c_type = row[14]
+				register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
 
-			register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
-
-			annual_ticket = True if row[17] == 'ja' else False
-			yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
+				annual_ticket = True if row[17] == 'ja' else False
+				
+				yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
 		
 
 	def requires(self):
-		return FetchCustomers()
+		return FetchGomusReport(report='customers')

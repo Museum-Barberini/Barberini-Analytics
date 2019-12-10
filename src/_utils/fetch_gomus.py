@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ##########################################
 ##       ###      ###   ####        ## ###
 ####  ###### #### ### #   ## ###### ## ###
@@ -10,7 +11,6 @@
 # - Merge this file with the calling task. We decided not to have separate scripts for things that represent a task.
 # ct.
 
-#!/usr/bin/env python3
 import argparse
 import datetime
 import csv
