@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import csv
 from datetime import datetime
 import luigi
 from luigi.format import UTF8
+import mmh3
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
@@ -14,7 +14,7 @@ class BookingsToDB(CsvToDb):
 
 	columns = [
 		('id', 'INT'),
-		#('booker_id', 'INT'),
+		('booker_id', 'INT'),
 		('category', 'TEXT'),
 		('participants', 'INT'),
 		#('guide_id', 'INT'),
@@ -32,7 +32,8 @@ class BookingsToDB(CsvToDb):
 		for row in super().csv_rows():
 			b_id = int(float(row[0]))
 
-			# TODO: cross reference customer data to find out booker_id
+			## TODO: cross reference customer data to find out booker_id
+			booker_id = mmh3.hash(row[13], self.seed, signed=True)
 
 			category = row[8]
 			participants = int(float(row[10]))
@@ -57,7 +58,7 @@ class BookingsToDB(CsvToDb):
 			title = row[9]
 			status = row[20]
 
-			ret = [b_id, category, participants, date, daytime, duration, exhibition, title, status]
+			ret = [b_id, booker_id, category, participants, date, daytime, duration, exhibition, title, status]
 			for i in range(len(ret)):
 				if isinstance(ret[i], str):
 					ret[i] = '"' + ret[i] + '"'

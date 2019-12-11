@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import csv
 from datetime import datetime
 import mmh3
 
@@ -27,7 +26,8 @@ class CustomersToDB(CsvToDb):
 	
 	def rows(self):
 		for row in super().csv_rows():
-			c_id = int(float(row[0]))
+			# Hash key: E-Mail address
+			c_id = mmh3.hash(row[4], self.seed, signed=True)
 
 			post_string = row[11]
 			if len(post_string) >= 2:
