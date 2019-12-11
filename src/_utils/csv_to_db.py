@@ -38,7 +38,8 @@ class CsvToDb(CopyToTable):
 	def check_existence(self, connection):
 		cursor = connection.cursor()
 		cursor.execute(load_sql_script('check_existence', self.table))
-		return cursor.fetchone()[0]
+		existence_boolean = cursor.fetchone()[0]
+		return existence_boolean
 	
 	def create_table(self, connection):
 		super().create_table(connection)
