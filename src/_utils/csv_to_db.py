@@ -1,3 +1,4 @@
+import csv
 from luigi.contrib.postgres import CopyToTable
 import luigi
 from datetime import datetime
@@ -17,6 +18,7 @@ class CsvToDb(CopyToTable):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		set_db_connection_options(self)
+		self.seed = 666
 
 	# This parameter should be unique for every run forcing the task to re-run.
 	date = luigi.Parameter(default=datetime.timestamp(datetime.now()))
@@ -27,7 +29,13 @@ class CsvToDb(CopyToTable):
 		cursor.copy_expert("""COPY {0} FROM STDIN WITH (FORMAT CSV)""".format(self.table), file)
 
 	def rows(self):
-            rows = super().rows()
-            next(rows)  # skip csv header
-            return rows
+		rows = super().rows()
+		next(rows)  # skip csv header
+		return rows
 
+	def csv_rows(self):
+		with self.input().open('r') as csvfile:
+			reader = csv.reader(csvfile)
+			next(reader) # skip header
+			for row in reader:
+				yield row

@@ -9,8 +9,8 @@ class FetchGomusReport(luigi.Task):
 	report = luigi.parameter.Parameter(description='The report name (e.g. \'bookings\')')
 	suffix = luigi.parameter.OptionalParameter(default='_7days', description='The report suffix (default: \'_7days\')')
 
-	def __init__(self, report, suffix='_7days'):
-		super().__init__(report, suffix)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.report_name = self.report + self.suffix
 
 	def output(self):
