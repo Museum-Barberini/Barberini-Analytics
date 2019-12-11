@@ -56,14 +56,15 @@ def direct_download_url(base_url, report, timespan):
 	elif timespan == '1year':
 		start_time = today - datetime.timedelta(days=365)
 	else: no_time = True
-	
-	end_time = end_time.strftime("%Y-%m-%d")
-	start_time = start_time.strftime("%Y-%m-%d")
-	print(f'Requesting report for timespan from {start_time} to {end_time}')
 
 	base_return = base_url + f'/{report}.xlsx'
+
 	if not no_time:
-		return base_return + '?end_at={end_time}&start_at={start_time}'
+		end_time = end_time.strftime("%Y-%m-%d")
+		start_time = start_time.strftime("%Y-%m-%d")
+		print(f'Requesting report for timespan from {start_time} to {end_time}')
+		return base_return + f'?end_at={end_time}&start_at={start_time}'
+	
 	return base_return
 	
 

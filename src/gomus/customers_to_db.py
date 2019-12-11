@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import csv
 from datetime import datetime
+import mmh3
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
@@ -25,31 +25,28 @@ class CustomersToDB(CsvToDb):
 	]
 	
 	def rows(self):
-		with self.input().open('r') as csvfile:
-			reader = csv.reader(csvfile)
-			next(reader)
-			for row in reader:
-				c_id = int(float(row[0]))
+		for row in super().csv_rows():
+			# Hash key: E-Mail address
+			c_id = mmh3.hash(row[4], self.seed, signed=True)
 
-				post_string = row[11]
-				if len(post_string) >= 2:
-					postal_code = post_string[:-2] if post_string[-2:] == '.0' else post_string
-				else:
-					postal_code = post_string
+			post_string = row[11]
+			if len(post_string) >= 2:
+				postal_code = post_string[:-2] if post_string[-2:] == '.0' else post_string
+			else:
+				postal_code = post_string
+			
+			newsletter = self.parse_boolean(row[16])
+			gender = self.parse_gender(row[1])
 
-				newsletter = self.parse_boolean(row[16])
-				gender = self.parse_gender(row[1])
+			category = row[9]
+			language = row[8]
+			country = row[13]
+			c_type = row[14]
 
-				category = row[9]
-				language = row[8]
-				country = row[13]
-				c_type = row[14]
-
-				register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
-
-				annual_ticket = self.parse_boolean(row[17])
-				
-				yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
+			register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
+			annual_ticket = self.parse_boolean(row[17])
+			
+			yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
 		
 
 	def requires(self):
