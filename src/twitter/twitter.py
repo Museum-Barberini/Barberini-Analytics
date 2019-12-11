@@ -20,7 +20,7 @@ class FetchTwitter(luigi.Task):
     table = luigi.Parameter(default="tweets")
 
     def output(self):
-        return luigi.LocalTarget("output/raw_tweets.csv", format=UTF8)
+        return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
 
     def run(self):
         
@@ -51,7 +51,7 @@ class ExtractTweets(luigi.Task):
 
 
     def output(self):
-        return luigi.LocalTarget("output/tweets.csv", format=UTF8)
+        return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
 
 
 class ExtractPerformanceTweets(luigi.Task):
@@ -68,7 +68,7 @@ class ExtractPerformanceTweets(luigi.Task):
 
     
     def output(self):
-        return luigi.LocalTarget("output/performance_tweets.csv", format=UTF8)
+        return luigi.LocalTarget("output/twitter/performance_tweets.csv", format=UTF8)
 
 
 
