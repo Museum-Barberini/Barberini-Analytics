@@ -82,7 +82,7 @@ class TweetsToDB(CsvToDb):
         ("text", "TEXT"),
         ("response_to", "TEXT"),
         ("post_date", "DATE"),
-        ("is_from_barberini", "TEXT")
+        ("is_from_barberini", "BOOL")
     ]
 
     def requires(self):
@@ -91,7 +91,7 @@ class TweetsToDB(CsvToDb):
 
 class TweetPerformanceToDB(CsvToDb):
 
-    table = "performance_tweet"
+    table = "tweet_performance"
 
     columns = [
         ("tweet_id", "TEXT"),

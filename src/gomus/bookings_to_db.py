@@ -6,7 +6,7 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from fetch_gomus import request_report, csv_from_excel
+from gomus.fetch_gomus import request_report, csv_from_excel
 from gomus.gomus_report import FetchGomusReport
 	
 class BookingsToDB(CsvToDb):
