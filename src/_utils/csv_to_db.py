@@ -1,7 +1,6 @@
 from luigi.contrib.postgres import CopyToTable
 import luigi
 import psycopg2
-from datetime import datetime
 
 from set_db_connection_options import set_db_connection_options
 
@@ -19,10 +18,6 @@ class CsvToDb(CopyToTable):
 		super().__init__(*args, **kwargs)
 		set_db_connection_options(self)
 
-	# This parameter should be unique for every run forcing the task to re-run.
-	date = luigi.Parameter(default=datetime.timestamp(datetime.now()))
-	
-	column_separator = ","
 	
 	def init_copy(self, connection):
 		if not self.check_existence(connection):
