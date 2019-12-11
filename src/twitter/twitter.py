@@ -78,7 +78,7 @@ class TweetsToDB(CsvToDb):
 		("reply_to_users", "TEXT")
 	]
 	
-	primary_key = ("tweet_id")
+	primary_key = "tweet_id"
 
 	def requires(self):
 		return FetchTwitter()
