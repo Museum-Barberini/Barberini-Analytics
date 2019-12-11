@@ -1,5 +1,5 @@
 -- {0} -- target table name
--- {1} -- temporary table name
+-- {1} -- columns to update
 
 BEGIN;
 CREATE TEMPORARY TABLE {0}_tmp (LIKE {0} INCLUDING ALL);
