@@ -7,6 +7,12 @@ from set_db_connection_options import set_db_connection_options
 
 class CsvToDb(CopyToTable):
 
+	@property
+	def primary_key(self):
+		raise NotImplemented()
+	
+	sql_file_path_pattern = luigi.Parameter(default='src/_utils/csv_to_db/{0}.sql')
+	
 	# These attributes are set in __init__. They need to be defined
 	# here because they are abstract methods in CopyToTable.
 	host	 = None
@@ -18,8 +24,6 @@ class CsvToDb(CopyToTable):
 		super().__init__(*args, **kwargs)
 		set_db_connection_options(self)
 
-	sql_file_path_pattern = luigi.Parameter(default='src/_utils/csv_to_db/{0}.sql')
-	
 	def init_copy(self, connection):
 		if not self.check_existence(connection):
 			raise UndefinedTableError()
@@ -50,10 +54,6 @@ class CsvToDb(CopyToTable):
 			'set_primary_key',
 			self.table,
 			self.tuple_like_string(self.primary_key)))
-	
-	@property
-	def primary_key(self):
-		raise NotImplemented()
 	
 	def load_sql_script(self, name, *args):
 		with open(self.sql_file_path_pattern.format(name)) as sql_file:
