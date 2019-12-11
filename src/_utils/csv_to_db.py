@@ -11,7 +11,7 @@ class CsvToDb(CopyToTable):
 	def primary_key(self):
 		raise NotImplemented()
 	
-	sql_file_path_pattern = luigi.Parameter(default='src/_utils/csv_to_db/{0}.sql')
+	sql_file_path_pattern = luigi.Parameter(default='src/_utils/csv_to_db.sql/{0}.sql')
 	
 	# These attributes are set in __init__. They need to be defined
 	# here because they are abstract methods in CopyToTable.
