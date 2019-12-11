@@ -46,11 +46,10 @@ class CsvToDb(CopyToTable):
 		self.create_primary_key(connection)
 	
 	def create_primary_key(self, connection):
-		prim_key = self.primary_key
-		if isinstance(prim_key, tuple):
-			prim_key = ','.join(prim_key)
-		prim_key = f'({prim_key})'
-		connection.cursor().execute(load_sql_script('set_primary_key', self.table, prim_key))
+		connection.cursor().execute(load_sql_script(
+			'set_primary_key',
+			self.table,
+			self.tuple_like_string(self.primary_key)))
 	
 	@property
 	def primary_key(self):
@@ -59,6 +58,12 @@ class CsvToDb(CopyToTable):
 	def load_sql_script(self, name, *args):
 		with open(self.sql_file_path_pattern.format(name)) as sql_file:
 			return sql_file.read().format(*args)
+	
+	def tuple_like_string(self, value):
+		string = value
+		if isinstance(value, tuple):
+			string = ','.join(value)
+		return f'({string})'
 
 class UndefinedTableError(psycopg2.ProgrammingError):
 	pgcode = psycopg2.errorcodes.UNDEFINED_TABLE
