@@ -5,6 +5,7 @@ import datetime as dt
 import pandas as pd
 import requests
 import json
+import os
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
@@ -21,8 +22,7 @@ class FetchFbPosts(luigi.Task):
 	
 	def run(self):
 		
-		# DO NOT COMMIT THE ACCESS TOKEN
-		access_token = "WE-NEED-A-WAY-TO-STORE-ACCESS-TOKENS-OUTSIDE-AND-STILL-GET-THEM-IN-HERE"
+		access_token = os.environ['FB_ACCESS_TOKEN']
 		
 		posts = []
 		
@@ -67,8 +67,7 @@ class FetchFbPostPerformance(luigi.Task):
 	
 	def run(self):
 		
-		# DO NOT COMMIT THE ACCESS TOKEN
-		access_token = "WE-NEED-A-WAY-TO-STORE-ACCESS-TOKENS-OUTSIDE-AND-STILL-GET-THEM-IN-HERE"
+		access_token = os.environ['FB_ACCESS_TOKEN']
 		
 		
 		current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -76,7 +75,7 @@ class FetchFbPostPerformance(luigi.Task):
 		performances = []
 		
 		df = pd.read_csv(self.input().path)
-		#df = df.filter(["id"])
+
 		for index in df.index:
 			post_id = df['id'][index]
 			print(f"### Facebook - loading performance data for post {str(post_id)} ###")
@@ -92,7 +91,7 @@ class FetchFbPostPerformance(luigi.Task):
 			post_perf["post_id"] = post_id
 			post_perf["time_stamp"] = current_timestamp
 			
-			#Reactions
+			# Reactions
 			reactions = response_content['data'][0]['values'][0]['value']
 			post_perf["react_like"] = int(reactions.get('like', 0))
 			post_perf["react_love"] = int(reactions.get('love', 0))
@@ -101,19 +100,19 @@ class FetchFbPostPerformance(luigi.Task):
 			post_perf["react_sorry"] = int(reactions.get('sorry', 0))
 			post_perf["react_anger"] = int(reactions.get('anger', 0))
 			
-			#Activity
+			# Activity
 			activity = response_content['data'][1]['values'][0]['value']
 			post_perf["likes"] = int(activity.get('like', 0))
 			post_perf["shares"] = int(activity.get('share', 0))
 			post_perf["comments"] = int(activity.get('comment', 0))
 
-			#Clicks
+			# Clicks
 			clicks = response_content['data'][2]['values'][0]['value']
 			post_perf["video_clicks"] = int(clicks.get('video play', 0))
 			post_perf["link_clicks"] = int(clicks.get('link clicks', 0))
 			post_perf["other_clicks"] = int(clicks.get('other clicks', 0))
 			
-			#negative feedback (only one field)
+			# negative feedback (only one field)
 			post_perf["negative_feedback"] = clicks = response_content['data'][3]['values'][0]['value']
 			
 			performances.append(post_perf)
@@ -163,3 +162,4 @@ class FbPostPerformanceToDB(CsvToDb):
 	
 	def requires(self):
 		return FetchFbPostPerformance()
+
