@@ -1,8 +1,9 @@
+import os
 import yaml
 import luigi
 
 
-def set_db_connection_options(task: luigi.Task, db_config: str = "./db_config.yaml") -> None:
+def set_db_connection_options(task: luigi.Task, db_config: str = None) -> None:
 	""" 
 	Set the attributes host, database, user, and password to
 	the values given in the db_config file for the given task.
@@ -30,6 +31,10 @@ def set_db_connection_options(task: luigi.Task, db_config: str = "./db_config.ya
 				...
 	"""
 	
+	if db_config is None:
+		db_config = './db_config.yaml'
+		if not os.path.isfile(db_config):
+			db_config = './db_config_default.yaml'
 	db_config_options = yaml.load(open(db_config))
 
 	task.host 	  = db_config_options["host"]

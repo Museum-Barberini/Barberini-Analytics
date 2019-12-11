@@ -9,8 +9,7 @@ build-luigi:
 	docker build -t luigi .
 
 startup:
-	#bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
-	docker-compose up --build -d
+	bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
 
 shutdown:
 	docker-compose down && docker-compose rm
@@ -29,10 +28,10 @@ luigi:
 luigi-task:
 	mkdir -p output
 	#bash -c "PYTHONPATH=\"./src$(find ../src/ -type d < sed '/\/\./d' | tr '\n' ':' | sed 's/:$//')\" luigi --module $(LMODULE) $(LTASK)"
-	PYTHONPATH="./src:./src/_utils" luigi --module $(LMODULE) $(LTASK)
+	PYTHONPATH="${PYTHONPATH}:./src:./src/_utils" luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
-	rm -r output
+	rm -rf output
 
 psql:
 	sudo -u postgres psql
