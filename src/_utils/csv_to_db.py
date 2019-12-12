@@ -37,11 +37,6 @@ class CsvToDb(CopyToTable):
 		cursor.copy_expert(query, file)
 	
 	def rows(self):
-		rows = super().rows()
-		next(rows) # skip csv header
-		return rows
-	
-	def csv_rows(self):
 		with self.input().open('r') as csvfile:
 			reader = csv.reader(csvfile)
 			next(reader) # skip header

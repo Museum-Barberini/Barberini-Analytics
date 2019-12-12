@@ -32,7 +32,7 @@ class BookingsToDB(CsvToDb):
 	primary_key = 'id'
 
 	def rows(self):
-		for row in super().csv_rows():
+		for row in super().rows():
 			b_id = int(float(row[0]))
 
 			## TODO: cross reference customer data to find out booker_id

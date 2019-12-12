@@ -27,7 +27,7 @@ class CustomersToDB(CsvToDb):
 	primary_key = 'id'
 	
 	def rows(self):
-		for row in super().csv_rows():
+		for row in super().rows():
 			# Hash key: E-Mail address
 			c_id = mmh3.hash(row[4], self.seed, signed=True)
 
