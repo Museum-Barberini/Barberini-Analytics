@@ -24,6 +24,8 @@ class CustomersToDB(CsvToDb):
 		('annual_ticket', 'BOOL')
 	]
 	
+	primary_key = 'id'
+	
 	def rows(self):
 		for row in super().csv_rows():
 			# Hash key: E-Mail address
