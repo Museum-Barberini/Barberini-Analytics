@@ -1,0 +1,55 @@
+#####################
+# Suspicious
+# (likely to be mitigated later)
+#####################
+cred
+access
+authori[sz]
+secret
+
+#####################
+# Google stuff
+#####################
+client_secrets
+
+#####################
+# Private RSA SSH keys
+#####################
+/ssh/id_rsa
+/.ssh/personal_rsa
+/config/server_rsa
+id_rsa
+.id_rsa
+
+#####################
+# Private DSA SSH keys
+#####################
+/ssh/id_dsa
+/.ssh/personal_dsa
+/config/server_dsa
+id_dsa
+.id_dsa
+
+#####################
+# Private ed25519 SSH keys
+#####################
+/ssh/id_ed25519
+/.ssh/personal_ed25519
+/config/server_ed25519
+id_ed25519
+.id_ed25519
+
+#####################
+# Private ECDSA SSH keys
+#####################
+/ssh/id_ecdsa
+/.ssh/personal_ecdsa
+/config/server_ecdsa
+id_ecdsa
+.id_ecdsa
+
+#####################
+# Any file with .pem or .key extensions
+#####################
+*.pem
+*.key
