@@ -134,6 +134,8 @@ class FbPostsToDB(CsvToDb):
 		("id", "TEXT")
 	]
 	
+	primary_key = 'id'
+
 	def requires(self):
 		return FetchFbPosts()
  
@@ -159,6 +161,8 @@ class FbPostPerformanceToDB(CsvToDb):
 		("other_clicks", "INT"),
 		("negative_feedback", "INT")
 	]
+
+	primary_key = 'post_id', 'time_stamp'
 	
 	def requires(self):
 		return FetchFbPostPerformance()
