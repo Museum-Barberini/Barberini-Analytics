@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import luigi
 from luigi.format import UTF8
-from gomus.fetch_gomus import request_report, csv_from_excel, report_ids
+from fetch_gomus import request_report, csv_from_excel, report_ids
 import os
 import time
 

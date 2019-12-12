@@ -1,5 +1,5 @@
 import luigi
-from .gtrends_topics_json import GTrendsTopicsJson
+from gtrends_topics_json import GTrendsTopicsJson
 from json_to_csv_task import JsonToCsvTask
 from csv_to_db import CsvToDb
 

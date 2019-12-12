@@ -1,11 +1,11 @@
 import luigi
-from twitter.twitter import TweetsToDB, TweetPerformanceToDB
-from google_trends.gtrends_interest_table import GtrendsInterestToDB
-from google_trends.gtrends_topics_table import GtrendsTopicsToDB
-from apple_appstore.fetch_apple_app_reviews import AppstoreReviewsToDB
-from facebook.facebook import FbPostsToDB, FbPostPerformanceToDB
-from gomus.customers_to_db import CustomersToDB
-from gomus.bookings_to_db import BookingsToDB
+from twitter import TweetsToDB, TweetPerformanceToDB
+from gtrends_interest_table import GtrendsInterestToDB
+from gtrends_topics_table import GtrendsTopicsToDB
+from fetch_apple_app_reviews import AppstoreReviewsToDB
+from facebook import FbPostsToDB, FbPostPerformanceToDB
+from customers_to_db import CustomersToDB
+from bookings_to_db import BookingsToDB
 
 class FillDB(luigi.WrapperTask):
 

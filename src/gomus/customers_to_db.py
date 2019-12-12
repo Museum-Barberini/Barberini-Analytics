@@ -4,7 +4,7 @@ import mmh3
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from gomus.gomus_report import FetchGomusReport
+from gomus_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
