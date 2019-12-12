@@ -2,15 +2,15 @@
 # Suspicious
 # (likely to be mitigated later)
 #####################
-cred
-access
-authori[sz]
-secret
+*cred*
+*access*
+*authori*
+*secret*
 
 #####################
 # Google stuff
 #####################
-client_secrets
+*client_secrets*
 
 #####################
 # Private RSA SSH keys
