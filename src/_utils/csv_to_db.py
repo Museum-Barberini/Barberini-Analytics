@@ -40,10 +40,9 @@ class CsvToDb(CopyToTable):
         def copy(self, cursor, file):
                 query = self.load_sql_script('copy', self.table, ','.join(
                         [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
-                # LATEST TODO: Only run gomus to find out why it fails.
-                # The bug we originally wanted to analyze was that it tried to write a whole row into the first column.
                 cursor.copy_expert(query, file)
         
+		# LATEST DODO: Add interface for gomus tasks to operate with unescaped data
         def rows(self):
                 rows = super().rows()
                 next(rows)
