@@ -34,38 +34,38 @@ class BookingsToDB(CsvToDb):
 	def rows(self):
 		for row in super().rows():
 			b_id = int(float(row[0]))
-
+			
 			## TODO: cross reference customer data to find out booker_id
 			booker_id = mmh3.hash(row[13], self.seed, signed=True)
-
+			
 			category = row[8]
 			participants = int(float(row[10]))
-
+			
 			# TODO: export guide data and find out guide_id from name
-
+			
 			date = datetime.strptime(row[1], '%d.%m.%Y').date()
-
+			
 			# TODO: scrape gomus frontend for order_date
-
+			
 			time_string = '%H:%M'
 			start_time = datetime.strptime(row[2], time_string)
 			end_time = datetime.strptime(row[3], time_string)
-
+			
 			daytime = start_time.time()
-
+			
 			duration = (end_time - start_time).seconds // 60
-
+			
 			# TODO: scrape gomus frontend for language
-
+			
 			exhibition = row[5]
 			title = row[9]
 			status = row[20]
-
+			
 			ret = [b_id, booker_id, category, participants, date, daytime, duration, exhibition, title, status]
 			for i in range(len(ret)):
 				if isinstance(ret[i], str):
 					ret[i] = '"' + ret[i] + '"'
-				
+			
 			yield ret
 
 	def requires(self):
