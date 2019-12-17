@@ -21,7 +21,7 @@ import xlrd
 # Data sheets that don't require a report to be generated or refreshed have ids <= 0
 # key format: 'type_timespan' (e.g. 'customers_7days')
 report_ids = {
-	'customers_7days': 1186,
+	'customers_7days': 1226,
 	'orders_7days': 1188,
 	'bookings_7days': 0,
 	
@@ -61,7 +61,7 @@ def direct_download_url(base_url, report, timespan):
 	if not no_time:
 		end_time = end_time.strftime("%Y-%m-%d")
 		start_time = start_time.strftime("%Y-%m-%d")
-		print(f"Requesting report for timespan from {start_time} to {end_time}"")
+		print(f"Requesting report for timespan from {start_time} to {end_time}")
 		return base_return + f'?end_at={end_time}&start_at={start_time}'
 	
 	return base_return
