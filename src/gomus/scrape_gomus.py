@@ -8,6 +8,9 @@ import csv
 import dateparser
 import datetime as dt
 import time
+from set_db_connection_options import set_db_connection_options
+import psycopg2
+
 
 class ScrapeGomusBookings(luigi.Task):
 	
@@ -19,6 +22,11 @@ class ScrapeGomusBookings(luigi.Task):
 
 	sess_id = os.environ['GOMUS_SESS_ID']
 	cookies = dict(_session_id=sess_id)
+
+	host     = None
+	database = None
+	user     = None
+	password = None
 
 	# simply wait for a moment before requesting, as we don't want to overwhealm the server with our interest in classified information...
 	def politeGet(self, url, cookies):
@@ -36,6 +44,7 @@ class ScrapeGomusBookings(luigi.Task):
 
 	# returns url-appendment for next page if one exists
 	def fetch_page_of_bookings(self, url, output_buffer):
+		print("Requesting: " + url)
 		res_bookings = self.politeGet(url, cookies=self.cookies)
 
 		if not res_bookings.status_code == 200:
@@ -82,7 +91,24 @@ class ScrapeGomusBookings(luigi.Task):
 
 
 	def getLatestOrderDateFromDB(self):
-		return dt.date.today() # TODO: query DB for latest order date; make sure to consider the case where the DB is empty
+		#return dt.date.today()
+		alternate_date = '2016-08-01'
+		
+		try:
+			conn = psycopg2.connect(
+				host=self.host, database=self.database,
+				user=self.user, password=self.password
+			)
+			cur = conn.cursor()
+			cur.execute(f"SELECT MAX(order_date) FROM gomus_bookings") # TODO: use order_date instead of date!
+			return cur.fetchone()[0] or alternate_date
+			conn.close()
+		
+		except psycopg2.DatabaseError as error:
+			print(error)
+			if conn is not None:
+				conn.close()
+			return alternate_date
 
 
 	def output(self):
@@ -90,6 +116,7 @@ class ScrapeGomusBookings(luigi.Task):
 
 
 	def run(self):
+		set_db_connection_options(self)
 		booking_data = []
 
 		startDateStr = self.getLatestOrderDateFromDB()
