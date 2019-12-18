@@ -6,6 +6,7 @@ from lxml import html
 import pandas as pd
 import csv
 import dateparser
+import datetime as dt
 
 class ScrapeGomusBookings(luigi.Task):
 	
@@ -13,7 +14,7 @@ class ScrapeGomusBookings(luigi.Task):
 	base_url = "https://barberini.gomus.de"
 
 	# this URL filters for non-stornierte Bookings
-	url_appendment = "/bookings?end_at=2020-01-01&start_at=2019-12-18"
+	
 
 	sess_id = os.environ['GOMUS_SESS_ID']
 	cookies = dict(_session_id=sess_id)
@@ -74,6 +75,10 @@ class ScrapeGomusBookings(luigi.Task):
 			return None
 
 
+	def getLatestOrderDateFromDB(self):
+		return dt.date.today() # TODO: query DB for latest order date
+
+
 	def output(self):
 		return luigi.LocalTarget('output/gomus/scraped_bookings.csv', format=UTF8)
 
@@ -81,7 +86,12 @@ class ScrapeGomusBookings(luigi.Task):
 	def run(self):
 		booking_data = []
 
-		next_page_appendment = self.fetch_page_of_bookings(self.base_url + self.url_appendment, booking_data)
+		startDateStr = self.getLatestOrderDateFromDB()
+		endDateStr = dt.date.today() + dt.timedelta(weeks=12)
+
+		url_appendment = f"/bookings?end_at={endDateStr}&start_at={startDateStr}"
+
+		next_page_appendment = self.fetch_page_of_bookings(self.base_url + url_appendment, booking_data)
 		while (next_page_appendment != None):
 			next_page_appendment = self.fetch_page_of_bookings(self.base_url + next_page_appendment, booking_data)
 
