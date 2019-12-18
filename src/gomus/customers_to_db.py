@@ -4,7 +4,7 @@ import mmh3
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from gomus.gomus_report import FetchGomusReport
+from gomus_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
@@ -27,7 +27,7 @@ class CustomersToDB(CsvToDb):
 	primary_key = 'id'
 	
 	def rows(self):
-		for row in super().csv_rows():
+		for row in super().rows():
 			# Hash key: E-Mail address
 			c_id = mmh3.hash(row[4], self.seed, signed=True)
 
