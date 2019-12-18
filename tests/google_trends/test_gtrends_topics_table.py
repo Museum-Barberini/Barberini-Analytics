@@ -1,24 +1,42 @@
 import unittest
 from unittest.mock import MagicMock
-import unittest.mock as mock
+from unittest.mock import *
 from google_trends.gtrends_topics_table import *
 import pandas as pd
-import requests
+import io
 
 
-def mocked_getJson():
-	return {
-		1: "one",
-		2: "two"
-	}
+class TaskMock:
+	def __init__(self, task):
+		self.__init__()
+		self.task = task
+	
+	def input(self):
+		return [path.replace('output/', 'tests/') for path in task.input()]
 
 class TestGtrendsTopicsTable(unittest.TestCase):
+	#def setup(self):
+	#	super().setup()
+	task = GTrendsTopicsTable()
+	task.complete = lambda: True
+	# LATEST TODO: Change task to use our "wrap-mocking" TaskMock.input()
+	# This might help: https://stackoverflow.com/questions/30336828/is-there-a-way-to-access-the-original-function-in-a-mocked-method-function-such
+	# And write the json into the file.
 	
-	@mock.patch('gtrends_topics_table.GTrendsTopicsTable.getJson',
-		side_effect = mocked_getJson)
-	def test_getJson(self, mock):
+	@patch.object(JsonToCsvTask, 'input', io.BytesIO(b'''{
+			1: "one",
+			2: "two"
+		}'''))
+	def test_getJson(self):
+		#mock.getJson = 'anunexecutable'
+		#lambda: {
+		#	1: "one",
+		#	2: "two"
+		#}
+		
 		task = GTrendsTopicsTable()
 		actual = task.getJson()
+		
 		expected = [
 			{'topic_id': 1, 'name': "one"},
 			{'topic_id': 2, 'name': "two"}
