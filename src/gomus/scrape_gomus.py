@@ -7,6 +7,7 @@ import pandas as pd
 import csv
 import dateparser
 import datetime as dt
+import time
 
 class ScrapeGomusBookings(luigi.Task):
 	
@@ -19,7 +20,12 @@ class ScrapeGomusBookings(luigi.Task):
 	sess_id = os.environ['GOMUS_SESS_ID']
 	cookies = dict(_session_id=sess_id)
 
-	
+	# simply wait for a moment before requesting, as we don't want to overwhealm the server with our interest in classified information...
+	def politeGet(self, url, cookies):
+		time.sleep(0.5)
+		return requests.get(url, cookies=cookies)
+
+
 
 	def extract_from_html(self, base_html, xpath):
 		try:
@@ -30,7 +36,7 @@ class ScrapeGomusBookings(luigi.Task):
 
 	# returns url-appendment for next page if one exists
 	def fetch_page_of_bookings(self, url, output_buffer):
-		res_bookings = requests.get(url, cookies=self.cookies)
+		res_bookings = self.politeGet(url, cookies=self.cookies)
 
 		if not res_bookings.status_code == 200:
 			print(f'Error with HTTP request: Status code {res_bookings.status_code}')
@@ -49,7 +55,7 @@ class ScrapeGomusBookings(luigi.Task):
 
 
 				booking_url = "https://barberini.gomus.de/admin/bookings/" + str(booking_id)
-				res_details = requests.get(booking_url, cookies=self.cookies)
+				res_details = self.politeGet(booking_url, cookies=self.cookies)
 
 				tree_details = html.fromstring(res_details.text)
 				
@@ -76,7 +82,7 @@ class ScrapeGomusBookings(luigi.Task):
 
 
 	def getLatestOrderDateFromDB(self):
-		return dt.date.today() # TODO: query DB for latest order date
+		return dt.date.today() # TODO: query DB for latest order date; make sure to consider the case where the DB is empty
 
 
 	def output(self):
