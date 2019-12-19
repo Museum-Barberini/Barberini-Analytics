@@ -41,6 +41,6 @@ psql:
 
 # misc
 
-test:
+test: luigi-clean
 	mkdir -p output && cp -r tests_fake_output/. output
 	PYTHONPATH=$(TOTALPYPATH) python3 -m unittest $$(find tests/ -name *.py) -v
