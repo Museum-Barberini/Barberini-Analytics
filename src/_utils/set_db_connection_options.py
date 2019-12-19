@@ -35,7 +35,8 @@ def set_db_connection_options(task: luigi.Task, db_config: str = None) -> None:
 		db_config = './db_config.yaml'
 		if not os.path.isfile(db_config):
 			db_config = './db_config_default.yaml'
-	db_config_options = yaml.load(open(db_config))
+	with open(db_config) as config_file:
+		db_config_options = yaml.load(config_file)
 
 	task.host 	  = db_config_options["host"]
 	task.database = db_config_options["database"]
