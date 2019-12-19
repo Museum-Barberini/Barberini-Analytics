@@ -1,4 +1,4 @@
-host:           host.docker.internal
+host:           db 
 database:       barberini
 user:           postgres
 password:       docker
