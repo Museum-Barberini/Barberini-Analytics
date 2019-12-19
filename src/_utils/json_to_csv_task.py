@@ -16,4 +16,5 @@ class JsonToCsvTask(luigi.Task):
 				csvwriter.writerow(json_row.values())
 	
 	def getJson(self):
-		return json.loads(self.input().open('r').read())
+		with self.input().open('r') as json_file:
+			return json.loads(json_file.read())
