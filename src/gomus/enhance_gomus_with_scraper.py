@@ -2,7 +2,7 @@ import luigi
 from luigi.format import UTF8
 import pandas as pd
 import csv
-from gomus_report import FetchGomusReport
+from extract_gomus_data import ExtractGomusBookings
 from scrape_gomus import ScrapeGomusBookings
 
 
@@ -10,7 +10,7 @@ class EnhanceBookingsWithScraper(luigi.Task):
 
 	def requires(self):
 		return [
-			FetchGomusReport(report='bookings'),
+			ExtractGomusBookings(),
 			ScrapeGomusBookings()
 		]
 
