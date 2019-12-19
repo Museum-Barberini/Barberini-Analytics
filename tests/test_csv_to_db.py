@@ -23,6 +23,18 @@ from unittest.mock import patch
 from src._utils.csv_to_db import CsvToDb
 
 
+# ------ CREATE DATABASE IF NECESSARY -------
+try:
+    conn = psycopg2.connect(host="db", user="postgres", password="docker")
+    conn.autocommit = True
+    cur = conn.cursor()
+    cur.execute("CREATE DATABASE barberini_test;")
+except:
+    pass
+finally:
+    cur.close()
+    conn.close()
+
 # ------ DEFINE HELPERS -------
 
 # Initialize test and write it to a csv file
@@ -31,7 +43,6 @@ expected_data_csv = "id,A,B,C\n1,2,abc,\"xy,\"\"z\"\n2,10,\"678\",\",,;abc\"\n"
 tmp_csv_file = tempfile.NamedTemporaryFile()
 with open(tmp_csv_file.name, "w") as fp:
     fp.write(expected_data_csv)
-
 
 class DummyFileWrapper(luigi.Task):
     def output(self):
@@ -56,7 +67,7 @@ class DummyWriteCsvToDb(CsvToDb):
     ]
     primary_key = "id"
 
-    host = "host.docker.internal"
+    host = "db"
     database = "barberini_test"
     user = "postgres"
     password = "docker"
@@ -79,7 +90,7 @@ class TestCsvToDb(unittest.TestCase):
 
         self.table_name = get_temp_table()
         self.dummy = DummyWriteCsvToDb(self.table_name)
-        self.connection = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
+        self.connection = psycopg2.connect(host="db", dbname="barberini_test",
                                     user="postgres", password="docker")
 
         # Store mock object to make assertions about it later on
