@@ -35,7 +35,7 @@ class BookingsToDB(CsvToDb):
 		for row in super().csv_rows():
 			b_id = int(float(row[0]))
 
-			booker_id = hash_booker_id(row[12], row[13], self.seed)
+			booker_id = hash_booker_id(row[13], self.seed)
 
 			category = row[8]
 			participants = int(float(row[10]))
@@ -74,7 +74,7 @@ class BookingsToDB(CsvToDb):
 
 	def requires(self):
 		return FetchGomusReport(report='bookings')
-	
+"""
 def hash_booker_id(name, email, seed):
 	name = name.lower().replace('dr.', '')
 	if len(name) > 4 and (name[:5] == "herr " or name[:5] == "frau "):
@@ -84,3 +84,7 @@ def hash_booker_id(name, email, seed):
 
 	if hash_key == '': return 0
 	return mmh3.hash(hash_key, seed, signed=True)
+"""
+def hash_booker_id(email, seed):
+	if email == '': return 0
+	return mmh3.hash(email, seed, signed=True)
