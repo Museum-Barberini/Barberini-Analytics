@@ -1,15 +1,13 @@
 from google_trends.gtrends_topics_table import *
-import pandas as pd
-import io
 import task_test.TaskTest
 
 class TestGtrendsTopicsTable(TaskTest):
 	def __init__(self, methodName):
 		super().__init__(methodName)
-		task = self.isolate(GTrendsTopicsTable())
+		self.task = self.isolate(GTrendsTopicsTable())
 	
 	def test_getJson(self):
-		task = GTrendsTopicsTable()
+		self.task = GTrendsTopicsTable()
 		actual = task.getJson()
 		
 		expected = [
