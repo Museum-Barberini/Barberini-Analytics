@@ -14,7 +14,7 @@ class FetchGomusReport(luigi.Task):
 		self.report_name = self.report + self.suffix
 	
 	def output(self):
-		return luigi.LocalTarget(f'output/{self.report_name}.csv', format=UTF8)
+		return luigi.LocalTarget(f'output/gomus/{self.report_name}.csv', format=UTF8)
 	
 	def run(self):
 		sess_id = os.environ['GOMUS_SESS_ID']
