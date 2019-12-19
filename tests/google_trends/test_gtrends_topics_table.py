@@ -1,17 +1,12 @@
-import unittest
 from google_trends.gtrends_topics_table import *
 import pandas as pd
 import io
+import task_test.TaskTest
 
-# DOCUMENTATION: This is a very big 💩💩💩
-# Don't like it, don't keep it, if you can.
-# This should be very easy by using unittest.mock the right way, but I failed ...
-# I also failed at manually modifying the object's dicts.
-# So the current solution just creates output files instead of mocking anything.
-
-class TestGtrendsTopicsTable(unittest.TestCase):
-	task = GTrendsTopicsTable()
-	task.complete = lambda: True
+class TestGtrendsTopicsTable(TaskTest):
+	def __init__(self, methodName):
+		super().__init__(methodName)
+		task = self.isolate(GTrendsTopicsTable())
 	
 	def test_getJson(self):
 		task = GTrendsTopicsTable()
