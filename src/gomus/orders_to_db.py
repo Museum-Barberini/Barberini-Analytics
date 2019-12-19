@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import luigi
 import psycopg2
 
 from csv_to_db import CsvToDb
@@ -42,7 +43,10 @@ class OrdersToDB(CsvToDb):
 					if customer_row is not None:
 						customer_id = customer_row[0]
 					else:
-						print("Error: Customer ID not found in Database")
+						pass
+						#print("Error: Customer ID not found in Database")
+						# This happens often atm, because only customers
+						# who registered during the last 7 days are known
 				except psycopg2.DatabaseError as error:
 					print(error)
 					exit(1)
@@ -60,8 +64,13 @@ class OrdersToDB(CsvToDb):
 
 			origin = '"' + row[11] + '"'
 
-						
+			yield o_id, order_date, customer_id, valid, paid, origin						
+
+	def _requires(self):
+		return luigi.task.flatten([
+			CustomersToDB(),
+			super()._requires()
+		])
 
 	def requires(self):
-		yield CustomersToDB()
-		yield FetchGomusReport(report='orders')
+		return FetchGomusReport(report='orders')
