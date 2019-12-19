@@ -139,3 +139,49 @@ class TestCsvToDb(unittest.TestCase):
         cur.execute(f"DROP TABLE {table_name};")
         cur.close()
         con.close()
+
+    @patch("src._utils.csv_to_db.set_db_connection_options")
+    def test_no_duplicates_are_inserted(self, mock):
+
+        # ----- Set up -----
+
+        table_name = get_temp_table()
+        dummy = DummyWriteCsvToDb(table_name)
+
+        con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
+                               user="postgres", password="docker")
+        cur = con.cursor()
+        cur.execute(f"CREATE TABLE {table_name} (id int, A int, B text, C text);")
+        cur.execute(f"""
+            ALTER TABLE {table_name} 
+                ADD CONSTRAINT {table_name}_the_primary_key_constraint PRIMARY KEY (id);
+        """)
+        cur.execute(f"INSERT INTO {table_name} VALUES (1, 2, 'abc', 'xy,\"z');")
+        cur.close()
+        con.commit()
+
+        # ----- Execute code under test ----
+ 
+        dummy.run()
+ 
+        # ----- Inspect result ------
+        mock.assert_called_once()
+
+        con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
+                               user="postgres", password="docker")
+        cur = con.cursor()
+        cur.execute(f"select * from {table_name};")
+        actual_data = cur.fetchall()
+        cur.close()
+
+        self.assertEqual(actual_data, expected_data)
+
+
+        # ----- Delete the temporary table (if the test was successful) -------
+
+        con.set_isolation_level(0)
+        cur = con.cursor()
+        cur.execute(f"DROP TABLE {table_name};")
+        cur.close()
+        con.close()
+
