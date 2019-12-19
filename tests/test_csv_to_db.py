@@ -1,3 +1,16 @@
+""" 
+IMPORTANT: 
+To be able to run the tests in this module you need to have a
+postgres database server running. It needs to contain a 
+database 'barberini_test'.
+
+The following parameters are used to connect to the database:
+    host = "host.docker.internal"
+    database = "barberini_test"
+    user = "postgres"
+    password = "docker"
+"""
+
 import unittest
 import psycopg2
 import luigi
@@ -12,15 +25,18 @@ from src._utils.csv_to_db import CsvToDb
 
 # ------ DEFINE HELPERS -------
 
+# Initialize test and write it to a csv file
 expected_data = [(1, 2, "abc", "xy,\"z"), (2, 10, "678", ",,;abc")]
 expected_data_csv = "id,A,B,C\n1,2,abc,\"xy,\"\"z\"\n2,10,\"678\",\",,;abc\"\n"
 tmp_csv_file = tempfile.NamedTemporaryFile()
 with open(tmp_csv_file.name, "w") as fp:
     fp.write(expected_data_csv)
 
+
 class DummyFileWrapper(luigi.Task):
     def output(self):
         return luigi.LocalTarget(tmp_csv_file.name)
+
 
 class DummyWriteCsvToDb(CsvToDb):
 
@@ -57,11 +73,6 @@ def get_temp_table():
 # -------- TESTS START HERE -------
 
 class TestCsvToDb(unittest.TestCase):
-    """ IMPORTANT: to be able to run this test you need to have a
-            database barberini_test running"""
-
-    # To test (by implementing subclasses):
-    # - column types are set as defined in the subclass
 
     @patch("src._utils.csv_to_db.set_db_connection_options")
     def setUp(self, mock):
@@ -76,8 +87,7 @@ class TestCsvToDb(unittest.TestCase):
 
     def tearDown(self):
 
-        self.mock_set_db_conn_options.assert_called_once()
-
+        self.mock_set_db_conn_options.assert_called_once() 
         # Delete temporary table used by test and close db connection
         self.connection.set_isolation_level(0)
         cur = self.connection.cursor()
