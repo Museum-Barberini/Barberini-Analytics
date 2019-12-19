@@ -18,6 +18,9 @@ class TestGtrendsTopicsTable(TaskTest):
 		]
 		self.assertEqual(actual, expected)
 
+class TestGtrendsTopicsToDB(TaskTest):
+	def test_topicsToDB(self):
+		GtrendsTopicsToDB() # shouldnt raise
 
 if __name__ == '__main__':
 	unittest.main()
