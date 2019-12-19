@@ -9,7 +9,7 @@ import time
 class FetchGomusReport(luigi.Task):
 	report = luigi.parameter.Parameter(description="The report name (e.g. \'bookings\')")
 	suffix = luigi.parameter.OptionalParameter(default='_7days', description="The report suffix (default: \'_7days\')")
-	sheet_index = luigi.parameter.OptionalParameter(default=0, description="Page no. of the Excel sheet")
+	sheet_index = luigi.parameter.IntParameter(default=0, description="Page no. of the Excel sheet")
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -31,8 +31,8 @@ class FetchGomusReport(luigi.Task):
 			csv_from_excel(res_content, target_csv, self.sheet_index)
 
 class FetchTourReservations(luigi.Task):
-	booking_id = luigi.parameter.Parameter(description="The booking's index")
-	status = luigi.parameter.OptionalParameter(description="ID of stats (0 = booked, 2 = cancelled) (default: 0)", default=0)
+	booking_id = luigi.parameter.IntParameter(description="The booking's index")
+	status = luigi.parameter.IntParameter(description="ID of stats (0 = booked, 2 = cancelled) (default: 0)", default=0)
 
 	def output(self):
 		return luigi.LocalTarget(f'output/reservations_{self.booking_id}.{self.status}.csv', format=UTF8)
@@ -42,5 +42,3 @@ class FetchTourReservations(luigi.Task):
 		res_content = requests.get(url, cookies=dict(_session_id=os.environ['GOMUS_SESS_ID'])).content
 		with self.output().open('w') as target_csv:
 			csv_from_excel(res_content, target_csv, self.status)
-
-			# TODO: concatenate sheets 0 and 2, include status, put into DB (other task)
