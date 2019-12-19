@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import luigi
 from luigi.format import UTF8
-from gomus.fetch_gomus import request_report, csv_from_excel, report_ids
+from fetch_gomus import request_report, csv_from_excel, report_ids
 import os
 import requests
 import time
@@ -14,7 +14,7 @@ class FetchGomusReport(luigi.Task):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.report_name = self.report + self.suffix
-
+	
 	def output(self):
 		return luigi.LocalTarget(f'output/{self.report_name}.{self.sheet_index}.csv', format=UTF8)
 
@@ -23,7 +23,7 @@ class FetchGomusReport(luigi.Task):
 		"""
 		if report_ids[f'{self.report_name}'] > 0: # report refreshable
 			request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', 'refresh'])
-			print('Waiting 60 seconds for the report to refresh')
+			print("Waiting 60 seconds for the report to refresh")
 			time.sleep(60)
 		"""
 		res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-I', f'{self.sheet_index}', '-l'])

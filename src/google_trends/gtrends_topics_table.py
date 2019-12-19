@@ -1,5 +1,5 @@
 import luigi
-from .gtrends_topics_json import GTrendsTopicsJson
+from gtrends_topics_json import GTrendsTopicsJson
 from json_to_csv_task import JsonToCsvTask
 from csv_to_db import CsvToDb
 
@@ -22,6 +22,8 @@ class GtrendsTopicsToDB(CsvToDb):
         ("topic_id", "TEXT"),
         ("name", "TEXT"),
     ]
+    
+    primary_key = "topic_id"
 
     def requires(self):
         return GTrendsTopicsTable()

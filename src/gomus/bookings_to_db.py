@@ -6,8 +6,8 @@ import mmh3
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from gomus.fetch_gomus import request_report, csv_from_excel
-from gomus.gomus_report import FetchGomusReport
+from fetch_gomus import request_report, csv_from_excel
+from gomus_report import FetchGomusReport
 	
 class BookingsToDB(CsvToDb):
 
@@ -28,9 +28,11 @@ class BookingsToDB(CsvToDb):
 		('title', 'TEXT'),
 		('status', 'TEXT')
 	]
+	
+	primary_key = 'id'
 
 	def rows(self):
-		for row in super().csv_rows():
+		for row in super().rows():
 			b_id = int(float(row[0]))
 
 			booker_id = hash_booker_id(row[12], row[13], self.seed)
@@ -46,19 +48,19 @@ class BookingsToDB(CsvToDb):
 				guide_id = mmh3.hash(guide, self.seed, signed=True)
 
 			date = datetime.strptime(row[1], '%d.%m.%Y').date()
-
+			
 			# TODO: scrape gomus frontend for order_date
-
+			
 			time_string = '%H:%M'
 			start_time = datetime.strptime(row[2], time_string)
 			end_time = datetime.strptime(row[3], time_string)
-
+			
 			daytime = start_time.time()
-
+			
 			duration = (end_time - start_time).seconds // 60
-
+			
 			# TODO: scrape gomus frontend for language
-
+			
 			exhibition = row[5]
 			title = row[9]
 			status = row[20]
@@ -67,7 +69,7 @@ class BookingsToDB(CsvToDb):
 			for i in range(len(ret)):
 				if isinstance(ret[i], str):
 					ret[i] = '"' + ret[i] + '"'
-				
+			
 			yield ret
 
 	def requires(self):
