@@ -11,14 +11,14 @@ from enhance_gomus_with_scraper import EnhanceBookingsWithScraper
 	
 class BookingsToDB(CsvToDb):
 
-	table = 'gomus_bookings'
+	table = 'gomus_booking'
 
 	columns = [
 		('id', 'INT'),
 		('booker_id', 'INT'),
 		('category', 'TEXT'),
 		('participants', 'INT'),
-		#('guide_id', 'INT'),
+		('guide_id', 'INT'),
 		('date', 'DATE'),
 		('daytime', 'TIME'),
 		('duration', 'INT'), # in minutes
@@ -32,17 +32,21 @@ class BookingsToDB(CsvToDb):
 	primary_key = 'id'
 
 	def rows(self):
-		for row in super().rows():
+		for row in super().csv_rows():
 			b_id = int(float(row[0]))
-			
-			## TODO: cross reference customer data to find out booker_id
-			booker_id = mmh3.hash(row[13], self.seed, signed=True)
-			
+
+			booker_id = hash_booker_id(row[12], row[13], self.seed)
+
 			category = row[8]
 			participants = int(float(row[10]))
-			
-			# TODO: export guide data and find out guide_id from name
-			
+
+			guides = row[11].lower().replace(' ', '').split(',')
+			guide = guides[0]
+			if guide == '':
+				guide_id = 0 # 0 represents empty value
+			else:
+				guide_id = mmh3.hash(guide, self.seed, signed=True)
+
 			date = datetime.strptime(row[1], '%d.%m.%Y').date()
 			
 			# TODO: scrape gomus frontend for order_date
@@ -60,8 +64,8 @@ class BookingsToDB(CsvToDb):
 			exhibition = row[5]
 			title = row[9]
 			status = row[20]
-			
-			ret = [b_id, booker_id, category, participants, date, daytime, duration, exhibition, title, status]
+
+			ret = [b_id, booker_id, category, participants, guide_id, date, daytime, duration, exhibition, title, status]
 			for i in range(len(ret)):
 				if isinstance(ret[i], str):
 					ret[i] = '"' + ret[i] + '"'
@@ -69,4 +73,14 @@ class BookingsToDB(CsvToDb):
 			yield ret
 
 	def requires(self):
-		return EnhanceBookingsWithScraper()
+		return FetchGomusReport(report='bookings')
+	
+def hash_booker_id(name, email, seed):
+	name = name.lower().replace('dr.', '')
+	if len(name) > 4 and (name[:5] == "herr " or name[:5] == "frau "):
+		name = name[5:]
+	name = name.replace(' ', '')
+	hash_key = name + email
+
+	if hash_key == '': return 0
+	return mmh3.hash(hash_key, seed, signed=True)

@@ -24,7 +24,9 @@ report_ids = {
 	'customers_7days': 1226,
 	'orders_7days': 1188,
 	'bookings_7days': 0,
-	
+
+	'bookings_1month': -3,
+
 	'bookings_1year': -1,
 	
 	'guides': -2
@@ -33,17 +35,19 @@ report_ids = {
 def parse_arguments(args):
 	parser = argparse.ArgumentParser(description="Refresh and fetch reports from go~mus")
 	report_group = parser.add_mutually_exclusive_group(required=True)
-	
-	report_group.add_argument('-i', '--report-id', type=int, help="ID of the report", choices=report_ids.values())
-	report_group.add_argument('-t', '--report-type', type=str, help="Type of the report", choices=report_ids.keys())
-	
-	parser.add_argument('action', type=str, help="Action to take", choices=['refresh', 'fetch'], nargs='?', default='fetch')
-	parser.add_argument('-s', '--session-id', type=str, help="Session ID to use for authentication", required=True)
-	
-	parser.add_argument('-o', '--output-file', type=str, help="Name of Output file (for fetching)")
-	
-	parser.add_argument('-l', '--luigi', help="Set true if run as part of a Luigi task", action='store_true')
-	
+
+	report_group.add_argument('-i', '--report-id', type=int, help='ID of the report', choices=report_ids.values())
+	report_group.add_argument('-t', '--report-type', type=str, help='Type of the report', choices=report_ids.keys())
+
+	parser.add_argument('action', type=str, help='Action to take', choices=['refresh', 'fetch'], nargs='?', default='fetch')
+	parser.add_argument('-s', '--session-id', type=str, help='Session ID to use for authentication', required=True)
+
+	parser.add_argument('-I', '--sheet-index', type=int, help="Excel sheet page number", default=0)
+
+	parser.add_argument('-o', '--output-file', type=str, help='Name of Output file (for fetching)')
+
+	parser.add_argument('-l', '--luigi', help='Set true if run as part of a Luigi task', action='store_true')
+
 	return parser.parse_args(args)
 			
 def direct_download_url(base_url, report, timespan):
@@ -52,6 +56,8 @@ def direct_download_url(base_url, report, timespan):
 	end_time = today - datetime.timedelta(days=1)
 	if timespan == '7days': # grab everything from yesterday till a week before
 		start_time = today - datetime.timedelta(weeks=1)
+	elif timespan == '1month':
+		start_time = today - datetime.timedelta(days=30)
 	elif timespan == '1year':
 		start_time = today - datetime.timedelta(days=365)
 	else: no_time = True
@@ -78,9 +84,9 @@ def get_request(url, sess_id):
 	
 	return res.content
 
-def csv_from_excel(xlsx_content, target_csv):
+def csv_from_excel(xlsx_content, target_csv, sheet_index):
 	workbook = xlrd.open_workbook(file_contents=xlsx_content)
-	sheet = workbook.sheet_by_index(0)
+	sheet = workbook.sheet_by_index(sheet_index)
 	writer = csv.writer(target_csv, quoting=csv.QUOTE_NONNUMERIC)
 	for row_num in range(sheet.nrows):
 		writer.writerow(sheet.row_values(row_num))
@@ -133,8 +139,8 @@ def request_report(args=sys.argv[1:]):
 			filename = args.output_file
 			if not filename: filename = report_ids_inv[report_id] + '.csv'
 			with open(filename, 'w', encoding='utf-8') as csv_file:
-				csv_from_excel(res_content, csv_file)
-			print(f"Saved report to file '{filename}'")
+				csv_from_excel(res_content, csv_file, args.sheet_index)
+			print(f'Saved report to file "{filename}"')
 		else:
 			print("Running as Luigi task, returning response content")
 			return res_content

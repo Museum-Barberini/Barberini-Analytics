@@ -9,10 +9,11 @@ from gomus_report import FetchGomusReport
 
 class CustomersToDB(CsvToDb):
 	
-	table = 'gomus_customers'
+	table = 'gomus_customer'
 	
 	columns = [
 		('id', 'INT'),
+		('hash_id', 'INT'),
 		('postal_code', 'TEXT'), # e.g. non-german
 		('newsletter', 'BOOL'),
 		('gender', 'TEXT'),
@@ -27,9 +28,10 @@ class CustomersToDB(CsvToDb):
 	primary_key = 'id'
 	
 	def rows(self):
-		for row in super().rows():
-			# Hash key: E-Mail address
-			c_id = mmh3.hash(row[4], self.seed, signed=True)
+		for row in super().csv_rows():
+			c_id = int(float(row[0]))
+			
+			hash_id = self.hash_id(row[2], row[3], row[4])
 
 			post_string = row[11]
 			if len(post_string) >= 2:
@@ -48,7 +50,7 @@ class CustomersToDB(CsvToDb):
 			register_date = datetime.strptime(row[15], '%d.%m.%Y').date()
 			annual_ticket = self.parse_boolean(row[17])
 			
-			yield c_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
+			yield c_id, hash_id, postal_code, newsletter, gender, category, language, country, c_type, register_date, annual_ticket
 		
 
 	def requires(self):
@@ -61,3 +63,16 @@ class CustomersToDB(CsvToDb):
 		if string == 'Frau': return 'w'
 		elif string == 'Herr': return 'm'
 		return ''
+	
+	def hash_id(self, name, surname, email):
+		# remove spaces from names (-> concatenate)
+		# lower all letters
+		# remove titles (inconsistent throughout gomus exports)
+
+		hash_key = name + surname
+		hash_key = hash_key.replace(' ', '').lower()
+		hash_key = hash_key.replace('dr.', '')
+		hash_key += email
+
+		if hash_key == '': return 0
+		return mmh3.hash(hash_key, self.seed, signed=True)
