@@ -16,7 +16,7 @@ class FetchGomusReport(luigi.Task):
 		self.report_name = self.report + self.suffix
 	
 	def output(self):
-		return luigi.LocalTarget(f'output/{self.report_name}.{self.sheet_index}.csv', format=UTF8)
+		return luigi.LocalTarget(f'output/gomus/{self.report_name}.{self.sheet_index}.csv', format=UTF8)
 
 	def run(self):
 		sess_id = os.environ['GOMUS_SESS_ID']
@@ -35,7 +35,7 @@ class FetchTourReservations(luigi.Task):
 	status = luigi.parameter.IntParameter(description="ID of stats (0 = booked, 2 = cancelled) (default: 0)", default=0)
 
 	def output(self):
-		return luigi.LocalTarget(f'output/reservations_{self.booking_id}.{self.status}.csv', format=UTF8)
+		return luigi.LocalTarget(f'output/gomus/reservations/reservations_{self.booking_id}.{self.status}.csv', format=UTF8)
 
 	def run(self):
 		url = f'https://barberini.gomus.de/bookings/{self.booking_id}/seats.xlsx'

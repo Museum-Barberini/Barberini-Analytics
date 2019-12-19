@@ -32,7 +32,7 @@ class BookingsToDB(CsvToDb):
 	primary_key = 'id'
 
 	def rows(self):
-		for row in super().rows():
+		for row in super().csv_rows():
 			b_id = int(float(row[0]))
 
 			booker_id = hash_booker_id(row[12], row[13], self.seed)

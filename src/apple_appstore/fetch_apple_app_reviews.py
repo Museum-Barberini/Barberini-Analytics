@@ -30,8 +30,8 @@ class AppstoreReviewsToDB(CsvToDb):
 		("app_version", "TEXT"),
 		("vote_count", "INT"),
 		("vote_sum", "INT"),
-		("title", "TEXT"),
-		("countryId", "TEXT")
+		("title", "TEXT")
+		#("countryId", "TEXT")
 	]
 	
 	primary_key = "id"
@@ -53,7 +53,9 @@ def fetch_all():
 			pass  # no data for given country code
 		except requests.HTTPError:
 			pass
-	return pd.concat(data).drop_duplicates(subset = ["id"])
+	ret = pd.concat(data)
+	ret = ret.drop('countryId', axis=1)
+	return ret.drop_duplicates()
 
 def fetch_country(country_id):
 	with open('data/barberini-facts.json') as facts_json:
