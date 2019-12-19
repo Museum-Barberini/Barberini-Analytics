@@ -8,5 +8,6 @@ build:
 test:
   stage: test
   script:
-    - docker build -t test-luigi .
-    - docker run --volume $(pwd):/app:ro --entrypoint "make" test-luigi test
+    - make startup
+    - docker exec luigi make test 
+    - make shutdown
