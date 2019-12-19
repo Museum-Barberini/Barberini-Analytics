@@ -3,6 +3,7 @@ import psycopg2
 import luigi
 import time
 import tempfile
+import datetime
 import pandas as pd
 from unittest.mock import patch
 
@@ -25,7 +26,11 @@ class DummyWriteCsvToDb(CsvToDb):
 
     def __init__(self, table_name):
         super().__init__()
-        self.table = table_name
+        self.__class__.table = table_name
+
+        # By default luigi assigns the same task_id to the objects of this class.
+        # That leads to errors when updating the marker table (tablue_updates).
+        self.task_id = f"{self.task_id}_{str(datetime.datetime.now())}"
 
     columns = [
             ("id", "INT"),
@@ -56,13 +61,8 @@ class TestCsvToDb(unittest.TestCase):
             database barberini_test running"""
 
     # To test (by implementing subclasses):
-    # - adding data to database works
     # - no duplicates are added
     # - column types are set as defined in the subclass
-    # - what happens if table/database does not exist
-    # - what happens if user/password combination does not work
-    # initialize data
-
     
     @patch("src._utils.csv_to_db.set_db_connection_options")
     def test_adding_data_to_database_new_table(self, mock):
@@ -109,25 +109,30 @@ class TestCsvToDb(unittest.TestCase):
         con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
                                user="postgres", password="docker")
         cur = con.cursor()
-        cur.execute(f"CREATE TABLE {table_name} (id int, A int, B text, C text)")
-        cur.execute(f"INSERT INTO {table_name} VALUES (0, 1, 'a', 'b')")
+        cur.execute(f"CREATE TABLE {table_name} (id int, A int, B text, C text);")
+        cur.execute(f"""
+            ALTER TABLE {table_name} 
+                ADD CONSTRAINT {table_name}_the_primary_key_constraint PRIMARY KEY (id);
+        """)
+        cur.execute(f"INSERT INTO {table_name} VALUES (0, 1, 'a', 'b');")
         cur.close()
+        con.commit()
 
         # ----- Execute code under test ----
-
+ 
         dummy.run()
-
+ 
         # ----- Inspect result ------
 
         cur = con.cursor()
-        cur.execute(f"select * from {table_name}")
+        cur.execute(f"select * from {table_name};")
         actual_data = cur.fetchall()
         cur.close()
 
         self.assertEqual(actual_data, [(0, 1, "a", "b"), *expected_data])
 
 
-        # ----- Delete the temporary table (if the test was successful) -------
+        # ----- Delete the temporary table -------
 
         con.set_isolation_level(0)
         cur = con.cursor()
