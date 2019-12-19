@@ -61,127 +61,101 @@ class TestCsvToDb(unittest.TestCase):
             database barberini_test running"""
 
     # To test (by implementing subclasses):
-    # - no duplicates are added
     # - column types are set as defined in the subclass
-    
+
     @patch("src._utils.csv_to_db.set_db_connection_options")
-    def test_adding_data_to_database_new_table(self, mock):
+    def setUp(self, mock):
 
-        # ----- Set up -------
+        self.table_name = get_temp_table()
+        self.dummy = DummyWriteCsvToDb(self.table_name)
+        self.connection = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
+                                    user="postgres", password="docker")
 
-        table_name = get_temp_table()
-        dummy = DummyWriteCsvToDb(table_name)
+        # Store mock object to make assertions about it later on
+        self.mock_set_db_conn_options = mock
 
-        # ----- Execute code under test -----
+    def tearDown(self):
 
-        dummy.run()
+        self.mock_set_db_conn_options.assert_called_once()
+
+        # Delete temporary table used by test and close db connection
+        self.connection.set_isolation_level(0)
+        cur = self.connection.cursor()
+        cur.execute(f"DROP TABLE {self.table_name};")
+        cur.close()
+        self.connection.close()
+
+        # Make absolutely sure that each test gets fresh params
+        self.connection = None
+        self.table_name = None
+        self.dummy = None
+
+    def test_adding_data_to_database_new_table(self):
+
+        # ----- Execute code under test ----
+
+        self.dummy.run()
 
         # ----- Inspect result -----
 
-        mock.assert_called_once()
-
-        con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
-                               user="postgres", password="docker")
-        cur = con.cursor()
-        cur.execute(f"select * from {table_name};")
+        cur = self.connection.cursor()
+        cur.execute(f"select * from {self.table_name};")
         actual_data = cur.fetchall()
         cur.close()
 
         self.assertEqual(actual_data, expected_data)
 
+    def test_adding_data_to_database_existing_table(self):
 
-        # ----- Delete the temporary table (if the test was successful) -------
+        # ----- Set up database -----
 
-        con.set_isolation_level(0)
-        cur = con.cursor()
-        cur.execute(f"DROP TABLE {table_name};")
-        cur.close()
-        con.close()
-
-    @patch("src._utils.csv_to_db.set_db_connection_options")
-    def test_adding_data_to_database_existing_table(self, mock):
-
-        # ----- Set up -----
-
-        table_name = get_temp_table()
-        dummy = DummyWriteCsvToDb(table_name)
-
-        con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
-                               user="postgres", password="docker")
-        cur = con.cursor()
-        cur.execute(f"CREATE TABLE {table_name} (id int, A int, B text, C text);")
+        cur = self.connection.cursor()
+        cur.execute(f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);")
         cur.execute(f"""
-            ALTER TABLE {table_name} 
-                ADD CONSTRAINT {table_name}_the_primary_key_constraint PRIMARY KEY (id);
+            ALTER TABLE {self.table_name} 
+                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint PRIMARY KEY (id);
         """)
-        cur.execute(f"INSERT INTO {table_name} VALUES (0, 1, 'a', 'b');")
+        cur.execute(f"INSERT INTO {self.table_name} VALUES (0, 1, 'a', 'b');")
         cur.close()
-        con.commit()
+        self.connection.commit()
 
         # ----- Execute code under test ----
  
-        dummy.run()
+        self.dummy.run()
  
         # ----- Inspect result ------
 
-        cur = con.cursor()
-        cur.execute(f"select * from {table_name};")
+        cur = self.connection.cursor()
+        cur.execute(f"select * from {self.table_name};")
         actual_data = cur.fetchall()
         cur.close()
 
         self.assertEqual(actual_data, [(0, 1, "a", "b"), *expected_data])
 
+    def test_no_duplicates_are_inserted(self):
 
-        # ----- Delete the temporary table -------
+        # ----- Set up database -----
 
-        con.set_isolation_level(0)
-        cur = con.cursor()
-        cur.execute(f"DROP TABLE {table_name};")
-        cur.close()
-        con.close()
-
-    @patch("src._utils.csv_to_db.set_db_connection_options")
-    def test_no_duplicates_are_inserted(self, mock):
-
-        # ----- Set up -----
-
-        table_name = get_temp_table()
-        dummy = DummyWriteCsvToDb(table_name)
-
-        con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
-                               user="postgres", password="docker")
-        cur = con.cursor()
-        cur.execute(f"CREATE TABLE {table_name} (id int, A int, B text, C text);")
+        cur = self.connection.cursor()
+        cur.execute(f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);")
         cur.execute(f"""
-            ALTER TABLE {table_name} 
-                ADD CONSTRAINT {table_name}_the_primary_key_constraint PRIMARY KEY (id);
+            ALTER TABLE {self.table_name} 
+                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint PRIMARY KEY (id);
         """)
-        cur.execute(f"INSERT INTO {table_name} VALUES (1, 2, 'abc', 'xy,\"z');")
+        cur.execute(f"INSERT INTO {self.table_name} VALUES (1, 2, 'abc', 'xy,\"z');")
         cur.close()
-        con.commit()
+        self.connection.commit()
 
         # ----- Execute code under test ----
  
-        dummy.run()
+        self.dummy.run()
  
         # ----- Inspect result ------
-        mock.assert_called_once()
 
-        con = psycopg2.connect(host="host.docker.internal", dbname="barberini_test",
-                               user="postgres", password="docker")
-        cur = con.cursor()
-        cur.execute(f"select * from {table_name};")
+        cur = self.connection.cursor()
+        cur.execute(f"select * from {self.table_name};")
         actual_data = cur.fetchall()
         cur.close()
 
         self.assertEqual(actual_data, expected_data)
-
-
-        # ----- Delete the temporary table (if the test was successful) -------
-
-        con.set_isolation_level(0)
-        cur = con.cursor()
-        cur.execute(f"DROP TABLE {table_name};")
-        cur.close()
-        con.close()
 
