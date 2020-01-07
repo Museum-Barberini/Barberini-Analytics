@@ -168,7 +168,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
 				new_article = dict()
 
-				new_article["id"] = order_ids[i]
+				new_article["order_id"] = order_ids[i]
 
 				new_article["ticket"] = self.extract_from_html(article, 'td[3]/strong').strip()
 
