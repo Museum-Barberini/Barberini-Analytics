@@ -7,6 +7,7 @@ from facebook import FbPostsToDB, FbPostPerformanceToDB
 from customers_to_db import CustomersToDB
 from bookings_to_db import BookingsToDB
 from order_contains_to_db import OrderContainsToDB
+from orders_to_db import OrdersToDB
 
 class FillDB(luigi.WrapperTask):
 
@@ -21,4 +22,5 @@ class FillDB(luigi.WrapperTask):
 		yield CustomersToDB()
 		yield BookingsToDB()
 		yield OrderContainsToDB()
+		yield OrdersToDB()
 
