@@ -29,7 +29,7 @@ class GomusScraperTask(luigi.Task):
 		super().__init__(*args, **kwargs)
 		set_db_connection_options(self)
 
-	# simply wait for a moment before requesting, as we don't want to overwhealm the server with our interest in classified information...
+	# simply wait for a moment before requesting, as we don't want to overwhelm the server with our interest in classified information...
 	def politeGet(self, url, cookies):
 		time.sleep(0.5)
 		response = requests.get(url, cookies=cookies)
