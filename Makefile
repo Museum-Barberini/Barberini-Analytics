@@ -1,6 +1,7 @@
 # variables
 
 TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
+TSTTTLPYPATH := $(TOTALPYPATH):./tests/_utils/
 
 # from outside containers
 
@@ -43,4 +44,4 @@ psql:
 
 test: luigi-clean
 	mkdir -p output && cp -r tests_fake_output/. output
-	PYTHONPATH=$(TOTALPYPATH) python3 -m unittest $$(find tests/ -name *.py) -v
+	PYTHONPATH=$(TSTTTLPYPATH) python3 -m unittest $$(find tests/ -name *.py) -v

@@ -1,5 +1,5 @@
 from google_trends.gtrends_topics_json import *
-import task_test.TaskTest
+from task_test import TaskTest
 
 class GtrendsTopicsJsonTest(TaskTest):
 	def __init__(self, methodName):
@@ -12,7 +12,7 @@ class GtrendsTopicsJsonTest(TaskTest):
 			json_string = file.read()
 		self.assertTrue(json_string) # not empty
 		json_dict = json.loads(json_string)
-		for key, value in json_dict:
-			self.assertTrue(isinstance(key, int))
+		for key, value in json_dict.items():
+			self.assertTrue(isinstance(key, str))
 			self.assertTrue(isinstance(value, str))
 		# LATEST TODO: See if it works

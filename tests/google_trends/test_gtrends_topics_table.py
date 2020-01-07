@@ -1,5 +1,5 @@
 from google_trends.gtrends_topics_table import *
-import task_test.TaskTest
+from task_test import TaskTest
 
 class TestGtrendsTopicsTable(TaskTest):
 	def __init__(self, methodName):
@@ -8,7 +8,7 @@ class TestGtrendsTopicsTable(TaskTest):
 	
 	def test_getJson(self):
 		self.task = GTrendsTopicsTable()
-		actual = task.getJson()
+		actual = self.task.getJson()
 		
 		expected = [
 			{'topic_id': '1', 'name': "one"},
