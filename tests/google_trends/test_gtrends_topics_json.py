@@ -15,4 +15,3 @@ class GtrendsTopicsJsonTest(TaskTest):
 		for key, value in json_dict.items():
 			self.assertTrue(isinstance(key, str))
 			self.assertTrue(isinstance(value, str))
-		# LATEST TODO: See if it works
