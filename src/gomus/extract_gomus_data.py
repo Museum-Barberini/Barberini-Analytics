@@ -4,12 +4,12 @@ from luigi.format import UTF8
 from gomus_report import FetchGomusReport
 import mmh3
 from datetime import datetime
-import numpy
+import numpy as np
 
 
 class ExtractGomusBookings(luigi.Task):
 	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
-
+	
 	def requires(self):
 		return FetchGomusReport(report='bookings')
 	
@@ -40,26 +40,24 @@ class ExtractGomusBookings(luigi.Task):
 			'daytime', 'duration', 'exhibition', 'title', 'status']
 		with self.output().open('w') as output_file:
 			bookings.to_csv(output_file, header=True, index=False)
-
+	
 	def hash_booker_id(self, email):
-		hash_key = email
-
-		if hash_key is numpy.NaN: return 0
-		return mmh3.hash(hash_key, self.seed, signed=True)
-
+		if np.isnan(email):
+			return 0
+		return mmh3.hash(email, self.seed, signed=True)
+	
 	def hash_guide(self, guide_name):
-		if guide_name is numpy.NaN:
+		if np.isnan(guide_name):
 			return 0 # 0 represents empty value
-		else:
-			guides = guide_name.lower().replace(' ', '').split(',')
-			guide = guides[0]
-			return mmh3.hash(guide, self.seed, signed=True)
+		guides = guide_name.lower().replace(' ', '').split(',')
+		guide = guides[0]
+		return mmh3.hash(guide, self.seed, signed=True)
 	
 	def parse_date(self, date_str):
 		return datetime.strptime(date_str, '%d.%m.%Y').date()
 	
 	def parse_daytime(self, daytime_str):
 		return datetime.strptime(daytime_str, '%H:%M').time()
-
+	
 	def calculate_duration(self, from_str, to_str):
 		return (datetime.strptime(to_str, '%H:%M') - datetime.strptime(from_str, '%H:%M')).seconds // 60
