@@ -9,10 +9,8 @@ from scrape_gomus import ScrapeGomusBookings
 class EnhanceBookingsWithScraper(luigi.Task):
 
 	def requires(self):
-		return [
-			ExtractGomusBookings(),
-			ScrapeGomusBookings()
-		]
+        yield ExtractGomusBookings()
+        yield ScrapeGomusBookings()
 
 
 	def run(self):
