@@ -14,7 +14,7 @@ class EnhanceBookingsWithScraper(luigi.Task):
 
 
 	def run(self):
-		fetched_bookings = pd.read_csv(self.input()[0].path, index_col='id')
+		gomus_export_bookings = pd.read_csv(self.input()[0].path, index_col='id')
 		scraped_bookings = pd.read_csv(self.input()[1].path, index_col='id')
 
 		fetched_bookings = fetched_bookings.join(scraped_bookings)
