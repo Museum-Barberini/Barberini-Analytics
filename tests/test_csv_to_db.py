@@ -5,7 +5,7 @@ postgres database server running. It needs to contain a
 database 'barberini_test'.
 
 The following parameters are used to connect to the database:
-    host = "host.docker.internal"
+    host = "db"
     database = "barberini_test"
     user = "postgres"
     password = "docker"
