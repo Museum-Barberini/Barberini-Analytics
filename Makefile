@@ -43,5 +43,9 @@ psql:
 # misc
 
 test: luigi-clean
-	mkdir -p output && cp -r tests_fake_files/. .
+	mkdir -p output
+	jq -rs 'reduce .[] as $$item ({}; . * $$item)' \
+		data/barberini-facts.json tests_fake_files/data/barberini-facts.json \
+		> tests_fake_files/data/barberini-facts.json
+	cp -r tests_fake_files/. .
 	PYTHONPATH=$(TSTTTLPYPATH) python3 -m unittest $$(find tests/ -name *.py) -v
