@@ -24,7 +24,6 @@ class TestGtrendsTopicsTable(TaskTest):
 		self.assertFalse(csv.empty)
 		self.assertEqual(2, csv.ndim)
 		self.assertListEqual(['topic_id', 'name'], list(csv.columns))
-		
 
 class TestGtrendsTopicsToDB(TaskTest):
 	def test_topicsToDB(self):
