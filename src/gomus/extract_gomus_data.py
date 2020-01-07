@@ -7,27 +7,8 @@ from datetime import datetime
 import numpy
 
 
-
-def hash_booker_id(email):
-	hash_key = email
-
-	if hash_key is numpy.NaN: return 0
-	return mmh3.hash(hash_key, 666, signed=True)
-
-def hash_guide(guide_name):
-	if guide_name is numpy.NaN:
-		return 0 # 0 represents empty value
-	else:
-		guides = guide_name.lower().replace(' ', '').split(',')
-		guide = guides[0]
-		return mmh3.hash(guide, 666, signed=True)
-
-def parseDate():
-
-
-
 class ExtractGomusBookings(luigi.Task):
-
+	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
 
 	def requires(self):
 		return FetchGomusReport(report='bookings')
@@ -35,31 +16,50 @@ class ExtractGomusBookings(luigi.Task):
 	def output(self):
 		return luigi.LocalTarget(f'output/gomus/bookings_prepared.csv', format=UTF8)
 	
-
 	def run(self):
 		bookings = pd.read_csv(self.input().path)
 		
-		bookings['id'] = bookings['Buchung'] # TODO: make int
-		#bookings['booker_id'] = hash_booker_id(bookings['Kunde'], bookings["E-Mail"], 666)
-		bookings = bookings['E-Mail'].apply(hash_booker_id) # WARNING: apply is not in-place!
-
-
+		bookings['Buchung'] = bookings['Buchung'].apply(int)
+		bookings['E-Mail'] = bookings['E-Mail'].apply(self.hash_booker_id)
 		# category = Angebotskategorie
-		# participants = Teilnehmerzahl
-		bookings = bookings['Guide'].apply(hash_guide)
-		bookings = bookings['date'] = datetime.strptime(bookings['Datum'], '%d.%m.%Y').date()
-		bookings['daytime'] = datetime.strptime(bookings['Uhrzeit von'], '%H:%M').time()
-		bookings['duration'] = (datetime.strptime(bookings['Uhrzeit bis'], '%H:%M') - datetime.strptime(bookings['Uhrzeit von'], '%H:%M')).seconds // 60
+		bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
+		bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
+		bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
+		bookings['daytime'] = bookings['Uhrzeit von'].apply(self.parse_daytime)
+		bookings['Dauer'] = bookings.apply(lambda x: self.calculate_duration(x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 		# exhibition = Ausstellung
 		# title = Titel
 		# status = Status
 
-		#order_date and language are added by scraper
+		# order_date and language are added by scraper
 
 		bookings = bookings.filter(
-			['id', 'E-Mail', 'Angebotskategorie', 'Teilnehmerzahl', 'Guide', 'date', 
-			'daytime', 'duration', 'Ausstellung', 'Titel', 'Status'])
+			['Buchung', 'E-Mail', 'Angebotskategorie', 'Teilnehmerzahl', 'Guide', 'Datum', 
+			'daytime', 'Dauer', 'Ausstellung', 'Titel', 'Status'])
 		bookings.columns = ['id', 'booker_id', 'category', 'participants', 'guide_id', 'date', 
 			'daytime', 'duration', 'exhibition', 'title', 'status']
 		with self.output().open('w') as output_file:
-			bookings.to_csv(output_file, header=True)
+			bookings.to_csv(output_file, header=True, index=False)
+
+	def hash_booker_id(self, email):
+		hash_key = email
+
+		if hash_key is numpy.NaN: return 0
+		return mmh3.hash(hash_key, self.seed, signed=True)
+
+	def hash_guide(self, guide_name):
+		if guide_name is numpy.NaN:
+			return 0 # 0 represents empty value
+		else:
+			guides = guide_name.lower().replace(' ', '').split(',')
+			guide = guides[0]
+			return mmh3.hash(guide, self.seed, signed=True)
+	
+	def parse_date(self, date_str):
+		return datetime.strptime(date_str, '%d.%m.%Y').date()
+	
+	def parse_daytime(self, daytime_str):
+		return datetime.strptime(daytime_str, '%H:%M').time()
+
+	def calculate_duration(self, from_str, to_str):
+		return (datetime.strptime(to_str, '%H:%M') - datetime.strptime(from_str, '%H:%M')).seconds // 60
