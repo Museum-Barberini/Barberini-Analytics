@@ -107,8 +107,8 @@ class ScrapeGomusBookings(GomusScraperTask):
 			)
 			cur = conn.cursor()
 			cur.execute(f"SELECT MAX(order_date) FROM gomus_bookings")
-			return cur.fetchone()[0] or alternate_date
 			conn.close()
+			return cur.fetchone()[0] or alternate_date
 		
 		except psycopg2.DatabaseError as error:
 			print(error)
