@@ -8,7 +8,7 @@ class GtrendsInterestJsonTest(TaskTest):
 		super().__init__(methodName)
 		self.task = self.isolate(GTrendsInterestJson())
 	
-	def testGtrendsTopicsJson(self):
+	def testGtrendsInterestsJson(self):
 		self.task.run()
 		with open('output/google-trends/interests.json', 'r') as file:
 			json_string = file.read()
