@@ -9,22 +9,16 @@ from scrape_gomus import ScrapeGomusBookings
 class EnhanceBookingsWithScraper(luigi.Task):
 
 	def requires(self):
-		return [
-			ExtractGomusBookings(),
-			ScrapeGomusBookings()
-		]
-
-
+		yield ExtractGomusBookings()
+		yield ScrapeGomusBookings()
+	
 	def run(self):
-		fetched_bookings = pd.read_csv(self.input()[0].path, index_col='id')
+		gomus_export_bookings = pd.read_csv(self.input()[0].path, index_col='id')
 		scraped_bookings = pd.read_csv(self.input()[1].path, index_col='id')
-
-		fetched_bookings = fetched_bookings.join(scraped_bookings)
-		with self.output().open('w') as output_file:
-			fetched_bookings.to_csv(output_file, header=True)
-
 		
-
-
+		gomus_export_bookings = gomus_export_bookings.join(scraped_bookings)
+		with self.output().open('w') as output_file:
+			gomus_export_bookings.to_csv(output_file, header=True)
+	
 	def output(self):
 		return luigi.LocalTarget(f'output/gomus/bookings.csv', format=UTF8)
