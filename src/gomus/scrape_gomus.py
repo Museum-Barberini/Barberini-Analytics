@@ -73,7 +73,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 			# firefox says the the xpath starts with //body/div[3]/ but we apparently need div[2] instead
 			booking_details = tree_details.xpath('//body/div[2]/div[2]/div[3]/div[4]/div[2]/div[1]/div[3]')[0]
 			
-			
 			# Order Date
 			raw_order_date = self.extract_from_html(booking_details, 'div[1]/div[2]/small/dl/dd[2]').strip() # removes \n in front of and behind string
 			bookings.at[i, 'order_date'] = dateparser.parse(raw_order_date)
@@ -93,7 +92,6 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
 	def requires(self):
 		return ExtractOrderData(columns=['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
-
 
 	def output(self):
 		return luigi.LocalTarget('output/gomus/scraped_order_contains.csv', format=UTF8)
