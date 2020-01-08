@@ -16,7 +16,7 @@ services:
                 tty: true
 
         db:
-                container_name: luigi
+                container_name: db
                 image: postgres
                 environment: 
                         - PGDATA=/var/lib/postgresql/data/pg-data/

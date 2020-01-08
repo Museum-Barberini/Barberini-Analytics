@@ -10,6 +10,18 @@ from src._utils.csv_to_db import CsvToDb
 from database_helper import DatabaseHelper
 
 
+# ------ CREATE DATABASE IF NECESSARY -------
+try:
+	conn = psycopg2.connect(host="db", user="postgres", password="docker")
+	conn.autocommit = True
+	cur = conn.cursor()
+	cur.execute("CREATE DATABASE barberini_test;")
+except psycopg2.DatabaseError as error:
+	print(error)
+finally:
+	cur.close()
+	conn.close()
+
 # ------ DEFINE HELPERS -------
 
 # Initialize test and write it to a csv file
@@ -18,7 +30,6 @@ expected_data_csv = "id,A,B,C\n1,2,abc,\"xy,\"\"z\"\n2,10,\"678\",\",,;abc\"\n"
 tmp_csv_file = tempfile.NamedTemporaryFile()
 with open(tmp_csv_file.name, "w") as fp:
 	fp.write(expected_data_csv)
-
 
 class DummyFileWrapper(luigi.Task):
 	def output(self):
