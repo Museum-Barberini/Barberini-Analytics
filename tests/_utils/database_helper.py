@@ -7,21 +7,21 @@ To be able to run tests that use this helper, you will need
 
 import psycopg2
 
-# ------ CREATE DATABASE IF NECESSARY -------
-try:
-    conn = psycopg2.connect(host="db", user="postgres", password="docker")
-    conn.autocommit = True
-    cur = conn.cursor()
-    cur.execute("CREATE DATABASE barberini_test;")
-except psycopg2.DatabaseError as error:
-    print(error)
-finally:
-    cur.close()
-    conn.close()
-
 
 class DatabaseHelper:
 	def setUp(self):
+		# ------ CREATE DATABASE IF NECESSARY -------
+		try:
+			conn = psycopg2.connect(host="db", user="postgres", password="docker")
+			conn.autocommit = True
+			cur = conn.cursor()
+			cur.execute("CREATE DATABASE barberini_test;")
+		except psycopg2.DatabaseError as error:
+			print(error)
+		finally:
+			cur.close()
+			conn.close()
+		
 		self.connection = psycopg2.connect(
 			host="db",
 			dbname="barberini_test",
