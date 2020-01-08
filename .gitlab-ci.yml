@@ -9,5 +9,5 @@ test:
   stage: test
   script:
     - make startup
-    - docker exec luigi ./scripts/run_test.sh
+    - docker exec luigi "make" test
     - make shutdown
