@@ -163,7 +163,7 @@ class TestCsvToDb(unittest.TestCase):
             ALTER TABLE {self.table_name} 
                 ADD CONSTRAINT {self.table_name}_the_primary_key_constraint PRIMARY KEY (id);
         """)
-        cur.execute(f"INSERT INTO {self.table_name} VALUES (1, 2, 'abc', 'xy,\"z');")
+        cur.execute(f"INSERT INTO {self.table_name} VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,\"z');")
         cur.close()
         self.connection.commit()
 
