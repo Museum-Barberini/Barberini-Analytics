@@ -12,6 +12,7 @@ from set_db_connection_options import set_db_connection_options
 import psycopg2
 import re
 from extract_gomus_data import ExtractGomusBookings
+from orders_to_db import ExtractOrderData
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have a more general scraper class if we need to scrape something other than gomus)
@@ -49,64 +50,6 @@ class GomusScraperTask(luigi.Task):
 
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
-	# returns url-appendment for next page if one exists
-	def fetch_page_of_bookings(self, url, output_buffer):
-		print("Requesting: " + url)
-		res_bookings = self.polite_get(url, cookies=self.cookies)
-		
-		tree_bookings = html.fromstring(res_bookings.text)
-		for day in tree_bookings.xpath('//body/div[2]/div[2]/div[3]/div/div[2]/div/div[2]/table'):
-			for booking in day.xpath('tbody/tr'):
-				new_booking = dict()
-				
-				# ID
-				booking_id = int(self.extract_from_html(booking, 'td[1]/a'))
-				new_booking['id'] = booking_id
-				
-				booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
-				res_details = self.polite_get(booking_url, cookies=self.cookies)
-				
-				tree_details = html.fromstring(res_details.text)
-				
-				# firefox says the the xpath starts with //body/div[3]/ but we apparently need div[2] instead
-				booking_details = tree_details.xpath('//body/div[2]/div[2]/div[3]/div[4]/div[2]/div[1]/div[3]')[0]
-				
-				print("requesting booking details for id: " + str(booking_id))
-				
-				# Order Date
-				raw_order_date = self.extract_from_html(booking_details, 'div[1]/div[2]/small/dl/dd[2]').strip() # removes \n in front of and behind string
-				new_booking['order_date'] = dateparser.parse(raw_order_date)
-				
-				# Language
-				new_booking['language'] = self.extract_from_html(booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
-				
-				output_buffer.append(new_booking)
-		
-		potential_appendment = tree_bookings.xpath("//li[@class='next_page']/a/@href")
-		if (potential_appendment.__len__() > 0):
-			return potential_appendment[0]
-		else:
-			return None
-
-
-	"""def get_latest_order_date_from_db(self):
-		default_date = '2016-08-01'
-		
-		try:
-			conn = psycopg2.connect(
-				host=self.host, database=self.database,
-				user=self.user, password=self.password
-			)
-			cur = conn.cursor()
-			cur.execute(f"SELECT MAX(order_date) FROM gomus_bookings")
-			conn.close()
-			return cur.fetchone()[0] or default_date
-		
-		except psycopg2.DatabaseError as error:
-			print(error)
-			if conn is not None:
-				conn.close()
-			return default_date"""
 
 	def requires(self):
 		return ExtractGomusBookings()
@@ -145,8 +88,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 class ScrapeGomusOrderContains(GomusScraperTask):
 
 	def get_order_ids(self):
-		return [643751, 643750, 643749, 643747, 630778, 630794, 630807, 630821, 630832, 630916, 630815]
-		 # TODO: get this either by querying the BP or reading it from the order-csv that some other task creates
+		orders = pd.read_csv(self.input().path)
+		return orders['id']
+
+	def requires(self):
+		return ExtractOrderData(columns=['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+
 
 	def output(self):
 		return luigi.LocalTarget('output/gomus/scraped_order_contains.csv', format=UTF8)
