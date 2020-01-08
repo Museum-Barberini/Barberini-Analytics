@@ -29,8 +29,8 @@ try:
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("CREATE DATABASE barberini_test;")
-except:
-    pass
+except psycopg2.DatabaseError as error:
+    print(error)
 finally:
     cur.close()
     conn.close()
