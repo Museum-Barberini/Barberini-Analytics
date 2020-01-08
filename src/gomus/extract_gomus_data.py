@@ -42,12 +42,12 @@ class ExtractGomusBookings(luigi.Task):
 			bookings.to_csv(output_file, header=True, index=False)
 	
 	def hash_booker_id(self, email):
-		if np.isnan(email):
+		if email is np.NaN: #np.isnan(email):
 			return 0
 		return mmh3.hash(email, self.seed, signed=True)
 	
 	def hash_guide(self, guide_name):
-		if np.isnan(guide_name):
+		if guide_name is np.NaN: #np.isnan(guide_name):
 			return 0 # 0 represents empty value
 		guides = guide_name.lower().replace(' ', '').split(',')
 		guide = guides[0]

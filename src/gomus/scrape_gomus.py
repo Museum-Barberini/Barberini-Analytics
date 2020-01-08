@@ -11,6 +11,7 @@ import time
 from set_db_connection_options import set_db_connection_options
 import psycopg2
 import re
+from extract_gomus_data import ExtractGomusBookings
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have a more general scraper class if we need to scrape something other than gomus)
@@ -47,7 +48,7 @@ class GomusScraperTask(luigi.Task):
 			return ""
 
 
-class ScrapeGomusBookings(GomusScraperTask):
+class EnhanceBookingsWithScraper(GomusScraperTask):
 	# returns url-appendment for next page if one exists
 	def fetch_page_of_bookings(self, url, output_buffer):
 		print("Requesting: " + url)
@@ -88,7 +89,7 @@ class ScrapeGomusBookings(GomusScraperTask):
 			return None
 
 
-	def get_latest_order_date_from_db(self):
+	"""def get_latest_order_date_from_db(self):
 		default_date = '2016-08-01'
 		
 		try:
@@ -105,27 +106,40 @@ class ScrapeGomusBookings(GomusScraperTask):
 			print(error)
 			if conn is not None:
 				conn.close()
-			return default_date
+			return default_date"""
+
+	def requires(self):
+		return ExtractGomusBookings()
 
 	def output(self):
-		return luigi.LocalTarget('output/gomus/scraped_bookings.csv', format=UTF8)
+		return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
 
 	def run(self):
-		booking_data = []
+		bookings = pd.read_csv(self.input().path)
+		bookings['order_date'] = None
+		bookings['language'] = ""
+		row_count = len(bookings.index)
+		for i, row in bookings.iterrows():
+			booking_id = row['id']
+			booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
+			print(f"requesting booking details for id: {str(booking_id)} ({i+1}/{row_count})")
+			res_details = self.polite_get(booking_url, cookies=self.cookies)
+			
+			tree_details = html.fromstring(res_details.text)
+			
+			# firefox says the the xpath starts with //body/div[3]/ but we apparently need div[2] instead
+			booking_details = tree_details.xpath('//body/div[2]/div[2]/div[3]/div[4]/div[2]/div[1]/div[3]')[0]
+			
+			
+			# Order Date
+			raw_order_date = self.extract_from_html(booking_details, 'div[1]/div[2]/small/dl/dd[2]').strip() # removes \n in front of and behind string
+			bookings.at[i, 'order_date'] = dateparser.parse(raw_order_date)
+			
+			# Language
+			bookings.at[i, 'language'] = self.extract_from_html(booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
 		
-		start_date_str = self.get_latest_order_date_from_db()
-		end_date_str = dt.date.today() + dt.timedelta(weeks=12)
-		
-		url_appendment = f"/bookings?end_at={end_date_str}&start_at={start_date_str}"
-		
-		next_page_appendment = self.fetch_page_of_bookings(self.base_url + url_appendment, booking_data)
-		while (next_page_appendment != None):
-			next_page_appendment = self.fetch_page_of_bookings(self.base_url + next_page_appendment, booking_data)
-		
-		
-		df = pd.DataFrame([data_entry for data_entry in booking_data])
 		with self.output().open('w') as output_file:
-			df.to_csv(output_file, index=False, header=True, quoting=csv.QUOTE_NONNUMERIC)
+			bookings.to_csv(output_file, index=False, header=True, quoting=csv.QUOTE_NONNUMERIC)
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):

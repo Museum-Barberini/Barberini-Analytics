@@ -2,7 +2,7 @@
 import luigi
 
 from csv_to_db import CsvToDb
-from enhance_gomus_with_scraper import EnhanceBookingsWithScraper
+from scrape_gomus import EnhanceBookingsWithScraper
 
 class BookingsToDB(CsvToDb):
 
