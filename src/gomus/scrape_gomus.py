@@ -92,6 +92,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
 	def requires(self):
 		return ExtractOrderData(columns=['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+		# this array is kind of unnecessary, but currently required by ExtractOrderData()
+		# the design of that task requiring a column-array is also questionable, so this line may change later on
 
 	def output(self):
 		return luigi.LocalTarget('output/gomus/scraped_order_contains.csv', format=UTF8)
