@@ -42,16 +42,16 @@ test:
 
 # use db-psql to get a psql shell inside the database container
 db-psql:
-	docker exec -it postgres psql -U postgres
+	docker exec -it db psql -U postgres
 
 # use db-do to run a command for the database in the container
 # example: sudo make db-do do='\\d'
 db = barberini # default database for db-do
 db-do:
-	docker exec -it postgres psql -U postgres -a $(db) -c $(do)
+	docker exec -it db psql -U postgres -a $(db) -c $(do)
 
 db-backup:
-	docker exec -it postgres pg_dump -U postgres barberini > ~/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec -it db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 db-restore:
-	cat $(dump) | docker exec -i postgres psql -U postgres
+	cat $(dump) | docker exec -i db psql -U postgres
