@@ -26,5 +26,3 @@ RUN apt-get -y install nodejs
 # WORKAROUND until we have multiple Dockers
 RUN bash -c "cd ../ && npm i google-trends-api deasync"
 
-# workaround to enable the container to resolve the host "host.docker.internal" to the IP address of the host's bridge
-ENTRYPOINT echo $(/sbin/ip route | awk '/default/ { print $3 }') host.docker.internal >> /etc/hosts && /bin/bash
