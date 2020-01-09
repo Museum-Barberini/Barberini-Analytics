@@ -68,10 +68,10 @@ class DummyWriteCsvToDb(CsvToDb):
     ]
     primary_key = "id"
 
-    host = "db"
+    host = os.environ['POSTGRES_HOST']
     database = "barberini_test"
-    user = "postgres"
-    password = "docker"
+    user = os.environ['POSTGRES_USER']
+    password = os.environ['POSTGRES_PASSWORD']
 
     table = None  # value set in __init__
 
@@ -91,8 +91,8 @@ class TestCsvToDb(unittest.TestCase):
 
         self.table_name = get_temp_table()
         self.dummy = DummyWriteCsvToDb(self.table_name)
-        self.connection = psycopg2.connect(host="db", dbname="barberini_test",
-                                    user="postgres", password="docker")
+        self.connection = psycopg2.connect(host=os.environ['POSTGRES_HOST'], dbname="barberini_test",
+                                    user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'])
 
         # Store mock object to make assertions about it later on
         self.mock_set_db_conn_options = mock
