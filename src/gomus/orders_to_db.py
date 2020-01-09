@@ -103,5 +103,5 @@ class ExtractOrderData(luigi.Task):
 		return customer_id
 
 	def parse_boolean(self, string, bool_string):
-		return string == bool_string
+		return string.lower() == bool_string.lower()
 						
