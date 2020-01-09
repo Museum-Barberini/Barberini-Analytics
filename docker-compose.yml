@@ -18,8 +18,8 @@ services:
         db:
                 container_name: db
                 image: postgres
-		ports:
-			- "5432:5432"
+                ports:
+                        - "5432:5432"
                 environment: 
                         - PGDATA=/var/lib/postgresql/data/pg-data/
                         - POSTGRES_USER=postgres
