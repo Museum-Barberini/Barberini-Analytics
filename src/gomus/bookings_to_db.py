@@ -3,6 +3,7 @@ from datetime import datetime
 import luigi
 from luigi.format import UTF8
 import mmh3
+import numpy as np
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
@@ -74,17 +75,10 @@ class BookingsToDB(CsvToDb):
 
 	def requires(self):
 		return FetchGomusReport(report='bookings')
-"""
-def hash_booker_id(name, email, seed):
-	name = name.lower().replace('dr.', '')
-	if len(name) > 4 and (name[:5] == "herr " or name[:5] == "frau "):
-		name = name[5:]
-	name = name.replace(' ', '')
-	hash_key = name + email
 
-	if hash_key == '': return 0
-	return mmh3.hash(hash_key, seed, signed=True)
-"""
 def hash_booker_id(email, seed):
-	if email == '': return 0
-	return mmh3.hash(email, seed, signed=True)
+	if email == '' or email is np.nan: return 0
+	try:
+		return mmh3.hash(email, seed, signed=True)
+	except TypeError:
+		return 0

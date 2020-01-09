@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import csv
 import luigi
+import pandas as pd
 import psycopg2
 
 from csv_to_db import CsvToDb
+from luigi.format import UTF8
 from gomus.bookings_to_db import BookingsToDB
 from gomus_report import FetchGomusReport, FetchTourReservations
 from gomus.bookings_to_db import hash_booker_id
@@ -28,35 +30,56 @@ class PublicToursToDB(CsvToDb):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		set_db_connection_options(self)
-		self.flat = []
 	
 	def requires(self):
-		yield EnsureBookingsIsRun()
+		return ExtractPublicTourData(columns=[el[0] for el in self.columns])
 
-	def rows(self):
+class ExtractPublicTourData(luigi.Task):
+	columns = luigi.parameter.ListParameter(description="Column names")
+	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
+
+	def requires(self):
+		return EnsureBookingsIsRun()
+
+	def output(self):
+		return luigi.LocalTarget('output/gomus/public_tours.csv', format=UTF8)
+
+	def run(self):
 		self.flat = luigi.task.flatten(self.input())
+		self.df = pd.DataFrame(columns=self.columns)
 		for i in range(0, len(self.flat), 2):
-			#print(i)
-			yield from self.tour_rows(i, 'Gebucht')
-			yield from self.tour_rows(i+1, 'Storniert')
-	
-	def tour_rows(self, index, status):
-		with self.flat[index].open('r') as sheet1:
-			sheet = csv.reader(sheet1)
+			self.append_tour_data(i, 'Gebucht')
+			self.append_tour_data(i+1, 'Storniert')
+
+		with self.output().open('w') as output_csv:
+			self.df.to_csv(output_csv, index=False, header=True)	
+
+	def append_tour_data(self, index, status):
+		with self.flat[index].open('r') as sheet:
+			sheet = csv.reader(sheet)
 			tour_id = int(float(next(sheet)[0]))
-			try:
-				while not next(sheet)[0] == 'Id':
-					pass
-			except StopIteration as si:
-				print("Couldn't find line starting with \"Id\"")
-				print(si)
-				exit(1)
-			for row in sheet:
-				res_id = int(float(row[0]))
-				booker_id = hash_booker_id(row[10], self.seed)
-				reservation_count = int(float(row[2]))
-				order_date = xldate_as_datetime(float(row[5]), 0)
-				yield [res_id, booker_id, tour_id, reservation_count, order_date, status]
+
+		tour_df = pd.read_csv(self.flat[index].path, skiprows=5)
+		tour_df['Status'] = status
+		tour_df['Tour_id'] = tour_id
+		tour_df = tour_df.filter([
+			'Id', 'E-Mail', 'Tour_id', 'Plätze', 'Datum', 'Status'
+		])
+
+		tour_df.columns = self.columns
+
+		tour_df['id'] = tour_df['id'].apply(int)
+		tour_df['booker_id'] = tour_df['booker_id'].apply(hash_booker_id, args=(self.seed,))
+		tour_df['reservation_count'] = tour_df['reservation_count'].apply(int)
+		tour_df['order_date'] = tour_df['order_date'].apply(self.float_to_datetime)
+
+		self.df = self.df.append(tour_df)
+
+		print(self.df)
+
+	def float_to_datetime(self, string):
+		return xldate_as_datetime(float(string), 0).date()
+
 
 class EnsureBookingsIsRun(luigi.Task):
 	def __init__(self, *args, **kwargs):
