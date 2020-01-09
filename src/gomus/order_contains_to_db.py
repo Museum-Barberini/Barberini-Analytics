@@ -9,6 +9,7 @@ class OrderContainsToDB(CsvToDb):
 	table = 'gomus_order_contains'
 
 	columns = [
+		('article_id', 'INT'),
 		('order_id', 'INT'),
 		('ticket', 'TEXT'),
 		('date', 'DATE'),
@@ -16,7 +17,7 @@ class OrderContainsToDB(CsvToDb):
 		('price', 'FLOAT'),
 	]
 	
-	primary_key = ('order_id', 'ticket')
+	primary_key = 'article_id'
 
 	def requires(self):
 		return ScrapeGomusOrderContains()

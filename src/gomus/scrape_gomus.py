@@ -115,6 +115,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 				
 				new_article = dict()
 				
+				new_article["article_id"] = int(self.extract_from_html(article, 'td[1]/div|td[1]/a/div|td[1]/a').strip()) # excursions have a link there and sometimes no div
+
 				new_article["order_id"] = order_ids[i]
 				
 				new_article["ticket"] = self.extract_from_html(article, 'td[3]/strong').strip()
