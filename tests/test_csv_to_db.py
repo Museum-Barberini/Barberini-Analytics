@@ -11,6 +11,7 @@ The following parameters are used to connect to the database:
     password = "docker"
 """
 
+import os
 import unittest
 import psycopg2
 import luigi
@@ -25,7 +26,7 @@ from src._utils.csv_to_db import CsvToDb
 
 # ------ CREATE DATABASE IF NECESSARY -------
 try:
-    conn = psycopg2.connect(host="db", user="postgres", password="docker")
+    conn = psycopg2.connect(host=os.environ['POSTGRES_HOST'], user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'])
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("CREATE DATABASE barberini_test;")
