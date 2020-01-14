@@ -11,18 +11,18 @@ services:
                 environment:
                         - PYTHONIOENCODING=utf-8
                 env_file:
-                        - /etc/secrets.env
+                        - /etc/secrets/keys.env
+                        - /etc/secrets/database.env
                 stdin_open: true
                 tty: true
 
         db:
                 container_name: db
                 image: postgres
-                environment: 
-                        - PGDATA=/var/lib/postgresql/data/pg-data/
-                        - POSTGRES_USER=postgres
-                        - POSTGRES_PASSWORD=docker
-                        - POSTGRES_DB=barberini
+                ports:
+                        - "5432:5432"
+                env_file:
+                        - /etc/secrets/database.env
                 volumes:
                         - ./volumes/test:/var/lib/postgresql/data/
 

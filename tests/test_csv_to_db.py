@@ -37,15 +37,15 @@ class DummyFileWrapper(luigi.Task):
 
 
 class DummyWriteCsvToDb(CsvToDb):
-	
+
 	def __init__(self, table_name):
 		super().__init__()
 		self.__class__.table = table_name
-		
+
 		# By default luigi assigns the same task_id to the objects of this class.
 		# That leads to errors when updating the marker table (tablue_updates).
 		self.task_id = f"{self.task_id}_{str(datetime.datetime.now())}"
-	
+
 	columns = [
 			("id", "INT"),
 			("A", "INT"),
@@ -53,14 +53,14 @@ class DummyWriteCsvToDb(CsvToDb):
 			("C", "TEXT")
 	]
 	primary_key = "id"
-	
+
 	host = os.environ['POSTGRES_HOST']
 	database = "barberini_test"
 	user = os.environ['POSTGRES_USER']
 	password = os.environ['POSTGRES_PASSWORD']
-	
+
 	table = None  # value set in __init__
-	
+
 	def requires(self):
 		return DummyFileWrapper()
 
