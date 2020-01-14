@@ -1,7 +1,6 @@
 # variables
 
 TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
-TSTTTLPYPATH := $(TOTALPYPATH):./tests/_utils/
 
 # from outside containers
 
@@ -53,11 +52,7 @@ test:
 	jq -rs 'reduce .[] as $$item ({}; . * $$item)' \
 		data/barberini-facts.json tests_fake_files/data/barberini-facts.json \
 		> tests_fake_files/data/barberini-facts.json
-	for test in $$(find tests/ -name *.py) ; do \
-		echo "Testing $${test}" ;\
-		cp -r tests_fake_files/. . ;\
-		PYTHONPATH=$(TSTTTLPYPATH) python3 -m unittest $$test -v ;\
-	done
+	PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/test*.py -v
 
 # use db-psql to get a psql shell inside the database container
 db-psql:

@@ -7,6 +7,7 @@ import pandas as pd
 from unittest.mock import patch
 import psycopg2
 import os
+from task_test import DatabaseTaskTest
 
 from src._utils.csv_to_db import CsvToDb
 
@@ -57,7 +58,7 @@ def get_temp_table():
 
 # -------- TESTS START HERE -------
 
-class TestCsvToDb(DatabaseTestCase):
+class TestCsvToDb(DatabaseTaskTest):
 	@patch("src._utils.csv_to_db.set_db_connection_options")
 	def setUp(self, mock):
 		

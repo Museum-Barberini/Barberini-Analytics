@@ -1,6 +1,7 @@
 import unittest
 import psycopg2
 import os
+import subprocess
 
 """ 
 IMPORTANT NOTE:
@@ -61,6 +62,7 @@ class DatabaseTaskTest(unittest.TestCase):
 	def setUp(self):
 		super().setUp()
 		self.db.setUp()
+		subprocess.run('cp -r tests_fake_files/. .'.split())
 	
 	def tearDown(self):
 		super().tearDown()
