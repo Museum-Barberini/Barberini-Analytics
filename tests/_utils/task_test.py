@@ -66,9 +66,10 @@ class DatabaseTaskTest(unittest.TestCase):
 	def setUp(self):
 		super().setUp()
 		self.db.setUp()
-		subprocess.run('cp -r tests_fake_files/. .'.split())
+		subprocess.call('cp -r tests_fake_files/. . --backup'.split())
 	
 	def tearDown(self):
+		subprocess.call(['bash', '-c', 'find -iname *~ | awk \'{system("bash -c \'"\'"\'file="$1" bash -c \\"mv \\\\$file \\\\${file::-1}\\"\'"\'"\'")}\''])
 		super().tearDown()
 		self.db.tearDown()
 	
