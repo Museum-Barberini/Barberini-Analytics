@@ -1,6 +1,6 @@
 from google_trends.gtrends_interest_table import *
 from task_test import DatabaseTaskTest
-import panadas as pd
+import pandas as pd
 import datetime as dt
 
 psycogp2.cursor.column_names = lambda self: [self.desc[0] for desc in self.description]

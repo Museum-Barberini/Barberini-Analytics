@@ -5,23 +5,11 @@ import tempfile
 import datetime
 import pandas as pd
 from unittest.mock import patch
+import psycopg2
+import os
 
 from src._utils.csv_to_db import CsvToDb
 
-
-# ------ CREATE DATABASE IF NECESSARY -------
-try:
-	conn = psycopg2.connect(host=os.environ['POSTGRES_HOST'], user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'])
-	conn.autocommit = True
-	cur = conn.cursor()
-	cur.execute("CREATE DATABASE barberini_test;")
-except psycopg2.DatabaseError as error:
-	print(error)
-finally:
-	cur.close()
-	conn.close()
-
-# ------ DEFINE HELPERS -------
 
 # Initialize test and write it to a csv file
 expected_data = [(1, 2, "abc", "xy,\"z"), (2, 10, "678", ",,;abc")]

@@ -1,5 +1,6 @@
 import unittest
 import psycopg2
+import os
 
 """ 
 IMPORTANT NOTE:
@@ -7,25 +8,30 @@ To be able to run tests that use this helper, you will need
 * a running postgres database server
 * a database named 'barberini_test'.
 """
+# ------ CREATE DATABASE IF NECESSARY -------
+conn = psycopg2.connect(
+	host=os.environ['POSTGRES_HOST'],
+	user=os.environ['POSTGRES_USER'],
+	password=os.environ['POSTGRES_PASSWORD'])
+try:
+	conn.autocommit = True
+	cur = conn.cursor()
+	try:
+		cur.execute("CREATE DATABASE barberini_test;")
+	finally:
+		cur.close()
+finally:
+	conn.close()
+
+
 class DatabaseHelper:
 	def setUp(self):
-		# ------ CREATE DATABASE IF NECESSARY -------
-		try:
-			conn = psycopg2.connect(host="db", user="postgres", password="docker")
-			conn.autocommit = True
-			cur = conn.cursor()
-			cur.execute("CREATE DATABASE barberini_test;")
-		except psycopg2.DatabaseError as error:
-			print(error)
-		finally:
-			cur.close()
-			conn.close()
 		
 		self.connection = psycopg2.connect(
-			host="db",
+			host=os.environ['POSTGRES_HOST'],
 			dbname="barberini_test",
-			user="postgres",
-			password="docker")
+            user=os.environ['POSTGRES_USER'],
+			password=os.environ['POSTGRES_PASSWORD'])
 	
 	def tearDown(self):
 		self.connection.close()
@@ -53,11 +59,11 @@ class DatabaseTaskTest(unittest.TestCase):
 	db = DatabaseHelper()
 	
 	def setUp(self):
-		super.setUp(self)
+		super().setUp()
 		self.db.setUp()
 	
 	def tearDown(self):
-		super.tearDown()
+		super().tearDown()
 		self.db.tearDown()
 	
 	def isolate(self, task):
