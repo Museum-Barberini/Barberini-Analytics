@@ -45,6 +45,6 @@ if __name__ == "__main__":
 
 
 # TODO: We will need to run the following installation commands
-#   pip install --upgrade google-api-python-client
-#   pip install oauth2client
+#   pip3 install --upgrade google-api-python-client
+#   pip3 install oauth2client
 # ODOT
