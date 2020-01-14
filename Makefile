@@ -9,10 +9,16 @@ build-luigi:
 	docker build -t luigi .
 
 startup:
-	bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
+	# bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
+	if [ -z $$(docker-compose ps -q db) ]; then\
+	 docker-compose up --build -d;\
+	else\
+	 docker-compose up --build -d luigi;\
+	fi
 
 shutdown:
-	docker-compose down && docker-compose rm
+	# docker-compose down && docker-compose rm
+	docker-compose rm -sf luigi
 
 connect:
 	docker-compose exec luigi bash
