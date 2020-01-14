@@ -1,9 +1,9 @@
 from google_trends.gtrends_interest_json import *
-from task_test import TaskTest
+from task_test import DatabaseTaskTest
 import json
 from datetime import datetime
 
-class GtrendsInterestJsonTest(TaskTest):
+class GtrendsInterestJsonTest(DatabaseTaskTest):
 	def __init__(self, methodName):
 		super().__init__(methodName)
 		self.task = self.isolate(GTrendsInterestJson())

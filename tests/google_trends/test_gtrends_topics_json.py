@@ -1,7 +1,7 @@
 from google_trends.gtrends_topics_json import *
-from task_test import TaskTest
+from task_test import DatabaseTaskTest
 
-class GtrendsTopicsJsonTest(TaskTest):
+class GtrendsTopicsJsonTest(DatabaseTaskTest):
 	def __init__(self, methodName):
 		super().__init__(methodName)
 		self.task = self.isolate(GTrendsTopicsJson())

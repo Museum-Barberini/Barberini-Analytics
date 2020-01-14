@@ -1,14 +1,12 @@
 from google_trends.gtrends_interest_table import *
-from task_test import TaskTest
+from task_test import DatabaseTaskTest
 import panadas as pd
 import datetime as dt
-
-from database_helper import DatabaseHelper
 
 psycogp2.cursor.column_names = lambda self: [self.desc[0] for desc in self.description]
 
 
-class TestGtrendsInterestTable(TaskTest):
+class TestGtrendsInterestTable(DatabaseTaskTest):
 	def __init__(self, methodName):
 		super().__init__(methodName)
 		self.task = self.isolate(GTrendsInterestTable())
@@ -22,17 +20,7 @@ class TestGtrendsInterestTable(TaskTest):
 		self.assertCountEqual(['topicId', 'date', 'interestValue'], list(csv.columns))
 
 
-class TestGtrendsInterestToDB(TaskTest):
-	db = DatabaseHelper()
-	
-	def setUp(self):
-		super.setUp(self)
-		self.db.setUp()
-	
-	def tearDown(self):
-		super.tearDown()
-		self.db.tearDown()
-	
+class TestGtrendsInterestToDB(DatabaseTaskTest):
 	def test_topicsToDB(self):
 		GtrendsInterestToDB().run()
 		

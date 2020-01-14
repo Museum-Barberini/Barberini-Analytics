@@ -7,7 +7,6 @@ import pandas as pd
 from unittest.mock import patch
 
 from src._utils.csv_to_db import CsvToDb
-from database_helper import DatabaseHelper
 
 
 # ------ CREATE DATABASE IF NECESSARY -------
@@ -70,15 +69,13 @@ def get_temp_table():
 
 # -------- TESTS START HERE -------
 
-class TestCsvToDb(unittest.TestCase):
-	db = DatabaseHelper()
+class TestCsvToDb(DatabaseTestCase):
 	@patch("src._utils.csv_to_db.set_db_connection_options")
 	def setUp(self, mock):
 		
+		super().setUp(mock)
 		self.table_name = get_temp_table()
 		self.dummy = DummyWriteCsvToDb(self.table_name)
-		self.db.setUp()
-		
 		# Store mock object to make assertions about it later on
 		self.mock_set_db_conn_options = mock
 	
@@ -87,11 +84,10 @@ class TestCsvToDb(unittest.TestCase):
 		self.mock_set_db_conn_options.assert_called_once() 
 		self.db.connection.set_isolation_level(0)
 		self.db.commit(f"DROP TABLE {self.table_name};")
-		self.db.tearDown()
-		
 		# Make absolutely sure that each test gets fresh params
 		self.table_name = None
 		self.dummy = None
+		super().tearDown()
 	
 	def test_adding_data_to_database_new_table(self):
 		

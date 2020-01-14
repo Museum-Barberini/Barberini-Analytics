@@ -4,7 +4,6 @@ import luigi
 import psycopg2
 from datetime import datetime
 from set_db_connection_options import set_db_connection_options
-from database_helper import DatabaseHelper
 
 
 class CsvToDb(CopyToTable):
