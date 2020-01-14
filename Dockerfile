@@ -12,7 +12,7 @@ RUN apt-get install -y --fix-missing --no-install-recommends build-essential vim
 RUN apt-get install -y --no-install-recommends python3.6 python3-pip python3-setuptools python3-dev
 
 # install python packages
-RUN pip3 install luigi twitterscraper pandas requests pyyaml
+RUN pip3 install luigi twitterscraper pandas requests pyyaml xlrd mmh3
 #RUN pip3 install Naked
 
 # install psycopg2 (incl. system dependencies)
@@ -26,5 +26,3 @@ RUN apt-get -y install nodejs
 # WORKAROUND until we have multiple Dockers
 RUN bash -c "cd ../ && npm i google-trends-api deasync"
 
-# workaround to enable the container to resolve the host "host.docker.internal" to the IP address of the host's bridge
-ENTRYPOINT echo $(/sbin/ip route | awk '/default/ { print $3 }') host.docker.internal >> /etc/hosts && /bin/bash
