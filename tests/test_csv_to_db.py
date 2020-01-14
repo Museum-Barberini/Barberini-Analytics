@@ -62,7 +62,7 @@ class TestCsvToDb(DatabaseTaskTest):
 	@patch("src._utils.csv_to_db.set_db_connection_options")
 	def setUp(self, mock):
 		
-		super().setUp(mock)
+		super().setUp()
 		self.table_name = get_temp_table()
 		self.dummy = DummyWriteCsvToDb(self.table_name)
 		# Store mock object to make assertions about it later on

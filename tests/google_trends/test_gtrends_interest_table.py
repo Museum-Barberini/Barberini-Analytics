@@ -3,9 +3,6 @@ from task_test import DatabaseTaskTest
 import pandas as pd
 import datetime as dt
 
-psycogp2.cursor.column_names = lambda self: [self.desc[0] for desc in self.description]
-
-
 class TestGtrendsInterestTable(DatabaseTaskTest):
 	def __init__(self, methodName):
 		super().__init__(methodName)
@@ -26,11 +23,9 @@ class TestGtrendsInterestToDB(DatabaseTaskTest):
 		
 		result = db.request("SELECT * FROM gtrends_interests WHERE topic_id LIKE 'TESTING_%'")
 		
-		self.assertListEqual(['topicId', 'date', 'interestValue'], db.cursor.column_names())
+		self.assertListEqual(['topicId', 'date', 'interestValue'], self.db.column_names())
 		self.assertListEqual([
 				('TESTING_foo', dt.date(year=2001, month=10, day=12)),
 				('TESTING_bar', dt.date(year=2017, month=1, day=20))],
 			result
 		)
-	
-	# TODO: Do the same at similar places ...

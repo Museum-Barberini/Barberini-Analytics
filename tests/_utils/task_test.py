@@ -24,10 +24,8 @@ try:
 finally:
 	conn.close()
 
-
 class DatabaseHelper:
 	def setUp(self):
-		
 		self.connection = psycopg2.connect(
 			host=os.environ['POSTGRES_HOST'],
 			dbname="barberini_test",
@@ -50,6 +48,12 @@ class DatabaseHelper:
 			cursor.execute(query)
 		self.cursor.close()
 		self.connection.commit()
+	
+	def column_names(self):
+		self.cursor = self.connection.cursor()
+		result = [self.cursor.desc[0] for desc in self.cursor.description]
+		self.cursor.close()
+		return result
 
 
 # DOCUMENTATION: This is kind of 💩💩💩
