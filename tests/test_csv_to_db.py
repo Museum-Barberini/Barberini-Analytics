@@ -12,7 +12,7 @@ from database_helper import DatabaseHelper
 
 # ------ CREATE DATABASE IF NECESSARY -------
 try:
-	conn = psycopg2.connect(host="db", user="postgres", password="docker")
+	conn = psycopg2.connect(host=os.environ['POSTGRES_HOST'], user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'])
 	conn.autocommit = True
 	cur = conn.cursor()
 	cur.execute("CREATE DATABASE barberini_test;")
@@ -54,10 +54,10 @@ class DummyWriteCsvToDb(CsvToDb):
 	]
 	primary_key = "id"
 	
-	host = "db"
+	host = os.environ['POSTGRES_HOST']
 	database = "barberini_test"
-	user = "postgres"
-	password = "docker"
+	user = os.environ['POSTGRES_USER']
+	password = os.environ['POSTGRES_PASSWORD']
 	
 	table = None  # value set in __init__
 	
