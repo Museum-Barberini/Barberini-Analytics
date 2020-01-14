@@ -49,10 +49,7 @@ psql:
 
 test:
 	mkdir -p output
-	jq -rs 'reduce .[] as $$item ({}; . * $$item)' \
-		data/barberini-facts.json tests_fake_files/data/barberini-facts.json \
-		> tests_fake_files/data/barberini-facts.json
-	PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/test*.py -v
+	PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/**/test*.py -v
 
 # use db-psql to get a psql shell inside the database container
 db-psql:
