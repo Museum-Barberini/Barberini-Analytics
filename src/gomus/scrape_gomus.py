@@ -38,8 +38,6 @@ class GomusScraperTask(luigi.Task):
 		if not response.ok:
 			print(f'Error with HTTP request: Status code {response.status_code}')
 			exit(1)
-		else:
-			print('HTTP request successful')
 		return response
 	
 	def extract_from_html(self, base_html, xpath):
