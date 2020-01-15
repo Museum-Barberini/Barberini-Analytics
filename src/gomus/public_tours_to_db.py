@@ -2,13 +2,13 @@
 import csv
 import luigi
 import psycopg2
-import xlrd
 
 from csv_to_db import CsvToDb
 from gomus.bookings_to_db import BookingsToDB
 from gomus.gomus_report import FetchGomusReport, FetchTourReservations
 from gomus.bookings_to_db import hash_booker_id
 from set_db_connection_options import set_db_connection_options
+from xlrd import xldate_as_datetime
 
 class PublicToursToDB(CsvToDb):
 
@@ -51,9 +51,9 @@ class PublicToursToDB(CsvToDb):
 			next(sheet)
 			for row in sheet:
 				res_id = int(float(row[0]))
-				booker_id = hash_booker_id(row[1], row[10], self.seed)
+				booker_id = hash_booker_id(row[10], self.seed)
 				reservation_count = int(float(row[2]))
-				order_date = xlrd.xldate_as_datetime(float(row[5]), 0)
+				order_date = xldate_as_datetime(float(row[5]), 0)
 				yield [res_id, booker_id, tour_id, reservation_count, order_date, status]
 
 class EnsureBookingsIsRun(luigi.Task):

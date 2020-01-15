@@ -120,7 +120,7 @@ class TweetPerformanceToDB(CsvToDb):
 		("timestamp", "DATE")
 	]
 	
-	primary_key = 'tweet_id', 'timestamp'
+	primary_key = ('tweet_id', 'timestamp')
 	
 	def requires(self):
 		return ExtractPerformanceTweets()
