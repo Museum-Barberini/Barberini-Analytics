@@ -132,4 +132,4 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 		
 		df = pd.DataFrame(order_details)
 		with self.output().open('w') as output_file:
-			df.to_csv(output_file, index=False, header=True, quoting=csv.QUOTE_NONNUMERIC)
+			df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
