@@ -1,4 +1,0 @@
-host:           db 
-database:       barberini
-user:           postgres
-password:       docker
