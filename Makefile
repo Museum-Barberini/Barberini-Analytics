@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 # from outside containers
 
 all-the-setup-stuff-for-ci: pull build-luigi startup connect
@@ -10,10 +11,10 @@ build-luigi:
 
 startup:
 	# bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
-	if [ -z $$(docker-compose ps -q db) ]; then\
-	 docker-compose up --build -d;\
-	else\
+	if [[ $$(docker-compose ps --filter status=running --services) == "db" ]]; then\
 	 docker-compose up --build -d luigi;\
+	else\
+	 docker-compose up --build -d;\
 	fi
 
 shutdown:
