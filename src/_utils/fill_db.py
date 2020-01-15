@@ -7,20 +7,30 @@ from facebook import FbPostsToDB, FbPostPerformanceToDB
 from customers_to_db import CustomersToDB
 from bookings_to_db import BookingsToDB
 from public_tours_to_db import PublicToursToDB
+from order_contains_to_db import OrderContainsToDB
 from orders_to_db import OrdersToDB
 
-class FillDB(luigi.WrapperTask):
 
+class FillDB(luigi.WrapperTask):
+	def requires(self):
+		yield FillDBDaily()
+		yield FillDBHourly()
+
+
+class FillDBDaily(luigi.WrapperTask):
 	def requires(self):
 		yield TweetsToDB()
-		yield TweetPerformanceToDB()
 		yield GtrendsInterestToDB()
 		yield GtrendsTopicsToDB()
 		yield AppstoreReviewsToDB()
 		yield FbPostsToDB()
-		yield FbPostPerformanceToDB()
 		yield CustomersToDB()
 		yield BookingsToDB()
 		yield PublicToursToDB()
+		yield OrderContainsToDB()
 		yield OrdersToDB()
 
+class FillDBHourly(luigi.WrapperTask):
+	def requires(self):
+		yield TweetPerformanceToDB()
+		yield FbPostPerformanceToDB()

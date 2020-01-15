@@ -6,7 +6,7 @@ import luigi
 def set_db_connection_options(task: luigi.Task) -> None:
 	""" 
 	Set the attributes host, database, user, and password to
-	the values given in the db_config file for the given task.
+	the values given in the etc/secrets/database.env file for the given task.
 	Modifies the task in place.
 
 	Usage:

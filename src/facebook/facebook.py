@@ -162,7 +162,7 @@ class FbPostPerformanceToDB(CsvToDb):
 		("negative_feedback", "INT")
 	]
 
-	primary_key = 'post_id', 'time_stamp'
+	primary_key = ('post_id', 'time_stamp')
 	
 	def requires(self):
 		return FetchFbPostPerformance()
