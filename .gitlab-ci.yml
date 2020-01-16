@@ -9,5 +9,5 @@ test:
   stage: test
   script:
     - make startup
-    - docker exec luigi make test 
+    - docker-compose -p $USER exec luigi make test 
     - make shutdown
