@@ -1,50 +1,64 @@
-#
-#    Copyright 2019 Google LLC
-#
-#    Licensed under the Apache License, Version 2.0 (the "License");
-#    you may not use this file except in compliance with the License.
-#    You may obtain a copy of the License at
-#
-#        https://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS,
-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    See the License for the specific language governing permissions and
-#    limitations under the License.
-#
-
-import sys
+import os
+import pprint
 import json
 
-from googleapiclient import sample_tools
-from googleapiclient.http import build_http
+import google.oauth2.credentials
+import oauth2client
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google_auth_oauthlib.flow import InstalledAppFlow
+from oauth2client.client import OAuth2WebServerFlow
+from oauth2client.file import Storage
 
-discovery_doc = "gmb_discovery.json"
+pp = pprint.PrettyPrinter(indent=2)
 
-def main(argv):
-    # Use the discovery doc to build a service that we can use to make
-    # MyBusiness API calls, and authenticate the user so we can access their
-    # account
-    service, flags = sample_tools.init(argv, "mybusiness", "v4", __doc__, __file__, scope="https://www.googleapis.com/auth/business.manage", discovery_filename=discovery_doc)
+# The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
+# the OAuth 2.0 information for this application, including its client_id and
+# client_secret.
+CLIENT_SECRET_FILE = "/etc/secrets/secret_files/google_gmb_client_secret.json"
 
-    # Get the list of accounts the authenticated user has access to
-    output = service.accounts().list().execute()
-    print("List of Accounts:\n")
-    print(json.dumps(output, indent=2) + "\n")
-
-    firstAccount = output["accounts"][0]["name"]
-
-    # Get the list of locations for the first account in the list
-    print("List of Locations for Account " + firstAccount)
-    locationsList = service.accounts().locations().list(parent=firstAccount).execute()
-    print(json.dumps(locationsList, indent=2))
-
-if __name__ == "__main__":
-  main(sys.argv)
+# This access scope grants read-only access to the authenticated user's Drive
+# account.
+with open(CLIENT_SECRET_FILE) as secret_file:
+	secret = json.load(secret_file)['installed']
+SCOPES = ['https://www.googleapis.com/auth/business.manage']
+API_SERVICE_NAME = 'mybusiness'
+API_VERSION = 'v4'
 
 
-# TODO: We will need to run the following installation commands
-#   pip3 install --upgrade google-api-python-client
-#   pip3 install oauth2client
-# ODOT
+def get_authenticated_service():
+	# Create a credential storage object.  You pick the filename.
+	storage = Storage('bankOfLon.don')
+	
+	# Attempt to load existing credentials.  Null is returned if it fails.
+	credentials = storage.get()
+	
+	# Only attempt to get new credentials if the load failed.
+	if not credentials:
+		# Run through the OAuth flow and retrieve credentials                                                                                 
+		flow = OAuth2WebServerFlow(secret['client_id'], secret['client_secret'], SCOPES, secret['redirect_uris'][0])
+		
+		authorize_url = flow.step1_get_authorize_url()
+		print('Go to the following link in your browser: ' + authorize_url)
+		code = input('Enter verification code: ').strip()
+		
+		credentials = flow.step2_exchange(code)
+		storage.put(credentials)
+	return build(API_SERVICE_NAME, API_VERSION, credentials = credentials, 
+		discoveryServiceUrl='https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p5.json')
+
+def list_drive_files(service, **kwargs):
+	results = service.accounts().locations().reviews().list(#.locations().reviews()
+		**kwargs).execute()
+	
+	pp.pprint(results)
+
+if __name__ == '__main__':
+	# When running locally, disable OAuthlib's HTTPs verification. When
+	# running in production *do not* leave this option enabled.
+	#os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+	service = get_authenticated_service()
+	list_drive_files(service,
+		#parent='accounts/117572894115944798318'
+		pageSize=50, parent='accounts/117572894115944798318/locations/2567716408507749660'
+	)

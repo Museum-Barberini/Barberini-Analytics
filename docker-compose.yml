@@ -6,6 +6,7 @@ services:
                 build: .
                 volumes:
                         - .:/app
+                        - /etc/secrets/secret_files:/app/secret_files
                 ports:
                         - "8082:8082"
                 environment:
