@@ -9,5 +9,7 @@ test:
   stage: test
   script:
     - make startup
+    - container=$(docker ps -f name=gitlab-runner-luigi -q)
+    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - docker exec gitlab-runner-luigi make test  
     - make shutdown
