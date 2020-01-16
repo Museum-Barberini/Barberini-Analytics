@@ -108,7 +108,7 @@ class EnsureBookingsIsRun(luigi.Task):
 					cancelled = yield FetchTourReservations(row[0], 1)
 					self.output_list.append(approved)
 					self.output_list.append(cancelled)
-					self.row_list.append(row[0])
+					self.row_list.append(tour_id)
 				row = cur.fetchone()
 			
 			self.is_complete = True
