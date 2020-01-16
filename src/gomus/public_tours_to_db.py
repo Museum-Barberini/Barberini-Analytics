@@ -58,7 +58,7 @@ def __init__(self, *args, **kwargs):
 			self.public_tours_df.to_csv(output_csv, index=False)	
 
 	def append_tour_data(self, index, status):
-		with self.flat[index].open('r') as sheet:
+		with self.public_tours_list[index].open('r') as sheet:
 			sheet = csv.reader(sheet)
 			tour_id = int(float(next(sheet)[0]))
 
