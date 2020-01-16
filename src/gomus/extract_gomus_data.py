@@ -7,6 +7,12 @@ from datetime import datetime
 import numpy as np
 
 
+def hash_booker_id(self, email):
+    if email is np.NaN: #np.isnan(email):
+            return 0
+    return mmh3.hash(email, self.seed, signed=True)
+
+
 class ExtractGomusBookings(luigi.Task):
 	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
 	
@@ -20,7 +26,7 @@ class ExtractGomusBookings(luigi.Task):
 		bookings = pd.read_csv(self.input().path)
 		
 		bookings['Buchung'] = bookings['Buchung'].apply(int)
-		bookings['E-Mail'] = bookings['E-Mail'].apply(self.hash_booker_id)
+		bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id)
 		# category = Angebotskategorie
 		bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
 		bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
@@ -40,11 +46,6 @@ class ExtractGomusBookings(luigi.Task):
 			'daytime', 'duration', 'exhibition', 'title', 'status']
 		with self.output().open('w') as output_file:
 			bookings.to_csv(output_file, header=True, index=False)
-	
-	def hash_booker_id(self, email):
-		if email is np.NaN: #np.isnan(email):
-			return 0
-		return mmh3.hash(email, self.seed, signed=True)
 	
 	def hash_guide(self, guide_name):
 		if guide_name is np.NaN: #np.isnan(guide_name):
