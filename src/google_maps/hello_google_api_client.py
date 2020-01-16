@@ -21,7 +21,6 @@ CLIENT_SECRET_FILE = "client_secret_other.json"
 # account.
 with open(CLIENT_SECRET_FILE) as secret_file:
 	secret = json.load(secret_file)['installed']
-	print(secret)
 SCOPES = ['https://www.googleapis.com/auth/business.manage']
 API_SERVICE_NAME = 'mybusiness'
 API_VERSION = 'v4'
@@ -37,11 +36,11 @@ def get_authenticated_service():
 	# Only attempt to get new credentials if the load failed.
 	if not credentials:
 		# Run through the OAuth flow and retrieve credentials                                                                                 
-		flow = OAuth2WebServerFlow(secret['client_id'], secret['client_secret'], SCOPES, secret['redirect_uris'])
+		flow = OAuth2WebServerFlow(secret['client_id'], secret['client_secret'], SCOPES, secret['redirect_uris'][0])
 		
 		authorize_url = flow.step1_get_authorize_url()
 		print('Go to the following link in your browser: ' + authorize_url)
-		code = raw_input('Enter verification code: ').strip()
+		code = input('Enter verification code: ').strip()
 		
 		credentials = flow.step2_exchange(code)
 		storage.put(credentials)
@@ -49,9 +48,8 @@ def get_authenticated_service():
 		discoveryServiceUrl='https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p5.json')
 
 def list_drive_files(service, **kwargs):
-	results = service.accounts().locations().reviews().list(
-	**kwargs
-	).execute()
+	results = service.accounts().locations().reviews().list(#.locations().reviews()
+		**kwargs).execute()
 	
 	pp.pprint(results)
 
@@ -60,5 +58,7 @@ if __name__ == '__main__':
 	# running in production *do not* leave this option enabled.
 	os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 	service = get_authenticated_service()
-	list_drive_files(service, 
-		pageSize=50, parent='accounts/117572894115944798318/locations/2567716408507749660')
+	list_drive_files(service,
+		#parent='accounts/117572894115944798318'
+		pageSize=50, parent='accounts/117572894115944798318/locations/2567716408507749660'
+	)
