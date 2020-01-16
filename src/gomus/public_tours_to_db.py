@@ -37,7 +37,10 @@ class PublicToursToDB(CsvToDb):
 class ExtractPublicTourData(luigi.Task):
 	columns = luigi.parameter.ListParameter(description="Column names")
 	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
-
+def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.public_tours_list = None
+    self.public_tours_df = None
 	def requires(self):
 		return EnsureBookingsIsRun()
 
