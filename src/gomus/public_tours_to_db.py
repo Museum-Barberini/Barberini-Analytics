@@ -55,7 +55,7 @@ def __init__(self, *args, **kwargs):
 			self.append_tour_data(i+1, 'Storniert')
 
 		with self.output().open('w') as output_csv:
-			self.df.to_csv(output_csv, index=False, header=True)	
+			self.public_tours_df.to_csv(output_csv, index=False)	
 
 	def append_tour_data(self, index, status):
 		with self.flat[index].open('r') as sheet:
