@@ -4,7 +4,7 @@ from csv_to_db import CsvToDb
 from fetch_google_maps_reviews import FetchGoogleMapsReviews
 
 class GoogleMapsReviewsToDB(CsvToDb):
-
+	
 	table = 'google_maps_reviews'
 
 	columns = [
@@ -16,6 +16,6 @@ class GoogleMapsReviewsToDB(CsvToDb):
 	]
 	
 	primary_key = 'id'
-
+	
 	def requires(self):
 		return FetchGoogleMapsReviews()
