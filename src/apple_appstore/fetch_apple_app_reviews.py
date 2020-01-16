@@ -31,6 +31,7 @@ class AppstoreReviewsToDB(CsvToDb):
                 ("vote_count", "INT"),
                 ("vote_sum", "INT"),
                 ("title", "TEXT")
+                # TODO: retrieve review date
                 #("date", "DATE")
         ]
         
