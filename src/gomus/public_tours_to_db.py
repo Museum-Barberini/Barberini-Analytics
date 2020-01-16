@@ -49,7 +49,7 @@ def __init__(self, *args, **kwargs):
 
 	def run(self):
 		self.flat = luigi.task.flatten(self.input())
-		self.df = pd.DataFrame(columns=self.columns)
+		self.public_tours_df = pd.DataFrame(columns=self.columns)
 		for i in range(0, len(self.flat), 2):
 			self.append_tour_data(i, 'Gebucht')
 			self.append_tour_data(i+1, 'Storniert')
