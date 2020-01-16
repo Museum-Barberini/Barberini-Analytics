@@ -102,7 +102,8 @@ class EnsureBookingsIsRun(luigi.Task):
 
 			row = cur.fetchone()
 			while row is not None:
-				if not row[0] in self.row_list:
+                                tour_id = row[0]
+				if not tour_id in self.row_list:
 					approved = yield FetchTourReservations(row[0], 0)
 					cancelled = yield FetchTourReservations(row[0], 1)
 					self.output_list.append(approved)
