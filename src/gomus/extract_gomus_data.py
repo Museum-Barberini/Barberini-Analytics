@@ -7,7 +7,7 @@ from datetime import datetime
 import numpy as np
 
 
-def hash_booker_id(self, email):
+def hash_booker_id(email):
     if email is np.NaN: #np.isnan(email):
             return 0
     return mmh3.hash(email, self.seed, signed=True)
