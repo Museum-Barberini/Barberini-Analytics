@@ -48,7 +48,7 @@ def __init__(self, *args, **kwargs):
 		return luigi.LocalTarget('output/gomus/public_tours.csv', format=UTF8)
 
 	def run(self):
-		self.flat = luigi.task.flatten(self.input())
+		self.public_tours_list = luigi.task.flatten(self.input())
 		self.public_tours_df = pd.DataFrame(columns=self.columns)
 		for i in range(0, len(self.flat), 2):
 			self.append_tour_data(i, 'Gebucht')
