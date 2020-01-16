@@ -19,10 +19,6 @@ class TestGomusConnection(unittest.TestCase):
 		response = requests.get('https://barberini.gomus.de/', cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']), allow_redirects=False)
 		self.assertEqual(response.status_code, 200)
 
-class TestFetchGomusReports(unittest.TestCase):
-	# TODO: Check that Reports are available and downloaded correctly
-	pass
-
 class TestGomusCustomerTransformations(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
