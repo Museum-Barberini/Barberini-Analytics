@@ -1,30 +1,24 @@
 SHELL := /bin/bash
 # from outside containers
 
-all-the-setup-stuff-for-ci: pull build-luigi startup connect
+all-the-setup-stuff-for-ci: pull startup connect
 
 pull:
 	docker pull ubuntu && docker pull postgres
 
-build-luigi:
-	docker build -t luigi .
-
 startup:
-	# bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
-	if [[ $$(docker-compose ps --filter status=running --services) == "db" ]]; then\
-	 docker-compose up --build -d luigi;\
-	else\
-	 docker-compose up --build -d;\
-	fi
+	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
+	 docker-compose up --build -d --no-recreate db;\
+	fi;\
+	docker-compose -p ${USER} up --build -d luigi
 
 shutdown:
-	# docker-compose down && docker-compose rm
-	docker-compose rm -sf luigi
+	docker-compose -p ${USER} rm -sf luigi
 
 connect:
-	docker-compose exec luigi bash
+	docker-compose -p ${USER} exec luigi bash
 
-# in luigi container use
+# For use inside the Luigi container
 
 luigi-ui:
 	luigid --background &

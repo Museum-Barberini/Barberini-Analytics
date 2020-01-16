@@ -1,13 +1,13 @@
-version: "3"
+version: "3.7"
 
 services:
         luigi:
-                container_name: luigi
+                container_name: ${USER}-luigi
                 build: .
                 volumes:
                         - .:/app
                 ports:
-                        - "8082:8082"
+                        - "8082"
                 environment:
                         - PYTHONIOENCODING=utf-8
                 env_file:
@@ -15,10 +15,13 @@ services:
                         - /etc/secrets/database.env
                 stdin_open: true
                 tty: true
+                networks:
+                        - bpbarberini_default
 
         db:
                 container_name: db
                 image: postgres
+                restart: always
                 ports:
                         - "5432:5432"
                 env_file:
@@ -26,3 +29,6 @@ services:
                 volumes:
                         - /var/db-data/:/var/lib/postgresql/data/
 
+networks:
+        bpbarberini_default:
+                external: true
