@@ -142,6 +142,5 @@ dmypy.json
 
 scripts/places/mybusiness.dat
 package-lock.json
-#.vscode/settings.json
 
 .vscode/
