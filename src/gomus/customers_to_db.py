@@ -45,7 +45,8 @@ class ExtractCustomerData(luigi.Task):
 		return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
 
 	def run(self):
-		df = pd.read_csv(self.input().path)
+		with self.input().open('r') as input_csv:
+			df = pd.read_csv(input_csv)
 		df = df.filter([
 			'Nummer', 'E-Mail', 'PLZ',
 			'Newsletter', 'Anrede', 'Kategorie',
@@ -61,7 +62,6 @@ class ExtractCustomerData(luigi.Task):
 		df['gender'] = df['gender'].apply(self.parse_gender)
 		df['register_date'] = pd.to_datetime(df['register_date'], format='%d.%m.%Y')
 		df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
-
 		with self.output().open('w') as output_csv:
 			df.to_csv(output_csv, index=False, header=True)
 
@@ -74,7 +74,7 @@ class ExtractCustomerData(luigi.Task):
 		return ''
 
 	def hash_id(self, email):
-		if email is np.nan: return 0
+		if not isinstance(email, str): return 0
 		return mmh3.hash(email, self.seed, signed=True)
 
 	def postal_transformation(self, post_string):

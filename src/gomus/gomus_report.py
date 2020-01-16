@@ -32,7 +32,7 @@ class FetchGomusReport(luigi.Task):
 
 class FetchTourReservations(luigi.Task):
 	booking_id = luigi.parameter.IntParameter(description="The booking's index")
-	status = luigi.parameter.IntParameter(description="ID of stats (0 = booked, 2 = cancelled) (default: 0)", default=0)
+	status = luigi.parameter.IntParameter(description="ID of stats (0 = booked, 1 = cancelled) (default: 0)", default=0)
 
 	def output(self):
 		return luigi.LocalTarget(f'output/gomus/reservations/reservations_{self.booking_id}.{self.status}.csv', format=UTF8)
