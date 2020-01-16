@@ -115,7 +115,6 @@ def fetch_single_url(url):
                 "vote_count": item["im:voteCount"]["label"],
                 "vote_sum": item["im:voteSum"]["label"],
                 "title": item["title"]["label"]
-                #"date": item["updated"]["label"]
         } for item in entries]
         
         return data, response_content
