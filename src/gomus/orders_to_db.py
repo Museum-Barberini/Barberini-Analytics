@@ -48,7 +48,9 @@ class ExtractOrderData(luigi.Task):
 		return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
 
 	def run(self):
-		df = pd.read_csv(self.input().path)
+		with self.input().open('r') as input_csv:
+			df = pd.read_csv(input_csv)
+		
 		df = df.filter([
 			'Bestellnummer', 'Erstellt', 'Kundennummer',
 			'ist gültig?', 'Bezahlstatus', 'Herkunft'
@@ -61,7 +63,7 @@ class ExtractOrderData(luigi.Task):
 		df['customer_id'] = df['customer_id'].apply(self.query_customer_id)
 		df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
 		df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
-
+		
 		with self.output().open('w') as output_csv:
 			df.to_csv(output_csv, index=False, header=True)
 	

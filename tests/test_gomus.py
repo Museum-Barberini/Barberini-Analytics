@@ -61,3 +61,44 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 
 		# 30.21.2005 should not be a valid date
 		self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
+
+class TestGomusOrdersTransformations(unittest.TestCase):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.columns = ['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin']
+
+	@patch.object(ExtractOrderData, 'query_customer_id')
+	@patch.object(ExtractOrderData, 'output')
+	@patch.object(ExtractOrderData, 'input')
+	def test_orders_transformation(self, input_mock, output_mock, cust_id_mock):
+		# Overwrite input and output of target task with MockTargets
+		input_target = MockTarget('order_data_in', format=UTF8)
+		output_target = MockTarget('order_data_out', format=UTF8)
+		input_mock.return_value = input_target
+		output_mock.return_value = output_target
+		cust_id_mock.return_value = 0
+
+		# Write test data to input mock
+		with input_target.open('w') as input_data:
+			with open('tests/test_data/gomus_orders_in.csv', 'r', encoding='utf-8') as test_data_in:
+				input_data.write(test_data_in.read())
+		
+		# Execute task
+		ExtractOrderData(self.columns).run()
+
+		# Check result in output mock
+		with output_target.open('r') as output_data:
+			with open('tests/test_data/gomus_orders_out.csv', 'r', encoding='utf-8') as test_data_out:
+				self.assertEqual(output_data.read(), test_data_out.read())
+	
+	@patch.object(ExtractOrderData, 'input')
+	def test_invalid_date_raises_exception(self, input_mock):
+		input_target = MockTarget('customer_data_in', format=UTF8)
+		input_mock.return_value = input_target
+
+		with input_target.open('w') as input_data:
+			with open('tests/test_data/gomus_orders_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
+				input_data.write(test_data_in.read())
+
+		# 10698846.0 should be out of range
+		self.assertRaises(OverflowError, ExtractOrderData(self.columns).run)
