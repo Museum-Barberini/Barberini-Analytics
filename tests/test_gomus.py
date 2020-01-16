@@ -3,9 +3,13 @@ import os
 import requests
 import unittest
 
+from luigi.format import UTF8
 from luigi.mock import MockTarget
 from unittest.mock import MagicMock
 from unittest.mock import patch
+
+from customers_to_db import ExtractCustomerData
+from orders_to_db import ExtractOrderData
 
 # No tests that data is put into DB correctly because csv_to_db is already tested
 
@@ -19,11 +23,41 @@ class TestFetchGomusReports(unittest.TestCase):
 	# TODO: Check that Reports are available and downloaded correctly
 	pass
 
-class TestGomusTransformations(unittest.TestCase):
-	# TODO: Check that exports get transformed into correct db format (using pandas)
-	@patch('src.gomus.customers_to_db.ExtractCustomerData.requires')
-	def test_customers_transformation(self, mock):
-		mock_input = MockTarget('test_customer_data')
-		# idea: write data to MockTarget with open('w') and then call ExtractCustomerData task
-		# still need to see how to check output
-		mock.return_value = mock_input
+class TestGomusCustomerTransformations(unittest.TestCase):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.columns = ['id', 'hash_id', 'postal_code', 'newsletter', 'gender', 'category', 'language', 'country', 'type', 'register_date', 'annual_ticket']
+
+	@patch.object(ExtractCustomerData, 'output')
+	@patch.object(ExtractCustomerData, 'input')
+	def test_customers_transformation(self, input_mock, output_mock):
+		# Overwrite input and output of target task with MockTargets
+		input_target = MockTarget('customer_data_in', format=UTF8)
+		output_target = MockTarget('customer_data_out', format=UTF8)
+		input_mock.return_value = input_target
+		output_mock.return_value = output_target
+
+		# Write test data to input mock
+		with input_target.open('w') as input_data:
+			with open('tests/test_data/gomus_customers_in.csv', 'r', encoding='utf-8') as test_data_in:
+				input_data.write(test_data_in.read())
+		
+		# Execute task
+		ExtractCustomerData(self.columns).run()
+
+		# Check result in output mock
+		with output_target.open('r') as output_data:
+			with open('tests/test_data/gomus_customers_out.csv', 'r', encoding='utf-8') as test_data_out:
+				self.assertEqual(output_data.read(), test_data_out.read())
+
+	@patch.object(ExtractCustomerData, 'input')
+	def test_invalid_date_raises_exception(self, input_mock):
+		input_target = MockTarget('customer_data_in', format=UTF8)
+		input_mock.return_value = input_target
+
+		with input_target.open('w') as input_data:
+			with open('tests/test_data/gomus_customers_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
+				input_data.write(test_data_in.read())
+
+		# 30.21.2005 should not be a valid date
+		self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
