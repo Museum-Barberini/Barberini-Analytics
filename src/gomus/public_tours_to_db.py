@@ -78,8 +78,6 @@ def __init__(self, *args, **kwargs):
 
 		self.df = self.df.append(tour_df)
 
-		print(self.df)
-
 	def float_to_datetime(self, string):
 		return xldate_as_datetime(float(string), 0).date()
 
