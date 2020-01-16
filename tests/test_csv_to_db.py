@@ -26,7 +26,7 @@ from src._utils.csv_to_db import CsvToDb
 
 # ------ CREATE DATABASE IF NECESSARY -------
 try:
-    conn = psycopg2.connect(host=os.environ['POSTGRES_HOST'], user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'])
+    conn = psycopg2.connect(host=os.environ['POSTGRES_HOST'], user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'], database=os.environ['POSTGRES_DB'])
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("CREATE DATABASE barberini_test;")
