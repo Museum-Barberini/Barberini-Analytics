@@ -7,10 +7,10 @@ from datetime import datetime
 import numpy as np
 
 
-def hash_booker_id(email):
+def hash_booker_id(email, seed=666):
     if email is np.NaN: #np.isnan(email):
             return 0
-    return mmh3.hash(email, self.seed, signed=True)
+    return mmh3.hash(email, seed, signed=True)
 
 
 class ExtractGomusBookings(luigi.Task):
@@ -26,7 +26,7 @@ class ExtractGomusBookings(luigi.Task):
 		bookings = pd.read_csv(self.input().path)
 		
 		bookings['Buchung'] = bookings['Buchung'].apply(int)
-		bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id)
+		bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id, args=(self.seed,))
 		# category = Angebotskategorie
 		bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
 		bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
