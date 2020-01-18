@@ -113,7 +113,11 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 				
 				new_article = dict()
 				
-				new_article["article_id"] = int(self.extract_from_html(article, 'td[1]/div|td[1]/a/div|td[1]/a').strip()) # excursions have a link there and sometimes no div
+				# Workaround for orders like 671144
+				id_xpath = 'td[1]/div|td[1]/a/div|td[1]/a'
+				if len(article.xpath(id_xpath)) == 0: continue
+				
+				new_article["article_id"] = int(self.extract_from_html(article, id_xpath).strip()) # excursions have a link there and sometimes no div
 
 				new_article["order_id"] = order_ids[i]
 				
