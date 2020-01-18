@@ -32,5 +32,5 @@ class FillDBDaily(luigi.WrapperTask):
 
 class FillDBHourly(luigi.WrapperTask):
 	def requires(self):
-		yield TweetPerformanceToDB()
+		#yield TweetPerformanceToDB()
 		yield FbPostPerformanceToDB()
