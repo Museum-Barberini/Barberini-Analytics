@@ -19,7 +19,7 @@ class FillDB(luigi.WrapperTask):
 
 class FillDBDaily(luigi.WrapperTask):
 	def requires(self):
-		yield TweetsToDB()
+		#yield TweetsToDB()
 		yield GtrendsInterestToDB()
 		yield GtrendsTopicsToDB()
 		yield AppstoreReviewsToDB()
