@@ -10,6 +10,7 @@ services:
                         - "8082"
                 environment:
                         - PYTHONIOENCODING=utf-8
+                        - PYTHONUNBUFFERED=1
                 env_file:
                         - /etc/secrets/keys.env
                         - /etc/secrets/database.env

@@ -8,9 +8,9 @@ import numpy as np
 
 
 def hash_booker_id(email, seed=666):
-    if email is np.NaN: #np.isnan(email):
-            return 0
-    return mmh3.hash(email, seed, signed=True)
+	if not isinstance(email, str):
+		return 0
+	return mmh3.hash(email, seed, signed=True)
 
 
 class ExtractGomusBookings(luigi.Task):

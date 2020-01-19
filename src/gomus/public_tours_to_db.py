@@ -52,7 +52,7 @@ class ExtractPublicTourData(luigi.Task):
         def run(self):
                 self.public_tours_list = luigi.task.flatten(self.input())
                 self.public_tours_df = pd.DataFrame(columns=self.columns)
-                for i in range(0, len(self.flat), 2):
+                for i in range(0, len(self.public_tours_list), 2):
                         self.append_tour_data(i, 'Gebucht')
                         self.append_tour_data(i+1, 'Storniert')
 
@@ -64,7 +64,7 @@ class ExtractPublicTourData(luigi.Task):
                         sheet_reader = csv.reader(sheet)
                         tour_id = int(float(next(sheet_reader)[0]))
 
-                tour_df = pd.read_csv(self.flat[index].path, skiprows=5)
+                tour_df = pd.read_csv(self.public_tours_list[index].path, skiprows=5)
                 tour_df['Status'] = status
                 tour_df['Tour_id'] = tour_id
                 tour_df = tour_df.filter([
@@ -78,7 +78,7 @@ class ExtractPublicTourData(luigi.Task):
                 tour_df['reservation_count'] = tour_df['reservation_count'].apply(int)
                 tour_df['order_date'] = tour_df['order_date'].apply(self.float_to_datetime)
 
-                self.df = self.df.append(tour_df)
+                self.public_tours_df = self.public_tours_df.append(tour_df)
 
         def float_to_datetime(self, string):
                 return xldate_as_datetime(float(string), 0).date()
