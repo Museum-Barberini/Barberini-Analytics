@@ -16,7 +16,7 @@ services:
                 stdin_open: true
                 tty: true
                 networks:
-                        - bpbarberini_default
+                        - database_network
 
         db:
                 container_name: db
@@ -28,7 +28,9 @@ services:
                         - /etc/secrets/database.env
                 volumes:
                         - /var/db-data/:/var/lib/postgresql/data/
+                networks:
+                        - database_network
 
 networks:
-        bpbarberini_default:
+        database_network:
                 external: true
