@@ -14,6 +14,7 @@ services:
                 env_file:
                         - /etc/secrets/keys.env
                         - /etc/secrets/database.env
+                        - /etc/secrets/smtp.env
                 stdin_open: true
                 tty: true
                 networks:
