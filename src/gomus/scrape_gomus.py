@@ -124,8 +124,12 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 				new_article["ticket"] = self.extract_from_html(article, 'td[3]/strong').strip()
 				
 				infobox_str = html.tostring(article.xpath('td[2]/div')[0], method='text', encoding="unicode")
-				raw_date = re.findall(r'\d.*Uhr', infobox_str)[0]
-				new_article["date"] = dateparser.parse(raw_date)
+
+				# Workaround for orders like 679577
+				raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
+				if not len(raw_date_re) == 0:
+					raw_date = raw_date_re[0]
+					new_article["date"] = dateparser.parse(raw_date)
 				
 				new_article["quantity"] = int(self.extract_from_html(article, 'td[4]'))
 				
