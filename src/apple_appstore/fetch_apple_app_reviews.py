@@ -19,7 +19,7 @@ class FetchAppstoreReviews(luigi.Task):
 
 class AppstoreReviewsToDB(CsvToDb):
         
-        table = "appstore_reviews"
+        table = "appstore_review"
         
         columns = [
                 ("author", "TEXT"),
@@ -31,6 +31,8 @@ class AppstoreReviewsToDB(CsvToDb):
                 ("vote_count", "INT"),
                 ("vote_sum", "INT"),
                 ("title", "TEXT")
+                # TODO: retrieve review date
+                #("date", "DATE")
         ]
         
         primary_key = "id"

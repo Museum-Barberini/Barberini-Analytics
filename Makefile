@@ -1,33 +1,28 @@
-# variables
+SHELL := /bin/bash
 
+# variables
 TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
 
 # from outside containers
 
-all-the-setup-stuff-for-ci: pull build-luigi startup connect
+all-the-setup-stuff-for-ci: pull startup connect
 
 pull:
 	docker pull ubuntu && docker pull postgres
 
-build-luigi:
-	docker build -t luigi .
-
 startup:
-	# bash -c "if [[ $$(cat /proc/sys/kernel/osrelease) == *Microsoft ]]; then cmd.exe /c docker-compose up --build -d; else docker-compose up --build -d; fi"
-	if [ -z $$(docker-compose ps -q db) ]; then\
-	 docker-compose up --build -d;\
-	else\
-	 docker-compose up --build -d luigi;\
-	fi
+	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
+	 docker-compose up --build -d --no-recreate db;\
+	fi;\
+	docker-compose -p ${USER} up --build -d luigi
 
 shutdown:
-	# docker-compose down && docker-compose rm
-	docker-compose rm -sf luigi
+	docker-compose -p ${USER} rm -sf luigi
 
 connect:
-	docker-compose exec luigi bash
+	docker-compose -p ${USER} exec luigi bash
 
-# in luigi container use
+# For use inside the Luigi container
 
 luigi-ui:
 	luigid --background &
@@ -62,7 +57,7 @@ db-do:
 	docker exec -it db psql -U postgres -a $(db) -c $(do)
 
 db-backup:
-	docker exec -it db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 db-restore:
-	cat $(dump) | docker exec -i db psql -U postgres
+	docker exec -i db psql -U postgres barberini < $(dump)

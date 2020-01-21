@@ -1,5 +1,10 @@
 db_config.yaml
+volumes/
 
+# SECURITY!1
+*secret*
+*token*
+*private*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -136,7 +141,7 @@ dmypy.json
 *.Rproj*
 .Rproj.user
 
-.vscode/launch.json
 scripts/places/mybusiness.dat
 package-lock.json
-.vscode/settings.json
+
+.vscode/

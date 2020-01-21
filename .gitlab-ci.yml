@@ -1,4 +1,4 @@
-image: docker:latest
+simage: docker:latest
 
 build:
   stage: build
@@ -8,6 +8,8 @@ build:
 test:
   stage: test
   script:
+    - container=$(docker ps -f name=gitlab-runner-luigi -q)
+    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - make startup
-    - docker exec luigi "make" test
+    - docker exec gitlab-runner-luigi make test  
     - make shutdown

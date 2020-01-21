@@ -23,6 +23,7 @@ import xlrd
 report_ids = {
 	'customers_7days': 1226,
 	'orders_7days': 1188,
+	'orders_1day': 1246,
 	'bookings_7days': 0,
 
 	'bookings_1month': -3,
@@ -60,6 +61,8 @@ def direct_download_url(base_url, report, timespan):
 		start_time = today - datetime.timedelta(days=30)
 	elif timespan == '1year':
 		start_time = today - datetime.timedelta(days=365)
+	elif timespan == '1day':
+		start_time = end_time
 	else: no_time = True
 	
 	base_return = base_url + f'/{report}.xlsx'
