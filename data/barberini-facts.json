@@ -1,1 +1,21 @@
-{"foundingDate": "2013-01-01T00:00:00.000Z"}
+{
+	"geo_id": "de",
+	"foundingDate": "2017-01-01T00:00:00.000Z",
+	
+	"exhibitions": [
+		"van Gogh",
+		"Picasso"
+	],
+	
+	"ids": {
+		"apple": {
+			"appId": 1150432552
+		},
+		"google": {
+			"keyword": "/g/11bwnd3skz"
+		},
+		"twitter": {
+			"user_id": 788400779556159488
+		}
+	}
+}
