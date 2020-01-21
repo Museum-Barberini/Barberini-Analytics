@@ -14,7 +14,7 @@ class TestGtrendsInterestJson(DatabaseTaskTest):
                         json_string = file.read()
                 self.assertTrue(json_string) # not empty
                 json_values = json.loads(json_string)
-                min = datetime(2012, 12, 1) # treshold, see faked barberini-facts.json version
+                min = datetime(2014, 12, 1) # treshold, see faked barberini-facts.json version
                 now = datetime.now()
                 for row in json_values:
                         self.assertEqual(set(['topicId', 'interestValue', 'date']), set(row.keys()))
