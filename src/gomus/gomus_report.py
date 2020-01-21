@@ -20,15 +20,17 @@ class FetchGomusReport(luigi.Task):
 
 	def run(self):
 		sess_id = os.environ['GOMUS_SESS_ID']
-		
+		self.refresh(sess_id)
+
+		res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-I', f'{self.sheet_index}', '-l'])
+		with self.output().open('w') as target_csv:
+			csv_from_excel(res_content, target_csv, self.sheet_index)
+
+	def refresh(self, sess_id):
 		if report_ids[f'{self.report_name}'] > 0: # report refreshable
 			request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', 'refresh'])
 			print("Waiting 60 seconds for the report to refresh")
 			time.sleep(60)
-		
-		res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-I', f'{self.sheet_index}', '-l'])
-		with self.output().open('w') as target_csv:
-			csv_from_excel(res_content, target_csv, self.sheet_index)
 
 class FetchTourReservations(luigi.Task):
 	booking_id = luigi.parameter.IntParameter(description="The booking's index")
