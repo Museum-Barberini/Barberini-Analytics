@@ -1,12 +1,12 @@
 from google_trends.gtrends_topics_json import *
 from task_test import DatabaseTaskTest
 
-class GtrendsTopicsJsonTest(DatabaseTaskTest):
+class TestGtrendsTopicsJson(DatabaseTaskTest):
 	def __init__(self, methodName):
 		super().__init__(methodName)
 		self.task = self.isolate(GTrendsTopicsJson())
 	
-	def testGtrendsTopicsJson(self):
+	def test_gtrends_topics_json(self):
 		self.task.run()
 		with open('output/google-trends/topics.json', 'r') as file:
 			json_string = file.read()
