@@ -59,12 +59,12 @@ class CsvToDb(CopyToTable):
 	
 	def create_primary_key(self, connection):
 		connection.cursor().execute(
-                    self.load_sql_script(
-		        'set_primary_key',
-			self.table,
-			self.tuple_like_string(self.primary_key)
-                    )
-                )
+			self.load_sql_script(
+				'set_primary_key',
+				self.table,
+				self.tuple_like_string(self.primary_key)
+			)
+		)
 	
 	def load_sql_script(self, name, *args):
 		with open(self.sql_file_path_pattern.format(name)) as sql_file:
