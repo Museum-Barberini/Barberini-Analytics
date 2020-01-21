@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class FetchGoogleMapsReviews(luigi.Task):
-
+	
 	token_cache = luigi.Parameter(default='secret_files/google_gmb_credential_cache.json')
 	client_secret = luigi.Parameter(default='secret_files/google_gmb_client_secret.json')
 	scopes = ['https://www.googleapis.com/auth/business.manage']
