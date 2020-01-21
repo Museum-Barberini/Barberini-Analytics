@@ -10,7 +10,7 @@ all-the-setup-stuff-for-ci: pull startup connect
 pull:
 	docker pull ubuntu && docker pull postgres
 
-startup:
+startup: edcfg
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 	 docker-compose up --build -d --no-recreate db;\
 	fi;\
@@ -61,3 +61,7 @@ db-backup:
 
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
+
+
+edcfg:
+	vim +":set exrc" +q
