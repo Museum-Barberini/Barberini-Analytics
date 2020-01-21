@@ -13,7 +13,8 @@ To be able to run tests that use this helper, you will need
 conn = psycopg2.connect(
 	host=os.environ['POSTGRES_HOST'],
 	user=os.environ['POSTGRES_USER'],
-	password=os.environ['POSTGRES_PASSWORD'])
+	password=os.environ['POSTGRES_PASSWORD'],
+	database=os.environ['POSTGRES_DB'])
 try:
 	conn.autocommit = True
 	cur = conn.cursor()
