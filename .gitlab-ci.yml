@@ -1,4 +1,4 @@
-simage: docker:latest
+image: docker:latest
 
 build:
   stage: build
