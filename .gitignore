@@ -140,7 +140,7 @@ dmypy.json
 *.Rproj*
 .Rproj.user
 
-.vscode/launch.json
 scripts/places/mybusiness.dat
 package-lock.json
-.vscode/settings.json
+
+.vscode/

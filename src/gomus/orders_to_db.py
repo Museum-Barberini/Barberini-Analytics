@@ -42,13 +42,15 @@ class ExtractOrderData(luigi.Task):
 		])
 
 	def requires(self):
-		return FetchGomusReport(report='orders')
+		return FetchGomusReport(report='orders', suffix='_1day')
 
 	def output(self):
 		return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
 
 	def run(self):
-		df = pd.read_csv(self.input().path)
+		with self.input().open('r') as input_csv:
+			df = pd.read_csv(input_csv)
+		
 		df = df.filter([
 			'Bestellnummer', 'Erstellt', 'Kundennummer',
 			'ist gültig?', 'Bezahlstatus', 'Herkunft'
@@ -59,16 +61,14 @@ class ExtractOrderData(luigi.Task):
 		df['id'] = df['id'].apply(int)
 		df['order_date'] = df['order_date'].apply(self.float_to_datetime)
 		df['customer_id'] = df['customer_id'].apply(self.query_customer_id)
-		df['valid'] = df['valid'].apply(self.parse_boolean, args=('ja',))
+		df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
 		df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
-
+		
 		with self.output().open('w') as output_csv:
 			df.to_csv(output_csv, index=False, header=True)
 	
 	def float_to_datetime(self, string):
-		date = xldate_as_datetime(float(string), 0).date()
-		print(date)
-		return date
+		return xldate_as_datetime(float(string), 0).date()
 
 	def query_customer_id(self, customer_string):
 		customer_id = 0

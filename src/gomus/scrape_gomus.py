@@ -113,14 +113,24 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 				
 				new_article = dict()
 				
-				new_article["article_id"] = int(self.extract_from_html(article, 'td[1]/div|td[1]/a/div|td[1]/a').strip()) # excursions have a link there and sometimes no div
+				# Workaround for orders like 671144
+				id_xpath = 'td[1]/div|td[1]/a/div|td[1]/a'
+				if len(article.xpath(id_xpath)) == 0: continue
+				
+				new_article["article_id"] = int(self.extract_from_html(article, id_xpath).strip()) # excursions have a link there and sometimes no div
 
 				new_article["order_id"] = order_ids[i]
 				
 				new_article["ticket"] = self.extract_from_html(article, 'td[3]/strong').strip()
 				
 				infobox_str = html.tostring(article.xpath('td[2]/div')[0], method='text', encoding="unicode")
-				raw_date = re.findall(r'\d.*Uhr', infobox_str)[0]
+
+				# Workaround for orders like 679577
+				raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
+				if not len(raw_date_re) == 0:
+					raw_date = raw_date_re[0]
+				else:
+					raw_date = '1.1.1900' # we would need something to mark an invalid / nonexistent date
 				new_article["date"] = dateparser.parse(raw_date)
 				
 				new_article["quantity"] = int(self.extract_from_html(article, 'td[4]'))
