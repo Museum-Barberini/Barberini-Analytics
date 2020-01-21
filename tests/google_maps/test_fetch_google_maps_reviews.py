@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock
 from fetch_google_maps_reviews import FetchGoogleMapsReviews
 import googleapiclient.discovery
 
@@ -16,7 +17,7 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		credentials = self.task.load_credentials()
 		service = self.task.load_service(credentials)
 		self.assertIsNotNone(service)
-		self.assertIsInstance(service, Resource)
+		self.assertIsInstance(service, googleapiclient.discovery.Resource)
 	
 	def test_fetch_raw_reviews(self):
 		account_name = 'myaccount'
@@ -32,10 +33,18 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 			'accounts': [{ 'name': account_name }]
 		}
 		
+		# DEBUG
+		account_list = service.accounts().list().execute()
+		account = account_list['accounts'][0]['name']
+		print('######################################' + str(account))
+		# GUDEB
+		
+		
+		
 		accounts.locations.return_value = locations = MagicMock()
 		locations_list_mock = MagicMock()
 		def locations_list(parent):
-			self.assertEquals(account_name, parent)
+			self.assertEquals(account_name, parent['name'])
 			return locations_list_mock
 		locations.list = locations_list
 		locations_list_mock.execute.return_value = {
@@ -46,7 +55,7 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		reviews_list_mock = MagicMock()
 		def reviews_list(parent, some_page_size, some_page_token=None):
 			self.assertEquals(page_token, some_page_token)
-			self.assertEquals(location_name, parent)
+			self.assertEquals(location_name, parent['name'])
 			self.assertEquals(some_page_size, page_size)
 			return reviews_list_mock
 		reviews.list = reviews_list
@@ -60,4 +69,5 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 			counter += 2
 			return result
 		
-		self.task.fetch_raw_reviews(service, page_size=42)	
+		result = self.task.fetch_raw_reviews(service, page_size)
+		self.assertSequenceEqual(all_reviews, result)
