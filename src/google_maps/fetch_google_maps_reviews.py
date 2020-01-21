@@ -67,7 +67,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 			discoveryServiceUrl=self.google_gmb_discovery_url)
 	
 	def fetch_raw_reviews(self, service, page_size=100):
-		# get account identifier 
+		# get account identifier
 		account_list = service.accounts().list().execute()
 		account = account_list['accounts'][0]['name'] # in almost all cases one only has access to one account
 		
