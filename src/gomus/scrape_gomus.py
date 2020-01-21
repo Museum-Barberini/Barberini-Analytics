@@ -129,7 +129,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 				raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
 				if not len(raw_date_re) == 0:
 					raw_date = raw_date_re[0]
-					new_article["date"] = dateparser.parse(raw_date)
+				else:
+					raw_date = '1.1.1900' # we would need something to mark an invalid / nonexistent date
+				new_article["date"] = dateparser.parse(raw_date)
 				
 				new_article["quantity"] = int(self.extract_from_html(article, 'td[4]'))
 				
