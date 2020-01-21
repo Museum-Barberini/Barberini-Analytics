@@ -1,4 +1,5 @@
 import unittest
+import json
 import psycopg2
 import os
 import subprocess
@@ -70,11 +71,11 @@ class DatabaseTaskTest(unittest.TestCase):
                 super().setUp()
                 self.db.setUp()
                 subprocess.call('cp -r tests_fake_files/. . --backup'.split())
-                with open('data/barberini-facts.json', 'w') as facts_file:
-                        subprocess.call(['jq', # merging our fake facts into the existing facts
-                                '-rs', 'reduce .[] as $item ({}; . * $item)',
-                                'data/barberini-facts.json', 'tests_fake_files/data/barberini-facts.json'],
-                                stdout=facts_file)
+                with open('data/barberini-facts.json', 'r') as fp:
+                    before = json.load(fp)
+                before['foundingDate'] = '2013-01-01T00:00:00.000Z'
+                with open('data/barberini-facts.json', 'w') as fp:
+                    json.dump(before, fp)
         
         def tearDown(self):
                 subprocess.call(['bash', '-c', 'find -iname *~ | awk \'{system("bash -c \'"\'"\'file="$1" bash -c \\"mv \\\\$file \\\\${file::-1}\\"\'"\'"\'")}\''])

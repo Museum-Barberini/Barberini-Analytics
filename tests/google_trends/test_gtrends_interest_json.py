@@ -20,7 +20,6 @@ class TestGtrendsInterestJson(DatabaseTaskTest):
                         self.assertEqual(set(['topicId', 'interestValue', 'date']), set(row.keys()))
                 for expected_id in ['1', '2']:
                         self.assertTrue(any(entry['topicId'] == expected_id for entry in json_values))
-                import pdb; pdb.set_trace()
                 for entry in json_values:
                         date = entry['date']
                         date = datetime.strptime(date, '%Y-%m-%d')

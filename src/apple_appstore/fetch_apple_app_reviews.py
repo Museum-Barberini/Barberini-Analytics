@@ -54,7 +54,6 @@ def fetch_all():
                         pass  # no data for given country code
                 except requests.HTTPError:
                         pass
-#        import pdb; pdb.set_trace()
         ret = pd.concat(data)
         ret = ret.drop('countryId', axis=1)
         return ret.drop_duplicates()
