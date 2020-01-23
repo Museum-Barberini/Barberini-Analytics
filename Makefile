@@ -69,4 +69,4 @@ db-restore:
 
 
 edcfg:
-	vim +":set exrc" +q > /dev/null
+	vim +":set exrc" +q &> /dev/null
