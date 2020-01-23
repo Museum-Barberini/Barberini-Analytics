@@ -6,7 +6,8 @@ VOLUME /app
 RUN apt-get update
 
 # install programs to make the container shell more useful
-RUN apt-get install -y --fix-missing --no-install-recommends build-essential nano vim curl gnupg iproute2
+RUN apt-get install -y --fix-missing --no-install-recommends build-essential vim curl gnupg iproute2
+RUN apt-get install -y nano
 
 # install python
 RUN apt-get install -y --no-install-recommends python3.6 python3-pip python3-setuptools python3-dev
