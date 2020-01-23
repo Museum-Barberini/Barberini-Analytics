@@ -16,7 +16,7 @@ class CsvToDb(CopyToTable):
         
         # Don't delete this! This parameter assures that every (sub)instance of me is treated as an individual and will be re-run.
         dummy_date = luigi.Parameter(default=datetime.timestamp(datetime.now()))
-
+		
         # These attributes are set in __init__. They need to be defined
         # here because they are abstract methods in CopyToTable.
         host     = None
