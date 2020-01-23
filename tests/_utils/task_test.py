@@ -23,7 +23,7 @@ try:
 	try:
 		cur.execute("DROP DATABASE barberini_test;") # each test execution should get a fresh database
 	except:
-		pass
+		pass # did not exist ¯\_(ツ)_/¯
 	cur.execute("CREATE DATABASE barberini_test;")
 finally:
 	if cur is not None:
