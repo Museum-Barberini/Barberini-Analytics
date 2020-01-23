@@ -24,13 +24,18 @@ connect:
 
 # For use inside the Luigi container
 
-luigi-ui:
+luigi-scheduler:
 	luigid --background &
+	sleep 3 # workaround until scheduler has started
+	
+luigi-ui:
+	echo WARNING: make target luigi-ui is deprecated: Use luigi-scheduler instead!
+	make luigi-scheduler
 
 luigi:
 	make LMODULE=query_db LTASK=QueryDB luigi-task
 
-luigi-task:
+luigi-task: luigi-scheduler
 	mkdir -p output
 	bash -c "PYTHONPATH=$(TOTALPYPATH) luigi --module $(LMODULE) $(LTASK)"
 
