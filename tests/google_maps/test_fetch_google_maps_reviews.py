@@ -13,6 +13,8 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		credentials = self.task.load_credentials()
 		self.assertIsNotNone(credentials)
 	
+	# TODO: This causes a warning: unclosed <ssl.SSLSocket
+	# we do not see the reason as it does not occur in the actual execution 
 	def test_load_service(self):
 		credentials = self.task.load_credentials()
 		service = self.task.load_service(credentials)
@@ -25,49 +27,46 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		all_reviews = ["Wow!", "The paintings are not animated", "Van Gogh is dead"]
 		page_size = 2
 		page_token = None
+		counter = 0
 		
 		service = MagicMock()
 		service.accounts.return_value = accounts = MagicMock()
 		accounts.list.return_value = MagicMock()
-		accounts.list.execute.return_value = {
+		accounts.list().execute.return_value = {
 			'accounts': [{ 'name': account_name }]
 		}
-		
-		# DEBUG
-		account_list = service.accounts().list().execute()
-		account = account_list['accounts'][0]['name']
-		print('######################################' + str(account))
-		# GUDEB
-		
-		
 		
 		accounts.locations.return_value = locations = MagicMock()
 		locations_list_mock = MagicMock()
 		def locations_list(parent):
-			self.assertEquals(account_name, parent['name'])
+			self.assertEqual(account_name, parent)
 			return locations_list_mock
-		locations.list = locations_list
+		locations.list.side_effect = locations_list
 		locations_list_mock.execute.return_value = {
 			'locations': [{ 'name': location_name }]
 		}
 		
 		locations.reviews.return_value = reviews = MagicMock()
 		reviews_list_mock = MagicMock()
-		def reviews_list(parent, some_page_size, some_page_token=None):
-			self.assertEquals(page_token, some_page_token)
-			self.assertEquals(location_name, parent['name'])
-			self.assertEquals(some_page_size, page_size)
+		def reviews_list(parent, pageSize, pageToken=None):
+			self.assertEqual(page_token, pageToken)
+			self.assertEqual(location_name, parent)
+			self.assertEqual(page_size, pageSize)
 			return reviews_list_mock
-		reviews.list = reviews_list
+		reviews.list.side_effect = reviews_list
 		def reviews_list_execute():
+			nonlocal page_token, counter
 			page_token = counter
+			next_counter = counter + 2
 			result = {
-				'reviews': all_reviews[counter:counter + 2],
-				'totalReviewCount': len(all_reviews),
-				'nextPageToken': page_token
+				'reviews': all_reviews[counter:next_counter],
+				'totalReviewCount': len(all_reviews)
 			}
-			counter += 2
+			if counter < len(all_reviews):
+				result['nextPageToken'] = page_token
+			counter = next_counter
 			return result
+		reviews_list_mock.execute.side_effect = reviews_list_execute
 		
 		result = self.task.fetch_raw_reviews(service, page_size)
 		self.assertSequenceEqual(all_reviews, result)
