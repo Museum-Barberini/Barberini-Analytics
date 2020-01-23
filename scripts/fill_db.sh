@@ -12,7 +12,7 @@ case $1 in
 esac
 
 cd /app
-make luigi-ui
+make luigi-scheduler
 sleep 3
 make luigi-task LMODULE=fill_db LTASK=$TASK
 if [ $? -ne 0 ]
