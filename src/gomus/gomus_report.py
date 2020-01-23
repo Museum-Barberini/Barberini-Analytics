@@ -10,6 +10,7 @@ class FetchGomusReport(luigi.Task):
 	report = luigi.parameter.Parameter(description="The report name (e.g. \'bookings\')")
 	suffix = luigi.parameter.OptionalParameter(default='_7days', description="The report suffix (default: \'_7days\')")
 	sheet_index = luigi.parameter.IntParameter(default=0, description="Page no. of the Excel sheet")
+	refresh_wait_time = luigi.parameter.IntParameter(default=60, description="How long to wait for the report to refresh")
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -23,8 +24,8 @@ class FetchGomusReport(luigi.Task):
 		
 		if report_ids[f'{self.report_name}'] > 0: # report refreshable
 			request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', 'refresh'])
-			print("Waiting 60 seconds for the report to refresh")
-			time.sleep(60)
+			print(f"Waiting {self.refresh_wait_time} seconds for the report to refresh")
+			time.sleep(self.refresh_wait_time)
 		
 		res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-I', f'{self.sheet_index}', '-l'])
 		with self.output().open('w') as target_csv:
