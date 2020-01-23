@@ -57,7 +57,7 @@ class ExtractPublicTourData(luigi.Task):
                         self.append_tour_data(i+1, 'Storniert')
 
                 with self.output().open('w') as output_csv:
-                        self.public_tours_df.to_csv(output_csv, index=False)    
+                        self.public_tours_df.to_csv(output_csv, index=False)
 
         def append_tour_data(self, index, status):
                 with self.public_tours_list[index].open('r') as sheet:
