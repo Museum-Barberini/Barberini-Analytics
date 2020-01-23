@@ -22,7 +22,8 @@ connect:
 
 luigi-scheduler:
 	luigid --background &
-
+	sleep 3 # workaround until scheduler has started
+	
 luigi-ui:
 	echo WARNING: make target luigi-ui is deprecated: Use luigi-scheduler instead!
 	make luigi-scheduler
