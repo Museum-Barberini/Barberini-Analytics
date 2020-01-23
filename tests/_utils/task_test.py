@@ -11,12 +11,13 @@ To be able to run tests that use this helper, you will need
 * a database named 'barberini_test'.
 """
 # ------ CREATE DATABASE IF NECESSARY -------
-conn = psycopg2.connect(
-	host=os.environ['POSTGRES_HOST'],
-	user=os.environ['POSTGRES_USER'],
-	password=os.environ['POSTGRES_PASSWORD'],
-	database=os.environ['POSTGRES_DB'])
+cur = conn = None
 try:
+	conn = psycopg2.connect(
+		host=os.environ['POSTGRES_HOST'],
+		user=os.environ['POSTGRES_USER'],
+		password=os.environ['POSTGRES_PASSWORD'],
+		database=os.environ['POSTGRES_DB'])
 	conn.autocommit = True
 	cur = conn.cursor()
 	try:
@@ -25,7 +26,10 @@ try:
 		pass
 	cur.execute("CREATE DATABASE barberini_test;")
 finally:
-	conn.close()
+	if cur is not None:
+		cur.close()
+	if conn is not None:
+		conn.close()
 
 class DatabaseHelper:
 	def setUp(self):
