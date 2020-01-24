@@ -17,7 +17,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 	api_version = 'v4'
 	
 	stars_dict = dict({ # google returns rating as a string
-		'STAR_RATING_UNSPECIFIED': 0,
+		'STAR_RATING_UNSPECIFIED': None,
 		'ONE': 1,
 		'TWO': 2,
 		'THREE': 3,
