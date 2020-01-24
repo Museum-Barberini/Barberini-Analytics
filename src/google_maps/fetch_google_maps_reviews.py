@@ -28,7 +28,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 	def output(self):
 		return luigi.LocalTarget('output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
 	
-	def run(self):
+	def run(self) -> None:
 		print("loading credentials...")
 		credentials = self.load_credentials()
 		print("creating service...")
@@ -42,7 +42,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 		with self.output().open('w') as output_file:
 			reviews_df.to_csv(output_file, index=False)
 	
-	def load_credentials(self):
+	def load_credentials(self) -> oauth2client.client.Credentials:
 		storage = Storage(self.token_cache)
 		credentials = storage.get()
 
@@ -58,7 +58,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 
 		return credentials
 	
-	def load_service(self, credentials):
+	def load_service(self, credentials) -> googleapiclient.discovery.Resource:
 		return googleapiclient.discovery.build(self.api_service_name, self.api_version,
 			credentials=credentials, 
 			discoveryServiceUrl=self.google_gmb_discovery_url)
@@ -95,7 +95,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 		print()
 		return reviews
 	
-	def extract_reviews(self, raw_reviews):
+	def extract_reviews(self, raw_reviews) -> pd.DataFrame:
 		extracted_reviews = []
 		for raw in raw_reviews:
 			extracted = dict()
