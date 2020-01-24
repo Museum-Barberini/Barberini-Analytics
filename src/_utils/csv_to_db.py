@@ -5,8 +5,12 @@ import psycopg2
 from datetime import datetime
 from set_db_connection_options import set_db_connection_options
 
-# NOTE THAT you will need to drop or manually alter an existing table if you change its schema
 class CsvToDb(CopyToTable):
+	"""
+	Copies a depended csv file into the a central database.
+	Subclasses have to override columns, primary_key and requires().
+	NOTE that you will need to drop or manually alter an existing table if you change its schema.
+	"""
 		
 	@property
 	def primary_key(self):
