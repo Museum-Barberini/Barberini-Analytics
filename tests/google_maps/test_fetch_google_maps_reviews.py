@@ -23,6 +23,7 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		self.assertIsInstance(service, googleapiclient.discovery.Resource)
 	
 	def test_fetch_raw_reviews(self):
+		# Setup
 		account_name = 'myaccount'
 		location_name = 'mylocation'
 		all_reviews = ["Wow!", "The paintings are not animated", "Van Gogh is dead"]
@@ -69,5 +70,8 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 			return result
 		reviews_list_mock.execute.side_effect = reviews_list_execute
 		
+		# Executing code under test
 		result = self.task.fetch_raw_reviews(service, page_size)
+		
+		# Asserting
 		self.assertSequenceEqual(all_reviews, result)
