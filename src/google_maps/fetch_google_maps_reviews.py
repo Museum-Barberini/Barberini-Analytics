@@ -46,18 +46,17 @@ class FetchGoogleMapsReviews(luigi.Task):
 		storage = Storage(self.token_cache)
 		credentials = storage.get()
 
-		if not credentials:
+		if credentials is None: # Access token missing or invalid, we need to require a new one
 			with open(self.client_secret) as client_secret:
 				secret = json.load(client_secret)['installed']
 			flow = OAuth2WebServerFlow(secret['client_id'], secret['client_secret'], self.scopes, secret['redirect_uris'][0])
 			authorize_url = flow.step1_get_authorize_url()
-			print('Go to the following link in your browser: ' + authorize_url)
-			code = input('Enter verification code: ').strip()
+			print("Go to the following link in your browser: " + authorize_url)
+			code = input("Enter verification code: ").strip()
 			credentials = flow.step2_exchange(code)
 			storage.put(credentials)
 
 		return credentials
-
 	
 	def load_service(self, credentials):
 		return googleapiclient.discovery.build(self.api_service_name, self.api_version,
