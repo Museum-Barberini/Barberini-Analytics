@@ -5,7 +5,7 @@ from fetch_google_maps_reviews import FetchGoogleMapsReviews
 
 class GoogleMapsReviewsToDB(CsvToDb):
 	
-	table = 'google_maps_reviews'
+	table = 'google_maps_review'
 	
 	columns = [
 		('id', 'TEXT'),
