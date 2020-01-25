@@ -39,8 +39,8 @@ psql:
 # misc
 
 test:
-	shopt -s globstar && PYTHONPATH=$$(find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//') python3 -m unittest tests/**/test*.py -v
-	# globstar needed to recursively find all .py-files
+	shopt -s globstar # to recursively find all .py-files
+	PYTHONPATH=$$(find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//') python3 -m unittest tests/**/test*.py -v
 
 # use db-psql to get a psql shell inside the database container
 db-psql:
