@@ -48,8 +48,10 @@ psql:
 # misc
 
 test:
+	make luigi-clean
 	mkdir -p output
-	PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/**/test*.py -v
+	POSTGRES_DB=barberini_test && PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/**/test*.py -v
+	make luigi-clean
 
 # use db-psql to get a psql shell inside the database container
 db-psql:

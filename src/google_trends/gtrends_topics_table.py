@@ -16,7 +16,7 @@ class GTrendsTopicsTable(JsonToCsvTask):
 
 class GtrendsTopicsToDB(CsvToDb):
 	
-	table = "gtrends_topics"
+	table = "gtrends_topic"
 	
 	columns = [
 		("topic_id", "TEXT"),
