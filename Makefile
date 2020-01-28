@@ -49,8 +49,8 @@ psql:
 # misc
 
 test:
-	shopt -s globstar && PYTHONPATH=$(TOTALPYPATH) python3 -m unittest tests/**/test*.py -v
 	# globstar needed to recursively find all .py-files via **
+	shopt -s globstar && PYTHONPATH=$(TOTALPYPATH) python3 -m unittest tests/**/test*.py -v
 
 # use db-psql to get a psql shell inside the database container
 db-psql:
