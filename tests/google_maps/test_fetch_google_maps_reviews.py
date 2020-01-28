@@ -15,8 +15,9 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		self.assertTrue(credentials.has_scopes(['https://www.googleapis.com/auth/business.manage']))
 	
 	def test_load_credentials_missing(self):
-		self.task.token_cache = self.task.token_cache + ".iamafilepaththathopefullydoesnotexist"
-		self.task.is_interactive = False
+		self.task = FetchGoogleMapsReviews(
+			token_cache=self.task.token_cache + ".iamafilepaththathopefullydoesnotexist",
+			is_interactive=False)
 		with self.assertRaises(Exception) as context:
 			credentials = self.task.load_credentials()
 		self.assertTrue('credentials' in str(context.exception))
