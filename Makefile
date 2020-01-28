@@ -2,6 +2,7 @@ SHELL := /bin/bash
 
 # variables
 TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
+# this piece of sed-art finds all directories in src (excluding pycache) to build a global namespace
 
 # from outside containers
 
@@ -44,7 +45,7 @@ psql:
 
 test:
 	shopt -s globstar && PYTHONPATH=$(TOTALPYPATH) python3 -m unittest tests/**/test*.py -v
-	# globstar needed to recursively find all .py-files
+	# globstar needed to recursively find all .py-files via **
 
 # use db-psql to get a psql shell inside the database container
 db-psql:
