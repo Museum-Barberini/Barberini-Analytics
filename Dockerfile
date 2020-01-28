@@ -26,6 +26,3 @@ RUN apt-get -y install nodejs
 
 # WORKAROUND until we have multiple Dockers
 RUN bash -c "cd ../ && npm i google-trends-api deasync"
-
-# test stuff
-RUN apt-get -y install jq
