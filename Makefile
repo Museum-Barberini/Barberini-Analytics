@@ -1,4 +1,8 @@
 SHELL := /bin/bash
+
+# variables
+TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
+
 # from outside containers
 
 all-the-setup-stuff-for-ci: pull startup connect
@@ -28,7 +32,7 @@ luigi:
 
 luigi-task:
 	mkdir -p output
-	bash -c "PYTHONPATH=$$(find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//') luigi --module $(LMODULE) $(LTASK)"
+	bash -c "PYTHONPATH=$(TOTALPYPATH) luigi --module $(LMODULE) $(LTASK)"
 
 luigi-clean:
 	rm -rf output
@@ -39,7 +43,7 @@ psql:
 # misc
 
 test:
-	shopt -s globstar && PYTHONPATH=$$(find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//') python3 -m unittest tests/**/test*.py -v
+	shopt -s globstar && PYTHONPATH=$(TOTALPYPATH) python3 -m unittest tests/**/test*.py -v
 	# globstar needed to recursively find all .py-files
 
 # use db-psql to get a psql shell inside the database container
