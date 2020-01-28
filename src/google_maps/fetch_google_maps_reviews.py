@@ -84,8 +84,7 @@ class FetchGoogleMapsReviews(luigi.Task):
 		# it seems like this identifier is unique per user
 		location_list = service.accounts().locations().list(parent=account).execute()
 		if len(location_list['locations']) == 0:
-			print("ERROR: This user seems to not have access to any google location, unable to fetch reviews")
-			exit(1)
+			raise Exception("ERROR: This user seems to not have access to any google location, unable to fetch reviews")
 		location = location_list['locations'][0]['name']
 		
 		# get reviews for that location
