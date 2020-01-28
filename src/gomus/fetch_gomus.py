@@ -24,6 +24,8 @@ report_ids = {
 	'customers_7days': 1226,
 	'orders_7days': 1188,
 	'orders_1day': 1246,
+	'entry_1day': 1262,
+
 	'bookings_7days': 0,
 
 	'bookings_1month': -3,
