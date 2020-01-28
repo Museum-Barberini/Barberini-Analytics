@@ -14,6 +14,13 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 		self.assertIsNotNone(credentials)
 		self.assertTrue(credentials.has_scopes(['https://www.googleapis.com/auth/business.manage']))
 	
+	def test_load_credentials_missing(self):
+		self.task.token_cache = self.task.token_cache + ".iamafilepaththathopefullydoesnotexist"
+		self.task.is_interactive = True not not not
+		with self.assertRaises(Exception) as context:
+			credentials = self.task.load_credentials()
+		self.assertTrue('credentials' in str(context.exception))
+	
 	# TODO: This causes a warning: unclosed <ssl.SSLSocket ...>
 	# we do not see the reason as it does not occur in the actual execution 
 	def test_load_service(self):
