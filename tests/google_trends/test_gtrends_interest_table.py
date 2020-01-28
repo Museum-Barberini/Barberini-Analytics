@@ -21,11 +21,11 @@ class TestGtrendsInterestToDB(DatabaseTaskTest):
 	def test_interestsToDB(self):
 		GtrendsInterestToDB().run()
 		
-		result = db.request("SELECT * FROM gtrends_interests WHERE topic_id LIKE 'TESTING_%'")
+		result = self.db.request("SELECT * FROM gtrends_interest WHERE topic_id LIKE 'TESTING_%'")
 		
-		self.assertListEqual(['topicId', 'date', 'interestValue'], self.db.column_names())
+		self.assertListEqual(['topic_id', 'date', 'interest_value'], self.db.column_names)
 		self.assertListEqual([
-				('TESTING_foo', dt.date(year=2001, month=10, day=12)),
-				('TESTING_bar', dt.date(year=2017, month=1, day=20))],
+				('TESTING_foo', dt.date(year=2001, month=10, day=12), 9),
+				('TESTING_bar', dt.date(year=2017, month=1, day=20), 42)],
 			result
 		)
