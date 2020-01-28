@@ -19,14 +19,15 @@ def create_database_if_necessary():
 			host=os.environ['POSTGRES_HOST'],
 			user=os.environ['POSTGRES_USER'],
 			password=os.environ['POSTGRES_PASSWORD'],
-			database='postgres') #os.environ['POSTGRES_DB'])
+			database='postgres') # barberini_test may not yet exist
 		conn.autocommit = True
 		cur = conn.cursor()
+		database = os.environ['POSTGRES_DB']
 		try:
-			cur.execute("DROP DATABASE barberini_test;") # each test execution should get a fresh database
+			cur.execute(f"DROP DATABASE {database};") # each test execution should get a fresh database
 		except:
 			pass # did not exist ¯\_(ツ)_/¯
-		cur.execute("CREATE DATABASE barberini_test;")
+		cur.execute(f"CREATE DATABASE {database};")
 	finally:
 		if cur is not None:
 			cur.close()
