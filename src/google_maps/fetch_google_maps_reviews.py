@@ -4,12 +4,14 @@ import oauth2client.client
 import googleapiclient.discovery
 import json
 import pandas as pd
+import sys
 
 
 class FetchGoogleMapsReviews(luigi.Task):
 	
 	token_cache = luigi.Parameter(default='secret_files/google_gmb_credential_cache.json')
 	client_secret = luigi.Parameter(default='secret_files/google_gmb_client_secret.json')
+	is_interactive = luigi.BoolParameter(default=sys.stdin.isatty())
 	scopes = ['https://www.googleapis.com/auth/business.manage']
 	google_gmb_discovery_url = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p5.json'
 	
@@ -47,6 +49,8 @@ class FetchGoogleMapsReviews(luigi.Task):
 		credentials = storage.get()
 
 		if credentials is None: # Access token missing or invalid, we need to require a new one
+			if not self.is_interactive:
+				raise Exception("ERROR: No valid credentials for google maps access and no interactive shell to perform login, aborting!")
 			with open(self.client_secret) as client_secret:
 				secret = json.load(client_secret)['installed']
 			flow = oauth2client.client.OAuth2WebServerFlow(secret['client_id'], secret['client_secret'], self.scopes, secret['redirect_uris'][0])
@@ -83,8 +87,9 @@ class FetchGoogleMapsReviews(luigi.Task):
 			pageSize=page_size).execute()
 		reviews = reviews + review_list['reviews']
 		total_reviews = review_list['totalReviewCount']
-		print(f"Fetched {len(reviews)} out of {total_reviews} reviews", end='', flush=True) # creates the most beautiful loading line in the project!
-		while 'nextPageToken' in review_list:
+		print(f"Fetched {len(reviews)} out of {total_reviews} reviews", end='', flush=True) # creates the most beautiful loading line in the project! (so far)
+		
+		while 'nextPageToken' in review_list: # TODO: optimise by requesting the latest review from DB and not fetching more pages once that one is found
 			next_page_token = review_list['nextPageToken']
 			review_list = service.accounts().locations().reviews().list(
 				parent=location,
