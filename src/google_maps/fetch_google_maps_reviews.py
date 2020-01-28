@@ -44,6 +44,10 @@ class FetchGoogleMapsReviews(luigi.Task):
 		with self.output().open('w') as output_file:
 			reviews_df.to_csv(output_file, index=False)
 	
+	"""
+	uses oauth2 to authenticate with google, also caches credentials
+	requires no login action if you have a valid cache
+	"""
 	def load_credentials(self) -> oauth2client.client.Credentials:
 		storage = Storage(self.token_cache)
 		credentials = storage.get()
@@ -67,6 +71,10 @@ class FetchGoogleMapsReviews(luigi.Task):
 			credentials=credentials, 
 			discoveryServiceUrl=self.google_gmb_discovery_url)
 	
+	"""
+	the google-api is based on resources that contain other resources
+	an authenticated user has account(s), an accounts contains locations and a location contains reviews (which we need to request one  by one)
+	"""
 	def fetch_raw_reviews(self, service, page_size=100):
 		# get account identifier
 		account_list = service.accounts().list().execute()
