@@ -9,6 +9,7 @@ import sys
 
 class FetchGoogleMapsReviews(luigi.Task):
 	
+	# secret_files is a folder mounted from /etc/secrets via docker-compose
 	token_cache = luigi.Parameter(default='secret_files/google_gmb_credential_cache.json')
 	client_secret = luigi.Parameter(default='secret_files/google_gmb_client_secret.json')
 	is_interactive = luigi.BoolParameter(default=sys.stdin.isatty())

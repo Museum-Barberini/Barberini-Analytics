@@ -23,7 +23,6 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 			with warnings.catch_warnings():
 				warnings.filterwarnings('ignore')
 				credentials = self.task.load_credentials()
-
 		self.assertTrue('credentials' in str(context.exception))
 	
 	# TODO: This causes a warning: unclosed <ssl.SSLSocket ...>
