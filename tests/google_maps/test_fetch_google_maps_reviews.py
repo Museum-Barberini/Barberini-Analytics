@@ -25,8 +25,9 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 				credentials = self.task.load_credentials()
 		self.assertTrue('credentials' in str(context.exception))
 	
-	# TODO: This causes a warning: unclosed <ssl.SSLSocket ...>
-	# we do not see the reason as it does not occur in the actual execution 
+	# KNOWN API ISSUE: ResourceWarning: unclosed <ssl.SSLSocket ...>
+	# https://github.com/googleapis/google-api-python-client/issues/618
+	# This is an error of the API, not our fault. Don't fix it. Just for you to know.
 	def test_load_service(self):
 		credentials = self.task.load_credentials()
 		service = self.task.load_service(credentials)
