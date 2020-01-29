@@ -23,7 +23,7 @@ class ExtractGomusBookings(luigi.Task):
 		return luigi.LocalTarget(f'output/gomus/bookings_prepared.csv', format=UTF8)
 	
 	def run(self):
-		bookings = pd.read_csv(self.input().path)
+		bookings = pd.read_csv(next(self.input()).path)
 		
 		bookings['Buchung'] = bookings['Buchung'].apply(int)
 		bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id, args=(self.seed,))

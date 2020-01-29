@@ -33,7 +33,7 @@ class FetchGomusReport(luigi.Task):
 			with target.open('w') as target_csv:
 				csv_from_excel(res_content, target_csv, self.sheet_indices[index])
 
-class FetchTourReservations(luigi.Task):
+class FetchEventReservations(luigi.Task):
 	booking_id = luigi.parameter.IntParameter(description="The booking's index")
 	status = luigi.parameter.IntParameter(description="ID of stats (0 = booked, 1 = cancelled) (default: 0)", default=0)
 
