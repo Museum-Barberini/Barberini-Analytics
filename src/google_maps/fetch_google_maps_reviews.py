@@ -5,6 +5,7 @@ import googleapiclient.discovery
 import json
 import pandas as pd
 import sys
+from csv_to_db import CsvToDb
 
 
 class FetchGoogleMapsReviews(luigi.Task):
@@ -126,3 +127,21 @@ class FetchGoogleMapsReviews(luigi.Task):
 				extracted['content_original'] = comment_pieces[-1].strip()
 			extracted_reviews.append(extracted)
 		return pd.DataFrame(extracted_reviews)
+
+
+class GoogleMapsReviewsToDB(CsvToDb):
+	
+	table = 'google_maps_review'
+	
+	columns = [
+		('id', 'TEXT'),
+		('date', 'DATE'),
+		('rating', 'INT'),
+		('content', 'TEXT'),
+		('content_original', 'TEXT')
+	]
+	
+	primary_key = 'id'
+	
+	def requires(self):
+		return FetchGoogleMapsReviews()
