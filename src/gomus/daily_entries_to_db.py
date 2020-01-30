@@ -11,9 +11,9 @@ _columns = [
         ('id', 'INT'),
         ('ticket', 'TEXT'),
         ('date', 'DATE'),
-        ('count', 'INT')
+        ('count', 'INT'),
+        *[(f'"{i}"', 'INT') for i in range(24)]
     ]
-_columns.extend([(f'"{i}"', 'INT') for i in range(24)])
 
 _primary_key = ('id', 'date')
 
