@@ -78,5 +78,5 @@ class DatabaseTaskTest(unittest.TestCase):
 		self.db.tearDown()
 	
 	def isolate(self, task):
-		task.complete = lambda: True
+		task.complete = True
 		return task
