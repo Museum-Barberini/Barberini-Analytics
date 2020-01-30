@@ -18,7 +18,7 @@ class FetchTwitter(luigi.Task):
 	
 	query = luigi.Parameter(default = "museumbarberini")
 	table = luigi.Parameter(default="tweets")
-	min_timestamp = luigi.Parameter(default=dt.date(2015, 1, 1))
+	min_timestamp = luigi.DateParameter(default=dt.date(2015, 1, 1))
 	
 	def output(self):
 		return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)

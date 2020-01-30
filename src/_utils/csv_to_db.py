@@ -46,7 +46,6 @@ class CsvToDb(CopyToTable):
 			[f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
 		cursor.copy_expert(query, file)
 	
-		# LATEST DODO: Add interface for gomus tasks to operate with unescaped data
 	def rows(self):
 		rows = super().rows()
 		next(rows)
@@ -63,10 +62,13 @@ class CsvToDb(CopyToTable):
 		self.create_primary_key(connection)
 	
 	def create_primary_key(self, connection):
-		connection.cursor().execute(self.load_sql_script(
-			'set_primary_key',
-			self.table,
-			self.tuple_like_string(self.primary_key)))
+		connection.cursor().execute(
+			self.load_sql_script(
+				'set_primary_key',
+				self.table,
+				self.tuple_like_string(self.primary_key)
+			)
+		)
 	
 	def load_sql_script(self, name, *args):
 		with open(self.sql_file_path_pattern.format(name)) as sql_file:

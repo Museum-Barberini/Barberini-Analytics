@@ -11,7 +11,7 @@ class QueryDB(luigi.Task):
 		super().__init__(*args, **kwargs)
 		set_db_connection_options(self)
 	
-	tables = luigi.Parameter(default=None) # If None, I will fetch all tables
+	tables = luigi.ListParameter(default=None) # If None, I will fetch all tables
 	
 	def requires(self):
 		return FillDB()
