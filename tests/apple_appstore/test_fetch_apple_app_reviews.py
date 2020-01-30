@@ -57,7 +57,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-		["author","id","content","content_type","rating",
+		["id","content","content_type","rating",
 		 "app_version","vote_count","vote_sum","title", "countryId"],
 		list(result.columns)
 	)
@@ -113,7 +113,6 @@ class TestFetchAppleReviews(unittest.TestCase):
         
         mock_fetch_country_return = [
             pd.DataFrame({
-                "author": ["A_1", "A_2"],
                 "id": ["1", "2"],
                 "content": ["C_1", "C_2"],
                 "content_type": ["CT_1", "CT_2"],
@@ -125,7 +124,6 @@ class TestFetchAppleReviews(unittest.TestCase):
                 "countryId": ["AB", "AB"]
             }),
             pd.DataFrame({
-                "author": ["A_1"],
                 "id": ["1"],
                 "content": ["C_1"],
                 "content_type": ["CT_1"],
@@ -145,7 +143,6 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertEqual(len(result), 2)
         pd.util.testing.assert_frame_equal(
             pd.DataFrame({
-                "author": ["A_1", "A_2"],
                 "id": ["1", "2"],
                 "content": ["C_1", "C_2"],
                 "content_type": ["CT_1", "CT_2"],
