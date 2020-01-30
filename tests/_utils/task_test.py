@@ -7,8 +7,8 @@ import subprocess
 """ 
 IMPORTANT NOTE:
 To be able to run tests that use this helper, you will need
-* a running postgres database server
-* a database named 'barberini_test'.
+- a running postgres database server,
+- a database named 'barberini_test'.
 """
 
 
