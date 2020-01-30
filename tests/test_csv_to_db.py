@@ -8,7 +8,6 @@ from unittest.mock import patch
 import psycopg2
 import os
 from task_test import DatabaseTaskTest
-
 from src._utils.csv_to_db import CsvToDb
 
 
@@ -16,8 +15,9 @@ from src._utils.csv_to_db import CsvToDb
 expected_data = [(1, 2, "abc", "xy,\"z"), (2, 10, "678", ",,;abc")]
 expected_data_csv = "id,A,B,C\n1,2,abc,\"xy,\"\"z\"\n2,10,\"678\",\",,;abc\"\n"
 tmp_csv_file = tempfile.NamedTemporaryFile()
-with open(tmp_csv_file.name, "w") as fp:
+with open(tmp_csv_file.name, 'w') as fp:
 	fp.write(expected_data_csv)
+
 
 class DummyFileWrapper(luigi.Task):
 	def output(self):
@@ -47,7 +47,7 @@ class DummyWriteCsvToDb(CsvToDb):
 	user = os.environ['POSTGRES_USER']
 	password = os.environ['POSTGRES_PASSWORD']
 
-	table = None  # value set in __init__
+	table = None # value set in __init__
 
 	def requires(self):
 		return DummyFileWrapper()
@@ -81,7 +81,7 @@ class TestCsvToDb(DatabaseTaskTest):
 	def test_adding_data_to_database_new_table(self):
 		
 		self.dummy.run()
-		actual_data = db.request(f"select * from {self.table_name};")
+		actual_data = self.db.request(f"select * from {self.table_name};")
 		self.assertEqual(actual_data, expected_data)
 	
 	def test_adding_data_to_database_existing_table(self):
@@ -99,7 +99,7 @@ class TestCsvToDb(DatabaseTaskTest):
 		self.dummy.run()
 		
 		# ----- Inspect result ------
-		actual_data = db.request(f"select * from {self.table_name};")
+		actual_data = self.db.request(f"select * from {self.table_name};")
 		self.assertEqual(actual_data, [(0, 1, "a", "b"), *expected_data])
 	
 	def test_no_duplicates_are_inserted(self):
@@ -117,5 +117,5 @@ class TestCsvToDb(DatabaseTaskTest):
 		self.dummy.run()
 		
 		# ----- Inspect result ------
-		actual_data = db.request(f"select * from {self.table_name};")
+		actual_data = self.db.request(f"select * from {self.table_name};")
 		self.assertEqual(actual_data, expected_data)
