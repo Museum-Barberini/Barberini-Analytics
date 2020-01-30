@@ -56,7 +56,7 @@ class DatabaseHelper:
 	def commit(self, *queries):
 		self.cursor = self.connection.cursor()
 		for query in queries:
-			cursor.execute(query)
+			self.cursor.execute(query)
 		self.cursor.close()
 		self.connection.commit()
 
