@@ -27,3 +27,7 @@ Please note that this instructions are optimized for Ubuntu, amd64. If you use a
    ```bash
    ./scripts/update_network.sh
    ```
+
+## Schedule regular DB updates
+
+Use `crontab -e` to create a cronjob that calls `scripts/cron.sh`.
