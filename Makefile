@@ -11,7 +11,7 @@ all-the-setup-stuff-for-ci: pull startup connect
 pull:
 	docker pull ubuntu && docker pull postgres
 
-startup
+startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 	 docker-compose up --build -d --no-recreate db;\
 	fi;\
