@@ -13,7 +13,7 @@ pull:
 
 startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-		sudo docker-compose up --build -d --no-recreate db;\
+	 docker-compose up --build -d --no-recreate db;\
 	fi;\
 	docker-compose -p ${USER} up --build -d luigi
 
