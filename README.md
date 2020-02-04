@@ -1,19 +1,52 @@
-# BP Barberini
+# Awesome Barberini Tools
 
-### Run luigi
+## About
 
-At the moment we are using a setup with two docker containers. One container is used to 
-run the luigi pipeline (the luigi container), one container is used for a postgres database
-(the postgres container). The two containers are connected with a docker network.
+**Type:** Data Analytics tool
 
-1. Make sure you have [docker](https://docs.docker.com/v17.09/engine/installation/) installed.
-2. Pull the base images (ubuntu and postgres): `[sudo] make pull`
-3. Build the docker image for the luigi container (this will take a while): `[sudo] make build-luigi`
-4. Startup the two docker containers and connect them with a docker network: `[sudo] make startup`
-5. Get a terminal in the luigi container: `[sudo] make connect`
-6. From inside the luigi container
-    1. Start the scheduling server: `make luigi-scheduler`
-    2. Run the luigi pipeline: `make luigi`
-7. Take a look at the visualization: `http://localhost:8082`
-8. When you are done kill the two containers and remove the network: `[sudo] make shutdown`
+**Mission:** Create an awesome dashboard for the Museum Barberini, Potsdam, to help them to analyze and assess customer, advertising, and social media data!
+
+**Authors:** Laura Holz, Selina Reinhard, Leon Schmidt, Georg Tennigkeit, Christoph Thiede, Tom Wollnik (bachelor project BPFN1 @ HPI).
+
+**Organizations:** [Hasso Plattner Institute, Potsdam](https://hpi.de/en); [https://www.museum-barberini.com/en/](https://www.museum-barberini.com/en/); Hasso Plattner Foundation.
+
+## Installation
+
+See `INSTALLATION.md`.
+
+## Documentation
+
+tbc 🙂
+
+## Usage
+
+### Controlling the pipeline
+
+#### Open the luigi webinterface
+
+```bash
+ make docker-do do='make luigi-controller'
+```
+
+This will also start http://localhost:8082 where you can trace all running tasks.
+
+#### Running the pipeline manually
+
+```bash
+ make docker-do do='make luigi'
+```
+
+#### Accessing the dockers
+
+Have a look at our beautiful `Dockerfile`! To access the luigi docker, do:
+
+```bash
+make startup connect
+```
+
+Close the session by doing:
+
+```bash
+make shutdown
+```
 
