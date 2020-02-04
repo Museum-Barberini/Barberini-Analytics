@@ -25,27 +25,29 @@ class TestFetchAppleReviews(unittest.TestCase):
     @patch("src.apple_appstore.fetch_apple_app_reviews.requests.get")
     def test_only_one_review_fetched(self, mock):
         
-        first_return = {
-                "feed": {
-                        "entry": {
-                                "author": {"name": {"label": "Blubb"}},
-                                "id": {"label": "id value"},
-                                "content": {
-                                        "label": "The fish life is thug af #okboomer",
-                                        "attributes": {"type": "content_type value"}
-                                },
-                                "im:rating": {"label": "1"},
-                                "im:version": {"label": "-1000"},
-                                "im:voteCount": {"label": "888888888888888"},
-                                "im:voteSum": {"label": "-88888888888888888888888888"},
-                                "title": {"label": "I'm a fish"}
-                        },
-                        "link": [{"attributes": {"rel": "next", "href": "some url"}}]
-                }
-        }
-        second_return = {
-                "feed": {}
-        }
+        first_return = """<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/Atom" xml:lang="de">
+	<id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/mostrecent/xml</id>
+    <title>iTunes Store: Rezensionen</title>
+    <updated>2020-02-04T02:59:47-07:00</updated>
+    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/id=1150432552/mostrecent/xml"/>
+    
+    <entry>
+        <updated>2012-11-10T09:08:07-07:00</updated>
+        <id>5483431986</id>
+        <title>I'm a fish</title>
+        <content type="text">The fish life is thug af #okboomer</content>
+        <im:voteSum>9</im:voteSum>
+        <im:voteCount>42</im:voteCount>
+        <im:rating>5</im:rating>
+        <im:version>2.10.7</im:version>
+        <author><name>Blubb</name></author>
+        <content type="html">&lt;somethtml note=&quot;We don't want to parse this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;</content>
+    </entry>
+
+</feed>"""
+        
+        second_return = ""
         
         mock.side_effect = [
                 MagicMock(ok = True, json = lambda: first_return),
@@ -57,8 +59,8 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-		["id","content","content_type","rating",
-		 "app_version","vote_count","vote_sum","title", "countryId"],
+		["id","content","rating",
+		 "app_version","vote_count","vote_sum","title", "date", "country_code"],
 		list(result.columns)
 	)
     
