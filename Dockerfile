@@ -6,7 +6,8 @@ VOLUME /app
 RUN apt-get update
 
 # install programs to make the container shell more useful
-RUN apt-get install -y --fix-missing --no-install-recommends apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
+#RUN apt-get install -y --fix-missing --no-install-recommends apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
+# Todo: This would be great to fix the apt warnings, but unfortunately, it raises http://security.ubuntu.com/ubuntu 404 Not Found ...
 RUN apt-get install -y --fix-missing --no-install-recommends build-essential vim curl gnupg iproute2
 RUN apt-get install -y nano
 
