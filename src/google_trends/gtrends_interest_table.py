@@ -1,9 +1,9 @@
 import luigi
 from gtrends_interest_json import GTrendsInterestJson
-from json_to_csv_task import JsonToCsvTask
+from json_to_csv import JsonToCsv
 from csv_to_db import CsvToDb
 
-class GTrendsInterestTable(JsonToCsvTask):
+class GTrendsInterestTable(JsonToCsv):
     def requires(self):
         return GTrendsInterestJson()
     

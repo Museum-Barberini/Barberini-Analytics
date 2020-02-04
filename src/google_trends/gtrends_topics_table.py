@@ -1,9 +1,9 @@
 import luigi
 from gtrends_topics_json import GTrendsTopicsJson
-from json_to_csv_task import JsonToCsvTask
+from json_to_csv import JsonToCsv
 from csv_to_db import CsvToDb
 
-class GTrendsTopicsTable(JsonToCsvTask):
+class GTrendsTopicsTable(JsonToCsv):
     def requires(self):
         return GTrendsTopicsJson()
     
