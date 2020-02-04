@@ -6,25 +6,25 @@ from scrape_gomus import EnhanceBookingsWithScraper
 
 class BookingsToDB(CsvToDb):
 
-	table = 'gomus_booking'
+    table = 'gomus_booking'
 
-	columns = [
-		('id', 'INT'),
-		('booker_id', 'INT'),
-		('category', 'TEXT'),
-		('participants', 'INT'),
-		('guide_id', 'INT'),
-		('date', 'DATE'),
-		('daytime', 'TIME'),
-		('duration', 'INT'), # in minutes
-		('exhibition', 'TEXT'),
-		('title', 'TEXT'),
-		('status', 'TEXT'),
-		('order_date', 'DATE'),
-		('language', 'TEXT')
-	]
-	
-	primary_key = 'id'
+    columns = [
+        ('id', 'INT'),
+        ('booker_id', 'INT'),
+        ('category', 'TEXT'),
+        ('participants', 'INT'),
+        ('guide_id', 'INT'),
+        ('date', 'DATE'),
+        ('daytime', 'TIME'),
+        ('duration', 'INT'), # in minutes
+        ('exhibition', 'TEXT'),
+        ('title', 'TEXT'),
+        ('status', 'TEXT'),
+        ('order_date', 'DATE'),
+        ('language', 'TEXT')
+    ]
+    
+    primary_key = 'id'
 
-	def requires(self):
-		return EnhanceBookingsWithScraper()
+    def requires(self):
+        return EnhanceBookingsWithScraper()

@@ -57,10 +57,10 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-		["id","content","content_type","rating",
-		 "app_version","vote_count","vote_sum","title", "countryId"],
-		list(result.columns)
-	)
+        ["id","content","content_type","rating",
+         "app_version","vote_count","vote_sum","title", "countryId"],
+        list(result.columns)
+    )
     
     @patch("src.apple_appstore.fetch_apple_app_reviews.fetch_country")
     def test_all_countries(self, mock):
