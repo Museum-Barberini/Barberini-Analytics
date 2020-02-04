@@ -1,0 +1,14 @@
+{
+    "name": "bp-barberini",
+    "version": "1.0.0",
+    "description": "Awesome Barberini tool",
+    "dependencies": {
+        "google-trends-api": "latest",
+        "deasync": "latest"
+    },
+    "devDependencies": {},
+    "repository": "https://gitlab.hpi.de/bp-barberini/bp-barberini",
+    "author": "HPI",
+    "license": "ISC"
+  }
+  

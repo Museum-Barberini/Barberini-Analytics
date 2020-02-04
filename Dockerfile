@@ -26,6 +26,5 @@ RUN pip3 install psycopg2
 RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash -
 RUN apt-get -y install nodejs
 
-# WORKAROUND until we have multiple docker containers
-RUN bash -c "cd ../ && npm i google-trends-api deasync"
+RUN bash -c "cd ../ && npm install"
 
