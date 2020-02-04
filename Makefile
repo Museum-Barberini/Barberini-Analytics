@@ -29,6 +29,11 @@ shutdown:
 connect:
 	docker-compose -p ${USER} exec luigi bash
 
+# runs a command in the luigi container
+# example: sudo make docker-do do='make luigi'
+docker-do:
+	docker-compose -p ${USER} exec luigi $(do)
+
 # --- To access postgres ---
 
 # opens a psql shell inside the database container
@@ -56,10 +61,6 @@ luigi-scheduler:
 	luigid --background &
 	sleep 3 # workaround until scheduler has started
 	
-luigi-ui:
-	echo WARNING: make target luigi-ui is deprecated: Use luigi-scheduler instead!
-	make luigi-scheduler
-
 luigi:
 	make LMODULE=query_db LTASK=QueryDB luigi-task
 
