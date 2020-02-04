@@ -26,5 +26,5 @@ RUN pip3 install psycopg2
 RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash -
 RUN apt-get -y install nodejs
 
-RUN bash -c "cd ../ && npm install"
+RUN bash -c "npm install"
 
