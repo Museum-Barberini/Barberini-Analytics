@@ -12,25 +12,25 @@ from orders_to_db import OrdersToDB
 
 
 class FillDB(luigi.WrapperTask):
-	def requires(self):
-		yield FillDBDaily()
-		yield FillDBHourly()
+    def requires(self):
+        yield FillDBDaily()
+        yield FillDBHourly()
 
 
 class FillDBDaily(luigi.WrapperTask):
-	def requires(self):
-		yield TweetsToDB()
-		yield GtrendsInterestToDB()
-		yield GtrendsTopicsToDB()
-		yield AppstoreReviewsToDB()
-		yield FbPostsToDB()
-		yield CustomersToDB()
-		yield BookingsToDB()
-		yield PublicToursToDB()
-		yield OrderContainsToDB()
-		yield OrdersToDB()
+    def requires(self):
+        yield TweetsToDB()
+        yield GtrendsInterestToDB()
+        yield GtrendsTopicsToDB()
+        yield AppstoreReviewsToDB()
+        yield FbPostsToDB()
+        yield CustomersToDB()
+        yield BookingsToDB()
+        yield PublicToursToDB()
+        yield OrderContainsToDB()
+        yield OrdersToDB()
 
 class FillDBHourly(luigi.WrapperTask):
-	def requires(self):
-		yield TweetPerformanceToDB()
-		yield FbPostPerformanceToDB()
+    def requires(self):
+        yield TweetPerformanceToDB()
+        yield FbPostPerformanceToDB()
