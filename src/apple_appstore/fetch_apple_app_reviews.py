@@ -14,14 +14,14 @@ class FetchAppstoreReviews(luigi.Task):
     
     def run(self):
         reviews = self.fetch_all()
+        print("storing results")
         with self.output().open('w') as output_file:
             reviews.to_csv(output_file, index=False, header=True)
 
     def fetch_all(self):
         data = []
         country_codes = self.get_country_codes()
-        for country_code in country_codes:
-            
+        for index, country_code in enumerate(country_codes, start=1):
             try:
                 data += [self.fetch_for_country(country_code)]
             except ValueError:
@@ -31,6 +31,8 @@ class FetchAppstoreReviews(luigi.Task):
                     pass
                 else:
                     raise
+            print(f"\rFetched appstore reviews for {country_code} ({100. * index / len(country_codes)}%)", end='', flush=True)
+        print()
         ret = pd.concat(data)
         return ret.drop_duplicates(subset=['id'])
 
