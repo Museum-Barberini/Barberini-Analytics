@@ -13,6 +13,8 @@ Please note that this instructions are optimized for Ubuntu, amd64. If you use a
    ```bash
    git clone https://gitlab.hpi.de/bp-barberini/bp-barberini.git
    ```
+   
+   - For best convenience, clone it into `/root/bp-barperini`.
 
 2. Copy the `secrets` folders (not available on the internet) into `/etc`
 
@@ -30,4 +32,4 @@ Please note that this instructions are optimized for Ubuntu, amd64. If you use a
 
 ## Schedule regular DB updates
 
-Use `crontab -e` to create a cronjob that calls `scripts/cron.sh`.
+Run `scripts/setup_cron.sh`. If you installed Awesome Barberini Tool in a different folder than `/root/bp-barberini`, you may want to adapt the paths in `scripts/.crontab` before.

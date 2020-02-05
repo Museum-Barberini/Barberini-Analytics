@@ -1,0 +1,3 @@
+*/5 * * * * /root/bp-barberini/scripts/pull_repo.sh
+30 23 * * * /root/bp-barberini/scripts/cron.sh daily
+0 * * * * /root/bp-barberini/scripts/cron.sh hourly
