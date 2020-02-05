@@ -69,7 +69,7 @@ class DatabaseTaskTest(unittest.TestCase):
         create_database_if_necessary()
         self.db.setUp()
         # copy all fake files to root and append ~ to existing ones
-        subprocess.call('cp -r tests_fake_files/. . --backup'.split())
+        subprocess.call('cp -r tests/test_data/tests_fake_files/output . --backup'.split())
     
     def tearDown(self):
         # restore files ending with ~ by overwriting the version without ~ 
