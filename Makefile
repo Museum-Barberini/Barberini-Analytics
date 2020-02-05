@@ -69,4 +69,3 @@ db-backup:
 
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
-

@@ -9,6 +9,7 @@ from bookings_to_db import BookingsToDB
 from public_tours_to_db import PublicToursToDB
 from order_contains_to_db import OrderContainsToDB
 from orders_to_db import OrdersToDB
+from fetch_google_maps_reviews import GoogleMapsReviewsToDB
 
 
 class FillDB(luigi.WrapperTask):
@@ -29,8 +30,11 @@ class FillDBDaily(luigi.WrapperTask):
         yield PublicToursToDB()
         yield OrderContainsToDB()
         yield OrdersToDB()
+        yield GoogleMapsReviewsToDB()
+
 
 class FillDBHourly(luigi.WrapperTask):
     def requires(self):
         yield TweetPerformanceToDB()
         yield FbPostPerformanceToDB()
+
