@@ -23,32 +23,34 @@ class FetchFbPosts(luigi.Task):
     def run(self):
         
         access_token = os.environ['FB_ACCESS_TOKEN']
+        with open('data/barberini-facts.json') as facts_json:
+            barberini_facts = json.load(facts_json)
+            page_id = barberini_facts['ids']['facebook']['pageId']
         
         posts = []
         
-        url = "https://graph.facebook.com/1068121123268077/posts?access_token=" + access_token
+        url = f"https://graph.facebook.com/{page_id}/posts?access_token={access_token}"
         
         response = requests.get(url)
-        
-        if response.ok is False:
-            raise requests.HTTPError
+        response.raise_for_status()
         
         response_content = response.json()
         for post in (response_content['data']):
             posts.append(post)
         
+        print("Fetching facebook posts ...")
+        page_count = 0
         while ('next' in response_content['paging']):
-            print("### Facebook - loading new page of posts ###")
+            page_count = page_count + 1
             url = response_content['paging']['next']
             response = requests.get(url)
-            
-            if response.ok is False:
-                raise requests.HTTPError
+            response.raise_for_status()
             
             response_content = response.json()
             for post in (response_content['data']):
                 posts.append(post)
-        
+            print(f"\rFetched facebook page {page_count}", end='', flush=True)
+        print("Fetching of facebook posts completed")
         
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
@@ -66,14 +68,10 @@ class FetchFbPostPerformance(luigi.Task):
         return luigi.LocalTarget("output/facebook/fb_post_performances.csv", format=UTF8)
     
     def run(self):
-        
         access_token = os.environ['FB_ACCESS_TOKEN']
         
-        
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
         performances = []
-        
         df = pd.read_csv(self.input().path)
 
         for index in df.index:
@@ -81,9 +79,7 @@ class FetchFbPostPerformance(luigi.Task):
             #print(f"### Facebook - loading performance data for post {str(post_id)} ###")
             url = f"https://graph.facebook.com/{post_id}/insights?access_token={access_token}&metric=post_reactions_by_type_total,post_activity_by_action_type,post_clicks_by_type,post_negative_feedback"
             response = requests.get(url)
-            
-            if response.ok is False:
-                raise requests.HTTPError
+            response.raise_for_status()
             
             response_content = response.json()
             
@@ -120,8 +116,6 @@ class FetchFbPostPerformance(luigi.Task):
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
-
-
 
 
 class FbPostsToDB(CsvToDb):
@@ -166,4 +160,3 @@ class FbPostPerformanceToDB(CsvToDb):
     
     def requires(self):
         return FetchFbPostPerformance()
-
