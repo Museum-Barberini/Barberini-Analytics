@@ -29,7 +29,6 @@ class EventsToDB(CsvToDb):
 		
 	def requires(self):
 		return ExtractEventData(columns=[el[0] for el in self.columns])
-
 class ExtractEventData(luigi.Task):
 	columns = luigi.parameter.ListParameter(description="Column names")
 	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
