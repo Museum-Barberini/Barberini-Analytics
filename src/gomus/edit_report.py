@@ -5,6 +5,12 @@ import requests
 
 from bs4 import BeautifulSoup
 from fetch_gomus import report_ids
+from urllib import parse
+
+ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',
+    'total_price', 'total_coupon_price', 'total_still_to_pay_price', 'is_valid',
+    'payment_status', 'payment_mode', 'is_canceled', 'source', 'cost_centre',
+    'invoiced_at', 'invoices', 'storno_invoices']
 
 class EditGomusReport(luigi.Task):
     report = luigi.parameter.IntParameter(description="Report ID to edit")
@@ -13,9 +19,6 @@ class EditGomusReport(luigi.Task):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.orders_fields = ['id', 'created_at', 'customer_id', 'customer_fullname',
-            'total_price', 'total_coupon_price', 'total_still_to_pay_price', 'is_valid', 'payment_status', 'payment_mode', 'is_canceled', 'source', 'cost_centre',
-            'invoiced_at', 'invoices', 'storno_invoices']
         self.orders_payment_modes = [i for i in range(1, 6)]
         self.orders_payment_statuses = [0, 10, 15, 20, 30, 40]
 
@@ -26,7 +29,7 @@ class EditGomusReport(luigi.Task):
         self.base_url = 'https://barberini.gomus.de/'
 
         self.utf8 = '✓'
-        #self.method = 'put'
+        self.method = 'put'
         self.csrf_token = self.get_csrf()
         self.inform_user = 0
 
@@ -40,11 +43,11 @@ class EditGomusReport(luigi.Task):
         return False
 
     def run(self):
+        self.add_body(f'_method={self.method}')
         self.add_body(f'authenticity_token={self.csrf_token}')
-        #self.body += f'&_method={self.method}'
         self.add_body(f'report[report_type]={self.get_report_type()}')
         
-        self.insert_based('report[report_params][fields][]=', self.orders_fields)
+        self.insert_based('report[report_params][fields][]=', ORDERS_FIELDS)
         self.add_body('report[report_params][group]=')
         self.insert_dates()
         self.insert_based('report[report_params][filter[order_source]][]=', self.order_sources)
@@ -52,8 +55,10 @@ class EditGomusReport(luigi.Task):
         self.insert_based('report[report_params][filter[payment_status]][]=', self.orders_payment_statuses)
         self.add_body(f'report[inform_user]={self.inform_user}')
 
-        # TODO: actually POST
-        print(self.__body)
+        parse.quote(self.__body, safe='=')
+        self.post()
+
+        # idea: ensure report is fully refreshed by polling every 5 seconds until 200?
 
     def get_csrf(self):
         response = self.get(self.base_url)
@@ -64,7 +69,6 @@ class EditGomusReport(luigi.Task):
                 return meta['content']
 
     def get_report_type(self):
-        print(self.id_reports)
         return 'Exports::' + self.id_reports[self.report].split('_')[0].capitalize()
     
     def insert_based(self, base, values):
@@ -86,3 +90,8 @@ class EditGomusReport(luigi.Task):
 
     def get(self, url):
         return requests.get(url, cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']))
+
+    def post(self):
+        return requests.post(f'https://barberini.gomus.de/admin/reports/{self.report}',
+            self.__body.encode(encoding='utf-8'), cookies=dict(_session_id=
+            os.environ['GOMUS_SESS_ID']), headers={'X-CSRF-Token': self.csrf_token})
