@@ -12,6 +12,8 @@ Please note that this instructions are optimized for Ubuntu, amd64. If you use a
 
    ```bash
    git clone https://gitlab.hpi.de/bp-barberini/bp-barberini.git
+   cd bp-barberini
+   chmod +x scripts/*.sh
    ```
    
    - For best convenience, clone it into `/root/bp-barperini`.
@@ -27,6 +29,7 @@ Please note that this instructions are optimized for Ubuntu, amd64. If you use a
 4. Set up docker and db:
 
    ```bash
+   ./scripts/setup_docker.sh
    ./scripts/update_network.sh
    ```
 
