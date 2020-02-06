@@ -55,7 +55,7 @@ class FetchFbPosts(luigi.Task):
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
             df = df.filter(['created_time', 'message', 'id'])
-            df.columns = ['post_date', 'text', 'id']
+            df.columns = ['post_date', 'text', 'fb_post_id']
             df.to_csv(output_file, index=False, header=True)
 
 
@@ -75,7 +75,7 @@ class FetchFbPostPerformance(luigi.Task):
         df = pd.read_csv(self.input().path)
 
         for index in df.index:
-            post_id = df['id'][index]
+            post_id = df['fb_post_id'][index]
             #print(f"### Facebook - loading performance data for post {str(post_id)} ###")
             url = f"https://graph.facebook.com/{post_id}/insights?access_token={access_token}&metric=post_reactions_by_type_total,post_activity_by_action_type,post_clicks_by_type,post_negative_feedback"
             response = requests.get(url)
@@ -84,7 +84,7 @@ class FetchFbPostPerformance(luigi.Task):
             response_content = response.json()
             
             post_perf = dict()
-            post_perf["post_id"] = post_id
+            post_perf["fb_post_id"] = post_id
             post_perf["time_stamp"] = current_timestamp
             
             # Reactions
@@ -125,10 +125,10 @@ class FbPostsToDB(CsvToDb):
     columns = [
         ("post_date", "TIMESTAMP"),
         ("text", "TEXT"),
-        ("id", "TEXT")
+        ("fb_post_id", "TEXT")
     ]
     
-    primary_key = 'id'
+    primary_key = 'fb_post_id'
 
     def requires(self):
         return FetchFbPosts()
@@ -139,7 +139,7 @@ class FbPostPerformanceToDB(CsvToDb):
     table = "fb_post_performance"
     
     columns = [
-        ("post_id", "TEXT"),
+        ("fb_post_id", "TEXT"),
         ("time_stamp", "TIMESTAMP"),
         ("react_like", "INT"),
         ("react_love", "INT"),
@@ -156,7 +156,16 @@ class FbPostPerformanceToDB(CsvToDb):
         ("negative_feedback", "INT")
     ]
 
-    primary_key = ('post_id', 'time_stamp')
+    primary_key = ('fb_post_id', 'time_stamp')
+    
+    foreign_keys = [
+            {
+                "origin_column": "fb_post_id",
+                "target_table": "fb_post",
+                "target_column": "fb_post_id"
+            }
+        ]
+
     
     def requires(self):
         return FetchFbPostPerformance()

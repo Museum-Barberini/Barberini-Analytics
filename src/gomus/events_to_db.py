@@ -100,7 +100,7 @@ class EnsureBookingsIsRun(luigi.Task):
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
-            query = f'SELECT id FROM gomus_booking WHERE category=\'{self.category}\''
+            query = f'SELECT booking_id FROM gomus_booking WHERE category=\'{self.category}\''
             cur.execute(query)
 
             row = cur.fetchone()
