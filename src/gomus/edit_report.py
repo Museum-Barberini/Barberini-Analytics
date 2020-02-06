@@ -5,7 +5,7 @@ import requests
 import time
 
 from bs4 import BeautifulSoup
-from fetch_gomus import REPORT_IDS
+from fetch_gomus import REPORT_IDS, REPORT_IDS_INV
 from urllib import parse
 
 ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',
@@ -33,10 +33,8 @@ class EditGomusReport(luigi.Task):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id_reports = {v: k for k, v in REPORT_IDS.items()}
         self.start_at = self.start_at.strftime("%Y-%m-%d")
-        self.end_at self.end_at.strftime("%Y-%m-%d")
-
+        self.end_at = self.end_at.strftime("%Y-%m-%d")
 
         self.csrf_token = self.get_csrf()
         self.__body = f'utf8={UTF8}'
@@ -97,7 +95,7 @@ class EditGomusReport(luigi.Task):
                 return meta['content']
 
     def get_report_type(self):
-        return self.id_reports[self.report].split('_')[0].capitalize()
+        return REPORT_IDS_INV[self.report].split('_')[0].capitalize()
     
     def insert_based(self, base, values, add_base=True):
         if add_base: self.add_body(base)
@@ -125,10 +123,10 @@ class EditGomusReport(luigi.Task):
 
     def wait_for_gomus(self):
         # idea: ensure report is fully refreshed by polling every 5 seconds until response is ok
-        res = self.get(f'{BASE_URL}/admin/reports/{self.report}.xlsx')
-        while not res.ok:
+        res = self.get(f'{BASE_URL}/admin/reports/{self.report}')
+        while not res.ok or "Bitte warten" in res.text:
             time.sleep(5)
-            res = self.get(f'{BASE_URL}/admin/reports/{self.report}.xlsx')
+            res = self.get(f'{BASE_URL}/admin/reports/{self.report}')
 
     def add_body(self, string):
         self.__body += f'&{string}'

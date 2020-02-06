@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import luigi
-from luigi.format import UTF8
-from fetch_gomus import request_report, csv_from_excel, REPORT_IDS
 import os
 import requests
 import time
+
+from luigi.format import UTF8
+from fetch_gomus import *
+from edit_report import EditGomusReport
 
 class FetchGomusReport(luigi.Task):
     report = luigi.parameter.Parameter(description="The report name (e.g. \'bookings\')")
@@ -15,6 +17,7 @@ class FetchGomusReport(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report_name = self.report + self.suffix
+        self.refreshed = False
     
     def output(self):
         for index in self.sheet_indices:
@@ -23,11 +26,14 @@ class FetchGomusReport(luigi.Task):
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']
         
-        if REPORT_IDS[f'{self.report_name}'] > 0: # report refreshable
-            request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', 'refresh'])
+        if not self.refreshed and REPORT_IDS[f'{self.report_name}'] > 0: # report refreshable
+            start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
+            self.refreshed = True
+            yield EditGomusReport(report=REPORT_IDS[self.report_name], start_at=start_time, end_at=end_time)
+            """
             print(f"Waiting {self.refresh_wait_time} seconds for the report to refresh")
             time.sleep(self.refresh_wait_time)
-        
+            """
         res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-l'])
         for index, target in enumerate(self.output()):
             with target.open('w') as target_csv:
