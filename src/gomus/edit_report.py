@@ -80,7 +80,6 @@ class EditGomusReport(luigi.Task):
     def insert_dates(self):
         base = 'report[report_params][filter]'
         modes = ['created_between', 'updated_between', 'reserved_until_between', 'canceled_between']
-        unwanted_modes = modes[2:]
         for mode in modes[:2]:
             self.add_body(f'{base}[{mode}][start_at]={self.start_at.strftime("%Y-%m-%d")}')
             self.add_body(f'{base}[{mode}][end_at]={self.end_at.strftime("%Y-%m-%d")}')
