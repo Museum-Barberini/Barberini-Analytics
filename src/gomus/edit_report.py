@@ -2,6 +2,7 @@
 import luigi
 import os
 import requests
+import time
 
 from bs4 import BeautifulSoup
 from fetch_gomus import report_ids
@@ -11,6 +12,8 @@ ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',
     'total_price', 'total_coupon_price', 'total_still_to_pay_price', 'is_valid',
     'payment_status', 'payment_mode', 'is_canceled', 'source', 'cost_centre',
     'invoiced_at', 'invoices', 'storno_invoices']
+
+BASE_URL = 'https://barberini.gomus.de'
 
 class EditGomusReport(luigi.Task):
     report = luigi.parameter.IntParameter(description="Report ID to edit")
@@ -26,7 +29,6 @@ class EditGomusReport(luigi.Task):
             'resellerapi', 'widget', 'import']
 
         self.id_reports = dict([(v, k) for k, v in report_ids.items()])
-        self.base_url = 'https://barberini.gomus.de/'
 
         self.utf8 = '✓'
         self.method = 'put'
@@ -57,11 +59,10 @@ class EditGomusReport(luigi.Task):
 
         parse.quote(self.__body, safe='=')
         self.post()
-
-        # idea: ensure report is fully refreshed by polling every 5 seconds until 200?
+        self.wait_for_gomus()
 
     def get_csrf(self):
-        response = self.get(self.base_url)
+        response = self.get(BASE_URL)
         soup = BeautifulSoup(response.text, features='lxml')
         metas = soup.find_all('meta')
         for meta in metas:
@@ -92,6 +93,13 @@ class EditGomusReport(luigi.Task):
         return requests.get(url, cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']))
 
     def post(self):
-        return requests.post(f'https://barberini.gomus.de/admin/reports/{self.report}',
+        return requests.post(f'{BASE_URL}/admin/reports/{self.report}',
             self.__body.encode(encoding='utf-8'), cookies=dict(_session_id=
             os.environ['GOMUS_SESS_ID']), headers={'X-CSRF-Token': self.csrf_token})
+
+    def wait_for_gomus(self):
+        # idea: ensure report is fully refreshed by polling every 5 seconds until response is ok
+        res = self.get(f'{BASE_URL}/admin/reports/{self.report}.xlsx')
+        while not res.ok:
+            time.sleep(5)
+            res = self.get(f'{BASE_URL}/admin/reports/{self.report}.xlsx')
