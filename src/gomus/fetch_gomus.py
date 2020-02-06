@@ -77,7 +77,6 @@ def direct_download_url(base_url, report, timespan):
 	
 	return base_return
 	
-
 def get_request(url, sess_id):
 	cookies = dict(_session_id=sess_id)
 	res = requests.get(url, cookies=cookies)
