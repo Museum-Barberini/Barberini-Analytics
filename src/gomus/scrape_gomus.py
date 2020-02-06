@@ -86,7 +86,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
-        return orders['id']
+        return orders['order_id']
 
     def requires(self):
         return ExtractOrderData(columns=['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
