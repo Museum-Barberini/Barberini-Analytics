@@ -84,6 +84,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
+    worker_timeout = 2000
+    
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
         return orders['id']
