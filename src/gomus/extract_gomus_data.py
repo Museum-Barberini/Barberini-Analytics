@@ -14,31 +14,26 @@ def hash_booker_id(email, seed=666):
 
 
 class ExtractGomusBookings(luigi.Task):
-	seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
-	
-	def requires(self):
-		return FetchGomusReport(report='bookings')
-	
-	def output(self):
-		return luigi.LocalTarget(f'output/gomus/bookings_prepared.csv', format=UTF8)
-	
-	def run(self):
-		bookings = pd.read_csv(next(self.input()).path)
-		
-		bookings['Buchung'] = bookings['Buchung'].apply(int)
-		bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id, args=(self.seed,))
-		# category = Angebotskategorie
-		bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
-		bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
-		bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
-		bookings['daytime'] = bookings['Uhrzeit von'].apply(self.parse_daytime)
-		bookings['Dauer'] = bookings.apply(lambda x: self.calculate_duration(x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
-		# exhibition = Ausstellung
-		# title = Titel
-		# status = Status
+    seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
+    
+    def requires(self):
+        return FetchGomusReport(report='bookings')
+    
+    def output(self):
+        return luigi.LocalTarget(f'output/gomus/bookings_prepared.csv', format=UTF8)
+    
+    def run(self):
+        bookings = pd.read_csv(next(self.input()).path)
+        
+        bookings['Buchung'] = bookings['Buchung'].apply(int)
+        bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id, args=(self.seed,))
+        bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
+        bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
+        bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
+        bookings['daytime'] = bookings['Uhrzeit von'].apply(self.parse_daytime)
+        bookings['Dauer'] = bookings.apply(lambda x: self.calculate_duration(x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 
         # order_date and language are added by scraper
-
         bookings = bookings.filter(
             ['Buchung', 'E-Mail', 'Angebotskategorie', 'Teilnehmerzahl', 'Guide', 'Datum', 
             'daytime', 'Dauer', 'Ausstellung', 'Titel', 'Status'])

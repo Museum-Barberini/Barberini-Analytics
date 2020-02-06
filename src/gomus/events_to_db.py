@@ -115,11 +115,7 @@ class EnsureBookingsIsRun(luigi.Task):
                 row = cur.fetchone()
                         
             self.is_complete = True
-                
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
-                
+        
         finally:
             if conn is not None:
                 conn.close()

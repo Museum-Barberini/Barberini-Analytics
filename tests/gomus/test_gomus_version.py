@@ -13,7 +13,8 @@ class TestGomusVersion(unittest.TestCase):
             exit(1)
 
         response = requests.get('https://barberini.gomus.de/', cookies=dict(_session_id=GOMUS_SESS_ID))
-        response.raise_for_status()
+        if not response.ok:
+            response.raise_for_status()
     
         # currently, the version tag is in this particular line in the HTML
         # if this line no. changes, that also means that adjustments to Gomus have been made
