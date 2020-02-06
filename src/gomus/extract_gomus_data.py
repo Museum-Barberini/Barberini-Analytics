@@ -42,7 +42,7 @@ class ExtractGomusBookings(luigi.Task):
         bookings = bookings.filter(
             ['Buchung', 'E-Mail', 'Angebotskategorie', 'Teilnehmerzahl', 'Guide', 'Datum', 
             'daytime', 'Dauer', 'Ausstellung', 'Titel', 'Status'])
-        bookings.columns = ['id', 'booker_id', 'category', 'participants', 'guide_id', 'date', 
+        bookings.columns = ['booking_id', 'customer_id', 'category', 'participants', 'guide_id', 'date', 
             'daytime', 'duration', 'exhibition', 'title', 'status']
         with self.output().open('w') as output_file:
             bookings.to_csv(output_file, header=True, index=False)
