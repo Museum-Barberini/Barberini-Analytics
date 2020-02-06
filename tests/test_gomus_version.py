@@ -13,9 +13,7 @@ class TestGomusVersion(unittest.TestCase):
             exit(1)
 
         response = requests.get('https://barberini.gomus.de/', cookies=dict(_session_id=GOMUS_SESS_ID))
-        if not response.status_code == 200:
-            print(f"Response was not 200, but {response.status_code} instead")
-            exit(1)
+        response.raise_for_status()
     
         # currently, the version tag is in this particular line in the HTML
         # if this line no. changes, that also means that adjustments to Gomus have been made
