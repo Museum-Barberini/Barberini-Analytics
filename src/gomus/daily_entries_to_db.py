@@ -56,7 +56,6 @@ class ExtractDailyEntryData(luigi.Task):
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
             df.insert(2, 'date', pd.to_datetime(date, format='"%d.%m.%Y"'))
-
             count = df.pop('Gesamt')
             df.insert(3, 'count', count)
 
