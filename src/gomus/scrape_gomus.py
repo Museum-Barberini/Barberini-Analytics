@@ -89,7 +89,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         return orders['id']
 
     def requires(self):
-        return ExtractOrderData(columns=['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+        return ExtractOrderData(columns=['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
         # this array is kind of unnecessary, but currently required by ExtractOrderData()
         # the design of that task requiring a column-array is also questionable, so this line may change later on
 
