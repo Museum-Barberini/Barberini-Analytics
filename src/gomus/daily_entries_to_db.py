@@ -7,31 +7,31 @@ import pandas as pd
 from csv_to_db import CsvToDb
 from gomus_report import FetchGomusReport
 
-_columns = [
-    ('id', 'INT'),
-    ('ticket', 'TEXT'),
-    ('date', 'DATE'),
-    ('count', 'INT'),
-    *[(f'"{i}"', 'INT') for i in range(24)]
-]
+class AbstractDailyEntriesToDB(CsvToDb):
+    columns = [
+        ('id', 'INT'),
+        ('ticket', 'TEXT'),
+        ('date', 'DATE'),
+        ('count', 'INT'),
+        *[(f'"{i}"', 'INT') for i in range(24)]
+    ]
 
-_primary_key = ('id', 'date')
+    primary_key = ('id', 'date')
 
-class DailyEntriesToDB(CsvToDb):
+
+class DailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_daily_entry'
-    columns = _columns
-    primary_key = _primary_key
 
     def requires(self):
         return ExtractDailyEntryData(expected=False)
 
-class ExpectedDailyEntriesToDB(CsvToDb):
+
+class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_expected_daily_entry'
-    columns = _columns
-    primary_key = _primary_key
 
     def requires(self):
         return ExtractDailyEntryData(expected=True)
+
 
 class ExtractDailyEntryData(luigi.Task):
     expected = luigi.parameter.BoolParameter(description="Whether to return actual or expected entries")
