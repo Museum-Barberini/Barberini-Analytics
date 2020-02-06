@@ -17,19 +17,17 @@ import requests
 import sys
 import xlrd
 
-# This dict maps 'report_types' to 'report_ids'
+# This dict maps 'report_types' to 'REPORT_IDS'
 # Data sheets that don't require a report to be generated or refreshed have ids <= 0
 # key format: 'type_timespan' (e.g. 'customers_7days')
-report_ids = {
+REPORT_IDS = {
 	'customers_7days': 1226,
 	'orders_7days': 1188,
 	'orders_1day': 1246,
-	'entry_1day': 1262,
+	'entries_1day': 1262,
 
 	'bookings_7days': 0,
-
     'bookings_1month': -3,
-
     'bookings_1year': -1,
     
     'guides': -2
@@ -39,8 +37,8 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description="Refresh and fetch reports from go~mus")
     report_group = parser.add_mutually_exclusive_group(required=True)
 
-    report_group.add_argument('-i', '--report-id', type=int, help='ID of the report', choices=report_ids.values())
-    report_group.add_argument('-t', '--report-type', type=str, help='Type of the report', choices=report_ids.keys())
+    report_group.add_argument('-i', '--report-id', type=int, help='ID of the report', choices=REPORT_IDS.values())
+    report_group.add_argument('-t', '--report-type', type=str, help='Type of the report', choices=REPORT_IDS.keys())
 
     parser.add_argument('action', type=str, help='Action to take', choices=['refresh', 'fetch'], nargs='?', default='fetch')
     parser.add_argument('-s', '--session-id', type=str, help='Session ID to use for authentication', required=True)
@@ -58,11 +56,11 @@ def direct_download_url(base_url, report, timespan):
 	today = datetime.date.today()
 	end_time = today - datetime.timedelta(days=1)
 	if timespan == '7days': # grab everything from yesterday till a week before
-		start_time = today - datetime.timedelta(weeks=1)
+		start_time = end_time - datetime.timedelta(weeks=1)
 	elif timespan == '1month':
-		start_time = today - datetime.timedelta(days=30)
+		start_time = end_time - datetime.timedelta(days=30)
 	elif timespan == '1year':
-		start_time = today - datetime.timedelta(days=365)
+		start_time = end_time - datetime.timedelta(days=365)
 	elif timespan == '1day':
 		start_time = end_time
 	else: no_time = True
@@ -101,14 +99,14 @@ def request_report(args=sys.argv[1:]):
         report_id = args.report_id
     else:
         try:
-            report_id = report_ids[args.report_type]
+            report_id = REPORT_IDS[args.report_type]
         except KeyError: # should never happen because of argparse choices
             print(f"Error: Report type '{args.report_type}' not supported!")
             exit(1)
     
     base_url = 'https://barberini.gomus.de'
     
-    report_ids_inv = {v: k for k, v in report_ids.items()}
+    report_ids_inv = {v: k for k, v in REPORT_IDS.items()}
     report_parts = report_ids_inv[report_id].split("_")
     
     print(f"Working with report '{report_parts[0]}.xlsx'")

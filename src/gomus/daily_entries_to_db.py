@@ -21,6 +21,7 @@ class DailyEntriesToDB(CsvToDb):
     table = 'gomus_daily_entry'
     columns = _columns
     primary_key = _primary_key
+
     def requires(self):
         return ExtractDailyEntryData(expected=False)
 
@@ -29,9 +30,6 @@ class ExpectedDailyEntriesToDB(CsvToDb):
     columns = _columns
     primary_key = _primary_key
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def requires(self):
         return ExtractDailyEntryData(expected=True)
 
@@ -39,12 +37,10 @@ class ExtractDailyEntryData(luigi.Task):
     expected = luigi.parameter.BoolParameter(description="Whether to return actual or expected entries")
 
     def requires(self):
-        return FetchGomusReport(report='entry', suffix='_1day', sheet_indices=[0, 1] if not self.expected else [2, 3], refresh_wait_time=20)
+        return FetchGomusReport(report='entries', suffix='_1day', sheet_indices=[0, 1] if not self.expected else [2, 3], refresh_wait_time=20)
 
     def output(self):
-        if self.expected:
-            return luigi.LocalTarget('output/gomus/expected_daily_entries.csv', format=UTF8)
-        return luigi.LocalTarget('output/gomus/daily_entries.csv', format=UTF8)
+        return luigi.LocalTarget(f'output/gomus/{"expected_" if self.expected else ""}daily_entries.csv', format=UTF8)
 
     def run(self):
         # get date from first sheet

@@ -6,10 +6,11 @@ from fetch_apple_app_reviews import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from customers_to_db import CustomersToDB
 from bookings_to_db import BookingsToDB
-from public_tours_to_db import PublicToursToDB
+from events_to_db import EventsToDB
 from order_contains_to_db import OrderContainsToDB
 from orders_to_db import OrdersToDB
 from fetch_google_maps_reviews import GoogleMapsReviewsToDB
+from daily_entries_to_db import DailyEntriesToDB, ExpectedDailyEntriesToDB
 
 
 class FillDB(luigi.WrapperTask):
@@ -27,11 +28,12 @@ class FillDBDaily(luigi.WrapperTask):
         yield FbPostsToDB()
         yield CustomersToDB()
         yield BookingsToDB()
-        yield PublicToursToDB()
+        yield EventsToDB()
         yield OrderContainsToDB()
         yield OrdersToDB()
         yield GoogleMapsReviewsToDB()
-
+        yield DailyEntriesToDB()
+        yield ExpectedDailyEntriesToDB()
 
 class FillDBHourly(luigi.WrapperTask):
     def requires(self):
