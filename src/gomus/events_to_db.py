@@ -52,7 +52,7 @@ class ExtractEventData(luigi.Task):
 			category = self.categories[index]
 			for i in range(0, len(event_data), 2):
 				self.append_event_data(i, event_data, 'Gebucht', category)
-				self.append_event_data(i+1, event_data, 'Storniert', category)
+				self.append_event_data(i + 1, event_data, 'Storniert', category)
 
 		with self.output().open('w') as output_csv:
 			self.events_df.to_csv(output_csv, index=False)
