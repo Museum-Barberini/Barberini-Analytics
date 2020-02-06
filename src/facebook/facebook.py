@@ -38,8 +38,10 @@ class FetchFbPosts(luigi.Task):
         for post in (response_content['data']):
             posts.append(post)
         
+        print("Fetching facebook posts ...")
+        page_count = 0
         while ('next' in response_content['paging']):
-            print("### Facebook - loading new page of posts ###")
+            page_count = page_count + 1
             url = response_content['paging']['next']
             response = requests.get(url)
             response.raise_for_status()
@@ -47,7 +49,8 @@ class FetchFbPosts(luigi.Task):
             response_content = response.json()
             for post in (response_content['data']):
                 posts.append(post)
-        
+            print(f"\rFetched facebook page {page_count}", end='', flush=True)
+        print("Fetching of facebook posts completed")
         
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
@@ -65,14 +68,10 @@ class FetchFbPostPerformance(luigi.Task):
         return luigi.LocalTarget("output/facebook/fb_post_performances.csv", format=UTF8)
     
     def run(self):
-        
         access_token = os.environ['FB_ACCESS_TOKEN']
         
-        
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
         performances = []
-        
         df = pd.read_csv(self.input().path)
 
         for index in df.index:
@@ -119,8 +118,6 @@ class FetchFbPostPerformance(luigi.Task):
             df.to_csv(output_file, index=False, header=True)
 
 
-
-
 class FbPostsToDB(CsvToDb):
     
     table = "fb_post"
@@ -163,4 +160,3 @@ class FbPostPerformanceToDB(CsvToDb):
     
     def requires(self):
         return FetchFbPostPerformance()
-
