@@ -26,7 +26,9 @@ class TestFetchAppleReviews(unittest.TestCase):
     
     @patch('src.apple_appstore.fetch_apple_app_reviews.requests.get')
     def test_get_request_returns_bad_status_code(self, mock):
-        mock.return_value = MagicMock(ok = False)
+        def raise_for_all_cases():
+            raise requests.HTTPError
+        mock.return_value = MagicMock(raise_for_status=raise_for_all_cases)
         self.assertRaises(requests.HTTPError, self.task.fetch_for_country, 'de')
     
     @patch('src.apple_appstore.fetch_apple_app_reviews.requests.get')
