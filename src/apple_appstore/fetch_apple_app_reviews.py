@@ -34,7 +34,7 @@ class AppstoreReviewsToDB(CsvToDb):
                 #("date", "DATE")
         ]
         
-        primary_key = "id"
+        primary_key = "appstore_review_id"
         
         def requires(self):
                 return FetchAppstoreReviews()

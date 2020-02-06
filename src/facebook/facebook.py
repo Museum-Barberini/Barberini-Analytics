@@ -77,7 +77,7 @@ class FetchFbPostPerformance(luigi.Task):
         df = pd.read_csv(self.input().path)
 
         for index in df.index:
-            post_id = df['id'][index]
+            post_id = df['fb_post_id'][index]
             #print(f"### Facebook - loading performance data for post {str(post_id)} ###")
             url = f"https://graph.facebook.com/{post_id}/insights?access_token={access_token}&metric=post_reactions_by_type_total,post_activity_by_action_type,post_clicks_by_type,post_negative_feedback"
             response = requests.get(url)
@@ -88,7 +88,7 @@ class FetchFbPostPerformance(luigi.Task):
             response_content = response.json()
             
             post_perf = dict()
-            post_perf["post_id"] = post_id
+            post_perf["fb_post_id"] = post_id
             post_perf["time_stamp"] = current_timestamp
             
             # Reactions
