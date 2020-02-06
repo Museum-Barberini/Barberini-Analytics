@@ -21,7 +21,7 @@ import xlrd
 # Data sheets that don't require a report to be generated or refreshed have ids <= 0
 # key format: 'type_timespan' (e.g. 'customers_7days')
 REPORT_IDS = {
-    'customers_7days': 1226,
+    'customers_7days': 1285,
     'orders_7days': 1188,
     'orders_1day': 1246,
     'entries_1day': 1262,
