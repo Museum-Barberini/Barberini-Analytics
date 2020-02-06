@@ -61,7 +61,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings['language'] = ""
         row_count = len(bookings.index)
         for i, row in bookings.iterrows():
-            booking_id = row['id']
+            booking_id = row['booking_id']
             booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
             print(f"requesting booking details for id: {str(booking_id)} ({i+1}/{row_count})")
             res_details = self.polite_get(booking_url, cookies=self.cookies)
