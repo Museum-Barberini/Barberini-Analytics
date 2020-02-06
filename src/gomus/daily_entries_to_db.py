@@ -52,7 +52,6 @@ class ExtractDailyEntryData(luigi.Task):
         with next(inputs).open('r') as first_sheet:
             date_line = first_sheet.readlines()[7]
             date = date_line.split(',')[2]
-
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
