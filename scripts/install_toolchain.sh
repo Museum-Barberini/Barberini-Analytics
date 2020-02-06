@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 [[ $(id -u) -eq 0 ]] || (echo "Please run as root" ; exit 1)
 
 apt-get update
