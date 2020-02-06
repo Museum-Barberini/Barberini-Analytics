@@ -60,6 +60,10 @@ db-restore:
 luigi-scheduler:
 	luigid --background &
 	sleep 3 # workaround until scheduler has started
+
+luigi-restart:
+	sudo killall luigid
+	make luigi-scheduler
 	
 luigi:
 	make LMODULE=query_db LTASK=QueryDB luigi-task
