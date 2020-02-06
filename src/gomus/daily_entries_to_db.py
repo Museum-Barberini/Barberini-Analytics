@@ -8,12 +8,12 @@ from csv_to_db import CsvToDb
 from gomus_report import FetchGomusReport
 
 _columns = [
-        ('id', 'INT'),
-        ('ticket', 'TEXT'),
-        ('date', 'DATE'),
-        ('count', 'INT'),
-        *[(f'"{i}"', 'INT') for i in range(24)]
-    ]
+    ('id', 'INT'),
+    ('ticket', 'TEXT'),
+    ('date', 'DATE'),
+    ('count', 'INT'),
+    *[(f'"{i}"', 'INT') for i in range(24)]
+]
 
 _primary_key = ('id', 'date')
 
