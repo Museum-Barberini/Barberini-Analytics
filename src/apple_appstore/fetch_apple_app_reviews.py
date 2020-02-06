@@ -22,8 +22,8 @@ class AppstoreReviewsToDB(CsvToDb):
         table = "appstore_review"
         
         columns = [
-                ("id", "TEXT"),
-                ("content", "TEXT"),
+                ("appstore_review_id", "TEXT"),
+                ("text", "TEXT"),
                 ("content_type", "TEXT"),
                 ("rating", "INT"),
                 ("app_version", "TEXT"),
@@ -104,8 +104,8 @@ def fetch_single_url(url):
         if isinstance(entries, dict):
                 entries = [entries]
         data = [{
-                "id": item["id"]["label"], 
-                "content": item["content"]["label"], 
+                "appstore_review_id": item["id"]["label"], 
+                "text": item["content"]["label"], 
                 "content_type": item["content"]["attributes"]["type"],
                 "rating": item["im:rating"]["label"],
                 "app_version": item["im:version"]["label"],
