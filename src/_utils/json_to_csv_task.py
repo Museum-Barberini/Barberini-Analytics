@@ -4,7 +4,7 @@ import json, csv
 class JsonToCsvTask(luigi.Task): 
     def run(self):
         my_json = self.getJson()
-    
+        
         with self.output().open('w') as csv_output:
             csvwriter = csv.writer(csv_output)
             count = 0
@@ -16,4 +16,5 @@ class JsonToCsvTask(luigi.Task):
                 csvwriter.writerow(json_row.values())
     
     def getJson(self):
-        return json.loads(self.input().open('r').read())
+        with self.input().open('r') as json_file:
+            return json.loads(json_file.read())

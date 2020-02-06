@@ -8,9 +8,9 @@ import numpy as np
 
 
 def hash_booker_id(email, seed=666):
-	if not isinstance(email, str):
-		return 0
-	return mmh3.hash(email, seed, signed=True)
+    if not isinstance(email, str):
+        return 0
+    return mmh3.hash(email, seed, signed=True)
 
 
 class ExtractGomusBookings(luigi.Task):
@@ -37,28 +37,28 @@ class ExtractGomusBookings(luigi.Task):
 		# title = Titel
 		# status = Status
 
-		# order_date and language are added by scraper
+        # order_date and language are added by scraper
 
-		bookings = bookings.filter(
-			['Buchung', 'E-Mail', 'Angebotskategorie', 'Teilnehmerzahl', 'Guide', 'Datum', 
-			'daytime', 'Dauer', 'Ausstellung', 'Titel', 'Status'])
-		bookings.columns = ['id', 'booker_id', 'category', 'participants', 'guide_id', 'date', 
-			'daytime', 'duration', 'exhibition', 'title', 'status']
-		with self.output().open('w') as output_file:
-			bookings.to_csv(output_file, header=True, index=False)
-	
-	def hash_guide(self, guide_name):
-		if guide_name is np.NaN: #np.isnan(guide_name):
-			return 0 # 0 represents empty value
-		guides = guide_name.lower().replace(' ', '').split(',')
-		guide = guides[0]
-		return mmh3.hash(guide, self.seed, signed=True)
-	
-	def parse_date(self, date_str):
-		return datetime.strptime(date_str, '%d.%m.%Y').date()
-	
-	def parse_daytime(self, daytime_str):
-		return datetime.strptime(daytime_str, '%H:%M').time()
-	
-	def calculate_duration(self, from_str, to_str):
-		return (datetime.strptime(to_str, '%H:%M') - datetime.strptime(from_str, '%H:%M')).seconds // 60
+        bookings = bookings.filter(
+            ['Buchung', 'E-Mail', 'Angebotskategorie', 'Teilnehmerzahl', 'Guide', 'Datum', 
+            'daytime', 'Dauer', 'Ausstellung', 'Titel', 'Status'])
+        bookings.columns = ['id', 'booker_id', 'category', 'participants', 'guide_id', 'date', 
+            'daytime', 'duration', 'exhibition', 'title', 'status']
+        with self.output().open('w') as output_file:
+            bookings.to_csv(output_file, header=True, index=False)
+    
+    def hash_guide(self, guide_name):
+        if guide_name is np.NaN: #np.isnan(guide_name):
+            return 0 # 0 represents empty value
+        guides = guide_name.lower().replace(' ', '').split(',')
+        guide = guides[0]
+        return mmh3.hash(guide, self.seed, signed=True)
+    
+    def parse_date(self, date_str):
+        return datetime.strptime(date_str, '%d.%m.%Y').date()
+    
+    def parse_daytime(self, daytime_str):
+        return datetime.strptime(daytime_str, '%H:%M').time()
+    
+    def calculate_duration(self, from_str, to_str):
+        return (datetime.strptime(to_str, '%H:%M') - datetime.strptime(from_str, '%H:%M')).seconds // 60

@@ -11,16 +11,16 @@ class GTrendsInterestTable(JsonToCsvTask):
         return luigi.LocalTarget("output/google-trends/interests.csv")
 
 class GtrendsInterestToDB(CsvToDb):
-
+    
     table = "gtrends_interest"
-
+    
     columns = [
         ("topic_id", "TEXT"),
-        ("date", "TEXT"),
-        ("interest_value", "TEXT"),
+        ("date", "DATE"),
+        ("interest_value", "INT"),
     ]
     
-    primary_key = ("topic_id", "date")
-
+    primary_key = "topic_id", "date"
+    
     def requires(self):
         return GTrendsInterestTable()
