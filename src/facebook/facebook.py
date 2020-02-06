@@ -23,10 +23,13 @@ class FetchFbPosts(luigi.Task):
     def run(self):
         
         access_token = os.environ['FB_ACCESS_TOKEN']
+        with open('data/barberini-facts.json') as facts_json:
+            barberini_facts = json.load(facts_json)
+            page_id = barberini_facts['ids']['facebook']['pageId']
         
         posts = []
         
-        url = "https://graph.facebook.com/1068121123268077/posts?access_token=" + access_token
+        url = f"https://graph.facebook.com/{page_id}/posts?access_token={access_token}"
         
         response = requests.get(url)
         
