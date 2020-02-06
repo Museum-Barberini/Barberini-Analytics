@@ -57,7 +57,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-        ["appstore_review_id","content","content_type","rating",
+        ["appstore_review_id","text","content_type","rating",
          "app_version","vote_count","vote_sum","title", "countryId"],
         list(result.columns)
     )
@@ -114,7 +114,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         mock_fetch_country_return = [
             pd.DataFrame({
                 "appstore_review_id": ["1", "2"],
-                "content": ["C_1", "C_2"],
+                "text": ["C_1", "C_2"],
                 "content_type": ["CT_1", "CT_2"],
                 "rating": ["R_1", "R_2"],
                 "app_version": ["AV_1", "AV_2"],
@@ -125,7 +125,7 @@ class TestFetchAppleReviews(unittest.TestCase):
             }),
             pd.DataFrame({
                 "appstore_review_id": ["1"],
-                "content": ["C_1"],
+                "text": ["C_1"],
                 "content_type": ["CT_1"],
                 "rating": ["R_1"],
                 "app_version": ["AV_1"],
@@ -144,7 +144,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         pd.util.testing.assert_frame_equal(
             pd.DataFrame({
                 "appstore_review_id": ["1", "2"],
-                "content": ["C_1", "C_2"],
+                "text": ["C_1", "C_2"],
                 "content_type": ["CT_1", "CT_2"],
                 "rating": ["R_1", "R_2"],
                 "app_version": ["AV_1", "AV_2"],
