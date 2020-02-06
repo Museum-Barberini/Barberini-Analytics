@@ -21,10 +21,6 @@ class DailyEntriesToDB(CsvToDb):
     table = 'gomus_daily_entry'
     columns = _columns
     primary_key = _primary_key
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    """
     def requires(self):
         return ExtractDailyEntryData(expected=False)
 
