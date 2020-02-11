@@ -23,7 +23,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
     def test_interestsToDB(self):
         GtrendsValuesToDB().run()
         
-        result = self.db.request("SELECT * FROM gtrends_interest WHERE topic_id LIKE 'TESTING_%'")
+        result = self.db.request("SELECT * FROM gtrends_values WHERE topic_id LIKE 'TESTING_%'")
         
         self.assertListEqual(['topic_id', 'date', 'interest_value'], self.db.column_names)
         self.assertListEqual([
