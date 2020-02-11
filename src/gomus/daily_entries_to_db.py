@@ -23,18 +23,19 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_daily_entry'
 
     def requires(self):
-        return ExtractDailyEntryData(expected=False)
+        return ExtractDailyEntryData(expected=False, columns=self.columns)
 
 
 class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_expected_daily_entry'
 
     def requires(self):
-        return ExtractDailyEntryData(expected=True)
+        return ExtractDailyEntryData(expected=True, columns=self.columns)
 
 
 class ExtractDailyEntryData(luigi.Task):
     expected = luigi.parameter.BoolParameter(description="Whether to return actual or expected entries")
+    columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
         return FetchGomusReport(report='entries', suffix='_1day', sheet_indices=[0, 1] if not self.expected else [2, 3], refresh_wait_time=20)
@@ -55,7 +56,7 @@ class ExtractDailyEntryData(luigi.Task):
             count = df.pop('Gesamt')
             df.insert(3, 'count', count)
 
-            df.columns = [el[0] for el in _columns]
+            df.columns = [el[0] for el in self.columns]
             
             df['id'] = df['id'].apply(int)
             df['count'] = df['count'].apply(int)

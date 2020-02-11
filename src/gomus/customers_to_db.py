@@ -45,7 +45,7 @@ class ExtractCustomerData(luigi.Task):
         return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
 
     def run(self):
-        with self.input().open('r') as input_csv:
+        with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
         df = df.filter([
             'Nummer', 'E-Mail', 'PLZ',
