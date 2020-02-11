@@ -4,12 +4,12 @@ from unittest.mock import patch
 import json
 from datetime import datetime
 
-class TestGtrendsInterestJson(DatabaseTaskTest):
+class TestFetchGtrendsValues(DatabaseTaskTest):
     def __init__(self, methodName):
         super().__init__(methodName)
-        self.task = self.isolate(GTrendsInterestJson())
+        self.task = self.isolate(FetchGtrendsValues())
     
-    @patch("src.google_trends.gtrends_interest_json.open")
+    @patch("src.google_trends.gtrends_values.open")
     def test_gtrends_interests_json(self, mock_open):
         with open('data/barberini-facts.json') as facts_file:
             facts = json.load(facts_file)
@@ -21,7 +21,7 @@ class TestGtrendsInterestJson(DatabaseTaskTest):
         mock_open.side_effect = mocked_open
         
         self.task.run()
-        with open('output/google-trends/interests.json', 'r') as file:
+        with open('output/google_trends/interests.json', 'r') as file:
             json_string = file.read()
         self.assertTrue(json_string) # not empty
         json_values = json.loads(json_string)

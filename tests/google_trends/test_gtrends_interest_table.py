@@ -1,17 +1,16 @@
-from google_trends.gtrends_interest_table import *
+from google_trends.gtrends_values import *
 from task_test import DatabaseTaskTest
 import pandas as pd
 import datetime as dt
 
-class TestGtrendsInterestTable(DatabaseTaskTest):
+class TestConvertGtrendsValues(DatabaseTaskTest):
     def __init__(self, methodName):
         super().__init__(methodName)
-        self.task = self.isolate(GTrendsInterestTable())
+        self.task = self.isolate(ConvertGtrendsValues())
     
     def test(self):
-        self.task = GTrendsInterestTable()
         self.task.run()
-        csv = pd.read_csv("output/google-trends/interests.csv")
+        csv = pd.read_csv("output/google_trends/interests.csv")
         self.assertFalse(csv.empty)
         self.assertEqual(2, csv.ndim)
         self.assertCountEqual(['topicId', 'date', 'interestValue'], list(csv.columns))

@@ -1,6 +1,6 @@
 import luigi
 from twitter import TweetsToDB, TweetPerformanceToDB
-from gtrends_interest_table import GtrendsInterestToDB
+from gtrends_values import GtrendsValuesToDB
 from gtrends_topics_table import GtrendsTopicsToDB
 from fetch_apple_app_reviews import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
@@ -21,7 +21,7 @@ class FillDB(luigi.WrapperTask):
 class FillDBDaily(luigi.WrapperTask):
     def requires(self):
         yield TweetsToDB()
-        yield GtrendsInterestToDB()
+        yield GtrendsValuesToDB()
         yield GtrendsTopicsToDB()
         yield AppstoreReviewsToDB()
         yield FbPostsToDB()
