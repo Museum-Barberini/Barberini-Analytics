@@ -52,7 +52,6 @@ class TestConvertGtrendsValues(DatabaseTaskTest):
         self.task = self.isolate(ConvertGtrendsValues())
     
     def test_convert_gtrends_values(self):
-        self.task = ConvertGtrendsValues() # todo: (why) do we need this
         self.task.run()
         csv = pd.read_csv("output/google_trends/interest_values.csv")
         self.assertFalse(csv.empty)
