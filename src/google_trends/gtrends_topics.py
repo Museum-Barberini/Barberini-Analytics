@@ -3,7 +3,7 @@ import json
 from json_to_csv_task import JsonToCsvTask
 from csv_to_db import CsvToDb
 
-class GTrendsTopicsJson(luigi.Task):
+class GtrendsTopicsJson(luigi.Task):
     
     input_file = luigi.Parameter(default='data/barberini_facts.jsonc')
     
@@ -25,9 +25,9 @@ class GTrendsTopicsJson(luigi.Task):
             return [barberini_topic] + exhibitions_topics
 
 
-class GTrendsTopicsTable(JsonToCsvTask):
+class GtrendsTopicsTable(JsonToCsvTask):
     def requires(self):
-        return GTrendsTopicsJson()
+        return GtrendsTopicsJson()
     
     def output(self):
         return luigi.LocalTarget("output/google_trends/topics.csv")
@@ -49,4 +49,4 @@ class GtrendsTopicsToDB(CsvToDb):
     primary_key = "topic_id"
     
     def requires(self):
-        return GTrendsTopicsTable()
+        return GtrendsTopicsTable()
