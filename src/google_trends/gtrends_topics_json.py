@@ -6,7 +6,7 @@ class GTrendsTopicsJson(luigi.Task):
     input_file = luigi.Parameter(default='data/barberini-facts.json')
     
     def output(self):
-        return luigi.LocalTarget('output/google-trends/topics.json')
+        return luigi.LocalTarget('output/google_trends/topics.json')
     
     def run(self):
         topics = self.collect_topics()
