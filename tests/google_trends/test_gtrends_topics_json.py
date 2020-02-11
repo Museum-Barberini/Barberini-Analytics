@@ -4,7 +4,7 @@ from task_test import DatabaseTaskTest
 class TestGtrendsTopicsJson(DatabaseTaskTest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.task = self.isolate(GTrendsTopicsJson())
+        self.task = self.isolate(GtrendsTopicsJson())
     
     def test_gtrends_topics_json(self):
         self.task.run()
