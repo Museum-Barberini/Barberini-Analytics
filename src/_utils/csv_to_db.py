@@ -87,5 +87,6 @@ class CsvToDb(CopyToTable):
             for row in reader:
                 yield row
 
+
 class UndefinedTableError(psycopg2.ProgrammingError):
     pgcode = psycopg2.errorcodes.UNDEFINED_TABLE
