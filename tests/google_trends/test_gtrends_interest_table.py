@@ -16,9 +16,9 @@ class TestConvertGtrendsValues(DatabaseTaskTest):
         self.assertCountEqual(['topicId', 'date', 'interestValue'], list(csv.columns))
 
 
-class TestGtrendsInterestToDB(DatabaseTaskTest):
+class TestGtrendsValuesToDB(DatabaseTaskTest):
     def test_interestsToDB(self):
-        GtrendsInterestToDB().run()
+        GtrendsValuesToDB().run()
         
         result = self.db.request("SELECT * FROM gtrends_interest WHERE topic_id LIKE 'TESTING_%'")
         
