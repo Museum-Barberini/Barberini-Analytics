@@ -10,7 +10,7 @@ class TestConvertGtrendsValues(DatabaseTaskTest):
     
     def test(self):
         self.task.run()
-        csv = pd.read_csv("output/google_trends/interests.csv")
+        csv = pd.read_csv("output/google_trends/interest_values.csv")
         self.assertFalse(csv.empty)
         self.assertEqual(2, csv.ndim)
         self.assertCountEqual(['topicId', 'date', 'interestValue'], list(csv.columns))
