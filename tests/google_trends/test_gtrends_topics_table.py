@@ -5,10 +5,10 @@ import pandas as pd
 class TestGtrendsTopicsTable(DatabaseTaskTest):
     def __init__(self, methodName):
         super().__init__(methodName)
-        self.task = self.isolate(GTrendsTopicsTable())
+        self.task = self.isolate(GtrendsTopicsTable())
     
     def test_getJson(self):
-        self.task = GTrendsTopicsTable()
+        self.task = GtrendsTopicsTable()
         actual = self.task.getJson()
         
         expected = [
@@ -18,7 +18,7 @@ class TestGtrendsTopicsTable(DatabaseTaskTest):
         self.assertEqual(actual, expected)
     
     def test(self):
-        self.task = GTrendsTopicsTable()
+        self.task = GtrendsTopicsTable()
         self.task.run()
         csv = pd.read_csv("output/google_trends/topics.csv")
         self.assertFalse(csv.empty)
