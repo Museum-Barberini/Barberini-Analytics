@@ -47,13 +47,14 @@ class ExtractDailyEntryData(luigi.Task):
         # get date from first sheet
         inputs = self.input()
         with next(inputs).open('r') as first_sheet:
-            for i in range(4): date_line = first_sheet.readline()
-            date = date_line.split(',')[2]
-            while date == '""':
-                print(date)
-                date_line = first_sheet.readline()
-                date = date_line.split(',')[2]
-            print(date)
+            while True:
+                try:
+                    date_line = first_sheet.readline()
+                    date = pd.to_datetime(date_line.split(',')[2], format='"%d.%m.%Y"')
+                    break
+                except ValueError:
+                    continue
+            
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
