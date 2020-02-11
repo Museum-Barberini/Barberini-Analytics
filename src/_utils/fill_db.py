@@ -1,7 +1,7 @@
 import luigi
 from twitter import TweetsToDB, TweetPerformanceToDB
 from gtrends_values import GtrendsValuesToDB
-from gtrends_topics_table import GtrendsTopicsToDB
+from gtrends_topics import GtrendsTopicsToDB
 from fetch_apple_app_reviews import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from customers_to_db import CustomersToDB

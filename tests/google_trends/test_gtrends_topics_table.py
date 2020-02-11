@@ -1,4 +1,4 @@
-from google_trends.gtrends_topics_table import *
+from google_trends.gtrends_topics import *
 from task_test import DatabaseTaskTest
 import pandas as pd
 

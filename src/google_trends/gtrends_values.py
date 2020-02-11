@@ -1,7 +1,7 @@
 import os
 import luigi
 from luigi.contrib.external_program import ExternalProgramTask
-from gtrends_topics_json import GTrendsTopicsJson
+from gtrends_topics import GTrendsTopicsJson
 from json_to_csv_task import JsonToCsvTask
 from csv_to_db import CsvToDb
 
