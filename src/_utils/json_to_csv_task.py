@@ -2,6 +2,7 @@ import luigi
 import json, csv
 
 class JsonToCsvTask(luigi.Task): 
+    
     def run(self):
         my_json = self.getJson()
         

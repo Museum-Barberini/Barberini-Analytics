@@ -4,11 +4,13 @@ import pandas as pd
 import datetime as dt
 
 class TestConvertGtrendsValues(DatabaseTaskTest):
+    
     def __init__(self, methodName):
         super().__init__(methodName)
         self.task = self.isolate(ConvertGtrendsValues())
     
     def test(self):
+        self.task = ConvertGtrendsValues() # todo: (why) do we need this
         self.task.run()
         csv = pd.read_csv("output/google_trends/interest_values.csv")
         self.assertFalse(csv.empty)
@@ -17,6 +19,7 @@ class TestConvertGtrendsValues(DatabaseTaskTest):
 
 
 class TestGtrendsValuesToDB(DatabaseTaskTest):
+    
     def test_interestsToDB(self):
         GtrendsValuesToDB().run()
         
