@@ -5,7 +5,7 @@ const jsonc = require('jsonc');
 const node = require('deasync');
 const googleTrends = require('google-trends-api');
 
-const facts = jsonc.parse(fs.readFileSync('../../data/barberini_facts.jsonc', 'utf8')); 
+const facts = jsonc.parse(fs.readFileSync('data/barberini_facts.jsonc', 'utf8')); 
 
 let args = process.argv.slice(1).map(arg => arg.replace(/^"(.*)"$/, '$1'));
 let topics = require(args[1]);
