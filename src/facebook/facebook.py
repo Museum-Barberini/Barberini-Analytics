@@ -23,7 +23,7 @@ class FetchFbPosts(luigi.Task):
     def run(self):
         
         access_token = os.environ['FB_ACCESS_TOKEN']
-        with open('data/barberini_facts.json') as facts_json:
+        with open('data/barberini_facts.jsonc') as facts_json:
             barberini_facts = json.load(facts_json)
             page_id = barberini_facts['ids']['facebook']['pageId']
         

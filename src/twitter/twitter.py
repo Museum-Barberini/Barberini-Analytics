@@ -55,7 +55,7 @@ class ExtractTweets(luigi.Task):
         return FetchTwitter()
     
     def barberini_user_id(self):
-        with open('data/barberini_facts.json') as facts_json:
+        with open('data/barberini_facts.jsonc') as facts_json:
             barberini_facts = json.load(facts_json)
             return barberini_facts['ids']['twitter']['user_id']
     

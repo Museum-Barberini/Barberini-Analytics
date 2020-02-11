@@ -3,7 +3,7 @@ import json
 
 class GTrendsTopicsJson(luigi.Task):
     
-    input_file = luigi.Parameter(default='data/barberini_facts.json')
+    input_file = luigi.Parameter(default='data/barberini_facts.jsonc')
     
     def output(self):
         return luigi.LocalTarget('output/google_trends/topics.json')
