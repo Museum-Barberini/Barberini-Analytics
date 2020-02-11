@@ -11,11 +11,11 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
     
     @patch("src.google_trends.gtrends_values.open")
     def test_gtrends_interests_json(self, mock_open):
-        with open('data/barberini-facts.json') as facts_file:
+        with open('data/barberini_facts.json') as facts_file:
             facts = json.load(facts_file)
         facts['foundingDate'] = '2015-01-01T00:00:00.000Z'
         def mocked_open(path):
-            if os.path.normpath(path) == os.path.normpath('data/barberini-facts.json'):
+            if os.path.normpath(path) == os.path.normpath('data/barberini_facts.json'):
                 return io.StringIO(json.dumps(facts))
             return open(path)
         mock_open.side_effect = mocked_open
@@ -25,7 +25,7 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
             json_string = file.read()
         self.assertTrue(json_string) # not empty
         json_values = json.loads(json_string)
-        min = datetime(2014, 12, 1) # treshold, see faked barberini-facts.json version
+        min = datetime(2014, 12, 1) # treshold, see faked barberini_facts.json version
         now = datetime.now()
         for row in json_values:
             self.assertEqual(set(['topicId', 'interestValue', 'date']), set(row.keys()))

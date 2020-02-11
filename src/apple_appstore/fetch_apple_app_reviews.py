@@ -61,7 +61,7 @@ def get_country_codes():
     return requests.get("http://country.io/names.json").json().keys()
 
 def fetch_country(country_id):
-        with open('data/barberini-facts.json') as facts_json:
+        with open('data/barberini_facts.json') as facts_json:
                 barberini_facts = json.load(facts_json)
                 app_id = barberini_facts['ids']['apple']['appId']
         url = f"https://itunes.apple.com/{country_id}/rss/customerreviews/page=1/id={app_id}/sortby=mostrecent/json"

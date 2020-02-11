@@ -4,7 +4,7 @@ const fs = require('fs'), path = require('path');
 const node = require('deasync');
 const googleTrends = require('google-trends-api');
 
-const facts = require('../../data/barberini-facts.json'); 
+const facts = require('../../data/barberini_facts.json'); 
 
 let args = process.argv.slice(1).map(arg => arg.replace(/^"(.*)"$/, '$1'));
 let topics = require(args[1]);
