@@ -1,4 +1,4 @@
-from google_trends.gtrends_interest_json import *
+from google_trends.gtrends_values import *
 from task_test import DatabaseTaskTest
 from unittest.mock import patch
 import json
@@ -21,7 +21,7 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         mock_open.side_effect = mocked_open
         
         self.task.run()
-        with open('output/google_trends/interests.json', 'r') as file:
+        with open('output/google_trends/interests_values.json', 'r') as file:
             json_string = file.read()
         self.assertTrue(json_string) # not empty
         json_values = json.loads(json_string)
