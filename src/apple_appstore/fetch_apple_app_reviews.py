@@ -34,7 +34,7 @@ class FetchAppstoreReviews(luigi.Task):
             print(f"\rFetched appstore reviews for {country_code} ({100. * index / len(country_codes)}%)", end='', flush=True)
         print()
         ret = pd.concat(data)
-        return ret.drop_duplicates(subset=['id'])
+        return ret.drop_duplicates(subset=['appstore_review_id'])
 
     def get_country_codes(self):
         return requests.get('http://country.io/names.json').json().keys()
@@ -77,8 +77,8 @@ class FetchAppstoreReviews(luigi.Task):
         if isinstance(entries, dict):
             entries = [entries]
         data = [{
-            'id': item['id'], 
-            'content': self.find_first_conditional_tag(item['content'], lambda each: each['@type'] == 'text')['#text'],
+            'appstore_review_id': item['id'], 
+            'text': self.find_first_conditional_tag(item['content'], lambda each: each['@type'] == 'text')['#text'],
             'rating': item['im:rating'],
             'app_version': item['im:version'],
             'vote_count': item['im:voteCount'],
@@ -100,8 +100,8 @@ class AppstoreReviewsToDB(CsvToDb):
     table = 'appstore_review'
     
     columns = [
-        ('id', 'TEXT'),
-        ('content', 'TEXT'),
+        ('appstore_review_id', 'TEXT'),
+        ('text', 'TEXT'),
         ('rating', 'INT'),
         ('app_version', 'TEXT'),
         ('vote_count', 'INT'),
@@ -111,7 +111,7 @@ class AppstoreReviewsToDB(CsvToDb):
         ('country_code', 'TEXT')
     ]
     
-    primary_key = 'id'
+    primary_key = 'appstore_review_id'
     
     def requires(self):
         return FetchAppstoreReviews()
