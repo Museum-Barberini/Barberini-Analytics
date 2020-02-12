@@ -17,7 +17,7 @@ class FetchAppstoreReviews(luigi.Task):
         print("storing results")
         with self.output().open('w') as output_file:
             reviews.to_csv(output_file, index=False, header=True)
-
+    
     def fetch_all(self):
         data = []
         country_codes = self.get_country_codes()

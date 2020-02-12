@@ -61,7 +61,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings['language'] = ""
         row_count = len(bookings.index)
         for i, row in bookings.iterrows():
-            booking_id = row['id']
+            booking_id = row['booking_id']
             booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
             print(f"requesting booking details for id: {str(booking_id)} ({i+1}/{row_count})")
             res_details = self.polite_get(booking_url, cookies=self.cookies)
@@ -86,10 +86,10 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
-        return orders['id']
+        return orders['order_id']
 
     def requires(self):
-        return ExtractOrderData(columns=['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+        return ExtractOrderData(columns=['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
         # this array is kind of unnecessary, but currently required by ExtractOrderData()
         # the design of that task requiring a column-array is also questionable, so this line may change later on
 

@@ -117,10 +117,19 @@ class TweetPerformanceToDB(CsvToDb):
         ("likes", "INT"),
         ("retweets", "INT"),
         ("replies", "INT"),
-        ("timestamp", "DATE")
+        ("timestamp", "TIMESTAMP")
     ]
     
     primary_key = ('tweet_id', 'timestamp')
+
+    foreign_keys = [
+            {
+                "origin_column": "tweet_id",
+                "target_table": "tweet",
+                "target_column": "tweeet_id"
+            }
+        ]
+
     
     def requires(self):
         return ExtractPerformanceTweets()

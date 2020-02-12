@@ -22,7 +22,7 @@ class TestGomusConnection(unittest.TestCase):
 class TestGomusCustomerTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.columns = ['id', 'hash_id', 'postal_code', 'newsletter', 'gender', 'category', 'language', 'country', 'type', 'register_date', 'annual_ticket']
+        self.columns = ['gomus_id', 'customer_id', 'postal_code', 'newsletter', 'gender', 'category', 'language', 'country', 'type', 'register_date', 'annual_ticket']
 
     @patch.object(ExtractCustomerData, 'output')
     @patch.object(ExtractCustomerData, 'input')
@@ -61,7 +61,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 class TestGomusOrdersTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.columns = ['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin']
+        self.columns = ['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin']
 
     @patch.object(ExtractOrderData, 'query_customer_id')
     @patch.object(ExtractOrderData, 'output')

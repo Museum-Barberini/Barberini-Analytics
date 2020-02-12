@@ -113,18 +113,18 @@ class FetchGoogleMapsReviews(luigi.Task):
         extracted_reviews = []
         for raw in raw_reviews:
             extracted = dict()
-            extracted['id'] = raw['reviewId']
+            extracted['google_maps_review_id'] = raw['reviewId']
             extracted['date'] = raw['createTime']
             extracted['rating'] = self.stars_dict[raw['starRating']]
-            extracted['content'] = None
-            extracted['content_original'] = None
+            extracted['text_german'] = None
+            extracted['text'] = None
             
             raw_comment = raw.get('comment', None)
             if (raw_comment):
                 raw_comment.replace("\n\n(Original)\n", "\n\n(Translated by Google)\n") # making google consistent with itself
                 comment_pieces = raw_comment.split("\n\n(Translated by Google)\n")
-                extracted['content'] = comment_pieces[0].strip()
-                extracted['content_original'] = comment_pieces[-1].strip()
+                extracted['text_german'] = comment_pieces[0].strip()
+                extracted['text'] = comment_pieces[-1].strip()
             extracted_reviews.append(extracted)
         return pd.DataFrame(extracted_reviews)
 
@@ -134,14 +134,14 @@ class GoogleMapsReviewsToDB(CsvToDb):
     table = 'google_maps_review'
     
     columns = [
-        ('id', 'TEXT'),
+        ('google_maps_review_id', 'TEXT'),
         ('date', 'DATE'),
         ('rating', 'INT'),
-        ('content', 'TEXT'),
-        ('content_original', 'TEXT')
+        ('text_german', 'TEXT'),
+        ('text', 'TEXT')
     ]
     
-    primary_key = 'id'
+    primary_key = 'google_maps_review_id'
     
     def requires(self):
         return FetchGoogleMapsReviews()

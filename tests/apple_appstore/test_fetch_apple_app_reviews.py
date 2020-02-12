@@ -76,7 +76,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-		['id','content','rating',
+		['appstore_review_id','content','rating',
 		 'app_version','vote_count','vote_sum','title', 'date', 'country_code'],
 		list(result.columns)
 	)
@@ -86,7 +86,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         
         def mock_return():
             for i in range(5000):
-                yield pd.DataFrame({'countryId': [f'{i}'], 'id': [i]})
+                yield pd.DataFrame({'countryId': [f'{i}'], 'appstore_review_id': [i]})
         mock.side_effect = mock_return()
         
         result = self.task.fetch_all()
@@ -105,7 +105,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         def mock_return(country_code):
             if country_code == 'BB':
                 raise ValueError()
-            return pd.DataFrame({'countryId': [country_code], 'id': [country_code]})
+            return pd.DataFrame({'countryId': [country_code], 'appstore_review_id': [country_code]})
         mock.side_effect = mock_return
         
         result = self.task.fetch_all()
@@ -119,7 +119,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         def mock_return(country_code):
             if country_code == 'BB': # simulate no available data
                 raise ValueError()
-            return pd.DataFrame({'id': ['xyz'], 'countryId': [country_code]})
+            return pd.DataFrame({'appstore_review_id': ['xyz'], 'countryId': [country_code]})
         mock.side_effect = mock_return
         
         result = self.task.fetch_all()
@@ -131,9 +131,8 @@ class TestFetchAppleReviews(unittest.TestCase):
         
         mock_fetch_for_country_return = [
             pd.DataFrame({
-                'id': ['1', '2'],
-                'content': ['C_1', 'C_2'],
-                'content_type': ['CT_1', 'CT_2'],
+                'appstore_review_id': ['1', '2'],
+                'text': ['C_1', 'C_2'],
                 'rating': ['R_1', 'R_2'],
                 'app_version': ['AV_1', 'AV_2'],
                 'vote_count': [1, 2],
@@ -142,9 +141,8 @@ class TestFetchAppleReviews(unittest.TestCase):
                 'country_code': ['AB', 'AB']
             }),
             pd.DataFrame({
-                'id': ['1'],
-                'content': ['C_1'],
-                'content_type': ['CT_1'],
+                'appstore_review_id': ['1'],
+                'text': ['C_1'],
                 'rating': ['R_1'],
                 'app_version': ['AV_1'],
                 'vote_count': [1],
@@ -161,8 +159,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         pd.testing.assert_frame_equal(
             pd.DataFrame({
                 'id': ['1', '2'],
-                'content': ['C_1', 'C_2'],
-                'content_type': ['CT_1', 'CT_2'],
+                'text': ['C_1', 'C_2'],
                 'rating': ['R_1', 'R_2'],
                 'app_version': ['AV_1', 'AV_2'],
                 'vote_count': [1, 2],
