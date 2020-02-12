@@ -76,7 +76,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-		['appstore_review_id','content','rating',
+		['appstore_review_id','text','rating',
 		 'app_version','vote_count','vote_sum','title', 'date', 'country_code'],
 		list(result.columns)
 	)
