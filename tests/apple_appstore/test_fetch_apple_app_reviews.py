@@ -86,7 +86,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         
         def mock_return():
             for i in range(5000):
-                yield pd.DataFrame({'countryId': [f'{i}'], 'appstore_review_id': [i]})
+                yield pd.DataFrame({'country_code': [f'{i}'], 'appstore_review_id': [i]})
         mock.side_effect = mock_return()
         
         result = self.task.fetch_all()
@@ -105,7 +105,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         def mock_return(country_code):
             if country_code == 'BB':
                 raise ValueError()
-            return pd.DataFrame({'countryId': [country_code], 'appstore_review_id': [country_code]})
+            return pd.DataFrame({'country_code': [country_code], 'appstore_review_id': [country_code]})
         mock.side_effect = mock_return
         
         result = self.task.fetch_all()
@@ -119,7 +119,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         def mock_return(country_code):
             if country_code == 'BB': # simulate no available data
                 raise ValueError()
-            return pd.DataFrame({'appstore_review_id': ['xyz'], 'countryId': [country_code]})
+            return pd.DataFrame({'appstore_review_id': ['xyz'], 'country_code': [country_code]})
         mock.side_effect = mock_return
         
         result = self.task.fetch_all()
@@ -158,7 +158,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertEqual(len(result), 2)
         pd.testing.assert_frame_equal(
             pd.DataFrame({
-                'id': ['1', '2'],
+                'appstore_review_id': ['1', '2'],
                 'text': ['C_1', 'C_2'],
                 'rating': ['R_1', 'R_2'],
                 'app_version': ['AV_1', 'AV_2'],
