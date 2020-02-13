@@ -1,21 +1,11 @@
 #!/usr/bin/env python3
-##########################################
-##       ###      ###   ####        ## ###
-####  ###### #### ### #   ## ###### ## ###
-####  ###### #### ### ##  ## ###### ## ###
-####  ###### #### ### #   ## ###### ######
-####  ######      ###   ####        ## ###
-##########################################
-# TODOs for the next editor:
-# - Merge this file with the calling task. We decided not to have separate scripts for things that represent a task.
-# ct.
-
 import argparse
 import csv
 import datetime
 import requests
 import sys
 import xlrd
+
 
 # This dict maps 'report_types' to 'REPORT_IDS'
 # Data sheets that don't require a report to be generated or refreshed have ids <= 0

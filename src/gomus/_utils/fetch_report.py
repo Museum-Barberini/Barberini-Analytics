@@ -9,6 +9,7 @@ from luigi.format import UTF8
 from .edit_report import EditGomusReport
 from .fetch_report_helper import *
 
+
 class FetchGomusReport(luigi.Task):
     report = luigi.parameter.Parameter(description="The report name (e.g. \'bookings\')")
     suffix = luigi.parameter.OptionalParameter(default='_7days', description="The report suffix (default: \'_7days\')")

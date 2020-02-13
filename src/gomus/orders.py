@@ -11,6 +11,7 @@ from csv_to_db import CsvToDb
 from .customers import CustomersToDB
 from ._utils.fetch_report import FetchGomusReport
 
+
 class OrdersToDB(CsvToDb):
     table = 'gomus_order'
 

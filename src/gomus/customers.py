@@ -10,6 +10,7 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from ._utils.fetch_gomus import FetchGomusReport
 
+
 class CustomersToDB(CsvToDb):
     
     table = 'gomus_customer'

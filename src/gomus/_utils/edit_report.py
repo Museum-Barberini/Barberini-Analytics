@@ -9,6 +9,7 @@ from urllib import parse
 
 from .fetch_report_helper import REPORT_IDS, REPORT_IDS_INV
 
+
 # These lists map directly to various Gomus attributes used for editing the respective reports
 ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',
     'total_price', 'total_coupon_price', 'total_still_to_pay_price', 'is_valid',

@@ -1,5 +1,6 @@
-import luigi
 import json
+import luigi
+
 
 class GTrendsTopicsJson(luigi.Task):
     

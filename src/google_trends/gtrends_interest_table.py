@@ -1,7 +1,10 @@
 import luigi
-from gtrends_interest_json import GTrendsInterestJson
-from json_to_csv_task import JsonToCsvTask
+
 from csv_to_db import CsvToDb
+from json_to_csv_task import JsonToCsvTask
+
+from google_trends.gtrends_interest_json import GTrendsInterestJson
+
 
 class GTrendsInterestTable(JsonToCsvTask):
     def requires(self):
@@ -9,6 +12,7 @@ class GTrendsInterestTable(JsonToCsvTask):
     
     def output(self):
         return luigi.LocalTarget("output/google-trends/interests.csv")
+
 
 class GtrendsInterestToDB(CsvToDb):
     

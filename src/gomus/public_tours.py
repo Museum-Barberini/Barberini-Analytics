@@ -13,6 +13,7 @@ from .bookings import BookingsToDB
 from ._utils.extract_bookings import hash_booker_id
 from ._utils.fetch_report import FetchGomusReport, FetchTourReservations
 
+
 class PublicToursToDB(CsvToDb):
 
         table = 'gomus_public_tour'

@@ -8,6 +8,7 @@ from luigi.format import UTF8
 
 from .fetch_report import FetchGomusReport
 
+
 def hash_booker_id(email, seed=666):
     if not isinstance(email, str):
         return 0

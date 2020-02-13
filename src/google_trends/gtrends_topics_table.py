@@ -1,7 +1,9 @@
 import luigi
-from gtrends_topics_json import GTrendsTopicsJson
-from json_to_csv_task import JsonToCsvTask
+
 from csv_to_db import CsvToDb
+from google_trends.gtrends_topics_json import GTrendsTopicsJson
+from json_to_csv_task import JsonToCsvTask
+
 
 class GTrendsTopicsTable(JsonToCsvTask):
     def requires(self):
@@ -13,6 +15,7 @@ class GTrendsTopicsTable(JsonToCsvTask):
     def getJson(self):
         json = super().getJson()
         return [{"topic_id": key, "name": value} for key, value in json.items()]
+
 
 class GtrendsTopicsToDB(CsvToDb):
     

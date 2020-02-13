@@ -1,7 +1,6 @@
+import luigi
 import os
 import yaml
-import luigi
-
 
 def set_db_connection_options(task: luigi.Task) -> None:
     """ 
