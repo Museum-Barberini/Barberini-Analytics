@@ -1,10 +1,10 @@
 import datetime as dt
 import json
+
 import luigi
 import pandas as pd
 import psycopg2
 import twitterscraper as ts
-
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb

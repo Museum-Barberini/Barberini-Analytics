@@ -1,19 +1,20 @@
 import csv
-import dateparser
 import datetime as dt
-import luigi
 import os
-import pandas as pd
-import psycopg2
 import re
-import requests
 import time
 
+import dateparser
+import luigi
+import pandas as pd
+import psycopg2
+import requests
 from luigi.format import UTF8
 from lxml import html
 
 from gomus.orders import ExtractOrderData
 from set_db_connection_options import set_db_connection_options
+
 from .extract_bookings import ExtractGomusBookings
 
 

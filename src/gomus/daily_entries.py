@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import datetime
+
 import luigi
 import numpy as np
 import pandas as pd
-
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+
 from ._utils.fetch_report import FetchGomusReport
 
 

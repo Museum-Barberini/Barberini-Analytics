@@ -1,8 +1,8 @@
 import json
+
 import luigi
 import pandas as pd
 import requests
-
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb

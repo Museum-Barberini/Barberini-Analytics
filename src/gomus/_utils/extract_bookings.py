@@ -1,9 +1,9 @@
+from datetime import datetime
+
 import luigi
 import mmh3
 import numpy as np
 import pandas as pd
-
-from datetime import datetime
 from luigi.format import UTF8
 
 from .fetch_report import FetchGomusReport

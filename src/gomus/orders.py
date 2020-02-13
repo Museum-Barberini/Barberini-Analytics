@@ -3,13 +3,13 @@ import luigi
 import numpy as np
 import pandas as pd
 import psycopg2
-
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from .customers import CustomersToDB
+
 from ._utils.fetch_report import FetchGomusReport
+from .customers import CustomersToDB
 
 
 class OrdersToDB(CsvToDb):
@@ -109,4 +109,3 @@ class ExtractOrderData(luigi.Task):
 
     def parse_boolean(self, string, bool_string):
         return string.lower() == bool_string.lower()
-                        

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-import luigi
 import os
-import requests
 import time
-
-from bs4 import BeautifulSoup
 from urllib import parse
 
-from .fetch_report_helper import REPORT_IDS, REPORT_IDS_INV
+import luigi
+import requests
+from bs4 import BeautifulSoup
 
+from .fetch_report_helper import REPORT_IDS, REPORT_IDS_INV
 
 # These lists map directly to various Gomus attributes used for editing the respective reports
 ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',

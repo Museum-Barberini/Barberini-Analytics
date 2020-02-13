@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import luigi
 import os
-import requests
 import time
 
+import luigi
+import requests
 from luigi.format import UTF8
 
 from .edit_report import EditGomusReport

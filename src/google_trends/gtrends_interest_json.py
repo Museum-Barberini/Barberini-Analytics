@@ -1,6 +1,6 @@
-import luigi
 import os
 
+import luigi
 from luigi.contrib.external_program import ExternalProgramTask
 
 from google_trends.gtrends_topics_json import GTrendsTopicsJson

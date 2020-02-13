@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 import csv
+
 import luigi
 import pandas as pd
 import psycopg2
-
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
-from .bookings import BookingsToDB
+
 from ._utils.extract_bookings import hash_booker_id
 from ._utils.fetch_report import FetchGomusReport, FetchTourReservations
+from .bookings import BookingsToDB
 
 
 class PublicToursToDB(CsvToDb):

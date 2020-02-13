@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 import os
-import requests
 import unittest
+from unittest.mock import MagicMock, patch
 
+import requests
 from luigi.format import UTF8
 from luigi.mock import MockTarget
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
 from gomus.customers import ExtractCustomerData
 from gomus.orders import ExtractOrderData

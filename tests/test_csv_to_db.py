@@ -1,17 +1,16 @@
 import datetime
-import luigi
 import os
-import pandas as pd
-import psycopg2
 import tempfile
 import time
 import unittest
-
 from unittest.mock import patch
 
-from task_test import DatabaseTaskTest
-from src._utils.csv_to_db import CsvToDb
+import luigi
+import pandas as pd
+import psycopg2
 
+from src._utils.csv_to_db import CsvToDb
+from task_test import DatabaseTaskTest
 
 # Initialize test and write it to a csv file
 expected_data = [(1, 2, "abc", "xy,\"z"), (2, 10, "678", ",,;abc")]

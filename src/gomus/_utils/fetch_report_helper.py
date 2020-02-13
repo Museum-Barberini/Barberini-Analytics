@@ -2,10 +2,10 @@
 import argparse
 import csv
 import datetime
-import requests
 import sys
-import xlrd
 
+import requests
+import xlrd
 
 # This dict maps 'report_types' to 'REPORT_IDS'
 # Data sheets that don't require a report to be generated or refreshed have ids <= 0

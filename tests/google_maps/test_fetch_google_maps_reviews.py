@@ -1,8 +1,8 @@
-import googleapiclient.discovery
 import unittest
 import warnings
-
 from unittest.mock import MagicMock
+
+import googleapiclient.discovery
 
 from google_maps.fetch_google_maps_reviews import FetchGoogleMapsReviews
 

@@ -1,8 +1,8 @@
 import csv
+from datetime import datetime
+
 import luigi
 import psycopg2
-
-from datetime import datetime
 from luigi.contrib.postgres import CopyToTable
 
 from set_db_connection_options import set_db_connection_options

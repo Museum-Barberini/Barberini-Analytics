@@ -1,9 +1,8 @@
 import luigi
 
 from csv_to_db import CsvToDb
-from json_to_csv_task import JsonToCsvTask
-
 from google_trends.gtrends_interest_json import GTrendsInterestJson
+from json_to_csv_task import JsonToCsvTask
 
 
 class GTrendsInterestTable(JsonToCsvTask):
