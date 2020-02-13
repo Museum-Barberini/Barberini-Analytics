@@ -1,4 +1,3 @@
-// TODO: Eliminate snakes in JSON
 {
 	"countryCode": "DE", // Must be uppercase value from http://country.io/names.json
 	"foundingDate": "2017-01-01T00:00:00.000Z",
@@ -30,7 +29,7 @@
 			//  4. This is the knowledge graph object. Click it and identify the query parameter in the URL.
 		},
 		"twitter": {
-			"user_id": 788400779556159488
+			"userId": 788400779556159488
 		}
 	}
 }

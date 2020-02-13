@@ -52,15 +52,10 @@ class FetchTwitter(luigi.Task):
 
 class ExtractTweets(luigi.Task):
     def requires(self):
-        return FetchTwitter()
-    
-    def barberini_user_id(self):
-        with open('data/barberini_facts.jsonc') as facts_json:
-            barberini_facts = json.load(facts_json)
-            return barberini_facts['ids']['twitter']['user_id']
+        return BarberiniFacts(), FetchTwitter()
     
     def run(self):
-        df = pd.read_csv(self.input().path)
+        df = pd.read_csv(self.input()[1].path)
         df = df.filter(['user_id', 'tweet_id', 'text', 'parent_tweet_id', 'timestamp'])
         df.columns = ['user_id', 'tweet_id', 'text', 'response_to', 'post_date']
         df['is_from_barberini'] = df['user_id'] == self.barberini_user_id()
@@ -70,6 +65,11 @@ class ExtractTweets(luigi.Task):
     
     def output(self):
         return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
+    
+    def barberini_user_id(self):
+        with self.input()[0].open('r') as facts_file:
+            facts = json.load(facts_file)
+        return facts['ids']['twitter']['userId']
 
 
 class ExtractPerformanceTweets(luigi.Task):

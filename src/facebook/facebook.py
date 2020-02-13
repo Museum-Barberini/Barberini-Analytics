@@ -26,7 +26,7 @@ class FetchFbPosts(luigi.Task):
     
     def run(self):
         access_token = os.environ['FB_ACCESS_TOKEN']
-        with self.input()[0].open('r') as facts_file:
+        with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
         page_id = facts['ids']['facebook']['pageId']
         
