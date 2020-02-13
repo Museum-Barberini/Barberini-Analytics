@@ -34,20 +34,20 @@ class ConvertGtrendsValues(JsonToCsvTask):
         return FetchGtrendsValues()
     
     def output(self):
-        return luigi.LocalTarget("output/google_trends/interest_values.csv")
+        return luigi.LocalTarget('output/google_trends/values.csv')
 
 
 class GtrendsValuesToDB(CsvToDb):
     
-    table = "gtrends_values"
+    table = 'gtrends_value'
     
     columns = [
-        ("topic_id", "TEXT"),
-        ("date", "DATE"),
-        ("interest_value", "INT"),
+        ('topic', 'TEXT'),
+        ('date', 'DATE'),
+        ('interest_value', 'INT'),
     ]
     
-    primary_key = "topic_id", "date"
+    primary_key = 'topic', 'date'
     
     def requires(self):
         return ConvertGtrendsValues()
