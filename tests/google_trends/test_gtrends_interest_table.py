@@ -1,7 +1,8 @@
+import datetime as dt
+import pandas as pd
+
 from google_trends.gtrends_interest_table import *
 from task_test import DatabaseTaskTest
-import pandas as pd
-import datetime as dt
 
 class TestGtrendsInterestTable(DatabaseTaskTest):
     def __init__(self, methodName):

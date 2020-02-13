@@ -1,14 +1,16 @@
-import unittest
-import luigi
-import time
-import tempfile
 import datetime
-import pandas as pd
-from unittest.mock import patch
-import psycopg2
+import luigi
 import os
+import pandas as pd
+import psycopg2
+import tempfile
+import time
+import unittest
+
+from unittest.mock import patch
+
 from task_test import DatabaseTaskTest
-from src._utils.csv_to_db import CsvToDb
+from csv_to_db import CsvToDb
 
 
 # Initialize test and write it to a csv file

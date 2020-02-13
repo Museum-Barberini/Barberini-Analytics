@@ -8,11 +8,11 @@ from luigi.mock import MockTarget
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from customers_to_db import ExtractCustomerData
-from orders_to_db import ExtractOrderData
+from gomus.customers import ExtractCustomerData
+from gomus.orders import ExtractOrderData
+
 
 # No tests that data is put into DB correctly because csv_to_db is already tested
-
 class TestGomusConnection(unittest.TestCase):
     def test_session_id_is_valid(self):
         # tests if GOMUS_SESS_ID env variable contains a valid session id
