@@ -107,10 +107,6 @@ def request_report(args=sys.argv[1:]):
     
     base_url = 'https://barberini.gomus.de'
     
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-=======
-    
->>>>>>> origin/master:src/gomus/fetch_gomus.py
     report_parts = REPORT_IDS_INV[report_id].split("_")
     
     print(f"Working with report '{report_parts[0]}.xlsx'")
