@@ -6,10 +6,6 @@ import pandas as pd
 import requests
 
 
-class MockRequest:
-    def __init__(self):
-            self.status_code = 450
-
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
 
 
