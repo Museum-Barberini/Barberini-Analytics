@@ -115,6 +115,3 @@ class AppstoreReviewsToDB(CsvToDb):
     
     def requires(self):
         return FetchAppstoreReviews()
-
-
-
