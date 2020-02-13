@@ -23,7 +23,7 @@ class FetchAppstoreReviews(luigi.Task):
         country_codes = self.get_country_codes()
         for index, country_code in enumerate(country_codes, start=1):
             try:
-                data += [self.fetch_for_country(country_code)]
+                data.append(self.fetch_for_country(country_code))
             except ValueError:
                 pass  # no data for given country code
             except requests.HTTPError as error:
