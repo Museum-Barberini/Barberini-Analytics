@@ -1,9 +1,11 @@
 import os
 import luigi
+import json
 from luigi.contrib.external_program import ExternalProgramTask
-from gtrends_topics import GtrendsTopicsJson
-from json_to_csv_task import JsonToCsvTask
 from csv_to_db import CsvToDb
+from json_to_csv_task import JsonToCsvTask
+from barberini_facts import BarberiniFacts
+from gtrends_topics import GtrendsTopics
 
 
 class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
@@ -12,13 +14,18 @@ class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
     js_path = './src/google_trends/gtrends-values.js'
     
     def requires(self):
-        return GtrendsTopicsJson()
+        return BarberiniFacts(), GtrendsTopics()
     
     def output(self):
-        return luigi.LocalTarget('output/google_trends/interest_values.json')
+        return luigi.LocalTarget('output/google_trends/values.json')
     
-    def program_args(self):       
-        return [self.js_engine, self.js_path] + [os.path.realpath(path) for path in [self.input().path, self.output().path]]
+    def program_args(self):
+        with self.input()[0].open('r') as facts_file:
+            facts = json.load(facts_file)
+        
+        return [self.js_engine, self.js_path] \
+            + [facts['countryCode'], facts['foundingDate']] \
+            + [os.path.realpath(path) for path in [self.input()[1].path, self.output().path]]
 
 
 class ConvertGtrendsValues(JsonToCsvTask):
