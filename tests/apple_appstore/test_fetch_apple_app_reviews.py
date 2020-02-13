@@ -10,7 +10,7 @@ class MockRequest:
     def __init__(self):
             self.status_code = 450
 
-fake_country_codes = ['DE', 'US', 'PL', 'BB']
+FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
 
 
 class TestFetchAppleReviews(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestFetchAppleReviews(unittest.TestCase):
     def setUp(self):
         super().setUp()
         self.task = FetchAppstoreReviews()
-        self.task.get_country_codes = lambda: fake_country_codes
+        self.task.get_country_codes = lambda: FAKE_COUNTRY_CODES
 
     def test_germany_basic(self):
         result = self.task.fetch_for_country('DE')
@@ -92,7 +92,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         result = self.task.fetch_all()
         
         self.assertIsInstance(result, pd.DataFrame)
-        self.assertEqual(len(result), len(fake_country_codes))
+        self.assertEqual(len(result), len(FAKE_COUNTRY_CODES))
         
         # get a list with all args passed to the mock (hopefully all country ids)
         args = [args[0] for (args, _) in mock.call_args_list]
@@ -111,7 +111,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         result = self.task.fetch_all()
         
         self.assertIsInstance(result, pd.DataFrame)
-        self.assertEqual(len(result), len(fake_country_codes) - 1)
+        self.assertEqual(len(result), len(FAKE_COUNTRY_CODES) - 1)
     
     @patch.object(FetchAppstoreReviews, 'fetch_for_country')
     def test_drop_duplicate_reviews(self, mock):
