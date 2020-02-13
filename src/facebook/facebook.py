@@ -7,6 +7,7 @@ import requests
 import json
 import os
 
+from barberini_facts import BarberiniFacts
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
 
@@ -17,15 +18,17 @@ class FetchFbPosts(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
     
+    def requires():
+        return BarberiniFacts()
+    
     def output(self):
         return luigi.LocalTarget("output/facebook/fb_posts.csv", format=UTF8)
     
     def run(self):
-        
         access_token = os.environ['FB_ACCESS_TOKEN']
-        with open('data/barberini_facts.jsonc') as facts_json:
-            barberini_facts = json.load(facts_json)
-            page_id = barberini_facts['ids']['facebook']['pageId']
+        with self.input()[0].open('r') as facts_file:
+            facts = json.load(facts_file)
+        page_id = facts['ids']['facebook']['pageId']
         
         posts = []
         
