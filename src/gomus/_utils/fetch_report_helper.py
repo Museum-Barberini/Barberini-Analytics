@@ -11,8 +11,8 @@
 # ct.
 
 import argparse
-import datetime
 import csv
+import datetime
 import requests
 import sys
 import xlrd
@@ -33,7 +33,6 @@ REPORT_IDS = {
     'guides': -2
 }
 REPORT_IDS_INV = {v: k for k, v in REPORT_IDS.items()}
-
 
 def parse_arguments(args):
     parser = argparse.ArgumentParser(description="Refresh and fetch reports from go~mus")
@@ -116,7 +115,6 @@ def request_report(args=sys.argv[1:]):
             exit(1)
     
     base_url = 'https://barberini.gomus.de'
-    
     
     report_parts = REPORT_IDS_INV[report_id].split("_")
     

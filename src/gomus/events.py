@@ -4,13 +4,14 @@ import luigi
 import pandas as pd
 import psycopg2
 
-from csv_to_db import CsvToDb
 from luigi.format import UTF8
-from gomus.bookings_to_db import BookingsToDB
-from gomus_report import FetchGomusReport, FetchEventReservations
-from extract_gomus_data import hash_booker_id
-from set_db_connection_options import set_db_connection_options
 from xlrd import xldate_as_datetime
+
+from csv_to_db import CsvToDb
+from set_db_connection_options import set_db_connection_options
+from .bookings import BookingsToDB
+from ._utils.extract_bookings import hash_booker_id
+from ._utils.fetch_report import FetchGomusReport, FetchEventReservations
 
 class EventsToDB(CsvToDb):
     table = 'gomus_event'
@@ -29,6 +30,8 @@ class EventsToDB(CsvToDb):
         
     def requires(self):
         return ExtractEventData(columns=[col[0] for col in self.columns])
+
+
 class ExtractEventData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)

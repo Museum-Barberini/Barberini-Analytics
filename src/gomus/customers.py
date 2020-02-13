@@ -4,12 +4,11 @@ import mmh3
 import numpy as np
 import pandas as pd
 
-from csv_to_db import CsvToDb
 from datetime import datetime
 from luigi.format import UTF8
-from set_db_connection_options import set_db_connection_options
-from gomus_report import FetchGomusReport
 
+from csv_to_db import CsvToDb
+from ._utils.fetch_gomus import FetchGomusReport
 
 class CustomersToDB(CsvToDb):
     

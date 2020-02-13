@@ -4,13 +4,14 @@ import luigi
 import pandas as pd
 import psycopg2
 
-from csv_to_db import CsvToDb
 from luigi.format import UTF8
-from gomus.bookings_to_db import BookingsToDB
-from gomus_report import FetchGomusReport, FetchTourReservations
-from extract_gomus_data import hash_booker_id
-from set_db_connection_options import set_db_connection_options
 from xlrd import xldate_as_datetime
+
+from csv_to_db import CsvToDb
+from set_db_connection_options import set_db_connection_options
+from .bookings import BookingsToDB
+from ._utils.extract_bookings import hash_booker_id
+from ._utils.fetch_report import FetchGomusReport, FetchTourReservations
 
 class PublicToursToDB(CsvToDb):
 
@@ -26,13 +27,10 @@ class PublicToursToDB(CsvToDb):
         ]
 
         primary_key = 'id'
-
-        def __init__(self, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-                set_db_connection_options(self)
         
         def requires(self):
                 return ExtractPublicTourData(columns=[col[0] for col in self.columns])
+
 
 class ExtractPublicTourData(luigi.Task):
         columns = luigi.parameter.ListParameter(description="Column names")

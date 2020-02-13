@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import datetime
 import luigi
-from luigi.format import UTF8
 import numpy as np
 import pandas as pd
 
-from csv_to_db import CsvToDb
-from gomus_report import FetchGomusReport
+from luigi.format import UTF8
 
+from csv_to_db import CsvToDb
+from ._utils.fetch_report import FetchGomusReport
 
 class AbstractDailyEntriesToDB(CsvToDb):
     columns = [
