@@ -24,6 +24,7 @@ REPORT_IDS = {
 }
 REPORT_IDS_INV = {v: k for k, v in REPORT_IDS.items()}
 
+
 def parse_arguments(args):
     parser = argparse.ArgumentParser(description="Refresh and fetch reports from go~mus")
     report_group = parser.add_mutually_exclusive_group(required=True)
@@ -106,6 +107,10 @@ def request_report(args=sys.argv[1:]):
     
     base_url = 'https://barberini.gomus.de'
     
+<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
+=======
+    
+>>>>>>> origin/master:src/gomus/fetch_gomus.py
     report_parts = REPORT_IDS_INV[report_id].split("_")
     
     print(f"Working with report '{report_parts[0]}.xlsx'")
