@@ -13,4 +13,5 @@ ALTER TABLE google_maps_review RENAME id TO google_maps_review_id;
 -- ALTER TABLE gomus_event RENAME id TO event_id;
 ALTER TABLE tweet_performance ALTER COLUMN timestamp TYPE timestamp;
 
-ALTER TABLE gtrends_interests RENAME TO gtrends_values;
+ALTER TABLE gtrends_interests RENAME TO gtrends_value;
+-- TODO: Update gtrends schema. We merged two tables! How to handle this here?
