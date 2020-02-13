@@ -4,7 +4,7 @@
 
 - UNIX system (preferred Ubuntu; does not work well with WSL)
 
-Please note that this instructions are optimized for Ubuntu, amd64. If you use a different configuration, you may need to adapt the toolchain installation (see `install_toolchain.sh`).
+Please note that these instructions are optimized for Ubuntu, amd64. If you use a different configuration, you may need to adapt the toolchain installation (see `install_toolchain.sh`).
 
 ## Let’s go!
 
