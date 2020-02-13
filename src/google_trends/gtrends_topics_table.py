@@ -3,7 +3,6 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from google_trends.gtrends_topics_json import GTrendsTopicsJson
-from gtrends_topics_json import GTrendsTopicsJson
 from json_to_csv_task import JsonToCsvTask
 
 
