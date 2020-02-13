@@ -4,13 +4,15 @@ import psycopg2
 import os
 import subprocess
 
+from barberini_facts import BarberiniFacts
+
+
 """ 
 IMPORTANT NOTE:
 To be able to run tests that use this helper, you will need
 - a running postgres database server,
 - a database named 'barberini_test'.
 """
-
 
 def create_database_if_necessary():
     cur = conn = None
@@ -70,6 +72,11 @@ class DatabaseTaskTest(unittest.TestCase):
         self.db.setUp()
         # copy all fake files to root and append ~ to existing ones
         subprocess.call('cp -r tests_fake_files/. . --backup'.split())
+        
+        facts_task = BarberiniFacts()
+        facts_task.run()
+        with facts_task.output().open('r') as facts_file:
+            self.facts = json.load(facts_file)
     
     def tearDown(self):
         # restore files ending with ~ by overwriting the version without ~ 
