@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from task_test import DatabaseTaskTest
-from csv_to_db import CsvToDb
+from src._utils.csv_to_db import CsvToDb
 
 
 # Initialize test and write it to a csv file
@@ -61,6 +61,7 @@ def get_temp_table():
 # -------- TESTS START HERE -------
 
 class TestCsvToDb(DatabaseTaskTest):
+
     @patch("src._utils.csv_to_db.set_db_connection_options")
     def setUp(self, mock):
         

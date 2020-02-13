@@ -1,9 +1,7 @@
 SHELL := /bin/bash
 
 # variables
-#TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
 TOTALPYPATH := ./src/:./src/_utils/
-# this piece of sed-art finds all directories in src (excluding pycache) to build a global namespace
 
 # from outside containers
 

@@ -8,7 +8,7 @@ from datetime import datetime
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from ._utils.fetch_gomus import FetchGomusReport
+from ._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
