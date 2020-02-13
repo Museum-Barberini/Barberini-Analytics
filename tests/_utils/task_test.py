@@ -1,4 +1,6 @@
 import unittest
+from luigi.mock import MockTarget
+from luigi.format import UTF8
 import json
 import psycopg2
 import os
@@ -87,3 +89,10 @@ class DatabaseTaskTest(unittest.TestCase):
     def isolate(self, task):
         task.complete = True
         return task
+    
+    def install_mock_target(self, mock_object, store_function):
+        mock_target = MockTarget(f'mock`{mock_object.hash()}', format=UTF8)
+        with mock_target.open('w') as input_file:
+            store_function(input_file)
+        mock_object.return_value = mock_target
+        return mock_object.return_value

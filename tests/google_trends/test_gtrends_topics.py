@@ -1,6 +1,4 @@
 from unittest.mock import patch
-from luigi.mock import MockTarget
-from luigi.format import UTF8
 import json
 from google_trends.gtrends_topics import GtrendsTopics
 from task_test import DatabaseTaskTest
@@ -17,9 +15,7 @@ class TestGtrendsTopics(DatabaseTaskTest):
             'museumNames': ['42', 'fourty-two'],
             'topics': ['life', 'universe', 'everything']
         }
-        facts_mock.return_value = MockTarget(f'{BarberiniFacts.__name__}`mock', format=UTF8)
-        with facts_mock.return_value.open('w') as facts_file:
-            json.dump(facts, facts_file)
+        self.install_mock_target(facts_mock, lambda file: json.dump(facts, file))
         
         self.task = GtrendsTopics()
         self.task.run()
