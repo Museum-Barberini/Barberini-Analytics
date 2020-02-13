@@ -8,6 +8,7 @@ import pandas as pd
 from csv_to_db import CsvToDb
 from gomus_report import FetchGomusReport
 
+
 class AbstractDailyEntriesToDB(CsvToDb):
     columns = [
         ('id', 'INT'),
@@ -58,12 +59,12 @@ class ExtractDailyEntryData(luigi.Task):
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
-            entries_df = pd.DataFrame(columns=[el[0] for el in self.columns])
+            entries_df = pd.DataFrame(columns=[col[0] for col in self.columns])
 
             for index, row in df.iterrows():
                 for i in range(24):
                     row_index = index * 24 + i
-                    entries_df.at[row_index, 'id'] = self.safe_parse_int(row['ID'])
+                    entries_df.at[row_index, 'id'] = int(np.nan_to_num(row['ID']))
                     entries_df.at[row_index, 'ticket'] = row['Ticket']
 
                     time = datetime.time(hour=i)
@@ -76,9 +77,5 @@ class ExtractDailyEntryData(luigi.Task):
                         count_index = str(float(i))
                     entries_df.at[row_index, 'count'] = self.safe_parse_int(row[count_index])
             
-            with self.output().open('w') as outfile:
-                entries_df.to_csv(outfile, index=False, header=True)
-
-
-    def safe_parse_int(self, val):
-        return int(np.nan_to_num(val))
+            with self.output().open('w') as output_csv:
+                entries_df.to_csv(output_csv, index=False, header=True)

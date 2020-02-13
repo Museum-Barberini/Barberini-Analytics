@@ -34,7 +34,7 @@ class OrdersToDB(CsvToDb):
         ]
 
     def requires(self):
-        return ExtractOrderData(columns=[el[0] for el in self.columns])
+        return ExtractOrderData(columns=[col[0] for col in self.columns])
 
 class ExtractOrderData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")

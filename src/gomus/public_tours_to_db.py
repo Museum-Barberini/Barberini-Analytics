@@ -32,7 +32,7 @@ class PublicToursToDB(CsvToDb):
                 set_db_connection_options(self)
         
         def requires(self):
-                return ExtractPublicTourData(columns=[el[0] for el in self.columns])
+                return ExtractPublicTourData(columns=[col[0] for col in self.columns])
 
 class ExtractPublicTourData(luigi.Task):
         columns = luigi.parameter.ListParameter(description="Column names")
