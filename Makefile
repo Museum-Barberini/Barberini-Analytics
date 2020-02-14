@@ -51,7 +51,10 @@ psql:
 test: luigi-clean
 	mkdir -p output
 	# globstar needed to recursively find all .py-files via **
-	POSTGRES_DB=barberini_test && shopt -s globstar && PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/**/test*.py -v
+	POSTGRES_DB=barberini_test && \
+		shopt -s globstar && \
+		PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ \
+			python3 -m unittest tests/**/test*.py -v
 	make luigi-clean
 
 # use db-psql to get a psql shell inside the database container
