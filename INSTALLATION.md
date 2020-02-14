@@ -30,7 +30,6 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
 
    ```bash
    ./scripts/setup_docker.sh
-   ./scripts/update_network.sh
    ```
 
 ## Schedule regular DB updates
