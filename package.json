@@ -1,7 +1,7 @@
 {
     "name": "bp-barberini",
     "version": "1.0.0",
-    "description": "Awesome Barberini tool",
+    "description": "Awesome Barberini Tool",
     "dependencies": {
         "google-trends-api": "latest",
         "deasync": "latest"
