@@ -46,12 +46,8 @@ class FetchAppstoreReviews(luigi.Task):
         url = f'https://itunes.apple.com/{country_code}/rss/customerreviews/page=1/id={app_id}/sortby=mostrecent/xml'
         data_list = []
         
-        while True:
-            try:
-                data, url = self.fetch_page(url)
-            except StopIteration:
-                break
-            
+        while url is not None:
+            data, url = self.fetch_page(url)
             data_list += data
         
         if len(data_list) == 0:
@@ -70,7 +66,7 @@ class FetchAppstoreReviews(luigi.Task):
         response_content = xmltodict.parse(response.text)['feed']
         
         if 'entry' not in response_content:
-            raise StopIteration()
+            return [], None
             
         entries = response_content['entry']
 
