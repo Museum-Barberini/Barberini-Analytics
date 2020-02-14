@@ -11,12 +11,14 @@
 		"apple": {
 			"appId": 1150432552
 		},
+		"facebook": {
+			"pageId": 1068121123268077
+		},
 		"google": {
 			"keyword": "/g/11bwnd3skz"
 		},
 		"twitter": {
 			"user_id": 788400779556159488
 		}
-
 	}
 }

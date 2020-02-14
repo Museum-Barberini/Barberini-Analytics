@@ -22,9 +22,8 @@ class AppstoreReviewsToDB(CsvToDb):
         table = "appstore_review"
         
         columns = [
-                ("author", "TEXT"),
-                ("id", "TEXT"),
-                ("content", "TEXT"),
+                ("appstore_review_id", "TEXT"),
+                ("text", "TEXT"),
                 ("content_type", "TEXT"),
                 ("rating", "INT"),
                 ("app_version", "TEXT"),
@@ -35,7 +34,7 @@ class AppstoreReviewsToDB(CsvToDb):
                 #("date", "DATE")
         ]
         
-        primary_key = "id"
+        primary_key = "appstore_review_id"
         
         def requires(self):
                 return FetchAppstoreReviews()
@@ -54,7 +53,6 @@ def fetch_all():
                         pass  # no data for given country code
                 except requests.HTTPError:
                         pass
-#        import pdb; pdb.set_trace()
         ret = pd.concat(data)
         ret = ret.drop('countryId', axis=1)
         return ret.drop_duplicates()
@@ -106,9 +104,8 @@ def fetch_single_url(url):
         if isinstance(entries, dict):
                 entries = [entries]
         data = [{
-                "author": item["author"]["name"]["label"], 
-                "id": item["id"]["label"], 
-                "content": item["content"]["label"], 
+                "appstore_review_id": item["id"]["label"], 
+                "text": item["content"]["label"], 
                 "content_type": item["content"]["attributes"]["type"],
                 "rating": item["im:rating"]["label"],
                 "app_version": item["im:version"]["label"],

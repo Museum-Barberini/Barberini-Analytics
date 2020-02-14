@@ -1,4 +1,4 @@
-id,hash_id,postal_code,newsletter,gender,category,language,country,type,register_date,annual_ticket
+gomus_id,customer_id,postal_code,newsletter,gender,category,language,country,type,register_date,annual_ticket
 241127,958269592,14473,False,w,Universität,Elbisch,Deutschland,Shop,2019-12-20,False
 241128,-1271482617,1277,False,,Konglomerat,Dütsch,Deutschland,Shop-Gast,2019-06-28,False
 241129,0,Meine Postleitzahl ist die vier vier fünf drei zwei,True,m,Freundin,Klingonisch,Erde,Laura,2005-09-30,True

@@ -12,19 +12,19 @@ class MockRequest:
 
 
 class TestFetchAppleReviews(unittest.TestCase):
-
+    
     def test_germany_basic(self):
         result = fetch_country("DE")
         self.assertIsInstance(result, pd.DataFrame)
-
+    
     @patch("src.apple_appstore.fetch_apple_app_reviews.requests.get")
     def test_get_request_returns_bad_status_code(self, mock):
         mock.return_value = MagicMock(ok = False)
         self.assertRaises(requests.HTTPError, fetch_country, "de")
-
+    
     @patch("src.apple_appstore.fetch_apple_app_reviews.requests.get")
     def test_only_one_review_fetched(self, mock):
-
+        
         first_return = {
                 "feed": {
                         "entry": {
@@ -46,32 +46,32 @@ class TestFetchAppleReviews(unittest.TestCase):
         second_return = {
                 "feed": {}
         }
-
+        
         mock.side_effect = [
                 MagicMock(ok = True, json = lambda: first_return),
                 MagicMock(ok = True, json = lambda: second_return)
         ]
-
+        
         result = fetch_country("made_up_country")
-
+        
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
         self.assertListEqual(
-		["author","id","content","content_type","rating",
-		 "app_version","vote_count","vote_sum","title", "countryId"],
-		list(result.columns)
-	)
-
+        ["appstore_review_id","text","content_type","rating",
+         "app_version","vote_count","vote_sum","title", "countryId"],
+        list(result.columns)
+    )
+    
     @patch("src.apple_appstore.fetch_apple_app_reviews.fetch_country")
     def test_all_countries(self, mock):
-            
+        
         def mock_return():
                 for i in range(5000):
-                        yield pd.DataFrame({"countryId": [f"{i}"], "id": [i]})
+                        yield pd.DataFrame({"countryId": [f"{i}"], "appstore_review_id": [i]})
         mock.side_effect = mock_return()
         
         result = fetch_all()
-
+        
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 250)
         
@@ -79,43 +79,42 @@ class TestFetchAppleReviews(unittest.TestCase):
         args = [args[0] for (args, _) in mock.call_args_list]
         for arg in args:
                 self.assertRegex(arg, r"^\w{2}$")
-
+    
     @patch("src.apple_appstore.fetch_apple_app_reviews.fetch_country")
     def test_all_countries_some_countries_dont_have_data(self, mock):
-            
+         
         def mock_return(country_code):
                 if country_code == "BB":
                         raise ValueError()
-                return pd.DataFrame({"countryId": [country_code], "id": [country_code]})
+                return pd.DataFrame({"countryId": [country_code], "appstore_review_id": [country_code]})
         mock.side_effect = mock_return
         
         result = fetch_all()
-
+        
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 249)
-
+    
     @patch("src.apple_appstore.fetch_apple_app_reviews.fetch_country")
     def test_drop_duplicate_tweets(self, mock):
-
+        
         def mock_return(country_code):
             if country_code == "BB":
                 raise ValueError()
-            return pd.DataFrame({"id": ["xyz"], "countryId": [country_code]})
+            return pd.DataFrame({"appstore_review_id": ["xyz"], "countryId": [country_code]})
         mock.side_effect = mock_return
-
+        
         result = fetch_all()
-
+        
         self.assertEqual(len(result), 1)
-
+    
     @patch("src.apple_appstore.fetch_apple_app_reviews.get_country_codes")
     @patch("src.apple_appstore.fetch_apple_app_reviews.fetch_country")
     def test_same_review_for_multiple_country_codes(self, mock_fetch_country, mock_get_country_codes):
-
+        
         mock_fetch_country_return = [
             pd.DataFrame({
-                "author": ["A_1", "A_2"],
-                "id": ["1", "2"],
-                "content": ["C_1", "C_2"],
+                "appstore_review_id": ["1", "2"],
+                "text": ["C_1", "C_2"],
                 "content_type": ["CT_1", "CT_2"],
                 "rating": ["R_1", "R_2"],
                 "app_version": ["AV_1", "AV_2"],
@@ -125,9 +124,8 @@ class TestFetchAppleReviews(unittest.TestCase):
                 "countryId": ["AB", "AB"]
             }),
             pd.DataFrame({
-                "author": ["A_1"],
-                "id": ["1"],
-                "content": ["C_1"],
+                "appstore_review_id": ["1"],
+                "text": ["C_1"],
                 "content_type": ["CT_1"],
                 "rating": ["R_1"],
                 "app_version": ["AV_1"],
@@ -139,15 +137,14 @@ class TestFetchAppleReviews(unittest.TestCase):
         ]
         mock_fetch_country.side_effect = mock_fetch_country_return
         mock_get_country_codes.return_value = ["AB", "CD"]
-
+        
         result = fetch_all()
-
+        
         self.assertEqual(len(result), 2)
         pd.util.testing.assert_frame_equal(
             pd.DataFrame({
-                "author": ["A_1", "A_2"],
-                "id": ["1", "2"],
-                "content": ["C_1", "C_2"],
+                "appstore_review_id": ["1", "2"],
+                "text": ["C_1", "C_2"],
                 "content_type": ["CT_1", "CT_2"],
                 "rating": ["R_1", "R_2"],
                 "app_version": ["AV_1", "AV_2"],
@@ -158,6 +155,6 @@ class TestFetchAppleReviews(unittest.TestCase):
             result
         )
 
-        
+
 if __name__ == '__main__':
     unittest.main()
