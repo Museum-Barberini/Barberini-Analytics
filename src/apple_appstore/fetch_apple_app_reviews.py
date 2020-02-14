@@ -33,7 +33,7 @@ class FetchAppstoreReviews(luigi.Task):
                     raise
             print(f"\rFetched appstore reviews for {country_code} ({100. * index / len(country_codes)}%)", end='', flush=True)
         print()
-        ret = pd.concat(data)
+        ret = pd.DataFrame(data)
         return ret.drop_duplicates(subset=['appstore_review_id'])
 
     def get_country_codes(self):
