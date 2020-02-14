@@ -83,6 +83,7 @@ class FetchAppstoreReviews(luigi.Task):
             'date': item['updated']
         } for item in entries]
         
+        # read <link rel="next"> which contains the link to the next page
         next_page_url = self.find_first_conditional_tag(response_content['link'], lambda each: each['@rel'] == 'next')['@href']
 
         return data, next_page_url
