@@ -16,7 +16,7 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
    chmod +x scripts/*.sh
    ```
    
-   - For best convenience, clone it into `/root/bp-barperini`.
+   - For best convenience, clone it into `/root/bp-barberini`.
 
 2. Copy the `secrets` folders (not available on the internet) into `/etc`
 
