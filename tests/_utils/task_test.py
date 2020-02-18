@@ -27,9 +27,10 @@ def create_database_if_necessary():
         conn.autocommit = True
         cur = conn.cursor()
         database = os.environ['POSTGRES_DB']
+        assert 'test' in database, 'Tests cannot be run on production database. Use GitLab Runner or make test.'
         try:
             cur.execute(f"DROP DATABASE {database};") # each test execution should get a fresh database
-        except:
+        except psycopg2.errors.InvalidCatalogName:
             pass # did not exist ¯\_(ツ)_/¯
         cur.execute(f"CREATE DATABASE {database};")
     finally:
