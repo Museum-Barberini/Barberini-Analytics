@@ -7,7 +7,7 @@ import requests
 import json
 import os
 
-from barberini_facts import BarberiniFacts
+from museum_facts import MuseumFacts
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
 
@@ -19,7 +19,7 @@ class FetchFbPosts(luigi.Task):
         set_db_connection_options(self)
     
     def requires():
-        return BarberiniFacts()
+        return MuseumFacts()
     
     def output(self):
         return luigi.LocalTarget("output/facebook/fb_posts.csv", format=UTF8)

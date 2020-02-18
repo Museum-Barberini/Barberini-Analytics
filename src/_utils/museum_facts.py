@@ -3,12 +3,12 @@ import jstyleson
 import json
 
 
-class BarberiniFacts(luigi.Task):
+class MuseumFacts(luigi.Task):
     
     facts_file = luigi.Parameter(default='data/barberini_facts.jsonc')
     
     def output(self):
-        return luigi.LocalTarget('output/barberini_facts.json')
+        return luigi.LocalTarget('output/museum_facts.json')
     
     def run(self):
         with open(self.facts_file, 'r') as input_file:

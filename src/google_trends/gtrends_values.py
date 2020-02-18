@@ -4,7 +4,7 @@ import json
 from luigi.contrib.external_program import ExternalProgramTask
 from csv_to_db import CsvToDb
 from json_to_csv_task import JsonToCsvTask
-from barberini_facts import BarberiniFacts
+from museum_facts import MuseumFacts
 from gtrends_topics import GtrendsTopics
 
 
@@ -14,7 +14,7 @@ class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
     js_path = './src/google_trends/gtrends-values.js'
     
     def requires(self):
-        return BarberiniFacts(), GtrendsTopics()
+        return MuseumFacts(), GtrendsTopics()
     
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.json')

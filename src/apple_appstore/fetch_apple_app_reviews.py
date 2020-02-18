@@ -2,7 +2,7 @@ import luigi
 import requests
 import pandas as pd
 import json
-from barberini_facts import BarberiniFacts
+from museum_facts import MuseumFacts
 from csv_to_db import CsvToDb
 from luigi.format import UTF8
 
@@ -63,13 +63,13 @@ def get_country_codes():
 
 def fetch_country(country_id):
     ### TODO ###
-    facts = BarberiniFacts()
+    facts = MuseumFacts()
     facts.run()
-    barberini_facts = json.load(facts.output().open('r'))
+    museum_facts = json.load(facts.output().open('r'))
     ### TODO ###
-    ### Hacked! Once !38 has been merged, require BarberiniFacts instead!
+    ### Hacked! Once !38 has been merged, require MuseumFacts instead!
     
-    app_id = barberini_facts['ids']['apple']['appId']
+    app_id = museum_facts['ids']['apple']['appId']
     url = f"https://itunes.apple.com/{country_id}/rss/customerreviews/page=1/id={app_id}/sortby=mostrecent/json"
     data_list = []
     

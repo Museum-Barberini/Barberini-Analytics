@@ -52,7 +52,7 @@ class FetchTwitter(luigi.Task):
 
 class ExtractTweets(luigi.Task):
     def requires(self):
-        return BarberiniFacts(), FetchTwitter()
+        return MuseumFacts(), FetchTwitter()
     
     def run(self):
         df = pd.read_csv(self.input()[1].path)

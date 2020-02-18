@@ -1,13 +1,13 @@
 import luigi
 import json
 from json_to_csv_task import JsonToCsvTask
-from barberini_facts import BarberiniFacts
+from museum_facts import MuseumFacts
 
 
 class GtrendsTopics(luigi.Task):
     
     def requires(self):
-        return BarberiniFacts()
+        return MuseumFacts()
     
     def output(self):
         return luigi.LocalTarget('output/google_trends/topics.json')

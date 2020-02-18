@@ -2,11 +2,11 @@ from unittest.mock import patch
 import json
 from google_trends.gtrends_topics import GtrendsTopics
 from task_test import DatabaseTaskTest
-from barberini_facts import BarberiniFacts
+from museum_facts import MuseumFacts
 
 
 class TestGtrendsTopics(DatabaseTaskTest):
-    @patch.object(BarberiniFacts, 'output')
+    @patch.object(MuseumFacts, 'output')
     def test_gtrends_topics(self, facts_mock):
         facts = self.facts
         facts['countryCode'] = 'US'

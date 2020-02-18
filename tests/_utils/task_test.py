@@ -6,7 +6,7 @@ import psycopg2
 import os
 import subprocess
 
-from barberini_facts import BarberiniFacts
+from museum_facts import MuseumFacts
 
 
 """ 
@@ -75,7 +75,7 @@ class DatabaseTaskTest(unittest.TestCase):
         # copy all fake files to root and append ~ to existing ones
         subprocess.call('cp -r tests_fake_files/. . --backup'.split())
         
-        facts_task = BarberiniFacts()
+        facts_task = MuseumFacts()
         facts_task.run()
         with facts_task.output().open('r') as facts_file:
             self.facts = json.load(facts_file)
