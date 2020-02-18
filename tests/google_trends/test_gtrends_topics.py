@@ -26,4 +26,6 @@ class TestGtrendsTopics(DatabaseTaskTest):
         topics = json.loads(topics_string)
         for item in topics:
             self.assertTrue(isinstance(item, str))
-        self.assertEqual(1 + 2 * 3, len(topics))
+        self.assertEqual(
+            len([facts['ids']['google']['knowledgeId']]) + len(facts['gtrends']['museumNames']) * len(facts['gtrends']['topics']),
+            len(topics))
