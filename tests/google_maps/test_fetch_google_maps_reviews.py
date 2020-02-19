@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import googleapiclient.discovery
 
-from google_maps.fetch_google_maps_reviews import FetchGoogleMapsReviews
+from fetch_google_maps_reviews import FetchGoogleMapsReviews
 
 
 class TestFetchGoogleMapsReviews(unittest.TestCase):
