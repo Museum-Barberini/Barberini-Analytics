@@ -18,6 +18,29 @@ class TestGomusConnection(unittest.TestCase):
         response = requests.get('https://barberini.gomus.de/', cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']), allow_redirects=False)
         self.assertEqual(response.status_code, 200)
 
+""" Commented out until proper CI grouping is implemented again
+class TestReportFormats(unittest.TestCase):
+	@patch.object(FetchGomusReport, 'refresh')
+	@patch.object(FetchGomusReport, 'output')
+	def test_gomus_formats(self, output_mock, refresh_mock):
+		output_target = MockTarget('report_out', format=UTF8)
+		output_mock.return_value = output_target
+
+		bookings_format = '"Buchung","Datum","Uhrzeit von","Uhrzeit bis","Museum","Ausstellung","Raum","Treffpunkt","Angebotskategorie","Titel","Teilnehmerzahl","Guide","Kunde","E-Mail","Institution","Notiz","Führungsentgelt / Summe Endkundenpreis ohne Storno","Honorar","Zahlungsart","Kommentar","Status"\n'
+		orders_format = '"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen","Rating"\n'
+		customers_format = '"Nummer","Anrede","Vorname","Name","E-Mail","Telefon","Mobil","Fax","Sprache","Kategorie","Straße","PLZ","Stadt","Land","Typ","Erstellt am","Newsletter","Jahreskarte",""\n'
+
+		self.assertTrue(self.check_expected_format('bookings', output_target, bookings_format))
+		self.assertTrue(self.check_expected_format('orders', output_target, orders_format, '_1day'))
+		self.assertTrue(self.check_expected_format('orders', output_target, orders_format))
+		self.assertTrue(self.check_expected_format('customers', output_target, customers_format))
+
+	def check_expected_format(self, report, output_target, expected_format, suffix='_7days'):
+		FetchGomusReport(report=report, suffix=suffix).run()
+		with output_target.open('r') as output_file:
+			return output_file.readline() == expected_format
+"""
+
 class TestGomusCustomerTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,6 +79,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 
         # 30.21.2005 should not be a valid date
         self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
+
 
 class TestGomusOrdersTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
