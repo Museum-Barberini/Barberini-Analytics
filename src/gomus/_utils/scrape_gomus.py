@@ -1,18 +1,21 @@
-import luigi
-from luigi.format import UTF8
-import os
-import requests
-from lxml import html
-import pandas as pd
 import csv
-import dateparser
 import datetime as dt
-import time
-from set_db_connection_options import set_db_connection_options
-import psycopg2
+import os
 import re
-from extract_gomus_data import ExtractGomusBookings
-from orders_to_db import ExtractOrderData
+import time
+
+import dateparser
+import luigi
+import pandas as pd
+import psycopg2
+import requests
+from luigi.format import UTF8
+from lxml import html
+
+from gomus.orders import ExtractOrderData
+from set_db_connection_options import set_db_connection_options
+
+from .extract_bookings import ExtractGomusBookings
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have a more general scraper class if we need to scrape something other than gomus)
@@ -61,7 +64,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings['language'] = ""
         row_count = len(bookings.index)
         for i, row in bookings.iterrows():
-            booking_id = row['id']
+            booking_id = row['booking_id']
             booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
             print(f"requesting booking details for id: {str(booking_id)} ({i+1}/{row_count})")
             res_details = self.polite_get(booking_url, cookies=self.cookies)
@@ -88,10 +91,10 @@ class ScrapeGomusOrderContains(GomusScraperTask):
     
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
-        return orders['id']
+        return orders['order_id']
 
     def requires(self):
-        return ExtractOrderData(columns=['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+        return ExtractOrderData(columns=['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
         # this array is kind of unnecessary, but currently required by ExtractOrderData()
         # the design of that task requiring a column-array is also questionable, so this line may change later on
 

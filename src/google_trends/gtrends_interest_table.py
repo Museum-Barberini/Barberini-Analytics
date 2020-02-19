@@ -1,14 +1,19 @@
 import luigi
-from gtrends_interest_json import GTrendsInterestJson
-from json_to_csv_task import JsonToCsvTask
+from luigi.format import UTF8
+
 from csv_to_db import CsvToDb
+from google_trends.gtrends_interest_json import GTrendsInterestJson
+from json_to_csv_task import JsonToCsvTask
+
 
 class GTrendsInterestTable(JsonToCsvTask):
     def requires(self):
         return GTrendsInterestJson()
     
     def output(self):
-        return luigi.LocalTarget("output/google-trends/interests.csv")
+        return luigi.LocalTarget("output/google-trends/interests.csv", format=UTF8)
+
+
 
 class GtrendsInterestToDB(CsvToDb):
     

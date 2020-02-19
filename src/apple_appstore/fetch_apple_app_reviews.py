@@ -1,9 +1,11 @@
-import requests
-import pandas as pd
-import luigi
-from csv_to_db import CsvToDb
-from luigi.format import UTF8
 import json
+
+import luigi
+import pandas as pd
+import requests
+from luigi.format import UTF8
+
+from csv_to_db import CsvToDb
 
 ######### TARGETS ############
 
@@ -22,8 +24,8 @@ class AppstoreReviewsToDB(CsvToDb):
         table = "appstore_review"
         
         columns = [
-                ("id", "TEXT"),
-                ("content", "TEXT"),
+                ("appstore_review_id", "TEXT"),
+                ("text", "TEXT"),
                 ("content_type", "TEXT"),
                 ("rating", "INT"),
                 ("app_version", "TEXT"),
@@ -34,7 +36,7 @@ class AppstoreReviewsToDB(CsvToDb):
                 #("date", "DATE")
         ]
         
-        primary_key = "id"
+        primary_key = "appstore_review_id"
         
         def requires(self):
                 return FetchAppstoreReviews()
@@ -104,8 +106,8 @@ def fetch_single_url(url):
         if isinstance(entries, dict):
                 entries = [entries]
         data = [{
-                "id": item["id"]["label"], 
-                "content": item["content"]["label"], 
+                "appstore_review_id": item["id"]["label"], 
+                "text": item["content"]["label"], 
                 "content_type": item["content"]["attributes"]["type"],
                 "rating": item["im:rating"]["label"],
                 "app_version": item["im:version"]["label"],
