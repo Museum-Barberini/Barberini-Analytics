@@ -62,18 +62,3 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         with open(mock_target.path, 'w') as output_file:
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
-
-
-class TestGtrendsValuesToDB(DatabaseTaskTest):
-    
-    def test_values_to_db(self):
-        GtrendsValuesToDB().run()
-        
-        result = self.db.request("SELECT * FROM gtrends_values WHERE topic_id LIKE 'TESTING_%'")
-        
-        self.assertListEqual(['topic_id', 'date', 'interest_value'], self.db.column_names)
-        self.assertListEqual([
-                ('TESTING_foo', dt.date(year=2001, month=10, day=12), 9),
-                ('TESTING_bar', dt.date(year=2017, month=1, day=20), 42)],
-            result
-        )
