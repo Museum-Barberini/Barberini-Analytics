@@ -13,7 +13,8 @@ RUN apt-get install -y nano
 RUN apt-get install -y --no-install-recommends python3.6 python3-pip python3-setuptools python3-dev
 
 # install python packages
-RUN pip3 install luigi twitterscraper pandas requests pyyaml xlrd mmh3 dateparser bs4 oauth2client google-api-python-client numpy
+RUN pip3 install luigi pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client xmltodict numpy
+RUN pip3 install twitterscraper google-api-python-client
 
 # install psycopg2 (incl. system dependencies)
 RUN DEBIAN_FRONTEND=noninteractive \
