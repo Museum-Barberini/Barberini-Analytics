@@ -1,6 +1,8 @@
+import json
+
 import luigi
 from luigi.format import UTF8
-import json
+
 
 class GTrendsTopicsJson(luigi.Task):
     

@@ -1,8 +1,10 @@
-import unittest
 import json
-import psycopg2
 import os
 import subprocess
+import unittest
+
+import psycopg2
+
 
 """ 
 IMPORTANT NOTE:

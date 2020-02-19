@@ -1,6 +1,8 @@
+import pandas as pd
+
 from google_trends.gtrends_topics_table import *
 from task_test import DatabaseTaskTest
-import pandas as pd
+
 
 class TestGtrendsTopicsTable(DatabaseTaskTest):
     def __init__(self, methodName):
@@ -25,7 +27,7 @@ class TestGtrendsTopicsTable(DatabaseTaskTest):
         self.assertEqual(2, csv.ndim)
         self.assertListEqual(['topic_id', 'name'], list(csv.columns))
 
+
 class TestGtrendsTopicsToDB(DatabaseTaskTest):
     def test_topicsToDB(self):
         GtrendsTopicsToDB() # shouldnt raise
-

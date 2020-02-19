@@ -1,9 +1,10 @@
 import unittest
-from unittest.mock import MagicMock
-from unittest.mock import patch
-from src.apple_appstore.fetch_apple_app_reviews import *
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 import requests
+
+from src.apple_appstore.fetch_apple_app_reviews import *
 
 
 class MockRequest:

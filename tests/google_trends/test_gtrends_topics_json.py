@@ -1,6 +1,7 @@
 from google_trends.gtrends_topics_json import *
 from task_test import DatabaseTaskTest
 
+
 class TestGtrendsTopicsJson(DatabaseTaskTest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

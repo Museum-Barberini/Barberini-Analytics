@@ -1,15 +1,16 @@
-import unittest
-import luigi
-import time
-import tempfile
 import datetime
-import pandas as pd
-from unittest.mock import patch
-import psycopg2
 import os
-from task_test import DatabaseTaskTest
-from src._utils.csv_to_db import CsvToDb
+import tempfile
+import time
+import unittest
+from unittest.mock import patch
 
+import luigi
+import pandas as pd
+import psycopg2
+
+from src._utils.csv_to_db import CsvToDb
+from task_test import DatabaseTaskTest
 
 # Initialize test and write it to a csv file
 expected_data = [(1, 2, "abc", "xy,\"z"), (2, 10, "678", ",,;abc")]
@@ -59,6 +60,7 @@ def get_temp_table():
 # -------- TESTS START HERE -------
 
 class TestCsvToDb(DatabaseTaskTest):
+
     @patch("src._utils.csv_to_db.set_db_connection_options")
     def setUp(self, mock):
         

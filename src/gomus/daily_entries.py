@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
+import datetime
+
 import luigi
-from luigi.format import UTF8
 import numpy as np
 import pandas as pd
+from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from gomus_report import FetchGomusReport
+
+from ._utils.fetch_report import FetchGomusReport
+
 
 class AbstractDailyEntriesToDB(CsvToDb):
     columns = [
         ('id', 'INT'),
         ('ticket', 'TEXT'),
-        ('date', 'DATE'),
+        ('datetime', 'TIMESTAMP'),
         ('count', 'INT'),
-        *[(f'"{i}"', 'INT') for i in range(24)]
     ]
 
-    primary_key = ('id', 'date')
+    primary_key = ('id', 'datetime')
 
 
 class DailyEntriesToDB(AbstractDailyEntriesToDB):
@@ -58,19 +61,23 @@ class ExtractDailyEntryData(luigi.Task):
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
-            df.insert(2, 'date', pd.to_datetime(date, format='"%d.%m.%Y"'))
-            count = df.pop('Gesamt')
-            df.insert(3, 'count', count)
+            entries_df = pd.DataFrame(columns=[col[0] for col in self.columns])
 
-            df.columns = [el[0] for el in self.columns]
+            for index, row in df.iterrows():
+                for i in range(24):
+                    row_index = index * 24 + i
+                    entries_df.at[row_index, 'id'] = int(np.nan_to_num(row['ID']))
+                    entries_df.at[row_index, 'ticket'] = row['Ticket']
+
+                    time = datetime.time(hour=i)
+                    entries_df.at[row_index, 'datetime'] = datetime.datetime.combine(date, time)
+
+                    # Handle different hour formats for expected and actual entries
+                    if self.expected:
+                        count_index = str(i) + ':00'
+                    else:
+                        count_index = str(float(i))
+                    entries_df.at[row_index, 'count'] = self.safe_parse_int(row[count_index])
             
-            df['id'] = df['id'].apply(int)
-            df['count'] = df['count'].apply(int)
-            for i in range(24):
-                df[f'"{i}"'] = df[f'"{i}"'].apply(self.safe_parse_int)
-
-        with self.output().open('w') as outfile:
-            df.to_csv(outfile, index=False, header=True)
-
-    def safe_parse_int(self, val):
-        return int(np.nan_to_num(val))
+            with self.output().open('w') as output_csv:
+                entries_df.to_csv(output_csv, index=False, header=True)

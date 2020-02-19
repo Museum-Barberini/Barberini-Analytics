@@ -3,13 +3,14 @@ import luigi
 import numpy as np
 import pandas as pd
 import psycopg2
+from luigi.format import UTF8
+from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from customers_to_db import CustomersToDB
-from gomus_report import FetchGomusReport
-from luigi.format import UTF8
-from set_db_connection_options import set_db_connection_options
-from xlrd import xldate_as_datetime
+
+from ._utils.fetch_report import FetchGomusReport
+from .customers import CustomersToDB
+
 
 class OrdersToDB(CsvToDb):
     table = 'gomus_order'
@@ -34,14 +35,10 @@ class OrdersToDB(CsvToDb):
         ]
 
     def requires(self):
-        return ExtractOrderData(columns=[el[0] for el in self.columns])
+        return ExtractOrderData(columns=[col[0] for col in self.columns])
 
 class ExtractOrderData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def _requires(self):
         return luigi.task.flatten([
@@ -112,4 +109,3 @@ class ExtractOrderData(luigi.Task):
 
     def parse_boolean(self, string, bool_string):
         return string.lower() == bool_string.lower()
-                        
