@@ -27,7 +27,7 @@ class FetchGomusReport(luigi.Task):
 
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']
-        
+        print("BAAAAAAAAAAAAAAAAAAAAAAAAA")
         if not self.refreshed and REPORT_IDS[f'{self.report_name}'] > 0: # report refreshable
             start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
             self.refreshed = True

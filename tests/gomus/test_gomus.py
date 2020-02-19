@@ -21,24 +21,24 @@ class TestGomusConnection(unittest.TestCase):
 
 # Commented out until proper CI grouping is implemented again
 class TestReportFormats(unittest.TestCase):
-	@patch.object(FetchGomusReport, 'output')
-	def test_gomus_formats(self, output_mock):
-		output_target = MockTarget('report_out', format=UTF8)
-		output_mock.return_value = output_target
+    @patch.object(FetchGomusReport, 'output')
+    def test_gomus_formats(self, output_mock):
+        output_target = MockTarget('report_out', format=UTF8)
+        output_mock.return_value = iter([output_target])
+        
+        bookings_format = '"Buchung","Datum","Uhrzeit von","Uhrzeit bis","Museum","Ausstellung","Raum","Treffpunkt","Angebotskategorie","Titel","Teilnehmerzahl","Guide","Kunde","E-Mail","Institution","Notiz","Führungsentgelt / Summe Endkundenpreis ohne Storno","Honorar","Zahlungsart","Kommentar","Status"\n'
+        orders_format = '"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen","Rating"\n'
+        customers_format = '"Nummer","Anrede","Vorname","Name","E-Mail","Telefon","Mobil","Fax","Sprache","Kategorie","Straße","PLZ","Stadt","Land","Typ","Erstellt am","Newsletter","Jahreskarte",""\n'
 
-		bookings_format = '"Buchung","Datum","Uhrzeit von","Uhrzeit bis","Museum","Ausstellung","Raum","Treffpunkt","Angebotskategorie","Titel","Teilnehmerzahl","Guide","Kunde","E-Mail","Institution","Notiz","Führungsentgelt / Summe Endkundenpreis ohne Storno","Honorar","Zahlungsart","Kommentar","Status"\n'
-		orders_format = '"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen","Rating"\n'
-		customers_format = '"Nummer","Anrede","Vorname","Name","E-Mail","Telefon","Mobil","Fax","Sprache","Kategorie","Straße","PLZ","Stadt","Land","Typ","Erstellt am","Newsletter","Jahreskarte",""\n'
+        self.assertTrue(self.check_expected_format('bookings', output_target, bookings_format))
+        self.assertTrue(self.check_expected_format('orders', output_target, orders_format, '_1day'))
+        self.assertTrue(self.check_expected_format('orders', output_target, orders_format))
+        self.assertTrue(self.check_expected_format('customers', output_target, customers_format))
 
-		self.assertTrue(self.check_expected_format('bookings', output_target, bookings_format))
-		self.assertTrue(self.check_expected_format('orders', output_target, orders_format, '_1day'))
-		self.assertTrue(self.check_expected_format('orders', output_target, orders_format))
-		self.assertTrue(self.check_expected_format('customers', output_target, customers_format))
-
-	def check_expected_format(self, report, output_target, expected_format, suffix='_7days'):
-		FetchGomusReport(report=report, suffix=suffix).run()
-		with output_target.open('r') as output_file:
-			return output_file.readline() == expected_format
+    def check_expected_format(self, report, output_target, expected_format, suffix='_7days'):
+        FetchGomusReport(report=report, suffix=suffix).run()
+        with output_target.open('r') as output_file:
+            return output_file.readline() == expected_format
 
 
 class TestGomusCustomerTransformations(unittest.TestCase):
