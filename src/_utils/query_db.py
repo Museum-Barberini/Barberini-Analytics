@@ -36,6 +36,7 @@ class QueryDB(luigi.Task):
                 if connection is not None:
                     connection.close()
 
+
 class Snapshotter:
     cursor = None
     output_file = None
@@ -72,4 +73,3 @@ class Snapshotter:
                     for value in row],
                 file=self.output_file)
         print("++++++++", file=self.output_file)
-    

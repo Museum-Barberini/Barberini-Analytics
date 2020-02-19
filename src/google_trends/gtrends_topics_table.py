@@ -1,8 +1,10 @@
 import luigi
 from luigi.format import UTF8
-from gtrends_topics_json import GTrendsTopicsJson
-from json_to_csv import JsonToCsv
+
 from csv_to_db import CsvToDb
+from google_trends.gtrends_topics_json import GTrendsTopicsJson
+from json_to_csv import JsonToCsv
+
 
 class GTrendsTopicsTable(JsonToCsv):
     def requires(self):

@@ -1,8 +1,10 @@
-from google_trends.gtrends_interest_json import *
-from task_test import DatabaseTaskTest
-from unittest.mock import patch
 import json
 from datetime import datetime
+from unittest.mock import patch
+
+from google_trends.gtrends_interest_json import *
+from task_test import DatabaseTaskTest
+
 
 class TestGtrendsInterestJson(DatabaseTaskTest):
     def __init__(self, methodName):
