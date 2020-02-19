@@ -1,20 +1,10 @@
 #!/usr/bin/env python3
-##########################################
-##       ###      ###   ####        ## ###
-####  ###### #### ### #   ## ###### ## ###
-####  ###### #### ### ##  ## ###### ## ###
-####  ###### #### ### #   ## ###### ######
-####  ######      ###   ####        ## ###
-##########################################
-# TODOs for the next editor:
-# - Merge this file with the calling task. We decided not to have separate scripts for things that represent a task.
-# ct.
-
 import argparse
-import datetime
 import csv
-import requests
+import datetime
 import sys
+
+import requests
 import xlrd
 
 # This dict maps 'report_types' to 'REPORT_IDS'
@@ -116,7 +106,6 @@ def request_report(args=sys.argv[1:]):
             exit(1)
     
     base_url = 'https://barberini.gomus.de'
-    
     
     report_parts = REPORT_IDS_INV[report_id].split("_")
     

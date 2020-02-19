@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-import luigi
 import os
-import requests
 import time
 
+import luigi
+import requests
 from luigi.format import UTF8
-from fetch_gomus import *
-from edit_report import EditGomusReport
+
+from .edit_report import EditGomusReport
+from .fetch_report_helper import *
+
 
 class FetchGomusReport(luigi.Task):
     report = luigi.parameter.Parameter(description="The report name (e.g. \'bookings\')")

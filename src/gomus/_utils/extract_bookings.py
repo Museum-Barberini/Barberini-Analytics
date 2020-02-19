@@ -1,10 +1,12 @@
-import pandas as pd
-import luigi
-from luigi.format import UTF8
-from gomus_report import FetchGomusReport
-import mmh3
 from datetime import datetime
+
+import luigi
+import mmh3
 import numpy as np
+import pandas as pd
+from luigi.format import UTF8
+
+from .fetch_report import FetchGomusReport
 
 
 def hash_booker_id(email, seed=666):

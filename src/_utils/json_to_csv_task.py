@@ -1,5 +1,8 @@
+import csv
+import json
+
 import luigi
-import json, csv
+
 
 class JsonToCsvTask(luigi.Task): 
     def run(self):
@@ -7,12 +10,8 @@ class JsonToCsvTask(luigi.Task):
         
         with self.output().open('w') as csv_output:
             csvwriter = csv.writer(csv_output)
-            count = 0
+            csvwriter.writerow(my_json[0].keys())
             for json_row in my_json:
-                if count == 0:
-                    header = json_row.keys()
-                    csvwriter.writerow(header)
-                    count += 1
                 csvwriter.writerow(json_row.values())
     
     def getJson(self):

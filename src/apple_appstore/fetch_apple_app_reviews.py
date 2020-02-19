@@ -1,10 +1,12 @@
-import requests
-import pandas as pd
-import luigi
-from csv_to_db import CsvToDb
-from luigi.format import UTF8
 import json
+
+import luigi
+import pandas as pd
+import requests
 import xmltodict
+from luigi.format import UTF8
+
+from csv_to_db import CsvToDb
 
 
 class FetchAppstoreReviews(luigi.Task):

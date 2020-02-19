@@ -1,18 +1,22 @@
 import luigi
-from gtrends_topics_json import GTrendsTopicsJson
-from json_to_csv_task import JsonToCsvTask
+from luigi.format import UTF8
+
 from csv_to_db import CsvToDb
+from google_trends.gtrends_topics_json import GTrendsTopicsJson
+from json_to_csv_task import JsonToCsvTask
+
 
 class GTrendsTopicsTable(JsonToCsvTask):
     def requires(self):
         return GTrendsTopicsJson()
     
     def output(self):
-        return luigi.LocalTarget("output/google-trends/topics.csv")
+        return luigi.LocalTarget("output/google-trends/topics.csv", format=UTF8)
     
     def getJson(self):
         json = super().getJson()
         return [{"topic_id": key, "name": value} for key, value in json.items()]
+
 
 class GtrendsTopicsToDB(CsvToDb):
     
