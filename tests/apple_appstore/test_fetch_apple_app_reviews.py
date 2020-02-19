@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from src.fetch_apple_app_reviews import *
+from fetch_apple_app_reviews import *
 
 
 class MockRequest:
@@ -18,12 +18,12 @@ class TestFetchAppleReviews(unittest.TestCase):
         result = fetch_country("DE")
         self.assertIsInstance(result, pd.DataFrame)
     
-    @patch("src.fetch_apple_app_reviews.requests.get")
+    @patch("fetch_apple_app_reviews.requests.get")
     def test_get_request_returns_bad_status_code(self, mock):
         mock.return_value = MagicMock(ok = False)
         self.assertRaises(requests.HTTPError, fetch_country, "de")
     
-    @patch("src.fetch_apple_app_reviews.requests.get")
+    @patch("fetch_apple_app_reviews.requests.get")
     def test_only_one_review_fetched(self, mock):
         
         first_return = {
