@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from src.fetch_apple_app_reviews import *
+from fetch_apple_app_reviews import *
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
