@@ -22,7 +22,7 @@ class TestGomusConnection(unittest.TestCase):
 class TestGomusCustomerTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.columns = ['id', 'hash_id', 'postal_code', 'newsletter', 'gender', 'category', 'language', 'country', 'type', 'register_date', 'annual_ticket']
+        self.columns = ['gomus_id', 'customer_id', 'postal_code', 'newsletter', 'gender', 'category', 'language', 'country', 'type', 'register_date', 'annual_ticket']
 
     @patch.object(ExtractCustomerData, 'output')
     @patch.object(ExtractCustomerData, 'input')
@@ -30,7 +30,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('customer_data_in', format=UTF8)
         output_target = MockTarget('customer_data_out', format=UTF8)
-        input_mock.return_value = input_target
+        input_mock.return_value = iter([input_target])
         output_mock.return_value = output_target
 
         # Write test data to input mock
@@ -49,7 +49,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
     @patch.object(ExtractCustomerData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
         input_target = MockTarget('customer_data_in', format=UTF8)
-        input_mock.return_value = input_target
+        input_mock.return_value = iter([input_target])
 
         with input_target.open('w') as input_data:
             with open('tests/test_data/gomus_customers_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
@@ -61,7 +61,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 class TestGomusOrdersTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.columns = ['id', 'order_date', 'customer_id', 'valid', 'paid', 'origin']
+        self.columns = ['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin']
 
     @patch.object(ExtractOrderData, 'query_customer_id')
     @patch.object(ExtractOrderData, 'output')
@@ -70,7 +70,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('order_data_in', format=UTF8)
         output_target = MockTarget('order_data_out', format=UTF8)
-        input_mock.return_value = input_target
+        input_mock.return_value = iter([input_target])
         output_mock.return_value = output_target
         cust_id_mock.return_value = 0
 
@@ -90,7 +90,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
     @patch.object(ExtractOrderData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
         input_target = MockTarget('customer_data_in', format=UTF8)
-        input_mock.return_value = input_target
+        input_mock.return_value = iter([input_target])
 
         with input_target.open('w') as input_data:
             with open('tests/test_data/gomus_orders_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:

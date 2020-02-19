@@ -15,7 +15,7 @@ class OrdersToDB(CsvToDb):
     table = 'gomus_order'
 
     columns = [
-        ('id', 'INT'),
+        ('order_id', 'INT'),
         ('order_date', 'DATE'),
         ('customer_id', 'INT'),
         ('valid', 'BOOL'),
@@ -23,7 +23,15 @@ class OrdersToDB(CsvToDb):
         ('origin', 'TEXT')
     ]
 
-    primary_key = 'id'
+    primary_key = 'order_id'
+
+    foreign_keys = [
+            {
+                "origin_column": "customer_id",
+                "target_table": "gomus_customer",
+                "target_column": "customer_id"
+            }
+        ]
 
     def requires(self):
         return ExtractOrderData(columns=[el[0] for el in self.columns])
@@ -48,7 +56,7 @@ class ExtractOrderData(luigi.Task):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
 
     def run(self):
-        with self.input().open('r') as input_csv:
+        with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
         
         df = df.filter([
@@ -58,7 +66,7 @@ class ExtractOrderData(luigi.Task):
 
         df.columns = self.columns
 
-        df['id'] = df['id'].apply(int)
+        df['order_id'] = df['order_id'].apply(int)
         df['order_date'] = df['order_date'].apply(self.float_to_datetime)
         df['customer_id'] = df['customer_id'].apply(self.query_customer_id)
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
@@ -83,7 +91,7 @@ class ExtractOrderData(luigi.Task):
             )
 
             cur = conn.cursor()
-            query = f'SELECT hash_id FROM gomus_customer WHERE id = {org_id}'
+            query = f'SELECT customer_id FROM gomus_customer WHERE gomus_id = {org_id}'
             cur.execute(query)
 
             customer_row = cur.fetchone()

@@ -23,37 +23,39 @@ class FetchFbPosts(luigi.Task):
     def run(self):
         
         access_token = os.environ['FB_ACCESS_TOKEN']
+        with open('data/barberini-facts.json') as facts_json:
+            barberini_facts = json.load(facts_json)
+            page_id = barberini_facts['ids']['facebook']['pageId']
         
         posts = []
         
-        url = "https://graph.facebook.com/1068121123268077/posts?access_token=" + access_token
+        url = f"https://graph.facebook.com/{page_id}/posts?access_token={access_token}"
         
         response = requests.get(url)
-        
-        if response.ok is False:
-            raise requests.HTTPError
+        response.raise_for_status()
         
         response_content = response.json()
         for post in (response_content['data']):
             posts.append(post)
         
+        print("Fetching facebook posts ...")
+        page_count = 0
         while ('next' in response_content['paging']):
-            print("### Facebook - loading new page of posts ###")
+            page_count = page_count + 1
             url = response_content['paging']['next']
             response = requests.get(url)
-            
-            if response.ok is False:
-                raise requests.HTTPError
+            response.raise_for_status()
             
             response_content = response.json()
             for post in (response_content['data']):
                 posts.append(post)
-        
+            print(f"\rFetched facebook page {page_count}", end='', flush=True)
+        print("Fetching of facebook posts completed")
         
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
             df = df.filter(['created_time', 'message', 'id'])
-            df.columns = ['post_date', 'text', 'id']
+            df.columns = ['post_date', 'text', 'fb_post_id']
             df.to_csv(output_file, index=False, header=True)
 
 
@@ -66,29 +68,23 @@ class FetchFbPostPerformance(luigi.Task):
         return luigi.LocalTarget("output/facebook/fb_post_performances.csv", format=UTF8)
     
     def run(self):
-        
         access_token = os.environ['FB_ACCESS_TOKEN']
         
-        
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
         performances = []
-        
         df = pd.read_csv(self.input().path)
 
         for index in df.index:
-            post_id = df['id'][index]
+            post_id = df['fb_post_id'][index]
             #print(f"### Facebook - loading performance data for post {str(post_id)} ###")
             url = f"https://graph.facebook.com/{post_id}/insights?access_token={access_token}&metric=post_reactions_by_type_total,post_activity_by_action_type,post_clicks_by_type,post_negative_feedback"
             response = requests.get(url)
-            
-            if response.ok is False:
-                raise requests.HTTPError
+            response.raise_for_status()
             
             response_content = response.json()
             
             post_perf = dict()
-            post_perf["post_id"] = post_id
+            post_perf["fb_post_id"] = post_id
             post_perf["time_stamp"] = current_timestamp
             
             # Reactions
@@ -122,8 +118,6 @@ class FetchFbPostPerformance(luigi.Task):
             df.to_csv(output_file, index=False, header=True)
 
 
-
-
 class FbPostsToDB(CsvToDb):
     
     table = "fb_post"
@@ -131,10 +125,10 @@ class FbPostsToDB(CsvToDb):
     columns = [
         ("post_date", "TIMESTAMP"),
         ("text", "TEXT"),
-        ("id", "TEXT")
+        ("fb_post_id", "TEXT")
     ]
     
-    primary_key = 'id'
+    primary_key = 'fb_post_id'
 
     def requires(self):
         return FetchFbPosts()
@@ -145,7 +139,7 @@ class FbPostPerformanceToDB(CsvToDb):
     table = "fb_post_performance"
     
     columns = [
-        ("post_id", "TEXT"),
+        ("fb_post_id", "TEXT"),
         ("time_stamp", "TIMESTAMP"),
         ("react_like", "INT"),
         ("react_love", "INT"),
@@ -162,8 +156,16 @@ class FbPostPerformanceToDB(CsvToDb):
         ("negative_feedback", "INT")
     ]
 
-    primary_key = ('post_id', 'time_stamp')
+    primary_key = ('fb_post_id', 'time_stamp')
+    
+    foreign_keys = [
+            {
+                "origin_column": "fb_post_id",
+                "target_table": "fb_post",
+                "target_column": "fb_post_id"
+            }
+        ]
+
     
     def requires(self):
         return FetchFbPostPerformance()
-

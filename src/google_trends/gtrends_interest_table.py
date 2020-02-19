@@ -1,4 +1,5 @@
 import luigi
+from luigi.format import UTF8
 from gtrends_interest_json import GTrendsInterestJson
 from json_to_csv import JsonToCsv
 from csv_to_db import CsvToDb
@@ -8,7 +9,8 @@ class GTrendsInterestTable(JsonToCsv):
         return GTrendsInterestJson()
     
     def output(self):
-        return luigi.LocalTarget("output/google-trends/interests.csv")
+        return luigi.LocalTarget("output/google-trends/interests.csv", format=UTF8)
+
 
 class GtrendsInterestToDB(CsvToDb):
     

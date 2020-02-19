@@ -9,8 +9,8 @@ class BookingsToDB(CsvToDb):
     table = 'gomus_booking'
 
     columns = [
-        ('id', 'INT'),
-        ('booker_id', 'INT'),
+        ('booking_id', 'INT'),
+        ('customer_id', 'INT'),
         ('category', 'TEXT'),
         ('participants', 'INT'),
         ('guide_id', 'INT'),
@@ -24,7 +24,15 @@ class BookingsToDB(CsvToDb):
         ('language', 'TEXT')
     ]
     
-    primary_key = 'id'
+    primary_key = 'booking_id'
+
+    foreign_keys = [
+            {
+                "origin_column": "customer_id",
+                "target_table": "gomus_customer",
+                "target_column": "customer_id"
+            }
+        ]
 
     def requires(self):
         return EnhanceBookingsWithScraper()

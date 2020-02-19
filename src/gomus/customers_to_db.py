@@ -16,8 +16,8 @@ class CustomersToDB(CsvToDb):
     table = 'gomus_customer'
     
     columns = [
-        ('id', 'INT'),
-        ('hash_id', 'INT'),
+        ('gomus_id', 'INT'),
+        ('customer_id', 'INT'),
         ('postal_code', 'TEXT'), # e.g. non-german
         ('newsletter', 'BOOL'),
         ('gender', 'TEXT'),
@@ -29,7 +29,7 @@ class CustomersToDB(CsvToDb):
         ('annual_ticket', 'BOOL')
     ]
     
-    primary_key = 'id'
+    primary_key = 'gomus_id'
 
     def requires(self):
         return ExtractCustomerData(columns=[el[0] for el in self.columns])
@@ -45,7 +45,7 @@ class ExtractCustomerData(luigi.Task):
         return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
 
     def run(self):
-        with self.input().open('r') as input_csv:
+        with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
         df = df.filter([
             'Nummer', 'E-Mail', 'PLZ',
@@ -55,8 +55,8 @@ class ExtractCustomerData(luigi.Task):
         
         df.columns = self.columns
 
-        df['id'] = df['id'].apply(int)
-        df['hash_id'] = df['hash_id'].apply(self.hash_id)
+        df['gomus_id'] = df['gomus_id'].apply(int)
+        df['customer_id'] = df['customer_id'].apply(self.hash_id)
         df['postal_code'] = df['postal_code'].apply(self.postal_transformation)
         df['newsletter'] = df['newsletter'].apply(self.parse_boolean)
         df['gender'] = df['gender'].apply(self.parse_gender)
