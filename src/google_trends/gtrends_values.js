@@ -7,7 +7,7 @@ const googleTrends = require('google-trends-api');
 
 let args = process.argv.slice(1).map(arg => arg.replace(/^"(.*)"$/, '$1')).slice(1);
 if (args.length != 4) {
-	throw "Usage: node gtrends-values.js countryCode startTime /path/to/topics.json /path/to/interestValues.json";
+	throw "Usage: node gtrends_values.js countryCode startTime /path/to/topics.json /path/to/interestValues.json";
 }
 let countryCode = args[0];
 let startTime = new Date(args[1]);

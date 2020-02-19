@@ -11,7 +11,7 @@ from gtrends_topics import GtrendsTopics
 class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
     
     js_engine = 'node'
-    js_path = './src/google_trends/gtrends-values.js'
+    js_path = './src/google_trends/gtrends_values.js'
     
     def requires(self):
         return MuseumFacts(), GtrendsTopics()
