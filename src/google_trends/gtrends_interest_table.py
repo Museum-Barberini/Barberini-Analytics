@@ -3,10 +3,10 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from google_trends.gtrends_interest_json import GTrendsInterestJson
-from json_to_csv_task import JsonToCsvTask
+from json_to_csv import JsonToCsv
 
 
-class GTrendsInterestTable(JsonToCsvTask):
+class GTrendsInterestTable(JsonToCsv):
     def requires(self):
         return GTrendsInterestJson()
     

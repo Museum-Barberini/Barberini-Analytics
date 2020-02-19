@@ -4,7 +4,7 @@ import json
 import luigi
 
 
-class JsonToCsvTask(luigi.Task): 
+class JsonToCsv(luigi.Task): 
     def run(self):
         my_json = self.getJson()
         

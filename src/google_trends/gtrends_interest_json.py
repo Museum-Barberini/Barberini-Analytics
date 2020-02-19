@@ -8,7 +8,7 @@ from google_trends.gtrends_topics_json import GTrendsTopicsJson
 
 
 class GTrendsInterestJson(luigi.contrib.external_program.ExternalProgramTask):
-    js_path = "./src/google_trends/trends-interest.js"
+    js_path = "./src/google_trends/trends_interest.js"
     
     def requires(self):
         return GTrendsTopicsJson()
