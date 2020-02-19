@@ -21,14 +21,14 @@ class TestFetchAppleReviews(unittest.TestCase):
         result = self.task.fetch_for_country('DE')
         self.assertIsInstance(result, pd.DataFrame)
     
-    @patch('src.apple_appstore.fetch_apple_app_reviews.requests.get')
+    @patch('fetch_apple_app_reviews.requests.get')
     def test_get_request_returns_bad_status_code(self, mock):
         def raise_for_all_cases():
             raise requests.HTTPError
         mock.return_value = MagicMock(raise_for_status=raise_for_all_cases)
         self.assertRaises(requests.HTTPError, self.task.fetch_for_country, 'de')
     
-    @patch('src.apple_appstore.fetch_apple_app_reviews.requests.get')
+    @patch('fetch_apple_app_reviews.requests.get')
     def test_only_one_review_fetched(self, mock):
         
         first_return = '''<?xml version="1.0" encoding="utf-8"?>
