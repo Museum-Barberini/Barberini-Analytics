@@ -1,18 +1,21 @@
-import luigi
-from luigi.format import UTF8
-import os
-import requests
-from lxml import html
-import pandas as pd
 import csv
-import dateparser
 import datetime as dt
-import time
-from set_db_connection_options import set_db_connection_options
-import psycopg2
+import os
 import re
-from extract_gomus_data import ExtractGomusBookings
-from orders_to_db import ExtractOrderData
+import time
+
+import dateparser
+import luigi
+import pandas as pd
+import psycopg2
+import requests
+from luigi.format import UTF8
+from lxml import html
+
+from gomus.orders import ExtractOrderData
+from set_db_connection_options import set_db_connection_options
+
+from .extract_bookings import ExtractGomusBookings
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have a more general scraper class if we need to scrape something other than gomus)

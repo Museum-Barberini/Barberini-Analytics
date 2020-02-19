@@ -1,8 +1,11 @@
 import unittest
-from unittest.mock import MagicMock
-from fetch_google_maps_reviews import FetchGoogleMapsReviews
-import googleapiclient.discovery
 import warnings
+from unittest.mock import MagicMock
+
+import googleapiclient.discovery
+
+from google_maps.fetch_google_maps_reviews import FetchGoogleMapsReviews
+
 
 class TestFetchGoogleMapsReviews(unittest.TestCase):
     

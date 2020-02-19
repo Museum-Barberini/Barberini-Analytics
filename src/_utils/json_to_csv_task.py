@@ -1,5 +1,8 @@
+import csv
+import json
+
 import luigi
-import json, csv
+
 
 class JsonToCsvTask(luigi.Task): 
     def run(self):
