@@ -23,6 +23,7 @@ class FetchAppstoreReviews(luigi.Task):
     def fetch_all(self):
         data = []
         country_codes = self.get_country_codes()
+        print()
         for index, country_code in enumerate(country_codes, start=1):
             try:
                 data.append(self.fetch_for_country(country_code))
