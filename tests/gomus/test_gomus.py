@@ -7,6 +7,7 @@ import requests
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import ExtractCustomerData
 from gomus.orders import ExtractOrderData
 
@@ -18,11 +19,10 @@ class TestGomusConnection(unittest.TestCase):
         response = requests.get('https://barberini.gomus.de/', cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']), allow_redirects=False)
         self.assertEqual(response.status_code, 200)
 
-""" Commented out until proper CI grouping is implemented again
+# Commented out until proper CI grouping is implemented again
 class TestReportFormats(unittest.TestCase):
-	@patch.object(FetchGomusReport, 'refresh')
 	@patch.object(FetchGomusReport, 'output')
-	def test_gomus_formats(self, output_mock, refresh_mock):
+	def test_gomus_formats(self, output_mock):
 		output_target = MockTarget('report_out', format=UTF8)
 		output_mock.return_value = output_target
 
@@ -39,7 +39,7 @@ class TestReportFormats(unittest.TestCase):
 		FetchGomusReport(report=report, suffix=suffix).run()
 		with output_target.open('r') as output_file:
 			return output_file.readline() == expected_format
-"""
+
 
 class TestGomusCustomerTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
