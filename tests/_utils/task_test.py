@@ -2,9 +2,11 @@ import unittest
 from luigi.mock import MockTarget
 from luigi.format import UTF8
 import json
-import psycopg2
 import os
 import subprocess
+import unittest
+
+import psycopg2
 
 from museum_facts import MuseumFacts
 
@@ -74,7 +76,7 @@ class DatabaseTaskTest(unittest.TestCase):
         create_database_if_necessary()
         self.db.setUp()
         # copy all fake files to root and append ~ to existing ones
-        subprocess.call('cp -r tests_fake_files/. . --backup'.split())
+        subprocess.call('cp -r tests/test_data/tests_fake_files/output . --backup'.split())
         
         facts_task = MuseumFacts()
         facts_task.run()

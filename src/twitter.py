@@ -1,10 +1,11 @@
-import luigi
-import psycopg2
-from luigi.format import UTF8
 import datetime as dt
-import pandas as pd
-import twitterscraper as ts
 import json
+
+import luigi
+import pandas as pd
+import psycopg2
+import twitterscraper as ts
+from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
@@ -50,6 +51,7 @@ class FetchTwitter(luigi.Task):
     #			conn.close()
     #		return self.min_timestamp
 
+
 class ExtractTweets(luigi.Task):
     def requires(self):
         return MuseumFacts(), FetchTwitter()
@@ -86,7 +88,6 @@ class ExtractPerformanceTweets(luigi.Task):
     
     def output(self):
         return luigi.LocalTarget("output/twitter/performance_tweets.csv", format=UTF8)
-
 
 
 class TweetsToDB(CsvToDb):
@@ -129,7 +130,6 @@ class TweetPerformanceToDB(CsvToDb):
                 "target_column": "tweeet_id"
             }
         ]
-
     
     def requires(self):
         return ExtractPerformanceTweets()

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 import os
-import requests
 import unittest
+from unittest.mock import MagicMock, patch
 
+import requests
 from luigi.format import UTF8
 from luigi.mock import MockTarget
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
-from customers_to_db import ExtractCustomerData
-from orders_to_db import ExtractOrderData
+from gomus.customers import ExtractCustomerData
+from gomus.orders import ExtractOrderData
 
 # Does not test whether data is put into DB correctly because csv_to_db is already tested
+
 
 class TestGomusConnection(unittest.TestCase):
     def test_session_id_is_valid(self):
@@ -33,7 +33,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('customer_data_in', format=UTF8)
         output_target = MockTarget('customer_data_out', format=UTF8)
-        input_mock.return_value = input_target
+        input_mock.return_value = iter([input_target])
         output_mock.return_value = output_target
         
         # Write test data to input mock
@@ -52,8 +52,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
     @patch.object(ExtractCustomerData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
         input_target = MockTarget('customer_data_in', format=UTF8)
-        input_mock.return_value = input_target
-        
+        input_mock.return_value = iter([input_target])
+
         with input_target.open('w') as input_data:
             with open('tests/test_data/gomus_customers_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
@@ -73,7 +73,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('order_data_in', format=UTF8)
         output_target = MockTarget('order_data_out', format=UTF8)
-        input_mock.return_value = input_target
+        input_mock.return_value = iter([input_target])
         output_mock.return_value = output_target
         cust_id_mock.return_value = 0
         
@@ -93,8 +93,8 @@ class TestGomusOrdersTransformations(unittest.TestCase):
     @patch.object(ExtractOrderData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
         input_target = MockTarget('customer_data_in', format=UTF8)
-        input_mock.return_value = input_target
-        
+        input_mock.return_value = iter([input_target])
+
         with input_target.open('w') as input_data:
             with open('tests/test_data/gomus_orders_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())

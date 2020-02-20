@@ -2,7 +2,9 @@
 import luigi
 
 from csv_to_db import CsvToDb
-from scrape_gomus import ScrapeGomusOrderContains
+
+from ._utils.scrape_gomus import ScrapeGomusOrderContains
+
 
 class OrderContainsToDB(CsvToDb):
 

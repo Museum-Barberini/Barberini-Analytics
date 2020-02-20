@@ -1,9 +1,12 @@
 import csv
-from luigi.contrib.postgres import CopyToTable
+from datetime import datetime
+
 import luigi
 import psycopg2
-from datetime import datetime
+from luigi.contrib.postgres import CopyToTable
+
 from set_db_connection_options import set_db_connection_options
+
 
 class CsvToDb(CopyToTable):
     """
@@ -16,7 +19,7 @@ class CsvToDb(CopyToTable):
     def primary_key(self):
         raise NotImplemented()
     
-    sql_file_path_pattern = luigi.Parameter(default='src/_utils/csv_to_db.sql/{0}.sql')
+    sql_file_path_pattern = luigi.Parameter(default='src/_utils/sql_scripts/{0}.sql')
     
     # Don't delete this! This parameter assures that every (sub)instance of me is treated as an individual and will be re-run.
     dummy_date = luigi.FloatParameter(default=datetime.timestamp(datetime.now()))

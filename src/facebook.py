@@ -1,13 +1,14 @@
-import luigi
-import psycopg2
-from luigi.format import UTF8
 import datetime as dt
-import pandas as pd
-import requests
 import json
 import os
 
 from museum_facts import MuseumFacts
+import luigi
+import pandas as pd
+import psycopg2
+import requests
+from luigi.format import UTF8
+
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
 
