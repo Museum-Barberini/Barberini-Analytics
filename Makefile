@@ -11,14 +11,17 @@ pull:
 	docker pull ubuntu && docker pull postgres
 
 startup:
-	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 ifdef SSLON
+	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 	 docker-compose -f docker-compose.yml -f docker-compose.sslon.yml up --build -d --no-recreate db;\
-else
-	 docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
-endif
 	fi;\
 	docker-compose -p ${USER} up --build -d luigi
+else
+	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
+	 docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
+	fi;\
+	docker-compose -p ${USER} up --build -d luigi
+endif
 
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi
