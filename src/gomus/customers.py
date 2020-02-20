@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from datetime import datetime
-
+import datetime as dt
 import luigi
 import mmh3
 import numpy as np
@@ -13,6 +13,9 @@ from ._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
+
+    today = luigi.parameter.DateParameter()
+
     
     table = 'gomus_customer'
     
@@ -33,14 +36,15 @@ class CustomersToDB(CsvToDb):
     primary_key = 'gomus_id'
 
     def requires(self):
-        return ExtractCustomerData(columns=[col[0] for col in self.columns])
+        return ExtractCustomerData(columns=[col[0] for col in self.columns], today=self.today)
 
 class ExtractCustomerData(luigi.Task):
+    today = luigi.parameter.DateParameter()
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
 
     def requires(self):
-        return FetchGomusReport(report='customers')
+        return FetchGomusReport(report='customers', today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)

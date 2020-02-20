@@ -11,6 +11,7 @@ from .fetch_report_helper import *
 
 
 class FetchGomusReport(luigi.Task):
+    today = luigi.parameter.DateParameter()
     report = luigi.parameter.Parameter(description="The report name (e.g. \'bookings\')")
     suffix = luigi.parameter.OptionalParameter(default='_7days', description="The report suffix (default: \'_7days\')")
     sheet_indices = luigi.parameter.ListParameter(default=[0], description="Page numbers of the Excel sheet")
@@ -27,10 +28,10 @@ class FetchGomusReport(luigi.Task):
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']
         if not self.refreshed and REPORT_IDS[f'{self.report_name}'] > 0: # report refreshable
-            start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
+            start_time, end_time = parse_timespan(self.suffix.replace('_', ''), self.today)
             self.refreshed = True
             yield EditGomusReport(report=REPORT_IDS[self.report_name], start_at=start_time, end_at=end_time)
-            
+
         res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-l'])
         for index, target in enumerate(self.output()):
             with target.open('w') as target_csv:

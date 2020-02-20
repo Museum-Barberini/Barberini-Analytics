@@ -45,8 +45,8 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def parse_timespan(timespan):
-    today = datetime.date.today()
+def parse_timespan(timespan, today):
+    #today = datetime.date.today()
     end_time = today - datetime.timedelta(days=1)
     if timespan == '7days': # grab everything from yesterday till a week before
         start_time = end_time - datetime.timedelta(weeks=1)

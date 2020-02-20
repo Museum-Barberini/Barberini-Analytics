@@ -10,9 +10,10 @@ from csv_to_db import CsvToDb
 
 from ._utils.fetch_report import FetchGomusReport
 from .customers import CustomersToDB
-
+from set_db_connection_options import set_db_connection_options
 
 class OrdersToDB(CsvToDb):
+    today = luigi.parameter.DateParameter()
     table = 'gomus_order'
 
     columns = [
@@ -35,19 +36,28 @@ class OrdersToDB(CsvToDb):
         ]
 
     def requires(self):
-        return ExtractOrderData(columns=[col[0] for col in self.columns])
+        return ExtractOrderData(columns=[col[0] for col in self.columns], today=self.today)
 
 class ExtractOrderData(luigi.Task):
+    today = luigi.parameter.DateParameter()
     columns = luigi.parameter.ListParameter(description="Column names")
+    host     = None
+    database = None
+    user     = None
+    password = None
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            CustomersToDB(today=self.today),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchGomusReport(report='orders', suffix='_7days')
+        return FetchGomusReport(report='orders', suffix='_7days', today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
@@ -76,6 +86,16 @@ class ExtractOrderData(luigi.Task):
         return xldate_as_datetime(float(string), 0).date()
 
     def query_customer_id(self, customer_string):
+        """
+        TODO
+        Wir denken hier passiert folgendes:
+        - die customer id die von gomus vergeben wird (bei orders) wird ersetzt durch die 
+          hash id, die von uns für den customer generiert wurde. (im task customerToDB)
+        - wenn wir den customer noch nicht in der datenbank haben, nehmen wir die 
+          von gomus vergebene id
+        Problem: wenn customer nicht in datenbank ist, verweist die customer id in orders nicht
+        auf die customer id in customers.
+        """
         customer_id = 0
         if np.isnan(customer_string):
             org_id = int(np.nan_to_num(customer_string))
