@@ -4,9 +4,10 @@ LOG=/var/log/bp-logs/$1.log
 BASEDIR=$(dirname "$0")/..
 PATH=/usr/local/bin:$PATH
 
-export SSL_DIR=/etc/letsencrypt/live/barberini-analytics.westeurope.cloudapp.azure.com
-if [[ -e $SSL_DIR/privkey.pem ]]
-    then export SSLON=1;
+# Enable SSL/TLS only if private key file is found on host
+SSL_CERT_DIR=/var/db-data
+if [[ -e $SSL_DIR/server.key ]]
+    then export SSL_ON=1
 fi
 
 {
