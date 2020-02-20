@@ -1,3 +1,4 @@
+import luigi
 import pandas as pd
 import requests
 import unittest
@@ -16,8 +17,9 @@ class TestFetchAppleReviews(unittest.TestCase):
         super().setUp()
         self.task = FetchAppstoreReviews()
         self.task.get_country_codes = lambda: FAKE_COUNTRY_CODES
-
+    
     def test_germany_basic(self):
+        luigi.build(self.task.requires()) # workaround
         result = self.task.fetch_for_country('DE')
         self.assertIsInstance(result, pd.DataFrame)
     
