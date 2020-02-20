@@ -19,6 +19,7 @@ class TestGomusConnection(unittest.TestCase):
         response = requests.get('https://barberini.gomus.de/', cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']), allow_redirects=False)
         self.assertEqual(response.status_code, 200)
 
+
 # Commented out until proper CI grouping is implemented again
 class TestReportFormats(unittest.TestCase):
     @patch.object(FetchGomusReport, 'output')
@@ -30,7 +31,7 @@ class TestReportFormats(unittest.TestCase):
         orders_format = '"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen","Rating"\n'
         customers_format = '"Nummer","Anrede","Vorname","Name","E-Mail","Telefon","Mobil","Fax","Sprache","Kategorie","Straße","PLZ","Stadt","Land","Typ","Erstellt am","Newsletter","Jahreskarte",""\n'
 
-        self.assertTrue(self.check_expected_format('bookings', output_target, bookings_format))
+        self.assertTrue(self.check_expected_format('bookings', output_target, bookings_format, '_nextYear'))
         self.assertTrue(self.check_expected_format('orders', output_target, orders_format, '_1day'))
         self.assertTrue(self.check_expected_format('orders', output_target, orders_format))
         self.assertTrue(self.check_expected_format('customers', output_target, customers_format))
