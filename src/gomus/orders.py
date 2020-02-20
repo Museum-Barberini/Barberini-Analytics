@@ -47,7 +47,7 @@ class ExtractOrderData(luigi.Task):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='orders', suffix='_1day')
+        return FetchGomusReport(report='orders', suffix='_7days')
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)

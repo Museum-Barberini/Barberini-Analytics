@@ -29,7 +29,7 @@ class ExtractGomusBookings(luigi.Task):
         if not bookings.empty:
             bookings['Buchung'] = bookings['Buchung'].apply(int)
             bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id, args=(self.seed,))
-            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
+            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(self.parse_int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
             bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
             bookings['daytime'] = bookings['Uhrzeit von'].apply(self.parse_daytime)
@@ -63,6 +63,11 @@ class ExtractGomusBookings(luigi.Task):
     
     def parse_daytime(self, daytime_str):
         return datetime.strptime(daytime_str, '%H:%M').time()
+
+    def parse_int(self, participants):
+        if np.isnan(participants):
+            participants = int(np.nan_to_num(participants))
+        return participants
     
     def calculate_duration(self, from_str, to_str):
         return (datetime.strptime(to_str, '%H:%M') - datetime.strptime(from_str, '%H:%M')).seconds // 60
