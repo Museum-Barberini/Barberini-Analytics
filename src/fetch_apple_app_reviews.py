@@ -28,18 +28,20 @@ class FetchAppstoreReviews(luigi.Task):
         data = []
         country_codes = self.get_country_codes()
         print()
-        for index, country_code in enumerate(country_codes, start=1):
-            try:
-                data.append(self.fetch_for_country(country_code))
-            except ValueError:
-                pass  # no data for given country code
-            except requests.HTTPError as error:
-                if error.response.status_code == 400: # not all countries are available
-                    pass
-                else:
-                    raise
-            print(f"\rFetched appstore reviews for {country_code} ({100. * index / len(country_codes)}%)", end='', flush=True)
-        print()
+        try:
+            for index, country_code in enumerate(country_codes, start=1):
+                try:
+                    data.append(self.fetch_for_country(country_code))
+                except ValueError:
+                    pass  # no data for given country code
+                except requests.HTTPError as error:
+                    if error.response.status_code == 400: # not all countries are available
+                        pass
+                    else:
+                        raise
+                print(f"\rFetched appstore reviews for {country_code} ({100. * index / len(country_codes)}%)", end='', flush=True)
+        finally:
+            print()
         ret = pd.concat(data)
         return ret.drop_duplicates(subset=['appstore_review_id'])
 

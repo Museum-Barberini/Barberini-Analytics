@@ -98,17 +98,19 @@ class FetchGoogleMapsReviews(luigi.Task):
             pageSize=page_size).execute()
         reviews = reviews + review_list['reviews']
         total_reviews = review_list['totalReviewCount']
-        print(f"Fetched {len(reviews)} out of {total_reviews} reviews", end='', flush=True) # creates the most beautiful loading line in the project! (so far)
-        
-        while 'nextPageToken' in review_list: # TODO: optimise by requesting the latest review from DB and not fetching more pages once that one is found
-            next_page_token = review_list['nextPageToken']
-            review_list = service.accounts().locations().reviews().list(
-                parent=location,
-                pageSize=page_size,
-                pageToken=next_page_token).execute()
-            reviews = reviews + review_list['reviews']
-            print(f"\rFetched {len(reviews)} out of {total_reviews} reviews", end='', flush=True)
-        print()
+        try:
+            print(f"Fetched {len(reviews)} out of {total_reviews} reviews", end='', flush=True) # creates the most beautiful loading line in the project! (so far)
+            
+            while 'nextPageToken' in review_list: # TODO: optimise by requesting the latest review from DB and not fetching more pages once that one is found
+                next_page_token = review_list['nextPageToken']
+                review_list = service.accounts().locations().reviews().list(
+                    parent=location,
+                    pageSize=page_size,
+                    pageToken=next_page_token).execute()
+                reviews = reviews + review_list['reviews']
+                print(f"\rFetched {len(reviews)} out of {total_reviews} reviews", end='', flush=True)
+        finally:
+            print()
         return reviews
     
     def extract_reviews(self, raw_reviews) -> pd.DataFrame:
