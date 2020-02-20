@@ -1,9 +1,11 @@
 import os
+
 import luigi
 import json
 from luigi.contrib.external_program import ExternalProgramTask
+
 from csv_to_db import CsvToDb
-from json_to_csv_task import JsonToCsvTask
+from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
 from gtrends_topics import GtrendsTopics
 
@@ -28,7 +30,7 @@ class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
             + [os.path.realpath(path) for path in [self.input()[1].path, self.output().path]]
 
 
-class ConvertGtrendsValues(JsonToCsvTask):
+class ConvertGtrendsValues(JsonToCsv):
     
     def requires(self):
         return FetchGtrendsValues()
@@ -51,3 +53,5 @@ class GtrendsValuesToDB(CsvToDb):
     
     def requires(self):
         return ConvertGtrendsValues()
+    
+    def run(self):

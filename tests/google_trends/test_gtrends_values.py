@@ -1,11 +1,12 @@
+import datetime as dt
+
 from unittest.mock import patch
 from luigi.mock import MockTarget
 from luigi.format import UTF8
-from task_test import DatabaseTaskTest
-import datetime as dt
 import json
 import pandas as pd
 
+from task_test import DatabaseTaskTest
 from google_trends.gtrends_values import *
 from museum_facts import MuseumFacts
 
