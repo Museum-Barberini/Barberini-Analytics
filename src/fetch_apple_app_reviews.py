@@ -7,10 +7,14 @@ import xmltodict
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+from museum_facts import MuseumFacts
 
 
 class FetchAppstoreReviews(luigi.Task):
-
+    
+    def requires(self):
+        return MuseumFacts()
+    
     def output(self):
         return luigi.LocalTarget('output/appstore_reviews.csv', format=UTF8)
     
@@ -43,9 +47,9 @@ class FetchAppstoreReviews(luigi.Task):
         return requests.get('http://country.io/names.json').json().keys()
 
     def fetch_for_country(self, country_code):
-        with open('data/barberini-facts.json') as facts_json:
-            barberini_facts = json.load(facts_json)
-            app_id = barberini_facts['ids']['apple']['appId']
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+            app_id = facts['ids']['apple']['appId']
         url = f'https://itunes.apple.com/{country_code}/rss/customerreviews/page=1/id={app_id}/sortby=mostrecent/xml'
         data_list = []
         
