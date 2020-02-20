@@ -54,4 +54,5 @@ class GtrendsValuesToDB(CsvToDb):
     def requires(self):
         return ConvertGtrendsValues()
     
-    def run(self):
+    #def run(self):
+    # TODO: Drop old table
