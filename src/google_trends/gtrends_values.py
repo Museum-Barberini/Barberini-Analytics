@@ -16,7 +16,8 @@ class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
     js_path = './src/google_trends/gtrends_values.js'
     
     def requires(self):
-        return MuseumFacts(), GtrendsTopics()
+        yield MuseumFacts()
+        yield GtrendsTopics()
     
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.json')

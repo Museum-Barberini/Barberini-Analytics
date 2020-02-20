@@ -19,7 +19,7 @@ class FetchFbPosts(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
     
-    def requires():
+    def requires(self):
         return MuseumFacts()
     
     def output(self):
@@ -169,7 +169,6 @@ class FbPostPerformanceToDB(CsvToDb):
                 "target_column": "fb_post_id"
             }
         ]
-
     
     def requires(self):
         return FetchFbPostPerformance()
