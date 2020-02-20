@@ -8,6 +8,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
