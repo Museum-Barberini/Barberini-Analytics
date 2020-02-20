@@ -19,7 +19,7 @@ class ExtractGomusBookings(luigi.Task):
     seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
     
     def requires(self):
-        return FetchGomusReport(report='bookings', suffix='_nextYear')
+        return FetchGomusReport(report='bookings', suffix='_all')
     
     def output(self):
         return luigi.LocalTarget(f'output/gomus/bookings_prepared.csv', format=UTF8)
