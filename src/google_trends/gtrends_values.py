@@ -7,7 +7,7 @@ from luigi.contrib.external_program import ExternalProgramTask
 from csv_to_db import CsvToDb
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
-from gtrends_topics import GtrendsTopics
+from .gtrends_topics import GtrendsTopics
 
 
 class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
