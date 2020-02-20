@@ -75,8 +75,6 @@ class DatabaseTaskTest(unittest.TestCase):
         super().setUp()
         create_database_if_necessary()
         self.db.setUp()
-        # copy all fake files to root and append ~ to existing ones
-        subprocess.call('cp -r tests/test_data/tests_fake_files/output . --backup'.split())
         
         facts_task = MuseumFacts()
         facts_task.run()
@@ -84,8 +82,6 @@ class DatabaseTaskTest(unittest.TestCase):
             self.facts = json.load(facts_file)
     
     def tearDown(self):
-        # restore files ending with ~ by overwriting the version without ~ 
-        subprocess.call(['bash', '-c', 'find -iname *~ | awk \'{system("bash -c \'"\'"\'file="$1" bash -c \\"mv \\\\$file \\\\${file::-1}\\"\'"\'"\'")}\''])
         super().tearDown()
         self.db.tearDown()
     
