@@ -12,7 +12,11 @@ pull:
 
 startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-	 docker-compose up --build -d --no-recreate db;\
+ifdef SSLON
+	 docker-compose -f docker-compose.yml -f docker-compose.sslon.yml up --build -d --no-recreate db;\
+else
+	 docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
+endif
 	fi;\
 	docker-compose -p ${USER} up --build -d luigi
 
