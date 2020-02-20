@@ -26,6 +26,9 @@ endif
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi
 
+shutdown-db:
+	docker-compose rm -sf db
+
 connect:
 	docker-compose -p ${USER} exec luigi bash
 
