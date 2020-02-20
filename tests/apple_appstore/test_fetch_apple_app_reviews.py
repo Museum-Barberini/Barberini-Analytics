@@ -19,7 +19,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.task.get_country_codes = lambda: FAKE_COUNTRY_CODES
     
     def test_germany_basic(self):
-        luigi.build(self.task.requires()) # workaround
+        luigi.build([self.task.requires()]) # workaround
         result = self.task.fetch_for_country('DE')
         self.assertIsInstance(result, pd.DataFrame)
     
