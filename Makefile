@@ -1,5 +1,5 @@
 # MAKEFILE
-# This is basically a script folder.
+# The targets specified in this file are mostly used like aliases.
 
 
 # ------ Internal variables ------
