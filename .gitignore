@@ -141,7 +141,4 @@ dmypy.json
 *.Rproj*
 .Rproj.user
 
-scripts/places/mybusiness.dat
-package-lock.json
-
 .vscode/
