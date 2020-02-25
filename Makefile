@@ -49,6 +49,7 @@ db-do:
 db-backup:
 	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
+# Restore the database from a dump/backup
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
 
