@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 import csv
+
 import luigi
 import pandas as pd
 import psycopg2
+from luigi.format import UTF8
+from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from luigi.format import UTF8
-from gomus.bookings_to_db import BookingsToDB
-from gomus_report import FetchGomusReport, FetchTourReservations
-from extract_gomus_data import hash_booker_id
 from set_db_connection_options import set_db_connection_options
-from xlrd import xldate_as_datetime
+
+from ._utils.extract_bookings import hash_booker_id
+from ._utils.fetch_report import FetchGomusReport, FetchTourReservations
+from .bookings import BookingsToDB
+
 
 class PublicToursToDB(CsvToDb):
 
@@ -26,13 +29,10 @@ class PublicToursToDB(CsvToDb):
         ]
 
         primary_key = 'id'
-
-        def __init__(self, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-                set_db_connection_options(self)
         
         def requires(self):
-                return ExtractPublicTourData(columns=[el[0] for el in self.columns])
+                return ExtractPublicTourData(columns=[col[0] for col in self.columns])
+
 
 class ExtractPublicTourData(luigi.Task):
         columns = luigi.parameter.ListParameter(description="Column names")
@@ -99,7 +99,7 @@ class EnsureBookingsIsRun(luigi.Task):
                                 user=self.user, password=self.password
                         )
                         cur = conn.cursor()
-                        query = 'SELECT id FROM gomus_booking WHERE category=\'Öffentliche Führung\''
+                        query = 'SELECT booking_id FROM gomus_booking WHERE category=\'Öffentliche Führung\''
                         cur.execute(query)
 
                         row = cur.fetchone()

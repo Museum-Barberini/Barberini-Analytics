@@ -6,9 +6,7 @@
 # ------ Internal variables ------
 
 SHELL := /bin/bash
-TOTALPYPATH := $(shell find ./src/ -type d | grep -v '/__pycache__' | sed '/\/\./d' | tr '\n' ':' | sed 's/:$$//')
-	# this piece of sed-art finds all directories in src (excluding pycache) to build a global namespace
-
+TOTALPYPATH := ./src/:./src/_utils/
 
 # ------ For use outside of containers ------
 
@@ -77,9 +75,11 @@ luigi-clean:
 
 # --- Testing ---
 
-test:
+test: luigi-clean
+	mkdir -p output
 	# globstar needed to recursively find all .py-files via **
-	shopt -s globstar && PYTHONPATH=$(TOTALPYPATH) python3 -m unittest tests/**/test*.py -v
+	POSTGRES_DB=barberini_test && shopt -s globstar && PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/**/test*.py -v
+	make luigi-clean
 
 python:
 	bash -c "PYTHONPATH=$${PYTHONPATH}:$(TOTALPYPATH) python3"

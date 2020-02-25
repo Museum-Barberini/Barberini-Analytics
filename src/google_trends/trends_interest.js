@@ -18,7 +18,9 @@ let interestMap = Object.entries(topics)
 
 let output = JSON.stringify(interestMap);
 
-fs.mkdir(path.dirname(args[2]), { recursive: true }, err => {if (err) throw err;});
+let dir = path.dirname(args[2]);
+if (!fs.existsSync(dir))
+    fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(args[2], output + '\n');
 
     
@@ -26,7 +28,7 @@ async function getInterestsOverTime(query) {
 	return googleTrends.interestOverTime({
 		keyword: query,
 		geo: facts.geo,
-		startTime: new Date('2017')//new Date(facts.foundingDate)
+		startTime: new Date(facts.foundingDate)
 	}).catch(error => {
         throw error;
     }).then(results => {
