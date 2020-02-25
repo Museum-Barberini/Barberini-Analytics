@@ -70,7 +70,7 @@ luigi:
 
 luigi-task: luigi-scheduler
 	mkdir -p output
-	bash -c "PYTHONPATH=$(TOTALPYPATH) luigi --module $(LMODULE) $(LTASK)"
+	bash -c "PYTHONPATH=$${PYTHONPATH}:$(TOTALPYPATH) luigi --module $(LMODULE) $(LTASK)"
 
 luigi-clean:
 	rm -rf output
