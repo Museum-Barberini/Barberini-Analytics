@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from fetch_apple_app_reviews import *
+from apple_appstore import *
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
@@ -21,14 +21,14 @@ class TestFetchAppleReviews(unittest.TestCase):
         result = self.task.fetch_for_country('DE')
         self.assertIsInstance(result, pd.DataFrame)
     
-    @patch('fetch_apple_app_reviews.requests.get')
+    @patch('apple_appstore.requests.get')
     def test_get_request_returns_bad_status_code(self, mock):
         def raise_for_all_cases():
             raise requests.HTTPError
         mock.return_value = MagicMock(raise_for_status=raise_for_all_cases)
         self.assertRaises(requests.HTTPError, self.task.fetch_for_country, 'de')
     
-    @patch('fetch_apple_app_reviews.requests.get')
+    @patch('apple_appstore.requests.get')
     def test_only_one_review_fetched(self, mock):
         
         first_return = '''<?xml version="1.0" encoding="utf-8"?>
