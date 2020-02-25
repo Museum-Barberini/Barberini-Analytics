@@ -2,10 +2,7 @@
 
 ## About
 
-**Type:** Data Analytics tool  
-**Mission:** Create an awesome dashboard for the Museum Barberini, Potsdam, to help them analyze and assess customer, advertising, and social media data!  
-**Authors:** Laura Holz, Selina Reinhard, Leon Schmidt, Georg Tennigkeit, Christoph Thiede, Tom Wollnik (bachelor project BPFN1 @ HPI).  
-**Organizations:** [Hasso Plattner Institute, Potsdam](https://hpi.de/en); [Museum Barberini](https://www.museum-barberini.com/en/); Hasso Plattner Foundation.  
+Data Analytics tool to create an awesome dashboard for the Museum Barberini, Potsdam, to help them analyze and assess customer, advertising, and social media data!  
 
 ## Installation
 
@@ -47,3 +44,7 @@ Close the session by executing:
 make shutdown
 ```
 
+## Credits
+
+**Authors:** Laura Holz, Selina Reinhard, Leon Schmidt, Georg Tennigkeit, Christoph Thiede, Tom Wollnik (bachelor project BPFN1 @ HPI).  
+**Organizations:** [Hasso Plattner Institute, Potsdam](https://hpi.de/en); [Museum Barberini](https://www.museum-barberini.com/en/); Hasso Plattner Foundation.  
