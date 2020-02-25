@@ -22,7 +22,7 @@ tbc 🙂
 #### Open the luigi webinterface
 
 ```bash
- make docker-do do='make luigi-controller'
+ make docker-do do='make luigi-scheduler'
 ```
 
 This will also start http://localhost:8082 where you can trace all running tasks.
