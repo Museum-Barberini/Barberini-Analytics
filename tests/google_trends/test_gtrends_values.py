@@ -31,8 +31,6 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         self.dump_mock_target_into_fs(topics_target)
         
         try:
-            # LATEST TODO: MockTarget does not create files needed for node.js - can we disable MockFileSystem or do we have to mock something other?
-            # LATER TODO: connection is not closed in some other tests
             self.task = FetchGtrendsValues()
             self.task.run()
         finally:

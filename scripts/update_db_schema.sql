@@ -17,4 +17,3 @@ DROP TABLE gtrends_topics;
 DROP TABLE gtrends_interests;
 DROP TABLE gtrends_topic;
 DROP TABLE gtrends_interest;
--- TODO: Update gtrends schema. We merged two tables! How to handle this here?
