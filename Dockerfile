@@ -29,3 +29,4 @@ RUN apt-get -y install nodejs
 
 COPY package.json .
 RUN npm install
+COPY . .
