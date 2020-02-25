@@ -62,7 +62,7 @@ luigi-scheduler:
 	luigid --background &
 	sleep 3 # workaround until scheduler has started
 
-luigi-restart:
+luigi-restart-scheduler:
 	sudo killall luigid
 	make luigi-scheduler
 	
