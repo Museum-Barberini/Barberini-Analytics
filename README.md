@@ -41,7 +41,7 @@ Have a look at our beautiful `Dockerfile`! To access the luigi docker, do:
 make startup connect
 ```
 
-Close the session by doing:
+Close the session by executing:
 
 ```bash
 make shutdown
