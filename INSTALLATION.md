@@ -6,7 +6,7 @@
 
 Please note that these instructions are optimized for Ubuntu, amd64. If you use a different configuration, you may need to adapt the toolchain installation (see `install_toolchain.sh`).
 
-## Let’s go!
+## Actual installation
 
 1. Clone the repository using git
 
