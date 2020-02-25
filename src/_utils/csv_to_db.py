@@ -62,6 +62,7 @@ class CsvToDb(CopyToTable):
     
     def create_table(self, connection):
         super().create_table(connection)
+        print("INFO: Create table " + self.table)
         self.create_primary_key(connection)
     
     def create_primary_key(self, connection):
