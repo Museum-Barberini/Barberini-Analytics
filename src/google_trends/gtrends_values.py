@@ -1,13 +1,15 @@
 import os
 
 import luigi
+import psycopg2
 import json
 from luigi.contrib.external_program import ExternalProgramTask
 
+from set_db_connection_options import set_db_connection_options
 from csv_to_db import CsvToDb
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
-from .gtrends_topics import GtrendsTopics
+from google_trends.gtrends_topics import GtrendsTopics
 
 
 class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
@@ -40,7 +42,14 @@ class ConvertGtrendsValues(JsonToCsv):
         return luigi.LocalTarget('output/google_trends/values.csv')
 
 
-class GtrendsValuesToDB(CsvToDb):
+class GtrendsValuesToDB(luigi.WrapperTask):
+    
+    def requires(self):
+        yield GtrendsValuesClearDB()
+        yield GtrendsValuesAddToDB()
+
+
+class GtrendsValuesAddToDB(CsvToDb):
     
     table = 'gtrends_value'
     
@@ -54,6 +63,38 @@ class GtrendsValuesToDB(CsvToDb):
     
     def requires(self):
         return ConvertGtrendsValues()
+
+
+class GtrendsValuesClearDB(luigi.WrapperTask):
+    """
+    Each time we acquire gtrends values, their scaling may have changed. Thus we need to delete the old data to avoid inconsistent scaling of the values.
+    """
     
-    #def run(self):
-    # TODO: Drop old table
+    table = 'gtrends_value'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
+
+    def requires(self):
+        return GtrendsTopics()
+    
+    def run(self):
+        with self.input().open('r') as topics_file:
+            topics = json.load(topics_file)
+        try:
+            connection = psycopg2.connect(
+                    host=self.host, database=self.database,
+                    user=self.user, password=self.password
+                )
+            query = f'''
+                DELETE FROM {self.table}
+                WHERE topic IN ({
+                    ','.join([f"'{topic}'" for topic in topics])
+                })'''
+            print('Executing query: ' + query)
+            connection.cursor().execute(query)
+            connection.commit()
+        finally:
+            if connection is not None:
+                connection.close()

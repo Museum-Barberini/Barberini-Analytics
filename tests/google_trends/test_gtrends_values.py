@@ -1,6 +1,8 @@
 import datetime as dt
+from queue import Queue
 
 from unittest.mock import patch
+import luigi
 from luigi.mock import MockTarget
 from luigi.format import UTF8
 import json
@@ -26,9 +28,8 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         topics = ['41', '42', '43']
         facts_target = self.install_mock_target(facts_mock, lambda file: json.dump(facts, file))
         topics_target = self.install_mock_target(topics_mock, lambda file: json.dump(topics, file))
-        # Let's see whether this works
-        
         self.dump_mock_target_into_fs(topics_target)
+        
         try:
             # LATEST TODO: MockTarget does not create files needed for node.js - can we disable MockFileSystem or do we have to mock something other?
             # LATER TODO: connection is not closed in some other tests
@@ -57,9 +58,67 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
             self.assertTrue(isinstance(value, int))
             self.assertTrue(0 <= value <= 100)
             self.assertTrue(0 < value, "Numbers are cool! They must be trending.")
+
+class TestGtrendsValuesToDB(DatabaseTaskTest):
     
-    def dump_mock_target_into_fs(self, mock_target):
-        # We need to bypass MockFileSystem for accessing the file from node.js
-        with open(mock_target.path, 'w') as output_file:
-            with mock_target.open('r') as input_file:
-                output_file.write(input_file.read())
+    def setUp(self):
+        super().setUp()
+        # super ugly way to ensure that the table exists
+        with open('output/google_trends/values.csv', 'w') as file:
+            file.write('topic,date,interest_value')
+        task = GtrendsValuesAddToDB()
+        task.dummy_date = 'noway'
+        task.run()
+        self.db.commit(f'''DROP TABLE table_updates''') # WORKAROUND for UniqueViolation: duplicate key value violates unique constraint "table_updates_pkey" 😭
+    
+    @patch.object(GtrendsTopics, 'run')
+    @patch.object(GtrendsTopics, 'output')
+    def test_updated_values_are_overridden(self, topics_mock, topics_run_mock):
+        topics = ['41', '42', '43']
+        topics_target = self.install_mock_target(topics_mock, lambda file: json.dump(topics, file))        
+        self.dump_mock_target_into_fs(topics_target)
+        topics_run_mock.return_value = None # don't execute this
+        self.db.commit(f'''INSERT INTO gtrends_value VALUES (
+            \'{42}\', DATE('{dt.datetime.now().strftime('%Y-%m-%d')}'), {200})''')
+        
+        self.task = GtrendsValuesToDB()
+        self.run_task(self.task)
+        
+        self.assertCountEqual([(0,)],
+            self.db.request(f'''SELECT COUNT(*) FROM gtrends_value where interest_value > 100'''))
+    
+    @patch.object(GtrendsTopics, 'run')
+    @patch.object(GtrendsTopics, 'output')
+    def test_non_updated_values_are_overridden(self, topics_mock, topics_run_mock):
+        topics = ['41', '42']
+        topics_target = self.install_mock_target(topics_mock, lambda file: json.dump(topics, file))
+        self.dump_mock_target_into_fs(topics_target)
+        topics_run_mock.return_value = None # don't execute this
+        self.db.commit(f'''INSERT INTO gtrends_value VALUES (
+            \'{43}\', DATE('{dt.datetime.now().strftime('%Y-%m-%d')}'), {200})''')
+        
+        self.task = GtrendsValuesToDB()
+        self.task.run()
+        
+        self.assertCountEqual([(1,)],
+            self.db.request(f'''SELECT COUNT(*) FROM gtrends_value where interest_value > 100'''))
+    
+    def run_task(self, task: luigi.Task):
+        """
+        Run task and all its dependencies synchronous.
+        This is probably some kind of reinvention of the wheel, but I don't know how to do this better.
+        """
+        all_tasks = Queue()
+        all_tasks.put(task)
+        requirements = []
+        while all_tasks.qsize():
+            next_task = all_tasks.get()
+            requirements.insert(0, next_task)
+            next_requirement = next_task.requires()
+            try:
+                for requirement in next_requirement:
+                    all_tasks.put(requirement)
+            except TypeError:
+                all_tasks.put(next_requirement)
+        for requirement in list(dict.fromkeys(requirements)):
+            requirement.run()

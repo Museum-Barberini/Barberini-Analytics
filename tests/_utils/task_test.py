@@ -95,3 +95,9 @@ class DatabaseTaskTest(unittest.TestCase):
             store_function(input_file)
         mock_object.return_value = mock_target
         return mock_target
+    
+    def dump_mock_target_into_fs(self, mock_target):
+        # We need to bypass MockFileSystem for accessing the file from node.js
+        with open(mock_target.path, 'w') as output_file:
+            with mock_target.open('r') as input_file:
+                output_file.write(input_file.read())
