@@ -14,7 +14,7 @@ class GTrendsInterestJson(luigi.contrib.external_program.ExternalProgramTask):
         return GTrendsTopicsJson()
     
     def output(self):
-        return luigi.LocalTarget("output/google-trends/interests.json", format=UTF8)
+        return luigi.LocalTarget("output/google_trends/interests.json", format=UTF8)
     
     def program_args(self):       
         return ['node', self.js_path] + [os.path.realpath(path) for path in [self.input().path, self.output().path]]

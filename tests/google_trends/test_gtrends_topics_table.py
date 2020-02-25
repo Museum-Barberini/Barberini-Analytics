@@ -22,7 +22,7 @@ class TestGtrendsTopicsTable(DatabaseTaskTest):
     def test(self):
         self.task = GTrendsTopicsTable()
         self.task.run()
-        csv = pd.read_csv("output/google-trends/topics.csv")
+        csv = pd.read_csv("output/google_trends/topics.csv")
         self.assertFalse(csv.empty)
         self.assertEqual(2, csv.ndim)
         self.assertListEqual(['topic_id', 'name'], list(csv.columns))

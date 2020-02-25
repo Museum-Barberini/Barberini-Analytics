@@ -14,7 +14,7 @@ class TestGtrendsInterestTable(DatabaseTaskTest):
     def test(self):
         self.task = GTrendsInterestTable()
         self.task.run()
-        csv = pd.read_csv("output/google-trends/interests.csv")
+        csv = pd.read_csv("output/google_trends/interests.csv")
         self.assertFalse(csv.empty)
         self.assertEqual(2, csv.ndim)
         self.assertCountEqual(['topicId', 'date', 'interestValue'], list(csv.columns))

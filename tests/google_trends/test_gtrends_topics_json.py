@@ -9,7 +9,7 @@ class TestGtrendsTopicsJson(DatabaseTaskTest):
     
     def test_gtrends_topics_json(self):
         self.task.run()
-        with open('output/google-trends/topics.json', 'r') as file:
+        with open('output/google_trends/topics.json', 'r') as file:
             json_string = file.read()
         self.assertTrue(json_string) # not empty
         json_dict = json.loads(json_string)

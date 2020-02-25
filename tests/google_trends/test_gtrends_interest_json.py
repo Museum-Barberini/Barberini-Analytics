@@ -23,7 +23,7 @@ class TestGtrendsInterestJson(DatabaseTaskTest):
         mock_open.side_effect = mocked_open
         
         self.task.run()
-        with open('output/google-trends/interests.json', 'r') as file:
+        with open('output/google_trends/interests.json', 'r') as file:
             json_string = file.read()
         self.assertTrue(json_string) # not empty
         json_values = json.loads(json_string)

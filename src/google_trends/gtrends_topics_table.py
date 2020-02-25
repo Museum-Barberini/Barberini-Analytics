@@ -11,7 +11,7 @@ class GTrendsTopicsTable(JsonToCsv):
         return GTrendsTopicsJson()
     
     def output(self):
-        return luigi.LocalTarget("output/google-trends/topics.csv", format=UTF8)
+        return luigi.LocalTarget("output/google_trends/topics.csv", format=UTF8)
     
     def getJson(self):
         json = super().getJson()
