@@ -1,5 +1,4 @@
 # MAKEFILE
-# Awesome Barberini Tool
 # This is basically a script folder.
 
 
