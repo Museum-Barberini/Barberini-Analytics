@@ -1,6 +1,5 @@
 # MAKEFILE
-# Awesome Barberini Tool
-# This is basically a script folder.
+# The targets specified in this file are mostly used like aliases.
 
 
 # ------ Internal variables ------
@@ -50,6 +49,7 @@ db-do:
 db-backup:
 	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
+# Restore the database from a dump/backup
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
 
@@ -62,7 +62,7 @@ luigi-scheduler:
 	luigid --background &
 	sleep 3 # workaround until scheduler has started
 
-luigi-restart:
+luigi-restart-scheduler:
 	sudo killall luigid
 	make luigi-scheduler
 	
