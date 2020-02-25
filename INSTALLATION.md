@@ -26,7 +26,7 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
    sudo scripts/install_toolchain.sh
    ```
 
-4. Set up docker and db:
+4. Set up docker network and add the current user to the `docker` user group.
 
    ```bash
    ./scripts/setup_docker.sh
