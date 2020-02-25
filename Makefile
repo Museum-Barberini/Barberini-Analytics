@@ -32,6 +32,9 @@ connect:
 docker-do:
 	docker-compose -p ${USER} exec luigi $(do)
 
+docker-clean-cache:
+	docker-compose -p ${USER} build --no-cache
+
 # --- To access postgres ---
 
 # opens a psql shell inside the database container
