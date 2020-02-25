@@ -1,5 +1,0 @@
-version: "3.7"
-
-services:
-        db:
-                command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/data/server.crt -c ssl_key_file=/var/lib/postgresql/data/server.key

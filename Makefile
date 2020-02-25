@@ -12,10 +12,12 @@ all-the-setup-stuff-for-ci: pull startup connect
 pull:
 	docker pull ubuntu && docker pull postgres
 
+# Start the container luigi. Also start the container db if it is not already running.
+# If the container db is being started, start it with ssl encryption if the file '/var/db-data/server.key'.
 startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-	 		docker-compose -f docker-compose.yml -f docker-compose.ssl_on.yml up --build -d --no-recreate db;\
+	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate db;\
 		else\
 	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
 		fi;\
