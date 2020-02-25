@@ -2,6 +2,8 @@ SHELL := /bin/bash
 
 # variables
 TOTALPYPATH := ./src/:./src/_utils/
+SSL_CERT_DIR := /var/db-data
+
 
 # from outside containers
 
@@ -11,17 +13,14 @@ pull:
 	docker pull ubuntu && docker pull postgres
 
 startup:
-ifdef SSL_ON
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-	 docker-compose -f docker-compose.yml -f docker-compose.ssl_on.yml up --build -d --no-recreate db;\
+		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
+	 		docker-compose -f docker-compose.yml -f docker-compose.ssl_on.yml up --build -d --no-recreate db;\
+		else\
+	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
+		fi;\
 	fi;\
 	docker-compose -p ${USER} up --build -d luigi
-else
-	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-	 docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
-	fi;\
-	docker-compose -p ${USER} up --build -d luigi
-endif
 
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi

@@ -4,12 +4,6 @@ LOG=/var/log/bp-logs/$1.log
 BASEDIR=$(dirname "$0")/..
 PATH=/usr/local/bin:$PATH
 
-# Enable SSL/TLS only if private key file is found on host
-SSL_CERT_DIR=/var/db-data
-if [[ -e $SSL_DIR/server.key ]]
-    then export SSL_ON=1
-fi
-
 {
 echo "================================================================================================"
 echo "Starting $1 run at [$(date +"%Y-%m-%d %H:%M")]"
