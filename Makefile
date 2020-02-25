@@ -81,3 +81,5 @@ test:
 	# globstar needed to recursively find all .py-files via **
 	shopt -s globstar && PYTHONPATH=$(TOTALPYPATH) python3 -m unittest tests/**/test*.py -v
 
+python:
+	bash -c "PYTHONPATH=$${PYTHONPATH}:$(TOTALPYPATH) python3"
