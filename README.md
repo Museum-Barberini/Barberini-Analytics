@@ -25,7 +25,7 @@ tbc 🙂
  make docker-do do='make luigi-scheduler'
 ```
 
-This will also start http://localhost:8082 where you can trace all running tasks.
+This will also start a webserver on http://localhost:8082 where you can trace all running tasks.
 
 #### Running the pipeline manually
 
