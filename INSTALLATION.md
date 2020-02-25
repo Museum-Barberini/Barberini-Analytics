@@ -20,11 +20,7 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
 
 2. Copy the `secrets` folders (not available on the internet) into `/etc`
 
-3. Set up the toolchain:
-
-   ```bash
-   sudo scripts/install_toolchain.sh
-   ```
+3. Set up the toolchain. See `scripts/install_toolchain.sh` how to do this. If you use ubuntu/amd64, you can run the script directly. Use `sudo`!
 
 4. Set up docker network and add the current user to the `docker` user group.
 
