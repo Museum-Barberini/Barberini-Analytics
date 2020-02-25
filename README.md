@@ -35,7 +35,7 @@ This will also start http://localhost:8082 where you can trace all running tasks
 
 #### Accessing the dockers
 
-Have a look at our beautiful `Dockerfile`! To access the luigi docker, do:
+Have a look at our beautiful `Makefile`! To access the luigi docker, do:
 
 ```bash
 make startup connect
