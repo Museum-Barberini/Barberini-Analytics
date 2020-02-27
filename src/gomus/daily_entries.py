@@ -81,3 +81,6 @@ class ExtractDailyEntryData(luigi.Task):
             
             with self.output().open('w') as output_csv:
                 entries_df.to_csv(output_csv, index=False, header=True)
+
+    def safe_parse_int(self, val):
+        return int(np.nan_to_num(val))

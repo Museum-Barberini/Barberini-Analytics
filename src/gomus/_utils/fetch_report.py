@@ -19,27 +19,24 @@ class FetchGomusReport(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report_name = self.report + self.suffix
-        self.refreshed = False
     
     def output(self):
         for index in self.sheet_indices:
             yield luigi.LocalTarget(f'output/gomus/{self.report_name}.{index}.csv', format=UTF8)
 
+    def requires(self):
+        if REPORT_IDS[f'{self.report_name}'] > 0: # report refreshable
+            start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
+            yield EditGomusReport(report=REPORT_IDS[self.report_name], start_at=start_time, end_at=end_time)
+
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']
         
-        if not self.refreshed and REPORT_IDS[f'{self.report_name}'] > 0: # report refreshable
-            start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
-            self.refreshed = True
-            yield EditGomusReport(report=REPORT_IDS[self.report_name], start_at=start_time, end_at=end_time)
-            """
-            print(f"Waiting {self.refresh_wait_time} seconds for the report to refresh")
-            time.sleep(self.refresh_wait_time)
-            """
         res_content = request_report(args=['-s', f'{sess_id}', '-t', f'{self.report_name}', '-l'])
         for index, target in enumerate(self.output()):
             with target.open('w') as target_csv:
                 csv_from_excel(res_content, target_csv, self.sheet_indices[index])
+
 
 class FetchEventReservations(luigi.Task):
     booking_id = luigi.parameter.IntParameter(description="The booking's index")

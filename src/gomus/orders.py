@@ -10,6 +10,7 @@ from csv_to_db import CsvToDb
 
 from ._utils.fetch_report import FetchGomusReport
 from .customers import CustomersToDB
+from set_db_connection_options import set_db_connection_options
 
 
 class OrdersToDB(CsvToDb):
@@ -39,6 +40,15 @@ class OrdersToDB(CsvToDb):
 
 class ExtractOrderData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
+
+    host     = None
+    database = None
+    user     = None
+    password = None
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
 
     def _requires(self):
         return luigi.task.flatten([
