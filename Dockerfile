@@ -15,6 +15,7 @@ RUN apt-get install -y --no-install-recommends python3.6 python3-pip python3-set
 # install python packages
 RUN pip3 install luigi pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client xmltodict numpy
 RUN pip3 install twitterscraper google-api-python-client
+RUN pip3 install coverage
 
 # install psycopg2 (incl. system dependencies)
 RUN DEBIAN_FRONTEND=noninteractive \
