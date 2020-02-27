@@ -1,8 +1,10 @@
+import io
 import json
+import os
 from datetime import datetime
 from unittest.mock import patch
 
-from google_trends.gtrends_interest_json import *
+from google_trends.gtrends_interest_json import GTrendsInterestJson
 from task_test import DatabaseTaskTest
 
 
@@ -10,29 +12,34 @@ class TestGtrendsInterestJson(DatabaseTaskTest):
     def __init__(self, methodName):
         super().__init__(methodName)
         self.task = self.isolate(GTrendsInterestJson())
-    
+
     @patch("src.google_trends.gtrends_interest_json.open")
     def test_gtrends_interests_json(self, mock_open):
         with open('data/barberini-facts.json') as facts_file:
             facts = json.load(facts_file)
         facts['foundingDate'] = '2015-01-01T00:00:00.000Z'
+
         def mocked_open(path):
-            if os.path.normpath(path) == os.path.normpath('data/barberini-facts.json'):
+            if os.path.normpath(path) == os.path.normpath(
+                    'data/barberini-facts.json'):
                 return io.StringIO(json.dumps(facts))
             return open(path)
         mock_open.side_effect = mocked_open
-        
+
         self.task.run()
         with open('output/google-trends/interests.json', 'r') as file:
             json_string = file.read()
-        self.assertTrue(json_string) # not empty
+        self.assertTrue(json_string)  # not empty
         json_values = json.loads(json_string)
-        min = datetime(2014, 12, 1) # treshold, see faked barberini-facts.json version
+        # treshold, see faked barberini-facts.json version
+        min = datetime(2014, 12, 1)
         now = datetime.now()
         for row in json_values:
-            self.assertEqual(set(['topicId', 'interestValue', 'date']), set(row.keys()))
+            self.assertEqual(
+                set(['topicId', 'interestValue', 'date']), set(row.keys()))
         for expected_id in ['1', '2']:
-            self.assertTrue(any(entry['topicId'] == expected_id for entry in json_values))
+            self.assertTrue(
+                any(entry['topicId'] == expected_id for entry in json_values))
         for entry in json_values:
             date = entry['date']
             date = datetime.strptime(date, '%Y-%m-%d')
@@ -42,4 +49,6 @@ class TestGtrendsInterestJson(DatabaseTaskTest):
             value = entry['interestValue']
             self.assertTrue(isinstance(value, int))
             self.assertTrue(0 <= value <= 100)
-            self.assertTrue(0 < value, "Barberini is cool! It must be trending.")
+            self.assertTrue(
+                0 < value,
+                "Barberini is cool! It must be trending.")

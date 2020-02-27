@@ -7,15 +7,29 @@ import luigi
 import requests
 from bs4 import BeautifulSoup
 
-from .fetch_report_helper import REPORT_IDS, REPORT_IDS_INV
+from gomus._utils.fetch_report_helper import REPORT_IDS_INV
 
-# These lists map directly to various Gomus attributes used for editing the respective reports
-ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',
-    'total_price', 'total_coupon_price', 'total_still_to_pay_price', 'is_valid',
-    'payment_status', 'payment_mode', 'is_canceled', 'source', 'cost_centre',
-    'invoiced_at', 'invoices', 'storno_invoices']
+# These lists map directly to various Gomus attributes used for editing
+# the respective reports
+ORDERS_FIELDS = [
+    'id',
+    'created_at',
+    'customer_id',
+    'customer_fullname',
+    'total_price',
+    'total_coupon_price',
+    'total_still_to_pay_price',
+    'is_valid',
+    'payment_status',
+    'payment_mode',
+    'is_canceled',
+    'source',
+    'cost_centre',
+    'invoiced_at',
+    'invoices',
+    'storno_invoices']
 ORDER_SOURCES = ['gomus', 'onlineshop', 'cashpoint', 'resellershop',
-    'resellerapi', 'widget', 'import']
+                 'resellerapi', 'widget', 'import']
 ORDERS_PAYMENT_MODES = list(range(1, 6))
 ORDERS_PAYMENT_STATUSES = [0, 10, 15, 20, 30, 40]
 
@@ -28,8 +42,11 @@ UTF8 = '✓'
 METHOD = 'put'
 INFORM_USER = 0
 
-# This task can be used to edit the type of gomus report that can be edited via forms
+# This task can be used to edit the type of gomus report that
+# can be edited via forms
 # (i.e. Order Reports, Customer Reports, Entry Reports)
+
+
 class EditGomusReport(luigi.Task):
     report = luigi.parameter.IntParameter(description="Report ID to edit")
     start_at = luigi.parameter.DateParameter(description="Start date to set")
@@ -59,27 +76,41 @@ class EditGomusReport(luigi.Task):
             self.insert_based(f'{REPORT_PARAMS}[fields][]=', ORDERS_FIELDS)
             self.add_to_body(f'{REPORT_PARAMS}[group]=')
             self.insert_export_dates()
-            self.insert_based(f'{REPORT_PARAMS}[filter[order_source]][]=', ORDER_SOURCES)
-            self.insert_based(f'{REPORT_PARAMS}[filter[payment_mode]][]=', ORDERS_PAYMENT_MODES)
-            self.insert_based(f'{REPORT_PARAMS}[filter[payment_status]][]=', ORDERS_PAYMENT_STATUSES)
+            self.insert_based(
+                f'{REPORT_PARAMS}[filter[order_source]][]=',
+                ORDER_SOURCES)
+            self.insert_based(
+                f'{REPORT_PARAMS}[filter[payment_mode]][]=',
+                ORDERS_PAYMENT_MODES)
+            self.insert_based(
+                f'{REPORT_PARAMS}[filter[payment_status]][]=',
+                ORDERS_PAYMENT_STATUSES)
 
         elif report_type == 'Customers' or report_type == 'Entries':
             self.add_to_body(f'report[report_type]=Reports::{report_type}')
 
             self.add_to_body(f'{REPORT_PARAMS}[start_at]={self.start_at} 0:00')
             self.add_to_body(f'{REPORT_PARAMS}[end_at]={self.end_at} 24:00')
-            
+
             if report_type == 'Customers':
-                self.insert_based(f'{REPORT_PARAMS}[customer_level][]=', CUSTOMER_LEVELS, add_base=False)
+                self.insert_based(
+                    f'{REPORT_PARAMS}[customer_level][]=',
+                    CUSTOMER_LEVELS,
+                    add_base=False)
 
                 only_with_annual_ticket = 0
                 uniq_by_email = 0
-                self.add_to_body(f'{REPORT_PARAMS}[only_with_annual_ticket]={only_with_annual_ticket}')
-                self.add_to_body(f'{REPORT_PARAMS}[uniq_by_email]={uniq_by_email}')
-            
+                self.add_to_body(
+                    (f'{REPORT_PARAMS}[only_with_annual_ticket]='
+                     f'{only_with_annual_ticket}'))
+                self.add_to_body(
+                    f'{REPORT_PARAMS}[uniq_by_email]={uniq_by_email}')
+
             else:
                 only_unique_visitors = 0
-                self.add_to_body(f'{REPORT_PARAMS}[only_unique_visitors]={only_unique_visitors}')
+                self.add_to_body(
+                    (f'{REPORT_PARAMS}[only_unique_visitors]='
+                     f'{only_unique_visitors}'))
 
         else:
             print("Not implemented report type")
@@ -104,15 +135,20 @@ class EditGomusReport(luigi.Task):
 
     def get_report_type(self):
         return REPORT_IDS_INV[self.report].split('_')[0].capitalize()
-    
+
     def insert_based(self, base, values, add_base=True):
-        if add_base: self.add_to_body(base)
+        if add_base:
+            self.add_to_body(base)
         for value in values:
             self.add_to_body(base + str(value))
 
     def insert_export_dates(self):
         base = f'{REPORT_PARAMS}[filter]'
-        modes = ['created_between', 'updated_between', 'reserved_until_between', 'canceled_between']
+        modes = [
+            'created_between',
+            'updated_between',
+            'reserved_until_between',
+            'canceled_between']
         for mode in modes[:2]:
             self.add_to_body(f'{base}[{mode}][start_at]={self.start_at}')
             self.add_to_body(f'{base}[{mode}][end_at]={self.end_at}')
@@ -122,15 +158,22 @@ class EditGomusReport(luigi.Task):
             self.add_to_body(f'{base}[{mode}][end_at]=')
 
     def get(self, url):
-        return requests.get(url, cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']))
+        return requests.get(url, cookies=dict(
+            _session_id=os.environ['GOMUS_SESS_ID']))
 
     def post(self):
-        return requests.post(f'{BASE_URL}/admin/reports/{self.report}',
-            self.__body.encode(encoding='utf-8'), cookies=dict(_session_id=
-            os.environ['GOMUS_SESS_ID']), headers={'X-CSRF-Token': self.csrf_token})
+        return requests.post(
+            f'{BASE_URL}/admin/reports/{self.report}',
+            self.__body.encode(
+                encoding='utf-8'),
+            cookies=dict(
+                _session_id=os.environ['GOMUS_SESS_ID']),
+            headers={
+                'X-CSRF-Token': self.csrf_token})
 
     def wait_for_gomus(self):
-        # idea: ensure report is fully refreshed by polling every 5 seconds until response is ok
+        # idea: ensure report is fully refreshed by polling every 5 seconds
+        # until response is ok
         res = self.get(f'{BASE_URL}/admin/reports/{self.report}')
         while not res.ok or "Bitte warten" in res.text:
             time.sleep(5)
