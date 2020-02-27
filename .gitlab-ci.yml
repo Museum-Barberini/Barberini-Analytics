@@ -1,6 +1,12 @@
 image: docker:latest
 
+stages:
+  - lint
+  - build
+  - test
+
 lint:
+  stage: lint 
   script:
     - pip3 install flake8 --user
     - flake8 -v --show-source .
