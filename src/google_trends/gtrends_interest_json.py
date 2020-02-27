@@ -1,12 +1,13 @@
 import os
 
 import luigi
+from luigi.contrib.external_program import ExternalProgramTask
 from luigi.format import UTF8
 
 from google_trends.gtrends_topics_json import GTrendsTopicsJson
 
 
-class GTrendsInterestJson(luigi.contrib.external_program.ExternalProgramTask):
+class GTrendsInterestJson(ExternalProgramTask):
     js_path = "./src/google_trends/trends_interest.js"
 
     def requires(self):
