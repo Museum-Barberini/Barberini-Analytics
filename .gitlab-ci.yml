@@ -1,15 +1,9 @@
 image: docker:latest
 
 stages:
-  - lint
   - build
   - test
-
-lint:
-  stage: lint 
-  script:
-    - python3 -m pip install flake8 --user
-    - python3 -m flake8 -v --show-source .
+  - lint
 
 build:
   stage: build
@@ -24,3 +18,10 @@ test:
     - make startup
     - docker exec gitlab-runner-luigi make test  
     - make shutdown
+
+lint:
+  stage: lint 
+  script:
+    - python3 -m pip install flake8 --user
+    - python3 -m flake8 -v --show-source .
+
