@@ -8,8 +8,8 @@ stages:
 lint:
   stage: lint 
   script:
-    - pip3 install flake8 --user
-    - flake8 -v --show-source .
+    - python3 -m pip install flake8 --user
+    - python3 -m flake8 -v --show-source .
 
 build:
   stage: build
