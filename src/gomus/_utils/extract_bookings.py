@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
-from .fetch_report import FetchGomusReport
+from gomus._utils.fetch_report import FetchGomusReport
 
 
 def hash_booker_id(email, seed=666):
@@ -43,7 +43,8 @@ class ExtractGomusBookings(luigi.Task):
 
             # order_date and language are added by scraper
         else:
-            # manually append "daytime" and "Dauer" to ensure pandas doesn't crash
+            # manually append "daytime" and "Dauer" to ensure pandas
+            # doesn't crash
             # even though nothing will be added
             bookings['daytime'] = 0
             bookings['Dauer'] = 0

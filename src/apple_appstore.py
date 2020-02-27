@@ -30,12 +30,14 @@ class FetchAppstoreReviews(luigi.Task):
             except ValueError:
                 pass  # no data for given country code
             except requests.HTTPError as error:
-                if error.response.status_code == 400:  # not all countries are available
+                # not all countries are available
+                if error.response.status_code == 400:
                     pass
                 else:
                     raise
             print(
-                f"\rFetched appstore reviews for {country_code} ({100. * index / len(country_codes)}%)",
+                f"\rFetched appstore reviews for {country_code} \
+                    ({100. * index / len(country_codes)}%)",
                 end='',
                 flush=True)
         print()
@@ -49,7 +51,8 @@ class FetchAppstoreReviews(luigi.Task):
         with open('data/barberini-facts.json') as facts_json:
             barberini_facts = json.load(facts_json)
             app_id = barberini_facts['ids']['apple']['appId']
-        url = f'https://itunes.apple.com/{country_code}/rss/customerreviews/page=1/id={app_id}/sortby=mostrecent/xml'
+        url = f'https://itunes.apple.com/{country_code}/rss/customerreviews/\
+            page=1/id={app_id}/sortby=mostrecent/xml'
         data_list = []
 
         while url is not None:
@@ -79,8 +82,9 @@ class FetchAppstoreReviews(luigi.Task):
         if isinstance(entries, dict):
             entries = [entries]
         data = [{'appstore_review_id': item['id'],
-                 'text': self.find_first_conditional_tag(item['content'],
-                                                         lambda each: each['@type'] == 'text')['#text'],
+                 'text': self.find_first_conditional_tag(
+                     item['content'],
+                     lambda each: each['@type'] == 'text')['#text'],
                  'rating': item['im:rating'],
                  'app_version': item['im:version'],
                  'vote_count': item['im:voteCount'],
@@ -90,7 +94,8 @@ class FetchAppstoreReviews(luigi.Task):
 
         # read <link rel="next"> which contains the link to the next page
         next_page_url = self.find_first_conditional_tag(
-            response_content['link'], lambda each: each['@rel'] == 'next')['@href']
+            response_content['link'],
+            lambda each: each['@rel'] == 'next')['@href']
 
         return data, next_page_url
 

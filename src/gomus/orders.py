@@ -7,9 +7,8 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-
-from ._utils.fetch_report import FetchGomusReport
-from .customers import CustomersToDB
+from gomus._utils.fetch_report import FetchGomusReport
+from gomus.customers import CustomersToDB
 
 
 class OrdersToDB(CsvToDb):
@@ -89,7 +88,8 @@ class ExtractOrderData(luigi.Task):
             )
 
             cur = conn.cursor()
-            query = f'SELECT customer_id FROM gomus_customer WHERE gomus_id = {org_id}'
+            query = f'SELECT customer_id FROM gomus_customer WHERE \
+                gomus_id = {org_id}'
             cur.execute(query)
 
             customer_row = cur.fetchone()
@@ -97,7 +97,7 @@ class ExtractOrderData(luigi.Task):
                 customer_id = customer_row[0]
             else:
                 pass
-                #print("Error: Customer ID not found in Database")
+                # print("Error: Customer ID not found in Database")
                 # This happens often atm, because only customers
                 # who registered during the last 7 days are known
         except psycopg2.DatabaseError as error:

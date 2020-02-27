@@ -8,7 +8,8 @@ import requests
 import xlrd
 
 # This dict maps 'report_types' to 'REPORT_IDS'
-# Data sheets that don't require a report to be generated or refreshed have ids <= 0
+# Data sheets that don't require a report to be generated or
+# refreshed have ids <= 0
 # key format: 'type_timespan' (e.g. 'customers_7days')
 REPORT_IDS = {
     'customers_7days': 1285,
@@ -84,7 +85,8 @@ def parse_arguments(args):
 def parse_timespan(timespan):
     today = datetime.date.today()
     end_time = today - datetime.timedelta(days=1)
-    if timespan == '7days':  # grab everything from yesterday till a week before
+    if timespan == '7days':
+        # grab everything from yesterday till a week before
         start_time = end_time - datetime.timedelta(weeks=1)
     elif timespan == '1month':
         start_time = end_time - datetime.timedelta(days=30)
@@ -149,7 +151,8 @@ def request_report(args=sys.argv[1:]):
 
     print(f"Working with report '{report_parts[0]}.xlsx'")
 
-    if report_id > 0:  # Work with the kind of report that is generated and maintained
+    # Work with the kind of report that is generated and maintained
+    if report_id > 0:
         base_url += f'/admin/reports/{report_id}'
 
         if args.action == 'refresh':

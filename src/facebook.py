@@ -4,7 +4,6 @@ import os
 
 import luigi
 import pandas as pd
-import psycopg2
 import requests
 from luigi.format import UTF8
 
@@ -30,7 +29,8 @@ class FetchFbPosts(luigi.Task):
 
         posts = []
 
-        url = f"https://graph.facebook.com/{page_id}/posts?access_token={access_token}"
+        url = f"https://graph.facebook.com/{page_id}/posts?access_token=\
+            {access_token}"
 
         response = requests.get(url)
         response.raise_for_status()
@@ -80,7 +80,10 @@ class FetchFbPostPerformance(luigi.Task):
             post_id = df['fb_post_id'][index]
             # print(f"### Facebook - loading performance data for post
             # {str(post_id)} ###")
-            url = f"https://graph.facebook.com/{post_id}/insights?access_token={access_token}&metric=post_reactions_by_type_total,post_activity_by_action_type,post_clicks_by_type,post_negative_feedback"
+            url = f"https://graph.facebook.com/{post_id}/insights?\
+                access_token={access_token}&metric=\
+                post_reactions_by_type_total,post_activity_by_action_type,\
+                post_clicks_by_type,post_negative_feedback"
             response = requests.get(url)
             response.raise_for_status()
 
@@ -112,7 +115,8 @@ class FetchFbPostPerformance(luigi.Task):
             post_perf["other_clicks"] = int(clicks.get('other clicks', 0))
 
             # negative feedback (only one field)
-            post_perf["negative_feedback"] = clicks = response_content['data'][3]['values'][0]['value']
+            post_perf["negative_feedback"] = clicks = \
+                response_content['data'][3]['values'][0]['value']
 
             performances.append(post_perf)
 
@@ -161,13 +165,10 @@ class FbPostPerformanceToDB(CsvToDb):
 
     primary_key = ('fb_post_id', 'time_stamp')
 
-    foreign_keys = [
-        {
-            "origin_column": "fb_post_id",
-            "target_table": "fb_post",
-            "target_column": "fb_post_id"
-        }
-    ]
+    foreign_keys = [{
+        "origin_column": "fb_post_id",
+        "target_table": "fb_post",
+        "target_column": "fb_post_id"}]
 
     def requires(self):
         return FetchFbPostPerformance()

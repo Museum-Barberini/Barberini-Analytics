@@ -19,7 +19,8 @@ class FetchGoogleMapsReviews(luigi.Task):
         default='secret_files/google_gmb_client_secret.json')
     is_interactive = luigi.BoolParameter(default=sys.stdin.isatty())
     scopes = ['https://www.googleapis.com/auth/business.manage']
-    google_gmb_discovery_url = 'https://developers.google.com/my-business/samples/mybusiness_google_rest_v4p5.json'
+    google_gmb_discovery_url = 'https://developers.google.com/my-business/\
+        samples/mybusiness_google_rest_v4p5.json'
 
     api_service_name = 'mybusiness'
     api_version = 'v4'
@@ -60,10 +61,12 @@ class FetchGoogleMapsReviews(luigi.Task):
         storage = Storage(self.token_cache)
         credentials = storage.get()
 
-        if credentials is None:  # Access token missing or invalid, we need to require a new one
+        # Access token missing or invalid, we need to require a new one
+        if credentials is None:
             if not self.is_interactive:
                 raise Exception(
-                    "ERROR: No valid credentials for google maps access and no interactive shell to perform login, aborting!")
+                    "ERROR: No valid credentials for google maps access and \
+                        no interactive shell to perform login, aborting!")
             with open(self.client_secret) as client_secret:
                 secret = json.load(client_secret)['installed']
             flow = oauth2client.client.OAuth2WebServerFlow(
@@ -88,7 +91,8 @@ class FetchGoogleMapsReviews(luigi.Task):
 
     """
     the google-api is based on resources that contain other resources
-    an authenticated user has account(s), an accounts contains locations and a location contains reviews (which we need to request one  by one)
+    an authenticated user has account(s), an accounts contains locations and a
+    location contains reviews (which we need to request one  by one)
     """
 
     def fetch_raw_reviews(self, service, page_size=100):
@@ -97,12 +101,15 @@ class FetchGoogleMapsReviews(luigi.Task):
         # in almost all cases one only has access to one account
         account = account_list['accounts'][0]['name']
 
-        # get location identifier of the first location available to this account
+        # get location identifier of the first location
+        # available to this account
         # it seems like this identifier is unique per user
-        location_list = service.accounts().locations().list(parent=account).execute()
+        location_list = service.accounts().locations()\
+            .list(parent=account).execute()
         if len(location_list['locations']) == 0:
             raise Exception(
-                "ERROR: This user seems to not have access to any google location, unable to fetch reviews")
+                "ERROR: This user seems to not have access to any google \
+                    location, unable to fetch reviews")
         location = location_list['locations'][0]['name']
 
         # get reviews for that location
@@ -118,7 +125,9 @@ class FetchGoogleMapsReviews(luigi.Task):
             end='',
             flush=True)
 
-        while 'nextPageToken' in review_list:  # TODO: optimise by requesting the latest review from DB and not fetching more pages once that one is found
+        # TODO: optimise by requesting the latest
+        # review from DB and not fetching more pages once that one is found
+        while 'nextPageToken' in review_list:
             next_page_token = review_list['nextPageToken']
             review_list = service.accounts().locations().reviews().list(
                 parent=location,

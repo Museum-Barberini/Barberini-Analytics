@@ -10,8 +10,8 @@ from xlrd import xldate_as_datetime
 from csv_to_db import CsvToDb
 from set_db_connection_options import set_db_connection_options
 
-from ._utils.extract_bookings import hash_booker_id
-from ._utils.fetch_report import FetchGomusReport, FetchTourReservations
+from gomus._utils.extract_bookings import hash_booker_id
+from gomus._utils.fetch_report import FetchTourReservations
 from .bookings import BookingsToDB
 
 
@@ -102,7 +102,8 @@ class EnsureBookingsIsRun(luigi.Task):
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
-            query = 'SELECT booking_id FROM gomus_booking WHERE category=\'Öffentliche Führung\''
+            query = 'SELECT booking_id FROM gomus_booking WHERE \
+                category=\'Öffentliche Führung\''
             cur.execute(query)
 
             row = cur.fetchone()

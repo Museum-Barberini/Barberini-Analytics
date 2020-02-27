@@ -1,5 +1,4 @@
 import csv
-import datetime as dt
 import os
 import re
 import time
@@ -7,7 +6,6 @@ import time
 import dateparser
 import luigi
 import pandas as pd
-import psycopg2
 import requests
 from luigi.format import UTF8
 from lxml import html
@@ -51,7 +49,7 @@ class GomusScraperTask(luigi.Task):
         try:
             return html.tostring(base_html.xpath(
                 xpath)[0], method='text', encoding="unicode")
-        except IndexError as err:
+        except IndexError:
             return ""
 
 
@@ -72,7 +70,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             booking_id = row['booking_id']
             booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
             print(
-                f"requesting booking details for id: {str(booking_id)} ({i+1}/{row_count})")
+                f"requesting booking details for id: \
+                    {str(booking_id)} ({i+1}/{row_count})")
             res_details = self.polite_get(booking_url, cookies=self.cookies)
 
             tree_details = html.fromstring(res_details.text)
@@ -83,9 +82,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 '//body/div[2]/div[2]/div[3]/div[4]/div[2]/div[1]/div[3]')[0]
 
             # Order Date
+            # .strip() removes \n in front of and behind string
             raw_order_date = self.extract_from_html(
                 booking_details,
-                'div[1]/div[2]/small/dl/dd[2]').strip()  # removes \n in front of and behind string
+                'div[1]/div[2]/small/dl/dd[2]').strip()
             bookings.at[i, 'order_date'] = dateparser.parse(raw_order_date)
 
             # Language
@@ -117,7 +117,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 'valid',
                 'paid',
                 'origin'])
-        # this array is kind of unnecessary, but currently required by ExtractOrderData()
+        # this array is kind of unnecessary, but currently
+        # required by ExtractOrderData()
         # the design of that task requiring a column-array is also
         # questionable, so this line may change later on
 
@@ -133,12 +134,14 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         for i in range(len(order_ids)):
             url = self.base_url + "/admin/orders/" + str(order_ids[i])
             print(
-                f"requesting order details for id: {order_ids[i]} ({i+1} out of {len(order_ids)})")
+                f"requesting order details for id: \
+                    {order_ids[i]} ({i+1} out of {len(order_ids)})")
             res_order = self.polite_get(url, self.cookies)
             tree_order = html.fromstring(res_order.text)
 
             tree_details = tree_order.xpath(
-                '//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div/div/div[2]')[0]
+                '//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/\
+                    div/div/div[2]')[0]
 
             # every other td contains the information of an article in the
             # order
@@ -172,7 +175,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 if not len(raw_date_re) == 0:
                     raw_date = raw_date_re[0]
                 else:
-                    raw_date = '1.1.1900'  # we would need something to mark an invalid / nonexistent date
+                    # we need something to mark an
+                    # invalid / nonexistent date
+                    raw_date = '1.1.1900'
                 new_article["date"] = dateparser.parse(raw_date)
 
                 new_article["quantity"] = int(

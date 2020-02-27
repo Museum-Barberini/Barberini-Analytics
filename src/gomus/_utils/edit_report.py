@@ -7,7 +7,7 @@ import luigi
 import requests
 from bs4 import BeautifulSoup
 
-from .fetch_report_helper import REPORT_IDS, REPORT_IDS_INV
+from gomus._utils.fetch_report_helper import REPORT_IDS_INV
 
 # These lists map directly to various Gomus attributes used for editing
 # the respective reports
@@ -42,7 +42,8 @@ UTF8 = '✓'
 METHOD = 'put'
 INFORM_USER = 0
 
-# This task can be used to edit the type of gomus report that can be edited via forms
+# This task can be used to edit the type of gomus report that
+# can be edited via forms
 # (i.e. Order Reports, Customer Reports, Entry Reports)
 
 
@@ -100,14 +101,16 @@ class EditGomusReport(luigi.Task):
                 only_with_annual_ticket = 0
                 uniq_by_email = 0
                 self.add_to_body(
-                    f'{REPORT_PARAMS}[only_with_annual_ticket]={only_with_annual_ticket}')
+                    f'{REPORT_PARAMS}[only_with_annual_ticket]=\
+                        {only_with_annual_ticket}')
                 self.add_to_body(
                     f'{REPORT_PARAMS}[uniq_by_email]={uniq_by_email}')
 
             else:
                 only_unique_visitors = 0
                 self.add_to_body(
-                    f'{REPORT_PARAMS}[only_unique_visitors]={only_unique_visitors}')
+                    f'{REPORT_PARAMS}[only_unique_visitors]=\
+                        {only_unique_visitors}')
 
         else:
             print("Not implemented report type")

@@ -49,7 +49,8 @@ class ExtractDailyEntryData(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/{"expected_" if self.expected else ""}daily_entries.csv',
+            f'output/gomus/{"expected_" if self.expected else ""}\
+                daily_entries.csv',
             format=UTF8)
 
     def run(self):
@@ -78,8 +79,8 @@ class ExtractDailyEntryData(luigi.Task):
                     entries_df.at[row_index, 'ticket'] = row['Ticket']
 
                     time = datetime.time(hour=i)
-                    entries_df.at[row_index, 'datetime'] = datetime.datetime.combine(
-                        date, time)
+                    entries_df.at[row_index, 'datetime'] = \
+                        datetime.datetime.combine(date, time)
 
                     # Handle different hour formats for expected and actual
                     # entries

@@ -1,7 +1,6 @@
 import os
 
 import luigi
-from luigi.contrib.external_program import ExternalProgramTask
 from luigi.format import UTF8
 
 from google_trends.gtrends_topics_json import GTrendsTopicsJson

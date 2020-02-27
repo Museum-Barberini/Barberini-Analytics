@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-from datetime import datetime
-
 import luigi
 import mmh3
-import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
@@ -86,5 +82,5 @@ class ExtractCustomerData(luigi.Task):
 
     def cut_decimal_digits(self, post_string):
         if len(post_string) >= 2:
-            return post_string[:-
-                               2] if post_string[-2:] == '.0' else post_string
+            return post_string[:-2] if post_string[-2:] == '.0' else \
+                post_string

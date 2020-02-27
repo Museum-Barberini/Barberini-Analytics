@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-import luigi
-
 from csv_to_db import CsvToDb
-
-from ._utils.scrape_gomus import ScrapeGomusOrderContains
+from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
 
 
 class OrderContainsToDB(CsvToDb):

@@ -3,7 +3,6 @@ import json
 
 import luigi
 import pandas as pd
-import psycopg2
 import twitterscraper as ts
 from luigi.format import UTF8
 
@@ -32,24 +31,25 @@ class FetchTwitter(luigi.Task):
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
+    """
+    def get_latest_timestamp(self):
 
-    # def get_latest_timestamp(self):
-    #
-    #	try:
-    #		conn = psycopg2.connect(
-    #			host=self.host, database=self.database,
-    #			user=self.user, password=self.password
-    #		)
-    #		cur = conn.cursor()
-    #		cur.execute(f"SELECT MAX(timestamp) FROM {self.table}")
-    #		return cur.fetchone()[0] or self.min_timestamp
-    #		conn.close()
-    #
-    #	except psycopg2.DatabaseError as error:
-    #		print(error)
-    #		if conn is not None:
-    #			conn.close()
-    #		return self.min_timestamp
+        try:
+            conn = psycopg2.connect(
+                host=self.host, database=self.database,
+                user=self.user, password=self.password
+            )
+            cur = conn.cursor()
+            cur.execute(f"SELECT MAX(timestamp) FROM {self.table}")
+            return cur.fetchone()[0] or self.min_timestamp
+            conn.close()
+
+        except psycopg2.DatabaseError as error:
+            print(error)
+            if conn is not None:
+                conn.close()
+            return self.min_timestamp
+    """
 
 
 class ExtractTweets(luigi.Task):

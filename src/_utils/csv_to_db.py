@@ -12,12 +12,13 @@ class CsvToDb(CopyToTable):
     """
     Copies a depended csv file into the a central database.
     Subclasses have to override columns, primary_key and requires().
-    NOTE that you will need to drop or manually alter an existing table if you change its schema.
+    NOTE that you will need to drop or manually alter an existing table if
+    you change its schema.
     """
 
     @property
     def primary_key(self):
-        raise NotImplemented()
+        raise NotImplementedError
 
     sql_file_path_pattern = luigi.Parameter(
         default='src/_utils/sql_scripts/{0}.sql')
