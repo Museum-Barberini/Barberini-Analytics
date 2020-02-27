@@ -1,17 +1,10 @@
 image: docker:latest
 
-stages:
-  - build
-  - test
-  - coverage
-
 build:
-  stage: build
   script:
     - docker build -t test .
 
 test:
-  stage: test
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
@@ -20,13 +13,11 @@ test:
     - make shutdown
 
 lint:
-  stage: test
   script:
     - python3 -m pip install flake8 --user
     - python3 -m flake8 -v --show-source .
 
 coverage:
-  stage: coverage
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
