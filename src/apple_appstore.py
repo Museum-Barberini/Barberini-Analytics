@@ -78,16 +78,15 @@ class FetchAppstoreReviews(luigi.Task):
 
         if isinstance(entries, dict):
             entries = [entries]
-        data = [{
-            'appstore_review_id': item['id'],
-            'text': self.find_first_conditional_tag(item['content'], lambda each: each['@type'] == 'text')['#text'],
-            'rating': item['im:rating'],
-            'app_version': item['im:version'],
-            'vote_count': item['im:voteCount'],
-            'vote_sum': item['im:voteSum'],
-            'title': item['title'],
-            'date': item['updated']
-        } for item in entries]
+        data = [{'appstore_review_id': item['id'],
+                 'text': self.find_first_conditional_tag(item['content'],
+                                                         lambda each: each['@type'] == 'text')['#text'],
+                 'rating': item['im:rating'],
+                 'app_version': item['im:version'],
+                 'vote_count': item['im:voteCount'],
+                 'vote_sum': item['im:voteSum'],
+                 'title': item['title'],
+                 'date': item['updated']} for item in entries]
 
         # read <link rel="next"> which contains the link to the next page
         next_page_url = self.find_first_conditional_tag(

@@ -42,8 +42,14 @@ class ExtractEventData(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.events_df = None
-        self.categories = ['Öffentliche Führung', 'Event', 'Gespräch', 'Kinder-Workshop',
-                           'Konzert', 'Lesung', 'Vortrag']
+        self.categories = [
+            'Öffentliche Führung',
+            'Event',
+            'Gespräch',
+            'Kinder-Workshop',
+            'Konzert',
+            'Lesung',
+            'Vortrag']
 
     def requires(self):
         for category in self.categories:
@@ -117,7 +123,7 @@ class EnsureBookingsIsRun(luigi.Task):
             row = cur.fetchone()
             while row is not None:
                 event_id = row[0]
-                if not event_id in self.row_list:
+                if event_id not in self.row_list:
                     approved = yield FetchEventReservations(event_id, 0)
                     cancelled = yield FetchEventReservations(event_id, 1)
                     self.output_list.append(approved)

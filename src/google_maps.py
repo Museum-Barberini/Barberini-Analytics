@@ -80,9 +80,11 @@ class FetchGoogleMapsReviews(luigi.Task):
         return credentials
 
     def load_service(self, credentials) -> googleapiclient.discovery.Resource:
-        return googleapiclient.discovery.build(self.api_service_name, self.api_version,
-                                               credentials=credentials,
-                                               discoveryServiceUrl=self.google_gmb_discovery_url)
+        return googleapiclient.discovery.build(
+            self.api_service_name,
+            self.api_version,
+            credentials=credentials,
+            discoveryServiceUrl=self.google_gmb_discovery_url)
 
     """
     the google-api is based on resources that contain other resources

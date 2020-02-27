@@ -59,7 +59,8 @@ class FetchEventReservations(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/reservations/reservations_{self.booking_id}.{self.status}.csv', format=UTF8)
+            f'output/gomus/reservations/reservations_{self.booking_id}.{self.status}.csv',
+            format=UTF8)
 
     def run(self):
         url = f'https://barberini.gomus.de/bookings/{self.booking_id}/seats.xlsx'

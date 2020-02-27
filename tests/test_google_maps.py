@@ -22,7 +22,8 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
 
     def test_load_credentials_missing(self):
         self.task = FetchGoogleMapsReviews(
-            token_cache=self.task.token_cache + ".iamafilepaththathopefullydoesnotexist",
+            token_cache=self.task.token_cache +
+            ".iamafilepaththathopefullydoesnotexist",
             is_interactive=False)
         with self.assertRaises(Exception) as context:
             with warnings.catch_warnings():

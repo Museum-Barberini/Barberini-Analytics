@@ -75,11 +75,16 @@ class TestFetchAppleReviews(unittest.TestCase):
 
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
-        self.assertListEqual(
-            ['appstore_review_id', 'text', 'rating',
-             'app_version', 'vote_count', 'vote_sum', 'title', 'date', 'country_code'],
-            list(result.columns)
-        )
+        self.assertListEqual(['appstore_review_id',
+                              'text',
+                              'rating',
+                              'app_version',
+                              'vote_count',
+                              'vote_sum',
+                              'title',
+                              'date',
+                              'country_code'],
+                             list(result.columns))
 
     @patch.object(FetchAppstoreReviews, 'fetch_for_country')
     def test_all_countries(self, mock):

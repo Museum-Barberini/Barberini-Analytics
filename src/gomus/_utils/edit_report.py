@@ -11,10 +11,23 @@ from .fetch_report_helper import REPORT_IDS, REPORT_IDS_INV
 
 # These lists map directly to various Gomus attributes used for editing
 # the respective reports
-ORDERS_FIELDS = ['id', 'created_at', 'customer_id', 'customer_fullname',
-                 'total_price', 'total_coupon_price', 'total_still_to_pay_price', 'is_valid',
-                 'payment_status', 'payment_mode', 'is_canceled', 'source', 'cost_centre',
-                 'invoiced_at', 'invoices', 'storno_invoices']
+ORDERS_FIELDS = [
+    'id',
+    'created_at',
+    'customer_id',
+    'customer_fullname',
+    'total_price',
+    'total_coupon_price',
+    'total_still_to_pay_price',
+    'is_valid',
+    'payment_status',
+    'payment_mode',
+    'is_canceled',
+    'source',
+    'cost_centre',
+    'invoiced_at',
+    'invoices',
+    'storno_invoices']
 ORDER_SOURCES = ['gomus', 'onlineshop', 'cashpoint', 'resellershop',
                  'resellerapi', 'widget', 'import']
 ORDERS_PAYMENT_MODES = list(range(1, 6))
@@ -146,8 +159,14 @@ class EditGomusReport(luigi.Task):
             _session_id=os.environ['GOMUS_SESS_ID']))
 
     def post(self):
-        return requests.post(f'{BASE_URL}/admin/reports/{self.report}',
-                             self.__body.encode(encoding='utf-8'), cookies=dict(_session_id=os.environ['GOMUS_SESS_ID']), headers={'X-CSRF-Token': self.csrf_token})
+        return requests.post(
+            f'{BASE_URL}/admin/reports/{self.report}',
+            self.__body.encode(
+                encoding='utf-8'),
+            cookies=dict(
+                _session_id=os.environ['GOMUS_SESS_ID']),
+            headers={
+                'X-CSRF-Token': self.csrf_token})
 
     def wait_for_gomus(self):
         # idea: ensure report is fully refreshed by polling every 5 seconds

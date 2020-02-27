@@ -42,12 +42,15 @@ class ExtractDailyEntryData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return FetchGomusReport(report='entries', suffix='_1day', sheet_indices=[
-                                0, 1] if not self.expected else [2, 3], refresh_wait_time=20)
+        return FetchGomusReport(
+            report='entries', suffix='_1day', sheet_indices=[
+                0, 1] if not self.expected else [
+                2, 3], refresh_wait_time=20)
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/{"expected_" if self.expected else ""}daily_entries.csv', format=UTF8)
+            f'output/gomus/{"expected_" if self.expected else ""}daily_entries.csv',
+            format=UTF8)
 
     def run(self):
         # get date from first sheet
