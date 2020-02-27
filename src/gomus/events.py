@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import csv
 
 import luigi
@@ -110,6 +109,12 @@ class EnsureBookingsIsRun(luigi.Task):
         self.row_list = []
 
     def run(self):
+        # Enforce the generator to evaluate completely so the task is
+        # marked as complete before returning new dependencies
+        # LATEST TODO: Re-run pipeline and see whether this works.
+        return [dep for dep in list(self._run())]
+
+    def _run(self):
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
@@ -130,7 +135,6 @@ class EnsureBookingsIsRun(luigi.Task):
                     self.output_list.append(cancelled)
                     self.row_list.append(event_id)
                 row = cur.fetchone()
-
             self.is_complete = True
 
         finally:
