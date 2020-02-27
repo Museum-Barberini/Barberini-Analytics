@@ -5,7 +5,7 @@ import yaml
 
 
 def set_db_connection_options(task: luigi.Task) -> None:
-    """ 
+    """
     Set the attributes host, database, user, and password to
     the values given in the etc/secrets/database.env file for the given task.
     Modifies the task in place.
@@ -19,7 +19,7 @@ def set_db_connection_options(task: luigi.Task) -> None:
                 set_db_connection_options(self)
 
         Please note that if the class you are modifying is a subclass
-        of luigi.contrib.postgres.CopyToTable you need to declare the 
+        of luigi.contrib.postgres.CopyToTable you need to declare the
         attributes host, database, user, and password outside of __init__.
         You can do so with the following piece of code:
 

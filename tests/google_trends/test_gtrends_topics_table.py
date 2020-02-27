@@ -8,17 +8,17 @@ class TestGtrendsTopicsTable(DatabaseTaskTest):
     def __init__(self, methodName):
         super().__init__(methodName)
         self.task = self.isolate(GTrendsTopicsTable())
-    
+
     def test_getJson(self):
         self.task = GTrendsTopicsTable()
         actual = self.task.getJson()
-        
+
         expected = [
             {'topic_id': '1', 'name': "one"},
             {'topic_id': '2', 'name': "two"}
         ]
         self.assertEqual(actual, expected)
-    
+
     def test(self):
         self.task = GTrendsTopicsTable()
         self.task.run()
@@ -30,4 +30,4 @@ class TestGtrendsTopicsTable(DatabaseTaskTest):
 
 class TestGtrendsTopicsToDB(DatabaseTaskTest):
     def test_topicsToDB(self):
-        GtrendsTopicsToDB() # shouldnt raise
+        GtrendsTopicsToDB()  # shouldnt raise

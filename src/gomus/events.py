@@ -29,20 +29,21 @@ class EventsToDB(CsvToDb):
     ]
 
     primary_key = 'id'
-        
+
     def requires(self):
         return ExtractEventData(columns=[col[0] for col in self.columns])
 
 
 class ExtractEventData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
-    seed = luigi.parameter.IntParameter(description="Seed to use for hashing", default=666)
-        
+    seed = luigi.parameter.IntParameter(
+        description="Seed to use for hashing", default=666)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.events_df = None
         self.categories = ['Öffentliche Führung', 'Event', 'Gespräch', 'Kinder-Workshop',
-            'Konzert', 'Lesung', 'Vortrag']
+                           'Konzert', 'Lesung', 'Vortrag']
 
     def requires(self):
         for category in self.categories:
@@ -57,7 +58,8 @@ class ExtractEventData(luigi.Task):
             category = self.categories[index]
             for i in range(0, len(event_data), 2):
                 self.append_event_data(i, event_data, 'Gebucht', category)
-                self.append_event_data(i + 1, event_data, 'Storniert', category)
+                self.append_event_data(
+                    i + 1, event_data, 'Storniert', category)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
@@ -78,9 +80,12 @@ class ExtractEventData(luigi.Task):
         event_df.columns = self.columns
 
         event_df['id'] = event_df['id'].apply(int)
-        event_df['customer_id'] = event_df['customer_id'].apply(hash_booker_id, args=(self.seed,))
-        event_df['reservation_count'] = event_df['reservation_count'].apply(int)
-        event_df['order_date'] = event_df['order_date'].apply(self.float_to_datetime)
+        event_df['customer_id'] = event_df['customer_id'].apply(
+            hash_booker_id, args=(self.seed,))
+        event_df['reservation_count'] = event_df['reservation_count'].apply(
+            int)
+        event_df['order_date'] = event_df['order_date'].apply(
+            self.float_to_datetime)
 
         self.events_df = self.events_df.append(event_df)
 
@@ -89,7 +94,8 @@ class ExtractEventData(luigi.Task):
 
 
 class EnsureBookingsIsRun(luigi.Task):
-    category = luigi.parameter.Parameter(description="Category to search bookings for")
+    category = luigi.parameter.Parameter(
+        description="Category to search bookings for")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -118,16 +124,16 @@ class EnsureBookingsIsRun(luigi.Task):
                     self.output_list.append(cancelled)
                     self.row_list.append(event_id)
                 row = cur.fetchone()
-                        
+
             self.is_complete = True
-        
+
         finally:
             if conn is not None:
                 conn.close()
-        
+
     def output(self):
         return self.output_list
-        
+
     def complete(self):
         return self.is_complete
 
