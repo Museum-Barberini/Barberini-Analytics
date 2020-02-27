@@ -1,8 +1,10 @@
+import io
 import json
+import os
 from datetime import datetime
 from unittest.mock import patch
 
-from google_trends.gtrends_interest_json import *
+from google_trends.gtrends_interest_json import GTrendsInterestJson
 from task_test import DatabaseTaskTest
 
 

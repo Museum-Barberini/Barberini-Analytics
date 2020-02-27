@@ -2,12 +2,9 @@ import datetime
 import os
 import tempfile
 import time
-import unittest
 from unittest.mock import patch
 
 import luigi
-import pandas as pd
-import psycopg2
 
 from src._utils.csv_to_db import CsvToDb
 from task_test import DatabaseTaskTest
@@ -31,7 +28,8 @@ class DummyWriteCsvToDb(CsvToDb):
         super().__init__()
         self.__class__.table = table_name
 
-        # By default luigi assigns the same task_id to the objects of this class.
+        # By default luigi assigns the same task_id to the objects of
+        # this class.
         # That leads to errors when updating the marker table (tablue_updates).
         self.task_id = f"{self.task_id}_{str(datetime.datetime.now())}"
 
@@ -94,7 +92,8 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                    ADD CONSTRAINT {self.table_name}_the_primary_key_constraint PRIMARY KEY (id);
+                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                    PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (0, 1, 'a', 'b');")
 
@@ -112,9 +111,12 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                    ADD CONSTRAINT {self.table_name}_the_primary_key_constraint PRIMARY KEY (id);
+                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                    PRIMARY KEY (id);
             """,
-            f"INSERT INTO {self.table_name} VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,\"z');")
+            f"INSERT INTO {self.table_name} VALUES (1, 2, "
+            f"'i-am-a-deprecated-value', 'xy,\"z');"
+        )
 
         # ----- Execute code under test ----
         self.dummy.run()

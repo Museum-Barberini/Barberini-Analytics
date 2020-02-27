@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from apple_appstore import *
+from apple_appstore import FetchAppstoreReviews
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
@@ -35,12 +35,17 @@ class TestFetchAppleReviews(unittest.TestCase):
     def test_only_one_review_fetched(self, mock):
 
         first_return = '''<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/Atom" xml:lang="de">
-	<id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/mostrecent/xml</id>
+<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/\
+    Atom" xml:lang="de">
+    <id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/\
+        mostrecent/xml</id>
     <title>iTunes Store: Rezensionen</title>
     <updated>2020-02-04T02:59:47-07:00</updated>
-    <link rel="not-next" href="this is some other link in the response; we don't ever want to access this"/>
-    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/id=1150432552/mostrecent/xml"/>
+    <link rel="not-next" href="this is some other link in the response; \
+        we don't ever want to access this"/>
+    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/\
+        page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/\
+            id=1150432552/mostrecent/xml"/>
 
     <entry>
         <updated>2012-11-10T09:08:07-07:00</updated>
@@ -52,18 +57,24 @@ class TestFetchAppleReviews(unittest.TestCase):
         <im:rating>5</im:rating>
         <im:version>2.10.7</im:version>
         <author><name>Blubb</name></author>
-        <content type="html">&lt;somethtml note=&quot;We don't want to parse this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;</content>
+        <content type="html">&lt;somethtml note=&quot;We don't want to parse\
+            this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;</content>
     </entry>
 
 </feed>'''
 
         second_return = '''<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/Atom" xml:lang="de">
-	<id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/mostrecent/xml</id>
+<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/\
+    Atom" xml:lang="de">
+    <id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/\
+        mostrecent/xml</id>
     <title>iTunes Store: Rezensionen</title>
     <updated>2020-02-04T02:59:47-07:00</updated>
-    <link rel="not-next" href="this is some other link in the response; we don't ever want to access this"/>
-    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/id=1150432552/mostrecent/xml"/>
+    <link rel="not-next" href="this is some other link in the response; \
+        we don't ever want to access this"/>
+    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/\
+        page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/\
+            id=1150432552/mostrecent/xml"/>
     </feed>'''
 
         mock.side_effect = [
@@ -91,7 +102,9 @@ class TestFetchAppleReviews(unittest.TestCase):
 
         def mock_return():
             for i in range(5000):
-                yield pd.DataFrame({'country_code': [f'{i}'], 'appstore_review_id': [i]})
+                yield pd.DataFrame(
+                    {'country_code': [f'{i}'],
+                     'appstore_review_id': [i]})
         mock.side_effect = mock_return()
 
         result = self.task.fetch_all()
@@ -112,7 +125,8 @@ class TestFetchAppleReviews(unittest.TestCase):
             if country_code == 'BB':
                 raise ValueError()
             return pd.DataFrame(
-                {'country_code': [country_code], 'appstore_review_id': [country_code]})
+                {'country_code': [country_code],
+                 'appstore_review_id': [country_code]})
         mock.side_effect = mock_return
 
         result = self.task.fetch_all()
@@ -127,7 +141,8 @@ class TestFetchAppleReviews(unittest.TestCase):
             if country_code == 'BB':  # simulate no available data
                 raise ValueError()
             return pd.DataFrame(
-                {'appstore_review_id': ['xyz'], 'country_code': [country_code]})
+                {'appstore_review_id': ['xyz'],
+                 'country_code': [country_code]})
         mock.side_effect = mock_return
 
         result = self.task.fetch_all()

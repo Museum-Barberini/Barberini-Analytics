@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import requests
 from luigi.format import UTF8
@@ -51,7 +51,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 
         # Write test data to input mock
         with input_target.open('w') as input_data:
-            with open('tests/test_data/gomus_customers_in.csv', 'r', encoding='utf-8') as test_data_in:
+            filename = 'tests/test_data/gomus_customers_in.csv'
+            with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
         # Execute task
@@ -59,7 +60,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 
         # Check result in output mock
         with output_target.open('r') as output_data:
-            with open('tests/test_data/gomus_customers_out.csv', 'r', encoding='utf-8') as test_data_out:
+            filename = 'tests/test_data/gomus_customers_out.csv'
+            with open(filename, 'r', encoding='utf-8') as test_data_out:
                 self.assertEqual(output_data.read(), test_data_out.read())
 
     @patch.object(ExtractCustomerData, 'input')
@@ -68,7 +70,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
         input_mock.return_value = iter([input_target])
 
         with input_target.open('w') as input_data:
-            with open('tests/test_data/gomus_customers_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
+            filename = 'tests/test_data/gomus_customers_invalid_date.csv'
+            with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
         # 30.21.2005 should not be a valid date
@@ -100,7 +103,8 @@ class TestGomusOrdersTransformations(unittest.TestCase):
 
         # Write test data to input mock
         with input_target.open('w') as input_data:
-            with open('tests/test_data/gomus_orders_in.csv', 'r', encoding='utf-8') as test_data_in:
+            filename = 'tests/test_data/gomus_orders_in.csv'
+            with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
         # Execute task
@@ -108,7 +112,8 @@ class TestGomusOrdersTransformations(unittest.TestCase):
 
         # Check result in output mock
         with output_target.open('r') as output_data:
-            with open('tests/test_data/gomus_orders_out.csv', 'r', encoding='utf-8') as test_data_out:
+            filename = 'tests/test_data/gomus_orders_out.csv'
+            with open(filename, 'r', encoding='utf-8') as test_data_out:
                 self.assertEqual(output_data.read(), test_data_out.read())
 
     @patch.object(ExtractOrderData, 'input')
@@ -117,7 +122,8 @@ class TestGomusOrdersTransformations(unittest.TestCase):
         input_mock.return_value = iter([input_target])
 
         with input_target.open('w') as input_data:
-            with open('tests/test_data/gomus_orders_invalid_date.csv', 'r', encoding='utf-8') as test_data_in:
+            filename = 'tests/test_data/gomus_orders_invalid_date.csv'
+            with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
         # 10698846.0 should be out of range

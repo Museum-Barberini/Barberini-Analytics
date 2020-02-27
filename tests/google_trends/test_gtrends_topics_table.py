@@ -1,6 +1,7 @@
 import pandas as pd
 
-from google_trends.gtrends_topics_table import *
+from google_trends.gtrends_topics_table import (GTrendsTopicsTable,
+                                                GtrendsTopicsToDB)
 from task_test import DatabaseTaskTest
 
 

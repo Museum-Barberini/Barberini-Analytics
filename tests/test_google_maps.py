@@ -28,7 +28,7 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore')
-                credentials = self.task.load_credentials()
+                self.task.load_credentials()
         self.assertTrue('credentials' in str(context.exception))
 
     # KNOWN API ISSUE: ResourceWarning: unclosed <ssl.SSLSocket ...>

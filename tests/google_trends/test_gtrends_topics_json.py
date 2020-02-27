@@ -1,4 +1,6 @@
-from google_trends.gtrends_topics_json import *
+import json
+
+from google_trends.gtrends_topics_json import GTrendsTopicsJson
 from task_test import DatabaseTaskTest
 
 

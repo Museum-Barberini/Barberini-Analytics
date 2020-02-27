@@ -2,7 +2,8 @@ import datetime as dt
 
 import pandas as pd
 
-from google_trends.gtrends_interest_table import *
+from google_trends.gtrends_interest_table import (GTrendsInterestTable,
+                                                  GtrendsInterestToDB)
 from task_test import DatabaseTaskTest
 
 
