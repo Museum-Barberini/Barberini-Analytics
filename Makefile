@@ -67,6 +67,7 @@ test: luigi-clean
 coverage: luigi-clean
 	POSTGRES_DB=barberini_test PYTHONPATH=src:src/_utils:src/gomus:src/gomus/_utils:tests/_utils python3 -m coverage run -m unittest -v --failfast --catch tests/**/test*.py tests/test*.py tests
 	python3 -m coverage report
+	python3 -m coverage html
 
 # use db-psql to get a psql shell inside the database container
 db-psql:

@@ -25,4 +25,6 @@ coverage:
     - docker exec gitlab-runner-luigi make coverage  
     - make shutdown
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  artifacts:
+    paths: htmlcov
 
