@@ -37,6 +37,7 @@ class EditGomusReport(luigi.Task):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.is_complete = False
         self.start_at = self.start_at.strftime("%Y-%m-%d")
         self.end_at = self.end_at.strftime("%Y-%m-%d")
 
@@ -44,8 +45,8 @@ class EditGomusReport(luigi.Task):
         self.__body = f'utf8={UTF8}'
 
     # obsoletes output() and requires()
-    def complete(self):
-        return False
+    def output(self):
+        return luigi.LocalTarget(f'output/gomus/edit_report_{self.task_id}')
 
     def run(self):
         self.add_to_body(f'_method={METHOD}')
@@ -87,8 +88,11 @@ class EditGomusReport(luigi.Task):
         self.add_to_body(f'report[inform_user]={INFORM_USER}')
 
         parse.quote_plus(self.__body, safe='=')
-        self.post()
+        response = self.post()
         self.wait_for_gomus()
+
+        with self.output().open('w') as output_file:
+            output_file.write(f'{response}')
 
     def get_csrf(self):
         response = self.get(BASE_URL)
