@@ -26,5 +26,6 @@ coverage:
     - make shutdown
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:
-    paths: htmlcov
+    paths: 
+      - htmlcov
 
