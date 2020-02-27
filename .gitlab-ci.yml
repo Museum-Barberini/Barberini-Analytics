@@ -1,15 +1,19 @@
 image: docker:latest
 
 build:
-  stage: build
   script:
     - docker build -t test .
 
 test:
-  stage: test
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - make startup
     - docker exec gitlab-runner-luigi make test  
     - make shutdown
+
+lint:
+  script:
+    - python3 -m pip install flake8 --user
+    - python3 -m flake8 -v --show-source .
+
