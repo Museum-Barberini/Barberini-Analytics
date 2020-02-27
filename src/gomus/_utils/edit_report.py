@@ -101,16 +101,16 @@ class EditGomusReport(luigi.Task):
                 only_with_annual_ticket = 0
                 uniq_by_email = 0
                 self.add_to_body(
-                    f'{REPORT_PARAMS}[only_with_annual_ticket]=\
-                        {only_with_annual_ticket}')
+                    (f'{REPORT_PARAMS}[only_with_annual_ticket]='
+                     f'{only_with_annual_ticket}'))
                 self.add_to_body(
                     f'{REPORT_PARAMS}[uniq_by_email]={uniq_by_email}')
 
             else:
                 only_unique_visitors = 0
                 self.add_to_body(
-                    f'{REPORT_PARAMS}[only_unique_visitors]=\
-                        {only_unique_visitors}')
+                    (f'{REPORT_PARAMS}[only_unique_visitors]='
+                     f'{only_unique_visitors}'))
 
         else:
             print("Not implemented report type")

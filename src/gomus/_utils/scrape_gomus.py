@@ -70,8 +70,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             booking_id = row['booking_id']
             booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
             print(
-                f"requesting booking details for id: \
-                    {str(booking_id)} ({i+1}/{row_count})")
+                (f"requesting booking details for id: "
+                 f"{str(booking_id)} ({i+1}/{row_count})"))
             res_details = self.polite_get(booking_url, cookies=self.cookies)
 
             tree_details = html.fromstring(res_details.text)
@@ -134,14 +134,14 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         for i in range(len(order_ids)):
             url = self.base_url + "/admin/orders/" + str(order_ids[i])
             print(
-                f"requesting order details for id: \
-                    {order_ids[i]} ({i+1} out of {len(order_ids)})")
+                (f"requesting order details for id: "
+                 f"{order_ids[i]} ({i+1} out of {len(order_ids)})"))
             res_order = self.polite_get(url, self.cookies)
             tree_order = html.fromstring(res_order.text)
 
             tree_details = tree_order.xpath(
-                '//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/\
-                    div/div/div[2]')[0]
+                ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/'
+                 'div/div/div[2]'))[0]
 
             # every other td contains the information of an article in the
             # order

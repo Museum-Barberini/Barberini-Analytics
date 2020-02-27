@@ -36,8 +36,8 @@ class FetchAppstoreReviews(luigi.Task):
                 else:
                     raise
             print(
-                f"\rFetched appstore reviews for {country_code} \
-                    ({100. * index / len(country_codes)}%)",
+                f"\rFetched appstore reviews for {country_code} "
+                f"({100. * index / len(country_codes)}%)",
                 end='',
                 flush=True)
         print()
@@ -51,8 +51,8 @@ class FetchAppstoreReviews(luigi.Task):
         with open('data/barberini-facts.json') as facts_json:
             barberini_facts = json.load(facts_json)
             app_id = barberini_facts['ids']['apple']['appId']
-        url = f'https://itunes.apple.com/{country_code}/rss/customerreviews/\
-            page=1/id={app_id}/sortby=mostrecent/xml'
+        url = (f'https://itunes.apple.com/{country_code}/rss/customerreviews/'
+               f'page=1/id={app_id}/sortby=mostrecent/xml')
         data_list = []
 
         while url is not None:

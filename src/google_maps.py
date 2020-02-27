@@ -19,8 +19,8 @@ class FetchGoogleMapsReviews(luigi.Task):
         default='secret_files/google_gmb_client_secret.json')
     is_interactive = luigi.BoolParameter(default=sys.stdin.isatty())
     scopes = ['https://www.googleapis.com/auth/business.manage']
-    google_gmb_discovery_url = 'https://developers.google.com/my-business/\
-        samples/mybusiness_google_rest_v4p5.json'
+    google_gmb_discovery_url = ('https://developers.google.com/my-business/'
+                                'samples/mybusiness_google_rest_v4p5.json')
 
     api_service_name = 'mybusiness'
     api_version = 'v4'
@@ -65,8 +65,8 @@ class FetchGoogleMapsReviews(luigi.Task):
         if credentials is None:
             if not self.is_interactive:
                 raise Exception(
-                    "ERROR: No valid credentials for google maps access and \
-                        no interactive shell to perform login, aborting!")
+                    ("ERROR: No valid credentials for google maps access and "
+                     "no interactive shell to perform login, aborting!"))
             with open(self.client_secret) as client_secret:
                 secret = json.load(client_secret)['installed']
             flow = oauth2client.client.OAuth2WebServerFlow(
@@ -108,8 +108,8 @@ class FetchGoogleMapsReviews(luigi.Task):
             .list(parent=account).execute()
         if len(location_list['locations']) == 0:
             raise Exception(
-                "ERROR: This user seems to not have access to any google \
-                    location, unable to fetch reviews")
+                ("ERROR: This user seems to not have access to any google "
+                 "location, unable to fetch reviews"))
         location = location_list['locations'][0]['name']
 
         # get reviews for that location

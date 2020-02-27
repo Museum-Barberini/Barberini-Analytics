@@ -66,13 +66,13 @@ class FetchEventReservations(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/reservations/reservations_{self.booking_id}.\
-                {self.status}.csv',
+            (f'output/gomus/reservations/reservations_{self.booking_id}.'
+             f'{self.status}.csv'),
             format=UTF8)
 
     def run(self):
-        url = f'https://barberini.gomus.de/bookings/{self.booking_id}/\
-            seats.xlsx'
+        url = (f'https://barberini.gomus.de/bookings/{self.booking_id}/'
+               f'seats.xlsx')
         res_content = requests.get(url, cookies=dict(
             _session_id=os.environ['GOMUS_SESS_ID'])).content
         with self.output().open('w') as target_csv:

@@ -88,8 +88,8 @@ class ExtractOrderData(luigi.Task):
             )
 
             cur = conn.cursor()
-            query = f'SELECT customer_id FROM gomus_customer WHERE \
-                gomus_id = {org_id}'
+            query = (f'SELECT customer_id FROM gomus_customer WHERE '
+                     f'gomus_id = {org_id}')
             cur.execute(query)
 
             customer_row = cur.fetchone()

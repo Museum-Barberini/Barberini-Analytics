@@ -78,9 +78,9 @@ class DatabaseTaskTest(unittest.TestCase):
     def tearDown(self):
         # restore files ending with ~ by overwriting the version without ~
         subprocess.call(
-            ['bash', '-c', 'find -iname *~ | awk \'{system("bash -c \
-                \'"\'"\'file="$1" bash -c \\"mv \\\\$file \\\\${file::-1}\
-                \\"\'"\'"\'")}\''])
+            ['bash', '-c', ('find -iname *~ | awk \'{system("bash -c '
+                            '\'"\'"\'file="$1" bash -c \\"mv \\\\$file \\\\$'
+                            '{file::-1}\"\'"\'"\'")}\'')])
         super().tearDown()
         self.db.tearDown()
 

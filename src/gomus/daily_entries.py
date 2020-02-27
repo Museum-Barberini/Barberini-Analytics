@@ -49,8 +49,8 @@ class ExtractDailyEntryData(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/{"expected_" if self.expected else ""}\
-                daily_entries.csv',
+            (f'output/gomus/{"expected_" if self.expected else ""}'
+             f'daily_entries.csv'),
             format=UTF8)
 
     def run(self):
