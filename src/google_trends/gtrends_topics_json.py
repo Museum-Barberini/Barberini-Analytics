@@ -18,8 +18,8 @@ class GTrendsTopicsJson(luigi.Task):
             output_file.write(json.dumps(dict(enumerate(topics))))
 
     def collect_topics(self):
-        with open(self.input_file, encoding='utf-8') as json:
-            barberini_facts = json.load(json)
+        with open(self.input_file, encoding='utf-8') as json_file:
+            barberini_facts = json.load(json_file)
             barberini_topic = barberini_facts['ids']['google']['keyword']
             exhibitions_topics = [
                 'barberini ' +
