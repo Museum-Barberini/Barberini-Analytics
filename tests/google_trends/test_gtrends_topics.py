@@ -16,7 +16,9 @@ class TestGtrendsTopics(DatabaseTaskTest):
             'museumNames': ['42', 'fourty-two'],
             'topics': ['life', 'universe', 'everything']
         }
-        self.install_mock_target(facts_mock, lambda file: json.dump(facts, file))
+        self.install_mock_target(
+            facts_mock,
+            lambda file: json.dump(facts, file))
 
         self.task = GtrendsTopics()
         self.task.run()
@@ -27,8 +29,11 @@ class TestGtrendsTopics(DatabaseTaskTest):
         topics = json.loads(topics_string)
         for item in topics:
             self.assertIsInstance(item, str)
-        self.assertEqual(                                 # Generated topics should include:
-            len([facts['ids']['google']['knowledgeId']])  # * the knowledge id
-                + len(facts['gtrends']['museumNames'])    # * all combinations of museum names
-                    * len(facts['gtrends']['topics']),    #   and topics.
+        self.assertEqual(
+            # Generated topics should include:
+            # * the knowledge id ...
+            len([facts['ids']['google']['knowledgeId']])
+            # * ... and all combinations of museum names and topics.
+            + (len(facts['gtrends']['museumNames'])
+                * len(facts['gtrends']['topics'])),
             len(topics))

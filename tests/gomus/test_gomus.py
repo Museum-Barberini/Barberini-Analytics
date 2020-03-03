@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import unittest
 from unittest.mock import patch
@@ -93,7 +92,8 @@ class TestGomusOrdersTransformations(unittest.TestCase):
     @patch.object(ExtractOrderData, 'query_customer_id')
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
-    def test_orders_transformation(self, input_mock, output_mock, cust_id_mock):
+    def test_orders_transformation(
+            self, input_mock, output_mock, cust_id_mock):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('order_data_in', format=UTF8)
         output_target = MockTarget('order_data_out', format=UTF8)

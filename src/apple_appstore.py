@@ -35,11 +35,13 @@ class FetchAppstoreReviews(luigi.Task):
                 except ValueError:
                     pass  # no data for given country code
                 except requests.HTTPError as error:
-                    if error.response.status_code == 400:  # not all countries are available
+                    if error.response.status_code == 400:
+                        # not all countries are available
                         pass
                     else:
                         raise
-                print(f"\rFetched appstore reviews for {country_code} "
+                print(
+                    f"\rFetched appstore reviews for {country_code} "
                     f"({100. * index / len(country_codes)}%)",
                     end='',
                     flush=True)

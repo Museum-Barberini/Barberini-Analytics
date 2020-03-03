@@ -60,8 +60,18 @@ class ExtractTweets(luigi.Task):
 
     def run(self):
         df = pd.read_csv(self.input()[1].path)
-        df = df.filter(['user_id', 'tweet_id', 'text', 'parent_tweet_id', 'timestamp'])
-        df.columns = ['user_id', 'tweet_id', 'text', 'response_to', 'post_date']
+        df = df.filter([
+            'user_id',
+            'tweet_id',
+            'text',
+            'parent_tweet_id',
+            'timestamp'])
+        df.columns = [
+            'user_id',
+            'tweet_id',
+            'text',
+            'response_to',
+            'post_date']
         df['is_from_barberini'] = df['user_id'] == self.barberini_user_id()
         df = df.drop_duplicates()
         with self.output().open('w') as output_file:

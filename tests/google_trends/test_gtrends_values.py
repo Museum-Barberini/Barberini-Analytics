@@ -23,9 +23,11 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         min_date = dt.datetime(2015, 1, 1)
         facts['foundingDate'] = min_date.isoformat()
         topics = ['41', '42', '43']
-        self.install_mock_target(facts_mock,
+        self.install_mock_target(
+            facts_mock,
             lambda file: json.dump(facts, file))
-        topics_target = self.install_mock_target(topics_mock,
+        topics_target = self.install_mock_target(
+            topics_mock,
             lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
 
@@ -42,13 +44,19 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         min_date -= dt.timedelta(days=7)  # treshold
         now = dt.datetime.now()
         for entry in json_values:
-            self.assertCountEqual(['topic', 'date', 'interestValue'], entry.keys())
+            self.assertCountEqual(
+                ['topic', 'date', 'interestValue'],
+                entry.keys())
         rows_per_topic = {
-            topic: len([entry for entry in json_values if entry['topic'] == topic])
+            topic: len([
+                entry
+                for entry in json_values
+                if entry['topic'] == topic])
             for topic in topics
         }
-        self.assertTrue(max(rows_per_topic.values()) == min(rows_per_topic.values()),
-            msg="All topics should be measured in about the same time interval")
+        self.assertTrue(
+            max(rows_per_topic.values()) == min(rows_per_topic.values()),
+            msg="All topics should be measured at about the same time")
         for entry in json_values:
             date = dt.datetime.strptime(entry['date'], '%Y-%m-%d')
             self.assertEqual(dt.datetime.min.time(), date.time())
@@ -57,7 +65,9 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
             value = entry['interestValue']
             self.assertIsInstance(value, int)
             self.assertTrue(0 <= value <= 100)
-            self.assertTrue(0 < value, "Numbers are cool! They must be trending.")
+            self.assertTrue(
+                0 < value,
+                "Numbers are cool! They must be trending.")
 
 
 class TestGtrendsValuesToDB(DatabaseTaskTest):
@@ -71,44 +81,55 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
         task.dummy_date = 'noway'
         task.run()
         self.db.commit(f'''DROP TABLE table_updates''')
-        # WORKAROUND for UniqueViolation: duplicate key value violates unique constraint "table_updates_pkey" 😭
+        """
+        WORKAROUND for "UniqueViolation: duplicate key value violates unique
+        constraint 'table_updates_pkey' 😭
+        """
 
     @patch.object(GtrendsTopics, 'run')
     @patch.object(GtrendsTopics, 'output')
     def test_updated_values_are_overridden(self, topics_mock, topics_run_mock):
         topics = ['41', '42', '43']
-        topics_target = self.install_mock_target(topics_mock, lambda file: json.dump(topics, file))        
+        topics_target = self.install_mock_target(
+            topics_mock,
+            lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
-        self.db.commit(f'''INSERT INTO gtrends_value VALUES (
-            \'{42}\', DATE('{dt.datetime.now().strftime('%Y-%m-%d')}'), {200})''')
+        self.db.commit(
+            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE({1}), {2})'
+            .format(42, dt.datetime.now().strftime('%Y-%m-%d'), 200))
 
         self.task = GtrendsValuesToDB()
         self.run_task(self.task)
 
-        self.assertCountEqual([(0,)],
-            self.db.request(f'''SELECT COUNT(*) FROM gtrends_value where interest_value > 100'''))
+        self.assertCountEqual([(0,)], self.db.request(
+            'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
 
     @patch.object(GtrendsTopics, 'run')
     @patch.object(GtrendsTopics, 'output')
-    def test_non_updated_values_are_overridden(self, topics_mock, topics_run_mock):
+    def test_non_updated_values_are_overridden(
+            self, topics_mock, topics_run_mock):
         topics = ['41', '42']
-        topics_target = self.install_mock_target(topics_mock, lambda file: json.dump(topics, file))
+        topics_target = self.install_mock_target(
+            topics_mock,
+            lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
-        topics_run_mock.return_value = None # don't execute this
-        self.db.commit(f'''INSERT INTO gtrends_value VALUES (
-            \'{43}\', DATE('{dt.datetime.now().strftime('%Y-%m-%d')}'), {200})''')
+        topics_run_mock.return_value = None  # don't execute this
+        self.db.commit(
+            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE({1}), {2})'
+            .format(43, dt.datetime.now().strftime('%Y-%m-%d'), 200))
 
         self.task = GtrendsValuesToDB()
         self.task.run()
 
-        self.assertCountEqual([(1,)],
-            self.db.request(f'''SELECT COUNT(*) FROM gtrends_value where interest_value > 100'''))
+        self.assertCountEqual([(1,)], self.db.request(
+            'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
 
     def run_task(self, task: luigi.Task):
         """
         Run task and all its dependencies synchronous.
-        This is probably some kind of reinvention of the wheel, but I don't know how to do this better.
+        This is probably some kind of reinvention of the wheel,
+        but I don't know how to do this better.
         """
         all_tasks = Queue()
         all_tasks.put(task)
