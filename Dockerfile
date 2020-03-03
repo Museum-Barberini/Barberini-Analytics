@@ -24,9 +24,11 @@ RUN DEBIAN_FRONTEND=noninteractive \
 	apt-get install -y libpq-dev
 RUN pip3 install psycopg2
 
+# install node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get -y install nodejs
 
-COPY package.json package-lock.json /app/
+# install node packages
+COPY package*.json ./
 RUN npm install
-COPY . /app
+COPY . .
