@@ -34,19 +34,19 @@ class ExtractGomusBookings(luigi.Task):
                 hash_booker_id, args=(self.seed,))
             bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
-            bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
-            bookings['daytime'] = bookings['Uhrzeit von'].apply(
-                self.parse_daytime)
+            bookings['start_datetime'] = bookings.apply(
+                lambda x: self.calculate_start_datetime(
+                    x['Datum'], x['Uhrzeit von']), axis=1)
             bookings['Dauer'] = bookings.apply(
                 lambda x: self.calculate_duration(
                     x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 
             # order_date and language are added by scraper
         else:
-            # manually append "daytime" and "Dauer" to ensure pandas
+            # manually append "start_datetime" and "Dauer" to ensure pandas
             # doesn't crash
             # even though nothing will be added
-            bookings['daytime'] = 0
+            bookings['start_datetime'] = 0
             bookings['Dauer'] = 0
 
         bookings = bookings.filter(['Buchung',
@@ -54,8 +54,7 @@ class ExtractGomusBookings(luigi.Task):
                                     'Angebotskategorie',
                                     'Teilnehmerzahl',
                                     'Guide',
-                                    'Datum',
-                                    'daytime',
+                                    'start_datetime',
                                     'Dauer',
                                     'Ausstellung',
                                     'Titel',
@@ -82,11 +81,9 @@ class ExtractGomusBookings(luigi.Task):
         guide = guides[0]
         return mmh3.hash(guide, self.seed, signed=True)
 
-    def parse_date(self, date_str):
-        return datetime.strptime(date_str, '%d.%m.%Y').date()
-
-    def parse_daytime(self, daytime_str):
-        return datetime.strptime(daytime_str, '%H:%M').time()
+    def calculate_start_datetime(self, date_str, time_str):
+        return datetime.strptime(x['Datum'] + x['Uhrzeit von'], 
+               '%d.%m.%Y %H.%M')
 
     def calculate_duration(self, from_str, to_str):
         return (datetime.strptime(to_str, '%H:%M') -
