@@ -30,4 +30,4 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
 
 ## Schedule regular DB updates
 
-Run `sudo scripts/setup_cron.sh`. If you installed Awesome Barberini Tool in a different folder than `/root/bp-barberini`, you may want to adapt the paths in `scripts/.crontab` before. If no crontab exists before, create it using `crontab -e`.
+Run `sudo scripts/setup_cron.sh`. If you cloned the repository in a different folder than `/root/bp-barberini`, you may want to adapt the paths in `scripts/.crontab` first. If no crontab exists before, create it using `crontab -e`.
