@@ -4,7 +4,7 @@ WORKDIR /app
 VOLUME /app
 
 RUN apt-get update
-RUN apt-get upgrade
+RUN apt-get upgrade -y --no-install-recommends
 
 RUN echo DEBUG $(whoami) $(pwd)
 RUN echo DEBUG $(ls)
@@ -36,6 +36,8 @@ RUN $install nodejs
 # install node packages
 COPY package*.json ./
 RUN echo DEBUG $(ls)
+RUN echo DEBUG $(ls /app)
+RUN echo DEBUG $(ls /app/node_modules)
 RUN npm install
 RUN echo DEBUG $(ls)
 COPY . .
