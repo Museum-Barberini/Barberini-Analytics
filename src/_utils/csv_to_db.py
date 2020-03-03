@@ -24,7 +24,8 @@ class CsvToDb(CopyToTable):
         default='src/_utils/sql_scripts/{0}.sql')
     schema_only = luigi.BoolParameter(
         default=False,
-        description="If True, the table will be only created, but not filled.")
+        description=("If True, the table will be only created "
+                     "but not actually filled with the input data."))
 
     # Don't delete this! This parameter assures that every (sub)instance of me
     # is treated as an individual and will be re-run.
