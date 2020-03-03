@@ -6,10 +6,6 @@ VOLUME /app
 RUN apt-get update
 RUN apt-get upgrade -y --no-install-recommends
 
-RUN echo DEBUG $(whoami) $(pwd)
-RUN echo DEBUG $(ls)
-RUN echo DEBUG dont care about me, im only here to clear the docker cache foo
-
 ARG install='apt-get install -y --no-install-recommends'
 
 # install utilities
@@ -35,12 +31,12 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $install nodejs
 
 # install node packages
+# Because of serious trouble with volumes and mounting and so, node_modules
+# must be installed into the root directory. Other approaches, including manual
+# copying of that folder, using [npm install -g], and manipulating the PATH
+# variable failed. Don't touch this unless you absolutely know what you do!
 COPY package*.json ../
 WORKDIR ..
-RUN echo DEBUG $(ls)
 RUN npm install
-#ENV PATH /node_stuff/node_modules/.bin:$PATH
 COPY . /app
-RUN echo DEBUG $(ls)
 WORKDIR /app
-RUN echo DEBUG $(ls)
