@@ -12,7 +12,8 @@ from gomus.orders import ExtractOrderData
 
 class TestGomusConnection(unittest.TestCase):
     """
-    Does not test whether data is put into DB correctly because CsvToDb is already tested.
+    Does not test whether data is put into DB correctly
+    because CsvToDb is tested separately.
     """
 
     def test_session_id_is_valid(self):
