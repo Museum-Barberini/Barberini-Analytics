@@ -13,13 +13,13 @@ class BookingsToDB(CsvToDb):
         ('category', 'TEXT'),
         ('participants', 'INT'),
         ('guide_id', 'INT'),
-        ('start_datetime', 'TIMESTAMP'),
         ('duration', 'INT'),  # in minutes
         ('exhibition', 'TEXT'),
         ('title', 'TEXT'),
         ('status', 'TEXT'),
         ('order_date', 'DATE'),
-        ('language', 'TEXT')
+        ('language', 'TEXT'),
+        ('start_datetime', 'TIMESTAMP')
     ]
 
     primary_key = 'booking_id'

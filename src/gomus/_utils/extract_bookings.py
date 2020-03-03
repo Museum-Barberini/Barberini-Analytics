@@ -46,7 +46,7 @@ class ExtractGomusBookings(luigi.Task):
             # manually append "start_datetime" and "Dauer" to ensure pandas
             # doesn't crash
             # even though nothing will be added
-            bookings['start_datetime'] = 0
+            #bookings['start_datetime'] = 0
             bookings['Dauer'] = 0
 
         bookings = bookings.filter(['Buchung',
@@ -54,22 +54,22 @@ class ExtractGomusBookings(luigi.Task):
                                     'Angebotskategorie',
                                     'Teilnehmerzahl',
                                     'Guide',
-                                    'start_datetime',
                                     'Dauer',
                                     'Ausstellung',
                                     'Titel',
-                                    'Status'])
+                                    'Status',
+                                    'start_datetime'])
         bookings.columns = [
             'booking_id',
             'customer_id',
             'category',
             'participants',
             'guide_id',
-            'start_datetime',
             'duration',
             'exhibition',
             'title',
-            'status']
+            'status',
+            'start_datetime']
         with self.output().open('w') as output_file:
             bookings.to_csv(output_file, header=True, index=False)
 
