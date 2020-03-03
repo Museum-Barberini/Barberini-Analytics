@@ -20,7 +20,7 @@ REPORT_IDS = {
     'bookings_7days': 0,
     'bookings_1month': -3,
     'bookings_1year': -1,
-    'bookings_nextYear' : -5,
+    'bookings_nextYear': -5,
 
     'guides': -2
 }

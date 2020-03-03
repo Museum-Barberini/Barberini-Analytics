@@ -5,7 +5,9 @@ import time
 
 import dateparser
 import luigi
+import numpy as np
 import pandas as pd
+import psycopg2
 import requests
 from luigi.format import UTF8
 from lxml import html
@@ -55,7 +57,9 @@ class GomusScraperTask(luigi.Task):
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
+    # could take up to an hour to scrape all bookings in the next year
     worker_timeout = 3600
+    columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
         return ExtractGomusBookings()
@@ -68,34 +72,79 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings['order_date'] = None
         bookings['language'] = ""
         row_count = len(bookings.index)
+
+        db_booking_rows = []
+        booking_in_db = np.zeros((row_count,), dtype=bool)
+
+        scraped_bookings = pd.DataFrame(columns=self.columns)
+
+        try:
+            conn = psycopg2.connect(
+                host=self.host, database=self.database,
+                user=self.user, password=self.password
+            )
+
+            cur = conn.cursor()
+
+            cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
+                        f" WHERE table_name=\'gomus_booking\')")
+            db_booking_rows = []
+
+            if cur.fetchone()[0]:
+                query = (f'SELECT booking_id FROM gomus_booking')
+                cur.execute(query)
+                db_booking_rows = cur.fetchall()
+
+        except psycopg2.DatabaseError as error:
+            print(error)
+            exit(1)
+
+        finally:
+            if conn is not None:
+                conn.close()
+
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
-            booking_url = self.base_url + "/admin/bookings/" + str(booking_id)
-            print(
-                (f"requesting booking details for id: "
-                 f"{str(booking_id)} ({i+1}/{row_count})"))
-            res_details = self.polite_get(booking_url, cookies=self.cookies)
 
-            tree_details = html.fromstring(res_details.text)
+            for row in db_booking_rows:
+                if row[0] == booking_id:
+                    booking_in_db[i] = True
 
-            # firefox says the the xpath starts with //body/div[3]/ but we
-            # apparently need div[2] instead
-            booking_details = tree_details.xpath(
-                '//body/div[2]/div[2]/div[3]/div[4]/div[2]/div[1]/div[3]')[0]
+            if not booking_in_db[i]:
 
-            # Order Date
-            # .strip() removes \n in front of and behind string
-            raw_order_date = self.extract_from_html(
-                booking_details,
-                'div[1]/div[2]/small/dl/dd[2]').strip()
-            bookings.at[i, 'order_date'] = dateparser.parse(raw_order_date)
+                booking_url = (self.base_url + "/admin/bookings/"
+                               + str(booking_id))
+                print(
+                    (f"requesting booking details for id: "
+                     f"{str(booking_id)} ({i+1}/{row_count})"))
+                res_details = self.polite_get(booking_url,
+                                              cookies=self.cookies)
 
-            # Language
-            bookings.at[i, 'language'] = self.extract_from_html(
-                booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
+                tree_details = html.fromstring(res_details.text)
+
+                # firefox says the the xpath starts with //body/div[3]/ but we
+                # apparently need div[2] instead
+                booking_details = tree_details.xpath(
+                    '//body/div[2]/div[2]/div[3]'
+                    '/div[4]/div[2]/div[1]/div[3]')[0]
+
+                # Order Date
+                # .strip() removes \n in front of and behind string
+                raw_order_date = self.extract_from_html(
+                    booking_details,
+                    'div[1]/div[2]/small/dl/dd[2]').strip()
+                bookings.at[i, 'order_date'] = dateparser.parse(raw_order_date)
+
+                # Language
+                bookings.at[i, 'language'] = self.extract_from_html(
+                    booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
+
+                scraped_row = bookings.loc[
+                    bookings['booking_id'] == booking_id]
+                scraped_bookings = scraped_bookings.append(scraped_row)
 
         with self.output().open('w') as output_file:
-            bookings.to_csv(
+            scraped_bookings.to_csv(
                 output_file,
                 index=False,
                 header=True,
