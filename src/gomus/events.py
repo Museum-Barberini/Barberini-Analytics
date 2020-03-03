@@ -161,12 +161,7 @@ class EnsureBookingsIsRun(luigi.Task):
     # this function should not have to exist, but luigi apparently
     # can't deal with UTF-8 symbols in their target paths
     def cleanse_umlauts(self, string):
-        ret = string.replace('Ä', 'Ae')
-        ret = ret.replace('Ö', 'Oe')
-        ret = ret.replace('Ü', 'Ue')
-
-        ret = ret.replace('ä', 'ae')
-        ret = ret.replace('ö', 'oe')
-        ret = ret.replace('ü', 'ue')
-
-        return ret
+        return string.translate(string.maketrans({
+            'Ä': 'Ae', 'ä': 'ae',
+            'Ö': 'Oe', 'ö': 'oe',
+            'Ü': 'Ue', 'ü': 'ue'}))
