@@ -82,8 +82,8 @@ class ExtractGomusBookings(luigi.Task):
         return mmh3.hash(guide, self.seed, signed=True)
 
     def calculate_start_datetime(self, date_str, time_str):
-        return datetime.strptime(date_str + time_str, 
-               '%d.%m.%Y%H.%M')
+        return datetime.strptime(date_str + time_str,
+                                 '%d.%m.%Y%H.%M')
 
     def calculate_duration(self, from_str, to_str):
         return (datetime.strptime(to_str, '%H:%M') -
