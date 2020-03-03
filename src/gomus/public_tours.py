@@ -12,7 +12,7 @@ from set_db_connection_options import set_db_connection_options
 
 from gomus._utils.extract_bookings import hash_booker_id
 from gomus._utils.fetch_report import FetchTourReservations
-from .bookings import BookingsToDB
+from gomus.bookings import BookingsToDB
 
 
 class PublicToursToDB(CsvToDb):
