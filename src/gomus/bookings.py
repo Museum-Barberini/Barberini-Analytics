@@ -17,9 +17,9 @@ class BookingsToDB(CsvToDb):
         ('exhibition', 'TEXT'),
         ('title', 'TEXT'),
         ('status', 'TEXT'),
+        ('start_datetime', 'TIMESTAMP');
         ('order_date', 'DATE'),
-        ('language', 'TEXT'),
-        ('start_datetime', 'TIMESTAMP')
+        ('language', 'TEXT')
     ]
 
     primary_key = 'booking_id'
