@@ -39,7 +39,7 @@ COPY package*.json /node_stuff/
 WORKDIR /node_stuff
 RUN echo DEBUG $(ls)
 RUN echo DEBUG $(ls /node_stuff)
-RUN npm install
+RUN npm install -g
 ENV PATH /node_stuff/node_modules/.bin:$PATH
 COPY . /app
 RUN echo DEBUG $(ls)
