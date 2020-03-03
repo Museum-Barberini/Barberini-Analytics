@@ -6,7 +6,7 @@ import luigi
 import json
 
 from task_test import DatabaseTaskTest
-import google_trends.gtrends_values as mut
+import google_trends.gtrends_values as gtrends_values
 from museum_facts import MuseumFacts
 
 
@@ -14,9 +14,9 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
 
     def __init__(self, methodName):
         super().__init__(methodName)
-        self.task = self.isolate(mut.FetchGtrendsValues())
+        self.task = self.isolate(gtrends_values.FetchGtrendsValues())
 
-    @patch.object(mut.GtrendsTopics, 'output')
+    @patch.object(gtrends_values.GtrendsTopics, 'output')
     @patch.object(MuseumFacts, 'output')
     def test_gtrends_values(self, facts_mock, topics_mock):
         facts = self.facts
@@ -32,7 +32,7 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
         self.dump_mock_target_into_fs(topics_target)
 
         try:
-            self.task = mut.FetchGtrendsValues()
+            self.task = gtrends_values.FetchGtrendsValues()
             self.task.run()
         finally:
             pass  # too lazy to delete the file again
@@ -74,15 +74,15 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
 
     def setUp(self):
         super().setUp()
-        mut.GtrendsValuesAddToDB(schema_only=True).run()
+        gtrends_values.GtrendsValuesAddToDB(schema_only=True).run()
         self.db.commit(f'''DROP TABLE table_updates''')
         """
         WORKAROUND for "UniqueViolation: duplicate key value violates unique
         constraint 'table_updates_pkey' ;-(
         """
 
-    @patch.object(mut.GtrendsTopics, 'run')
-    @patch.object(mut.GtrendsTopics, 'output')
+    @patch.object(gtrends_values.GtrendsTopics, 'run')
+    @patch.object(gtrends_values.GtrendsTopics, 'output')
     def test_updated_values_are_overridden(self, topics_mock, topics_run_mock):
         topics = ['41', '42', '43']
         topics_target = self.install_mock_target(
@@ -94,14 +94,14 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
             'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
             .format(42, dt.datetime.now().strftime('%Y-%m-%d'), 200))
 
-        self.task = mut.GtrendsValuesToDB()
+        self.task = gtrends_values.GtrendsValuesToDB()
         self.run_task(self.task)
 
         self.assertCountEqual([(0,)], self.db.request(
             'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
 
-    @patch.object(mut.GtrendsTopics, 'run')
-    @patch.object(mut.GtrendsTopics, 'output')
+    @patch.object(gtrends_values.GtrendsTopics, 'run')
+    @patch.object(gtrends_values.GtrendsTopics, 'output')
     def test_non_updated_values_are_overridden(
             self, topics_mock, topics_run_mock):
         topics = ['41', '42']
@@ -114,7 +114,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
             'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
             .format(43, dt.datetime.now().strftime('%Y-%m-%d'), 200))
 
-        self.task = mut.GtrendsValuesToDB()
+        self.task = gtrends_values.GtrendsValuesToDB()
         self.task.run()
 
         self.assertCountEqual([(1,)], self.db.request(
