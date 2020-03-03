@@ -8,6 +8,7 @@ RUN apt-get upgrade -y --no-install-recommends
 
 RUN echo DEBUG $(whoami) $(pwd)
 RUN echo DEBUG $(ls)
+RUN echo DEBUG dont care about me, im only here to clear the docker cache
 
 ARG install='apt-get install -y --no-install-recommends'
 
