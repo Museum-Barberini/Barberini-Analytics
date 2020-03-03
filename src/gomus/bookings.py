@@ -17,7 +17,7 @@ class BookingsToDB(CsvToDb):
         ('exhibition', 'TEXT'),
         ('title', 'TEXT'),
         ('status', 'TEXT'),
-        ('start_datetime', 'TIMESTAMP');
+        ('start_datetime', 'TIMESTAMP'),
         ('order_date', 'DATE'),
         ('language', 'TEXT')
     ]
