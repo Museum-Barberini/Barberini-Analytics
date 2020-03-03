@@ -152,7 +152,7 @@ class EnsureBookingsIsRun(luigi.Task):
     # save a list of paths for all single csv files
     def output(self):
         cat = self.cleanse_umlauts(self.category)
-        return luigi.LocalTarget((f'output/gomus/all_{cat}_reservations.txt'),
+        return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
                                  format=UTF8)
 
     def requires(self):
