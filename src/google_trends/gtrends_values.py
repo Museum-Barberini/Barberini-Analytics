@@ -1,6 +1,6 @@
 import os
 
-import luigi
+from luigi.contrib.external_program import ExternalProgramTask
 import psycopg2
 import json
 
@@ -11,7 +11,7 @@ from museum_facts import MuseumFacts
 from google_trends.gtrends_topics import GtrendsTopics
 
 
-class FetchGtrendsValues(luigi.contrib.external_program.ExternalProgramTask):
+class FetchGtrendsValues(ExternalProgramTask):
 
     js_engine = luigi.Parameter(default='node')
     js_path = './src/google_trends/gtrends_values.js'
