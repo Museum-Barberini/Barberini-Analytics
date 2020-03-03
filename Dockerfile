@@ -35,11 +35,12 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $install nodejs
 
 # install node packages
-COPY package*.json /node_stuff_tmp/
-WORKDIR /node_stuff_tmp
+COPY package*.json /node_stuff/
+WORKDIR /node_stuff
 RUN echo DEBUG $(ls)
 RUN echo DEBUG $(ls /node_stuff_tmp)
 RUN npm install
+ENV PATH /node_stuff/node_modules/.bin:$PATH
 COPY . /app
 RUN echo DEBUG $(ls)
 WORKDIR /app
