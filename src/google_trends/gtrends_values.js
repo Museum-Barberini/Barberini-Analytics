@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 "use strict";
 const fs = require('fs'), path = require('path');
-const jsonc = require('jsonc');
 const node = require('deasync');
 const googleTrends = require('google-trends-api');
 
