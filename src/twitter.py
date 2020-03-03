@@ -7,6 +7,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
@@ -54,17 +55,17 @@ class FetchTwitter(luigi.Task):
 
 class ExtractTweets(luigi.Task):
     def requires(self):
-        return FetchTwitter()
-
-    def barberini_user_id(self):
-        with open('data/barberini-facts.json') as facts_json:
-            barberini_facts = json.load(facts_json)
-            return barberini_facts['ids']['twitter']['user_id']
+        yield MuseumFacts()
+        yield FetchTwitter()
 
     def run(self):
-        df = pd.read_csv(self.input().path)
-        df = df.filter(['user_id', 'tweet_id', 'text',
-                        'parent_tweet_id', 'timestamp'])
+        df = pd.read_csv(self.input()[1].path)
+        df = df.filter([
+            'user_id',
+            'tweet_id',
+            'text',
+            'parent_tweet_id',
+            'timestamp'])
         df.columns = [
             'user_id',
             'tweet_id',
@@ -78,6 +79,11 @@ class ExtractTweets(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
+
+    def barberini_user_id(self):
+        with self.input()[0].open('r') as facts_file:
+            facts = json.load(facts_file)
+        return facts['ids']['twitter']['userId']
 
 
 class ExtractPerformanceTweets(luigi.Task):

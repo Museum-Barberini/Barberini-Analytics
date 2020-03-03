@@ -13,7 +13,7 @@ RUN apt-get install -y nano
 RUN apt-get install -y --no-install-recommends python3.6 python3-pip python3-setuptools python3-dev
 
 # install python packages
-RUN pip3 install luigi pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client xmltodict numpy
+RUN pip3 install luigi pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client jstyleson xmltodict numpy
 RUN pip3 install twitterscraper google-api-python-client
 RUN pip3 install coverage
 
@@ -26,5 +26,4 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x  | bash -
 RUN apt-get -y install nodejs
 
 # WORKAROUND until we have multiple docker containers
-RUN bash -c "cd ../ && npm i google-trends-api deasync"
-
+RUN bash -c "cd ../ && npm i google-trends-api deasync jsonc"
