@@ -5,6 +5,11 @@ volumes/
 *secret*
 *token*
 *private*
+id_*
+*.pem
+*.key
+
+*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
