@@ -1,7 +1,5 @@
 # BP Barberini
 
-![coverage](https://gitlab.hpi.com/bp-barberini/bp-barberini/badges/master/coverage.svg)
-
 ### Run luigi
 
 At the moment we are using a setup with two docker containers. One container is used to 
