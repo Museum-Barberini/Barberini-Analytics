@@ -1,6 +1,6 @@
 import luigi
 
-from apple_appstore.fetch_apple_app_reviews import AppstoreReviewsToDB
+from apple_appstore import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from twitter import TweetsToDB, TweetPerformanceToDB
