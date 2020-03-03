@@ -6,6 +6,8 @@
 
 SHELL := /bin/bash
 TOTALPYPATH := ./src/:./src/_utils/
+SSL_CERT_DIR := /var/db-data
+
 
 # ------ For use outside of containers ------
 
@@ -14,14 +16,23 @@ TOTALPYPATH := ./src/:./src/_utils/
 pull: # TODO: Is this actually required? It worked for me without executing this line.
 	docker pull ubuntu && docker pull postgres
 
+# Start the container luigi. Also start the container db if it is not already running.
+# If the container db is being started, start it with ssl encryption if the file '/var/db-data/server.key'.
 startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-		docker-compose up --build -d --no-recreate db;\
+		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
+	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate db;\
+		else\
+	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
+		fi;\
 	fi;\
 	docker-compose -p ${USER} up --build -d luigi
 
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi
+
+shutdown-db:
+	docker-compose rm -sf db
 
 connect:
 	docker-compose -p ${USER} exec luigi bash
