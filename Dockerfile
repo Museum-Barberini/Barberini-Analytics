@@ -35,8 +35,7 @@ RUN $install nodejs
 # must be installed into the root directory. Other approaches, including manual
 # copying of that folder, using [npm install -g], and manipulating the PATH
 # variable failed. Don't touch this unless you absolutely know what you do!
-COPY package*.json /
 WORKDIR /
+COPY package*.json /
 RUN npm install
-COPY . /app
 WORKDIR /app
