@@ -1,5 +1,6 @@
 import os
 
+import luigi
 from luigi.contrib.external_program import ExternalProgramTask
 import psycopg2
 import json
