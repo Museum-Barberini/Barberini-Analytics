@@ -41,5 +41,5 @@ RUN echo DEBUG $(ls)
 RUN echo DEBUG $(ls /node_stuff_tmp)
 RUN npm install
 RUN echo DEBUG $(ls)
-COPY . /node_stuff_tmp
+COPY . /app
 WORKDIR /app
