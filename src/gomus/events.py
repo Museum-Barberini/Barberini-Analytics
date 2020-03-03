@@ -58,11 +58,17 @@ class ExtractEventData(luigi.Task):
 
     def run(self):
         self.events_df = pd.DataFrame(columns=self.columns)
+
+        # for every kind of category
         for index, event_files in enumerate(self.input()):
             category = self.categories[index]
             with event_files.open('r') as events:
+
+                # for every event that falls into that category
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
+
+                    # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
                     if i % 2 == 0:
                         self.append_event_data(event_data, 'Gebucht', category)
@@ -143,6 +149,7 @@ class EnsureBookingsIsRun(luigi.Task):
             if conn is not None:
                 conn.close()
 
+    # save a list of paths for all single csv files
     def output(self):
         cat = self.cleanse_umlauts(self.category)
         return luigi.LocalTarget((f'output/gomus/all_{cat}_reservations.txt'),
