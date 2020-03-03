@@ -11,7 +11,9 @@ class GTrendsInterestTable(JsonToCsv):
         return GTrendsInterestJson()
 
     def output(self):
-        return luigi.LocalTarget("output/google_trends/interests.csv", format=UTF8)
+        return luigi.LocalTarget(
+            'output/google_trends/interests.csv',
+            format=UTF8)
 
 
 class GtrendsInterestToDB(CsvToDb):
