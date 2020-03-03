@@ -6,11 +6,7 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
-<<<<<<< HEAD:src/gomus/_utils/extract_bookings.py
-from .fetch_report import FetchGomusReport
-=======
 from gomus._utils.fetch_report import FetchGomusReport
->>>>>>> master:src/gomus/_utils/extract_bookings.py
 
 
 def hash_booker_id(email, seed=666):
@@ -24,13 +20,8 @@ class ExtractGomusBookings(luigi.Task):
         description="Seed to use for hashing", default=666)
 
     def requires(self):
-<<<<<<< HEAD:src/gomus/_utils/extract_bookings.py
         return FetchGomusReport(report='bookings', suffix='_all')
     
-=======
-        return FetchGomusReport(report='bookings')
-
->>>>>>> master:src/gomus/_utils/extract_bookings.py
     def output(self):
         return luigi.LocalTarget(
             f'output/gomus/bookings_prepared.csv', format=UTF8)
@@ -39,14 +30,9 @@ class ExtractGomusBookings(luigi.Task):
         bookings = pd.read_csv(next(self.input()).path)
         if not bookings.empty:
             bookings['Buchung'] = bookings['Buchung'].apply(int)
-<<<<<<< HEAD:src/gomus/_utils/extract_bookings.py
-            bookings['E-Mail'] = bookings['E-Mail'].apply(hash_booker_id, args=(self.seed,))
-            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(self.parse_int)
-=======
             bookings['E-Mail'] = bookings['E-Mail'].apply(
                 hash_booker_id, args=(self.seed,))
             bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
->>>>>>> master:src/gomus/_utils/extract_bookings.py
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
             bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
             bookings['daytime'] = bookings['Uhrzeit von'].apply(
@@ -102,14 +88,6 @@ class ExtractGomusBookings(luigi.Task):
     def parse_daytime(self, daytime_str):
         return datetime.strptime(daytime_str, '%H:%M').time()
 
-<<<<<<< HEAD:src/gomus/_utils/extract_bookings.py
-    def parse_int(self, participants):
-        if np.isnan(participants):
-            participants = int(np.nan_to_num(participants))
-        return participants
-    
-=======
->>>>>>> master:src/gomus/_utils/extract_bookings.py
     def calculate_duration(self, from_str, to_str):
         return (datetime.strptime(to_str, '%H:%M') -
                 datetime.strptime(from_str, '%H:%M')).seconds // 60

@@ -8,12 +8,8 @@ import requests
 import xlrd
 
 # This dict maps 'report_types' to 'REPORT_IDS'
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-# Data sheets that don't require a report to be generated or edited have ids <= 0
-=======
 # Data sheets that don't require a report to be generated or
 # refreshed have ids <= 0
->>>>>>> master:src/gomus/_utils/fetch_report_helper.py
 # key format: 'type_timespan' (e.g. 'customers_7days')
 REPORT_IDS = {
     'customers_7days': 1285,
@@ -24,34 +20,12 @@ REPORT_IDS = {
     'bookings_7days': 0,
     'bookings_1month': -3,
     'bookings_1year': -1,
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-    'bookings_nextYear': -5,
-    'bookings_all': -11,
-    
-=======
-
->>>>>>> master:src/gomus/_utils/fetch_report_helper.py
     'guides': -2
 }
 REPORT_IDS_INV = {v: k for k, v in REPORT_IDS.items()}
 
 
 def parse_arguments(args):
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-    parser = argparse.ArgumentParser(description="Fetch reports from go~mus")
-    report_group = parser.add_mutually_exclusive_group(required=True)
-
-    report_group.add_argument('-i', '--report-id', type=int, help='ID of the report', choices=REPORT_IDS.values())
-    report_group.add_argument('-t', '--report-type', type=str, help='Type of the report', choices=REPORT_IDS.keys())
-
-    parser.add_argument('-s', '--session-id', type=str, help='Session ID to use for authentication', required=True)
-
-    parser.add_argument('-I', '--sheet-index', type=int, help="Excel sheet page number", default=0)
-
-    parser.add_argument('-o', '--output-file', type=str, help='Name of Output file (for fetching)')
-
-    parser.add_argument('-l', '--luigi', help='Set true if run as part of a Luigi task', action='store_true')
-=======
     parser = argparse.ArgumentParser(
         description="Refresh and fetch reports from go~mus")
     report_group = parser.add_mutually_exclusive_group(required=True)
@@ -103,7 +77,6 @@ def parse_arguments(args):
         '--luigi',
         help='Set true if run as part of a Luigi task',
         action='store_true')
->>>>>>> master:src/gomus/_utils/fetch_report_helper.py
 
     return parser.parse_args(args)
 
@@ -178,11 +151,6 @@ def request_report(args=sys.argv[1:]):
             exit(1)
 
     base_url = 'https://barberini.gomus.de'
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-    
-=======
-
->>>>>>> master:src/gomus/_utils/fetch_report_helper.py
     report_parts = REPORT_IDS_INV[report_id].split("_")
 
     print(f"Working with report '{report_parts[0]}.xlsx'")
@@ -190,10 +158,6 @@ def request_report(args=sys.argv[1:]):
     # Work with the kind of report that is generated and maintained
     if report_id > 0:
         base_url += f'/admin/reports/{report_id}'
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-        print("Fetching report")
-        url = base_url + '.xlsx'
-=======
 
         if args.action == 'refresh':
             print("Refreshing report")
@@ -202,7 +166,6 @@ def request_report(args=sys.argv[1:]):
         elif args.action == 'fetch':
             print("Fetching report")
             url = base_url + '.xlsx'
->>>>>>> master:src/gomus/_utils/fetch_report_helper.py
 
     else:  # Work with the kind of report that is requested directly
         print("Directly downloading report")
@@ -215,17 +178,6 @@ def request_report(args=sys.argv[1:]):
 
     res_content = get_request(url, args.session_id)
 
-<<<<<<< HEAD:src/gomus/_utils/fetch_report_helper.py
-    if not args.luigi:
-        filename = args.output_file
-        if not filename: filename = REPORT_IDS_INV[report_id] + '.csv'
-        with open(filename, 'w', encoding='utf-8') as csv_file:
-            csv_from_excel(res_content, csv_file, args.sheet_index)
-        print(f'Saved report to file "{filename}"')
-    else:
-        print("Running as Luigi task, returning response content")
-        return res_content
-=======
     if args.action == 'fetch':
         if not args.luigi:
             filename = args.output_file
@@ -237,7 +189,6 @@ def request_report(args=sys.argv[1:]):
         else:
             print("Running as Luigi task, returning response content")
             return res_content
->>>>>>> master:src/gomus/_utils/fetch_report_helper.py
 
 
 if __name__ == '__main__':

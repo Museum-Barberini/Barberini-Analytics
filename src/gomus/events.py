@@ -7,20 +7,11 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-<<<<<<< HEAD:src/gomus/events.py
-from set_db_connection_options import set_db_connection_options
-
-from ._utils.extract_bookings import hash_booker_id
-from ._utils.fetch_report import FetchEventReservations, FetchGomusReport
-from .bookings import BookingsToDB
-
-=======
 from gomus._utils.extract_bookings import hash_booker_id
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from set_db_connection_options import set_db_connection_options
 
->>>>>>> master:src/gomus/events.py
 
 class EventsToDB(CsvToDb):
     table = 'gomus_event'
