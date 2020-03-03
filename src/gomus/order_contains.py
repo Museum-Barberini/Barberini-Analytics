@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-import luigi
-
 from csv_to_db import CsvToDb
-
-from ._utils.scrape_gomus import ScrapeGomusOrderContains
+from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
 
 
 class OrderContainsToDB(CsvToDb):
@@ -18,16 +14,16 @@ class OrderContainsToDB(CsvToDb):
         ('quantity', 'INT'),
         ('price', 'FLOAT'),
     ]
-    
+
     primary_key = 'article_id'
 
     foreign_keys = [
-            {
-                "origin_column": "order_id",
-                "target_table": "gomus_order",
-                "target_column": "order_id"
-            }
-        ]
+        {
+            "origin_column": "order_id",
+            "target_table": "gomus_order",
+            "target_column": "order_id"
+        }
+    ]
 
     def requires(self):
         return ScrapeGomusOrderContains()

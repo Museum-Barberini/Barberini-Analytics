@@ -7,10 +7,10 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-
-from ._utils.fetch_report import FetchGomusReport
-from .customers import CustomersToDB
+from gomus._utils.fetch_report import FetchGomusReport
+from gomus.customers import CustomersToDB
 from set_db_connection_options import set_db_connection_options
+
 
 class OrdersToDB(CsvToDb):
     today = luigi.parameter.DateParameter()
@@ -28,24 +28,28 @@ class OrdersToDB(CsvToDb):
     primary_key = 'order_id'
 
     foreign_keys = [
-            {
-                "origin_column": "customer_id",
-                "target_table": "gomus_customer",
-                "target_column": "customer_id"
-            }
-        ]
+        {
+            "origin_column": "customer_id",
+            "target_table": "gomus_customer",
+            "target_column": "customer_id"
+        }
+    ]
 
     def requires(self):
-        return ExtractOrderData(columns=[col[0] for col in self.columns], today=self.today)
+        return ExtractOrderData(
+            columns=[col[0] for col in self.columns],
+            today=self.today)
+
 
 class ExtractOrderData(luigi.Task):
     today = luigi.parameter.DateParameter()
     columns = luigi.parameter.ListParameter(description="Column names")
-    host     = None
+
+    host = None
     database = None
-    user     = None
+    user = None
     password = None
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
@@ -57,7 +61,9 @@ class ExtractOrderData(luigi.Task):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='orders', suffix='_7days', today=self.today)
+        return FetchGomusReport(report='orders',
+                                suffix='_7days',
+                                today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
@@ -65,7 +71,7 @@ class ExtractOrderData(luigi.Task):
     def run(self):
         with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
-        
+
         df = df.filter([
             'Bestellnummer', 'Erstellt', 'Kundennummer',
             'ist gültig?', 'Bezahlstatus', 'Herkunft'
@@ -78,22 +84,18 @@ class ExtractOrderData(luigi.Task):
         df['customer_id'] = df['customer_id'].apply(self.query_customer_id)
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
         df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
-        
+
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
-    
+
     def float_to_datetime(self, string):
         return xldate_as_datetime(float(string), 0).date()
 
     def query_customer_id(self, customer_string):
         """
         TODO
-        Wir denken hier passiert folgendes:
-        - die customer id die von gomus vergeben wird (bei orders) wird ersetzt durch die 
-          hash id, die von uns für den customer generiert wurde. (im task customerToDB)
-        - wenn wir den customer noch nicht in der datenbank haben, nehmen wir die 
-          von gomus vergebene id
-        Problem: wenn customer nicht in datenbank ist, verweist die customer id in orders nicht
+        Problem: wenn customer nicht in datenbank ist,
+        verweist die customer id in orders nicht
         auf die customer id in customers.
         """
         customer_id = 0
@@ -103,12 +105,13 @@ class ExtractOrderData(luigi.Task):
             org_id = int(float(customer_string))
         try:
             conn = psycopg2.connect(
-            host=self.host, database=self.database,
-            user=self.user, password=self.password
+                host=self.host, database=self.database,
+                user=self.user, password=self.password
             )
 
             cur = conn.cursor()
-            query = f'SELECT customer_id FROM gomus_customer WHERE gomus_id = {org_id}'
+            query = (f'SELECT customer_id FROM gomus_customer WHERE '
+                     f'gomus_id = {org_id}')
             cur.execute(query)
 
             customer_row = cur.fetchone()
@@ -116,7 +119,7 @@ class ExtractOrderData(luigi.Task):
                 customer_id = customer_row[0]
             else:
                 pass
-                #print("Error: Customer ID not found in Database")
+                # print("Error: Customer ID not found in Database")
                 # This happens often atm, because only customers
                 # who registered during the last 7 days are known
         except psycopg2.DatabaseError as error:
