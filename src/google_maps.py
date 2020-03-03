@@ -119,26 +119,27 @@ class FetchGoogleMapsReviews(luigi.Task):
             pageSize=page_size).execute()
         reviews = reviews + review_list['reviews']
         total_reviews = review_list['totalReviewCount']
-        # creates the most beautiful loading line in the project! (so far)
-        print(
-            f"Fetched {len(reviews)} out of {total_reviews} reviews",
-            end='',
-            flush=True)
-
-        # TODO: optimise by requesting the latest
-        # review from DB and not fetching more pages once that one is found
-        while 'nextPageToken' in review_list:
-            next_page_token = review_list['nextPageToken']
-            review_list = service.accounts().locations().reviews().list(
-                parent=location,
-                pageSize=page_size,
-                pageToken=next_page_token).execute()
-            reviews = reviews + review_list['reviews']
+        try:
             print(
-                f"\rFetched {len(reviews)} out of {total_reviews} reviews",
-                end='',
-                flush=True)
-        print()
+                "Fetched {len(reviews)} out of {total_reviews} reviews",
+                end='', flush=True)
+
+            while 'nextPageToken' in review_list:
+                """
+                TODO: optimize by requesting the latest review from DB rather
+                than fetching more pages once that one is found
+                """
+                next_page_token = review_list['nextPageToken']
+                review_list = service.accounts().locations().reviews().list(
+                    parent=location,
+                    pageSize=page_size,
+                    pageToken=next_page_token).execute()
+                reviews = reviews + review_list['reviews']
+                print(
+                    f"\rFetched {len(reviews)} out of {total_reviews} reviews",
+                    end='', flush=True)
+        finally:
+            print()
         return reviews
 
     def extract_reviews(self, raw_reviews) -> pd.DataFrame:

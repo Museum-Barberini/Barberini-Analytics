@@ -19,7 +19,8 @@ RUN $install python3.6 python3-pip python3-setuptools python3-dev python3-wheel
 
 # install python packages
 RUN pip3 install wheel luigi
-RUN pip3 install pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client xmltodict numpy
+RUN pip3 install pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client xmltodict numpy jstyleson
+
 RUN pip3 install twitterscraper google-api-python-client
 RUN pip3 install coverage
 

@@ -12,3 +12,8 @@ ALTER TABLE google_maps_review RENAME content_original TO text;
 ALTER TABLE google_maps_review RENAME id TO google_maps_review_id;
 -- ALTER TABLE gomus_event RENAME id TO event_id;
 ALTER TABLE tweet_performance ALTER COLUMN timestamp TYPE timestamp;
+
+DROP TABLE gtrends_topics;
+DROP TABLE gtrends_interests;
+DROP TABLE gtrends_topic;
+DROP TABLE gtrends_interest;
