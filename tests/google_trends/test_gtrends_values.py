@@ -74,12 +74,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
 
     def setUp(self):
         super().setUp()
-        # super ugly way to ensure that the table exists
-        with open('output/google_trends/values.csv', 'w') as file:
-            file.write('topic,date,interest_value')
-        task = mut.GtrendsValuesAddToDB()
-        task.dummy_date = 'noway'
-        task.run()
+        mut.GtrendsValuesAddToDB(schema_only=True).run()
         self.db.commit(f'''DROP TABLE table_updates''')
         """
         WORKAROUND for "UniqueViolation: duplicate key value violates unique
