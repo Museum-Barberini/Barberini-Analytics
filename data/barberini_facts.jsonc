@@ -1,3 +1,5 @@
+// BARBERINI FACTS
+// See CONFIGURATION.md for more details.
 {
 	"countryCode": "DE", // Must be uppercase value from http://country.io/names.json
 	"foundingDate": "2017-01-01T00:00:00.000Z",
@@ -21,12 +23,7 @@
 			"pageId": 1068121123268077
 		},
 		"google": {
-			"knowledgeId": "/g/11bwnd3skz"
-			// Google knowledge graph id. This is how can find it out:
-			//  1. Open https://google.com/trends (make sure to choose the appropriate tld for your country)
-			//  2. Type in your museum's name
-			//  3. Don't choose the "search phrase" but the capitalized version of the name that contains the additional information.
-			//  4. This is the knowledge graph object. Click it and identify the query parameter in the URL.
+			"knowledgeId": "/g/11bwnd3skz" // Google knowledge graph id
 		},
 		"twitter": {
 			"userId": 788400779556159488
