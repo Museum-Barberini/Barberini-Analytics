@@ -13,9 +13,6 @@ SSL_CERT_DIR := /var/db-data
 
 # --- To manage docker ---
 
-pull: # TODO: Is this actually required? It worked for me without executing this line.
-	docker pull ubuntu && docker pull postgres
-
 # Start the container luigi. Also start the container db if it is not already running.
 # If the container db is being started, start it with ssl encryption if the file '/var/db-data/server.key'.
 startup:
