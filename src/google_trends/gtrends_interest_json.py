@@ -19,4 +19,6 @@ class GTrendsInterestJson(ExternalProgramTask):
             format=UTF8)
 
     def program_args(self):
-        return ['node', self.js_path] + [os.path.realpath(path) for path in [self.input().path, self.output().path]]
+        return ['node', self.js_path] + [
+            os.path.realpath(path)
+            for path in [self.input().path, self.output().path]]
