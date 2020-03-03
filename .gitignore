@@ -5,6 +5,11 @@ volumes/
 *secret*
 *token*
 *private*
+id_*
+*.pem
+*.key
+
+*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -144,8 +149,4 @@ dmypy.json
 scripts/places/mybusiness.dat
 package-lock.json
 
-# VS Code config files
 .vscode/
-
-# Any environment files
-*.env
