@@ -27,6 +27,6 @@ RUN pip3 install psycopg2
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get -y install nodejs
 
-COPY package.json /app
+COPY package.json package-lock.json /app
 RUN npm install
 COPY . /app
