@@ -31,7 +31,7 @@ RUN DEBIAN_FRONTEND=noninteractive $install libpq-dev
 RUN pip3 install psycopg2
 
 # install node.js
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+#RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $install nodejs
 
 # install node packages
@@ -40,6 +40,7 @@ WORKDIR /node_stuff_tmp
 RUN echo DEBUG $(ls)
 RUN echo DEBUG $(ls /node_stuff_tmp)
 RUN npm install
-RUN echo DEBUG $(ls)
 COPY . /app
+RUN echo DEBUG $(ls)
 WORKDIR /app
+RUN echo DEBUG $(ls)
