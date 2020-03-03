@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 WORKDIR /app
-VOLUME /app
+#VOLUME /app
 
 RUN apt-get update
 RUN apt-get upgrade -y --no-install-recommends
