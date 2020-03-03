@@ -1,0 +1,3 @@
+order_id,order_date,customer_id,valid,paid,origin
+607230,2020-01-10,0,False,False,Online Shop
+607231,2020-01-11,0,True,True,Mars

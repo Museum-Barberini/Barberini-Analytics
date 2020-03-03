@@ -1,5 +1,10 @@
 db_config.yaml
+volumes/
 
+# SECURITY!1
+*secret*
+*token*
+*private*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -34,6 +39,7 @@ node_modules/
 # Luigi output files
 #  (assuming we follow the convention to place all outputs in the output folder)
 output/
+!tests/test_data/tests_fake_files/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -135,7 +141,7 @@ dmypy.json
 *.Rproj*
 .Rproj.user
 
-.vscode/launch.json
 scripts/places/mybusiness.dat
 package-lock.json
-.vscode/settings.json
+
+.vscode/

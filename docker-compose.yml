@@ -1,26 +1,42 @@
-version: "3"
+# Extension files:
+#       docker-compose-enable-ssl.yml
+
+version: "3.7"
 
 services:
         luigi:
+                container_name: ${USER}-luigi
                 build: .
                 volumes:
                         - .:/app
+                        - /etc/secrets/secret_files:/app/secret_files
                 ports:
-                        - "8082:8082"
+                        - "8082"
                 environment:
                         - PYTHONIOENCODING=utf-8
+                        - PYTHONUNBUFFERED=1
                 env_file:
-                        - /etc/secrets.env
+                        - /etc/secrets/keys.env
+                        - /etc/secrets/database.env
+                        - /etc/secrets/smtp.env
                 stdin_open: true
                 tty: true
+                networks:
+                        - database_network
 
         db:
+                container_name: db
                 image: postgres
-                environment: 
-                        - PGDATA=/var/lib/postgresql/data/pg-data/
-                        - POSTGRES_USER=postgres
-                        - POSTGRES_PASSWORD=docker
-                        - POSTGRES_DB=barberini
+                restart: always
+                ports:
+                        - "5432:5432"
+                env_file:
+                        - /etc/secrets/database.env
                 volumes:
-                        - ./volumes/test:/var/lib/postgresql/data/
+                        - /var/db-data/:/var/lib/postgresql/data/
+                networks:
+                        - database_network
 
+networks:
+        database_network:
+                external: true
