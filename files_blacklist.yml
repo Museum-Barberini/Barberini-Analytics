@@ -1,12 +1,12 @@
 # Suspicious
 # (likely to be mitigated later)
-- cred
-- access
-- authori
-- secret
+- *cred*
+- *access*
+- *authori*
+- *secret*
 
 # Google stuff
-- client_secrets
+- *client_secrets*
 
 # RSA DSA ECSDA and ED25519 SSH keys
 - (ssh|config)\/(personal|server)_(rsa|dsa|ed\d+|ecdsa)
