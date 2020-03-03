@@ -36,7 +36,7 @@ RUN $install nodejs
 # copying of that folder, using [npm install -g], and manipulating the PATH
 # variable failed. Don't touch this unless you absolutely know what you do!
 COPY package*.json ../
-WORKDIR ..
+WORKDIR /
 RUN npm install
 COPY . /app
 WORKDIR /app
