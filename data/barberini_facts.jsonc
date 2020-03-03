@@ -1,0 +1,32 @@
+// BARBERINI FACTS
+// See CONFIGURATION.md for more details.
+{
+	"countryCode": "DE", // Must be uppercase value from http://country.io/names.json
+	"foundingDate": "2017-01-01T00:00:00.000Z",
+	
+	"gtrends": {
+		"museumNames": [
+			"barberini",
+			"museum barberini"
+		],
+		"topics": [ // search phrases to be googled with "barberini"
+			"van Gogh",
+			"Picasso"
+		]
+	},
+	
+	"ids": {
+		"apple": {
+			"appId": 1150432552
+		},
+		"facebook": {
+			"pageId": 1068121123268077
+		},
+		"google": {
+			"knowledgeId": "/g/11bwnd3skz" // Google knowledge graph id
+		},
+		"twitter": {
+			"userId": 788400779556159488
+		}
+	}
+}

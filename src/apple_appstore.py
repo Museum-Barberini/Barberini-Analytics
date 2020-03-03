@@ -7,9 +7,13 @@ import xmltodict
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+from museum_facts import MuseumFacts
 
 
 class FetchAppstoreReviews(luigi.Task):
+
+    def requires(self):
+        return MuseumFacts()
 
     def output(self):
         return luigi.LocalTarget('output/appstore_reviews.csv', format=UTF8)
@@ -24,23 +28,25 @@ class FetchAppstoreReviews(luigi.Task):
         data = []
         country_codes = self.get_country_codes()
         print()
-        for index, country_code in enumerate(country_codes, start=1):
-            try:
-                data.append(self.fetch_for_country(country_code))
-            except ValueError:
-                pass  # no data for given country code
-            except requests.HTTPError as error:
-                # not all countries are available
-                if error.response.status_code == 400:
-                    pass
-                else:
-                    raise
-            print(
-                f"\rFetched appstore reviews for {country_code} "
-                f"({100. * index / len(country_codes)}%)",
-                end='',
-                flush=True)
-        print()
+        try:
+            for index, country_code in enumerate(country_codes, start=1):
+                try:
+                    data.append(self.fetch_for_country(country_code))
+                except ValueError:
+                    pass  # no data for given country code
+                except requests.HTTPError as error:
+                    if error.response.status_code == 400:
+                        # not all countries are available
+                        pass
+                    else:
+                        raise
+                print(
+                    f"\rFetched appstore reviews for {country_code} "
+                    f"({100. * index / len(country_codes)}%)",
+                    end='',
+                    flush=True)
+        finally:
+            print()
         ret = pd.concat(data)
         return ret.drop_duplicates(subset=['appstore_review_id'])
 
@@ -48,9 +54,9 @@ class FetchAppstoreReviews(luigi.Task):
         return requests.get('http://country.io/names.json').json().keys()
 
     def fetch_for_country(self, country_code):
-        with open('data/barberini-facts.json') as facts_json:
-            barberini_facts = json.load(facts_json)
-            app_id = barberini_facts['ids']['apple']['appId']
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+            app_id = facts['ids']['apple']['appId']
         url = (f'https://itunes.apple.com/{country_code}/rss/customerreviews/'
                f'page=1/id={app_id}/sortby=mostrecent/xml')
         data_list = []

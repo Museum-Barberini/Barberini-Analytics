@@ -1,19 +1,21 @@
-import os
-import subprocess
 import unittest
+from luigi.mock import MockTarget
+from luigi.format import UTF8
+import json
+import os
 
 import psycopg2
 
-
-"""
-IMPORTANT NOTE:
-To be able to run tests that use this helper, you will need
-- a running postgres database server,
-- a database named 'barberini_test'.
-"""
+from museum_facts import MuseumFacts
 
 
 def create_database_if_necessary():
+    """
+    IMPORTANT NOTE:
+    To be able to run tests that use this helper, you will need
+    - a running postgres database server,
+    - a database named 'barberini_test'.
+    """
     cur = conn = None
     try:
         conn = psycopg2.connect(
@@ -24,6 +26,9 @@ def create_database_if_necessary():
         conn.autocommit = True
         cur = conn.cursor()
         database = os.environ['POSTGRES_DB']
+        assert 'test' in database, (
+            'Tests cannot be run on production database.'
+            'Use GitLab Runner or make test.')
         try:
             # each test execution should get a fresh database
             cur.execute(f"DROP DATABASE {database};")
@@ -71,19 +76,30 @@ class DatabaseTaskTest(unittest.TestCase):
         super().setUp()
         create_database_if_necessary()
         self.db.setUp()
-        # copy all fake files to root and append ~ to existing ones
-        subprocess.call(
-            'cp -r tests/test_data/tests_fake_files/output . --backup'.split())
+
+        facts_task = MuseumFacts()
+        facts_task.run()
+        with facts_task.output().open('r') as facts_file:
+            self.facts = json.load(facts_file)
 
     def tearDown(self):
-        # restore files ending with ~ by overwriting the version without ~
-        subprocess.call(
-            ['bash', '-c', ('find -iname *~ | awk \'{system("bash -c '
-                            '\'"\'"\'file="$1" bash -c \\"mv \\\\$file \\\\$'
-                            '{file::-1}\"\'"\'"\'")}\'')])
         super().tearDown()
         self.db.tearDown()
 
     def isolate(self, task):
         task.complete = True
         return task
+
+    def install_mock_target(self, mock_object, store_function):
+        mock_target = MockTarget(
+            f'mock{hash(mock_object.hash())}', format=UTF8)
+        with mock_target.open('w') as input_file:
+            store_function(input_file)
+        mock_object.return_value = mock_target
+        return mock_target
+
+    def dump_mock_target_into_fs(self, mock_target):
+        # We need to bypass MockFileSystem for accessing the file from node.js
+        with open(mock_target.path, 'w') as output_file:
+            with mock_target.open('r') as input_file:
+                output_file.write(input_file.read())
