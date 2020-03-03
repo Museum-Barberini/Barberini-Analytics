@@ -10,5 +10,10 @@ ALTER TABLE gomus_order RENAME id TO order_id;
 ALTER TABLE google_maps_review RENAME content TO text_german;
 ALTER TABLE google_maps_review RENAME content_original TO text;
 ALTER TABLE google_maps_review RENAME id TO google_maps_review_id;
--- ALTER TABLE gomus_event RENAME id TO event_id;
 ALTER TABLE tweet_performance ALTER COLUMN timestamp TYPE timestamp;
+
+ALTER TABLE gomus_event RENAME id TO event_id;
+ALTER TABLE gomus_booking ADD start_datetime TIMESTAMP;
+UPDATE gomus_booking SET start_datetime = date + daytime;
+ALTER TABLE gomus_booking DROP COLUMN date;
+ALTER TABLE gomus_booking DROP COLUMN daytime;
