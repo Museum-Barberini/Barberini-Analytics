@@ -83,7 +83,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
         self.db.commit(f'''DROP TABLE table_updates''')
         """
         WORKAROUND for "UniqueViolation: duplicate key value violates unique
-        constraint 'table_updates_pkey' 😭
+        constraint 'table_updates_pkey' ;-(
         """
 
     @patch.object(GtrendsTopics, 'run')
