@@ -55,7 +55,7 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
             self.assertTrue(min_date <= date <= now)
         for entry in json_values:
             value = entry['interestValue']
-            self.assertTrue(isinstance(value, int))
+            self.assertIsInstance(value, int)
             self.assertTrue(0 <= value <= 100)
             self.assertTrue(0 < value, "Numbers are cool! They must be trending.")
 
