@@ -37,7 +37,7 @@ RUN $install nodejs
 COPY package*.json ./
 RUN echo DEBUG $(ls)
 RUN echo DEBUG $(ls /app)
-RUN echo DEBUG $(ls /app/node_modules)
 RUN npm install
+RUN echo DEBUG $(ls /app/node_modules)
 RUN echo DEBUG $(ls)
 COPY . .
