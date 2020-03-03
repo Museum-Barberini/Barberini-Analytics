@@ -8,7 +8,7 @@ RUN apt-get upgrade -y --no-install-recommends
 
 RUN echo DEBUG $(whoami) $(pwd)
 RUN echo DEBUG $(ls)
-RUN echo DEBUG dont care about me, im only here to clear the docker cache
+RUN echo DEBUG dont care about me, im only here to clear the docker cache foo
 
 ARG install='apt-get install -y --no-install-recommends'
 
@@ -31,7 +31,7 @@ RUN DEBIAN_FRONTEND=noninteractive $install libpq-dev
 RUN pip3 install psycopg2
 
 # install node.js
-#RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $install nodejs
 
 # install node packages
