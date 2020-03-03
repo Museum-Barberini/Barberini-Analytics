@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 WORKDIR /app
-#VOLUME /app
+VOLUME /app
 
 RUN apt-get update
 RUN apt-get upgrade -y --no-install-recommends
@@ -35,12 +35,11 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $install nodejs
 
 # install node packages
-COPY package*.json /node_stuff/
-WORKDIR /node_stuff
+COPY package*.json ../
+WORKDIR ..
 RUN echo DEBUG $(ls)
-RUN echo DEBUG $(ls /node_stuff)
-RUN npm install -g
-ENV PATH /node_stuff/node_modules/.bin:$PATH
+RUN npm install
+#ENV PATH /node_stuff/node_modules/.bin:$PATH
 COPY . /app
 RUN echo DEBUG $(ls)
 WORKDIR /app
