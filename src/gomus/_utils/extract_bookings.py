@@ -20,7 +20,7 @@ class ExtractGomusBookings(luigi.Task):
         description="Seed to use for hashing", default=666)
 
     def requires(self):
-        return FetchGomusReport(report='bookings')
+        return FetchGomusReport(report='bookings', suffix='_nextYear')
 
     def output(self):
         return luigi.LocalTarget(

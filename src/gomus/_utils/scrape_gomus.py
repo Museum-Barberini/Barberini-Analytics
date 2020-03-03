@@ -55,6 +55,8 @@ class GomusScraperTask(luigi.Task):
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
+    worker_timeout = 3600
+
     def requires(self):
         return ExtractGomusBookings()
 
