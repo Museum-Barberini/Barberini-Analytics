@@ -85,6 +85,5 @@ class ExtractGomusBookings(luigi.Task):
                                  '%d.%m.%Y %H:%M')
 
     def calculate_duration(self, from_str, to_str):
-        print((datetime.strptime(to_str, '%H:%M') - datetime.strptime(from_str, '%H:%M')).seconds // 60)
         return (datetime.strptime(to_str, '%H:%M') -
                 datetime.strptime(from_str, '%H:%M')).seconds // 60

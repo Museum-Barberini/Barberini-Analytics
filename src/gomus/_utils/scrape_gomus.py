@@ -91,6 +91,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             # Language
             bookings.at[i, 'language'] = self.extract_from_html(
                 booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
+        print(bookings)
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
