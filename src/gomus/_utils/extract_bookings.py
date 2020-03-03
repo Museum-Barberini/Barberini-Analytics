@@ -21,7 +21,7 @@ class ExtractGomusBookings(luigi.Task):
 
     def requires(self):
         return FetchGomusReport(report='bookings', suffix='_all')
-    
+
     def output(self):
         return luigi.LocalTarget(
             f'output/gomus/bookings_prepared.csv', format=UTF8)
