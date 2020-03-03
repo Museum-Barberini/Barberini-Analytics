@@ -96,7 +96,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
         self.db.commit(
-            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE({1}), {2})'
+            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
             .format(42, dt.datetime.now().strftime('%Y-%m-%d'), 200))
 
         self.task = mut.GtrendsValuesToDB()
@@ -116,7 +116,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
         self.db.commit(
-            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE({1}), {2})'
+            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
             .format(43, dt.datetime.now().strftime('%Y-%m-%d'), 200))
 
         self.task = mut.GtrendsValuesToDB()
