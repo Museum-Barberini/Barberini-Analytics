@@ -62,6 +62,8 @@ class CsvToDb(CopyToTable):
         cursor.copy_expert(query, file)
 
     def rows(self):
+        if self.schema_only:
+            return []
         rows = super().rows()
         next(rows)
         return rows
