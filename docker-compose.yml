@@ -15,6 +15,7 @@ services:
         environment:
             - PYTHONIOENCODING=utf-8
             - PYTHONUNBUFFERED=1
+            - PYTHONPATH=./src/:./src/_utils/
         env_file:
             - /etc/secrets/keys.env
             - /etc/secrets/database.env

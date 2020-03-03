@@ -5,6 +5,11 @@ volumes/
 *secret*
 *token*
 *private*
+id_*
+*.pem
+*.key
+
+*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -140,5 +145,7 @@ dmypy.json
 
 *.Rproj*
 .Rproj.user
+
+package-lock.json
 
 .vscode/

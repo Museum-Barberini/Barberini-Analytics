@@ -5,7 +5,6 @@
 # ------ Internal variables ------
 
 SHELL := /bin/bash
-TOTALPYPATH := ./src/:./src/_utils/
 SSL_CERT_DIR := /var/db-data
 
 
@@ -79,7 +78,7 @@ luigi:
 
 luigi-task: luigi-scheduler
 	mkdir -p output
-	bash -c "PYTHONPATH=$${PYTHONPATH}:$(TOTALPYPATH) luigi --module $(LMODULE) $(LTASK)"
+	luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
 	rm -rf output
@@ -89,8 +88,28 @@ luigi-clean:
 test: luigi-clean
 	mkdir -p output
 	# globstar needed to recursively find all .py-files via **
-	POSTGRES_DB=barberini_test && shopt -s globstar && PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m unittest tests/**/test*.py -v
+	POSTGRES_DB=barberini_test && shopt -s globstar && PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m unittest tests/**/test*.py -v
 	make luigi-clean
 
-python:
-	bash -c "PYTHONPATH=$${PYTHONPATH}:$(TOTALPYPATH) python3"
+coverage: luigi-clean
+	POSTGRES_DB=barberini_test && shopt -s globstar && PYTHONPATH=$(TOTALPYPATH):./tests/_utils/ python3 -m coverage run --source ./src -m unittest -v --failfast --catch tests/**/test*.py -v
+	# print coverage results to screen. Parsed by gitlab CI regex to determine MR code coverage.
+	python3 -m coverage report
+	# generate html report. Is stored as artefact in gitlab CI job (stage: coverage)
+	python3 -m coverage html
+
+# use db-psql to get a psql shell inside the database container
+db-psql:
+	docker exec -it db psql -U postgres
+
+# use db-do to run a command for the database in the container
+# example: sudo make db-do do='\\d'
+db = barberini # default database for db-do
+db-do:
+	docker exec -it db psql -U postgres -a $(db) -c $(do)
+
+db-backup:
+	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+
+db-restore:
+	docker exec -i db psql -U postgres barberini < $(dump)

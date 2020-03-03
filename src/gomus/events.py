@@ -58,22 +58,34 @@ class ExtractEventData(luigi.Task):
 
     def run(self):
         self.events_df = pd.DataFrame(columns=self.columns)
-        for index, event_data in enumerate(self.input()):
+
+        # for every kind of category
+        for index, event_files in enumerate(self.input()):
             category = self.categories[index]
-            for i in range(0, len(event_data), 2):
-                self.append_event_data(i, event_data, 'Gebucht', category)
-                self.append_event_data(
-                    i + 1, event_data, 'Storniert', category)
+            with event_files.open('r') as events:
+
+                # for every event that falls into that category
+                for i, path in enumerate(events):
+                    path = path.replace('\n', '')
+
+                    # handle booked and cancelled events
+                    event_data = luigi.LocalTarget(path, format=UTF8)
+                    if i % 2 == 0:
+                        self.append_event_data(event_data, 'Gebucht', category)
+                    else:
+                        self.append_event_data(event_data,
+                                               'Storniert',
+                                               category)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
 
-    def append_event_data(self, index, event_data, status, category):
-        with event_data[index].open('r') as sheet:
+    def append_event_data(self, event_data, status, category):
+        with event_data.open('r') as sheet:
             sheet_reader = csv.reader(sheet)
             event_id = int(float(next(sheet_reader)[0]))
 
-        event_df = pd.read_csv(event_data[index].path, skiprows=5)
+        event_df = pd.read_csv(event_data.path, skiprows=5)
         event_df['Status'] = status
         event_df['Event_id'] = event_id
         event_df['Kategorie'] = category
@@ -105,16 +117,9 @@ class EnsureBookingsIsRun(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
         self.output_list = []
-        self.is_complete = False
         self.row_list = []
 
     def run(self):
-        # Enforce the generator to evaluate completely so the task is
-        # marked as complete before returning new dependencies
-        # LATEST TODO: Re-run pipeline and see whether this works.
-        return [dep for dep in list(self._run())]
-
-    def _run(self):
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
@@ -131,21 +136,32 @@ class EnsureBookingsIsRun(luigi.Task):
                 if event_id not in self.row_list:
                     approved = yield FetchEventReservations(event_id, 0)
                     cancelled = yield FetchEventReservations(event_id, 1)
-                    self.output_list.append(approved)
-                    self.output_list.append(cancelled)
+                    self.output_list.append(approved.path)
+                    self.output_list.append(cancelled.path)
                     self.row_list.append(event_id)
                 row = cur.fetchone()
-            self.is_complete = True
+
+            # write list of all event reservation to output file
+            with self.output().open('w') as all_outputs:
+                all_outputs.write('\n'.join(self.output_list))
 
         finally:
             if conn is not None:
                 conn.close()
 
+    # save a list of paths for all single csv files
     def output(self):
-        return self.output_list
-
-    def complete(self):
-        return self.is_complete
+        cat = self.cleanse_umlauts(self.category)
+        return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
+                                 format=UTF8)
 
     def requires(self):
         yield BookingsToDB()
+
+    # this function should not have to exist, but luigi apparently
+    # can't deal with UTF-8 symbols in their target paths
+    def cleanse_umlauts(self, string):
+        return string.translate(string.maketrans({
+            'Ä': 'Ae', 'ä': 'ae',
+            'Ö': 'Oe', 'ö': 'oe',
+            'Ü': 'Ue', 'ü': 'ue'}))
