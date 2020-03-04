@@ -18,8 +18,6 @@ class FetchGomusReport(luigi.Task):
         description="The report suffix (default: \'_7days\')")
     sheet_indices = luigi.parameter.ListParameter(
         default=[0], description="Page numbers of the Excel sheet")
-    refresh_wait_time = luigi.parameter.IntParameter(
-        default=60, description="How long to wait for the report to refresh")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
