@@ -1,10 +1,12 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 import pandas as pd
 import requests
 
-from apple_appstore import FetchAppstoreReviews
+from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDB
+from task_test import DatabaseTaskTest
+
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
 
@@ -191,3 +193,50 @@ class TestFetchAppleReviews(unittest.TestCase):
             }),
             result.drop(columns=['country_code'])
         )
+
+
+class TestAppstoreReviewsToDB(DatabaseTaskTest):
+
+    @patch.object(FetchAppstoreReviews, 'get_country_codes')
+    @patch('apple_appstore.requests.get')
+    def test_umlauts(self, requests_mock, country_codes_mock):
+
+        umlaut_title = "DEBUG - An ümlaut comment"
+        umlaut_text = (
+            "Süßölgefäß "
+            "Großfräsmaschinenöffnungstür "
+            "Grießklößchensüppchenschälchen")
+        umlaut_author = "Ölrückstoßabdämpfung"
+        return_value = f'''<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/\
+    Atom" xml:lang="de">
+    <id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/\
+        mostrecent/xml</id>
+    <title>iTunes Store: Rezensionen</title>
+    <updated>2020-02-04T02:59:47-07:00</updated>
+    <entry>
+        <updated>2012-11-10T09:08:07-07:00</updated>
+        <id>5483431986</id>
+        <title>{umlaut_title}</title>
+        <content type="text">{umlaut_text}</content>
+        <im:voteSum>-42</im:voteSum>
+        <im:voteCount>42</im:voteCount>
+        <im:rating>1</im:rating>
+        <im:version>1.2.3</im:version>
+        <author><name>{umlaut_author}</name></author>
+    </entry>
+</feed>'''
+
+        requests_mock.side_effect = [MagicMock(ok=True, text=return_value)]
+        # LATEST TODO: WHY DOES THIS NOT WORK
+        country_codes_mock.side_effect = ['DE']
+
+        self.task = AppstoreReviewsToDB()
+        self.run_task(self.task)
+
+        result = self.db.request('''
+            SELECT title, text
+            FROM appstore_review
+            WHERE title LIKE 'DEBUG%'
+        ''')
+        self.assertListEqual([(umlaut_title, umlaut_text)], result)
