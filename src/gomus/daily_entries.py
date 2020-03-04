@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import datetime
+import datetime as dt
 
 import luigi
 import numpy as np
@@ -78,9 +78,9 @@ class ExtractDailyEntryData(luigi.Task):
                         np.nan_to_num(row['ID']))
                     entries_df.at[row_index, 'ticket'] = row['Ticket']
 
-                    time = datetime.time(hour=i)
+                    time = dt.time(hour=i)
                     entries_df.at[row_index, 'datetime'] = \
-                        datetime.datetime.combine(date, time)
+                        dt.datetime.combine(date, time)
 
                     # Handle different hour formats for expected and actual
                     # entries

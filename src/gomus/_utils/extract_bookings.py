@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dt
 
 import luigi
 import mmh3
@@ -84,5 +84,5 @@ class ExtractGomusBookings(luigi.Task):
                                  '%d.%m.%Y %H:%M')
 
     def calculate_duration(self, from_str, to_str):
-        return (datetime.strptime(to_str, '%H:%M') -
-                datetime.strptime(from_str, '%H:%M')).seconds // 60
+        return (dt.datetime.strptime(to_str, '%H:%M') -
+                dt.datetime.strptime(from_str, '%H:%M')).seconds // 60
