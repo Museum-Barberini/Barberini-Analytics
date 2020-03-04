@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import csv
-import datetime
+import datetime as dt
 import sys
 
 import requests
@@ -84,26 +84,25 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def parse_timespan(timespan, today=datetime.date.today()):
-    # today = datetime.date.today()
-    end_time = today - datetime.timedelta(days=1)
+def parse_timespan(timespan, today=dt.date.today()):
+    end_time = today - dt.timedelta(days=1)
     if timespan == '7days':
         # grab everything from yesterday till a week before
-        start_time = end_time - datetime.timedelta(weeks=1)
+        start_time = end_time - dt.timedelta(weeks=1)
     elif timespan == '1month':
-        start_time = end_time - datetime.timedelta(days=30)
+        start_time = end_time - dt.timedelta(days=30)
     elif timespan == '1year':
-        start_time = end_time - datetime.timedelta(days=365)
+        start_time = end_time - dt.timedelta(days=365)
     elif timespan == '1day':
         start_time = end_time
     elif timespan == 'nextYear':
         start_time = end_time
-        end_time = end_time + datetime.timedelta(days=365)
+        end_time = end_time + dt.datetime.timedelta(days=365)
     elif timespan == 'all':
-        start_time = today - datetime.timedelta(days=365*5)
-        end_time = today + datetime.timedelta(days=365*2)
+        start_time = today - dt.datetime.timedelta(days=365*5)
+        end_time = today + dt.datetime.timedelta(days=365*2)
     else:
-        start_time = datetime.date.min  # check this for error handling
+        start_time = dt.date.min  # check this for error handling
     return start_time, end_time
 
 
@@ -111,7 +110,7 @@ def direct_download_url(base_url, report, timespan):
     start_time, end_time = parse_timespan(timespan)
     base_return = base_url + f'/{report}.xlsx'
 
-    if not start_time == datetime.date.min:
+    if not start_time == dt.date.min:
         # timespan is valid
         end_time = end_time.strftime("%Y-%m-%d")
         start_time = start_time.strftime("%Y-%m-%d")

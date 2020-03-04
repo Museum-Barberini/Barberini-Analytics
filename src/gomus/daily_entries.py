@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import datetime
+import datetime as dt
 
 import luigi
 import numpy as np
@@ -42,10 +42,10 @@ class ExtractDailyEntryData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return FetchGomusReport(report='entries',
-                                suffix='_1day',
-                                sheet_indices=[0, 1]
-                                if not self.expected else [2, 3])
+        return FetchGomusReport(
+            report='entries', suffix='_1day', sheet_indices=[
+                0, 1] if not self.expected else [
+                2, 3])
 
     def output(self):
         return luigi.LocalTarget(
@@ -77,10 +77,9 @@ class ExtractDailyEntryData(luigi.Task):
                         np.nan_to_num(row['ID']))
                     entries_df.at[row_index, 'ticket'] = row['Ticket']
 
-                    time = datetime.time(hour=i)
-                    entries_df.at[
-                        row_index, 'datetime'] = datetime.datetime.combine(
-                        date, time)
+                    time = dt.time(hour=i)
+                    entries_df.at[row_index, 'datetime'] = \
+                        dt.datetime.combine(date, time)
 
                     # handle different hour formats for expected/actual entries
                     if self.expected:

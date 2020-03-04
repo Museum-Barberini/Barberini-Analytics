@@ -65,7 +65,7 @@ class FetchAppstoreReviews(luigi.Task):
             data, url = self.fetch_page(url)
             data_list += data
 
-        if len(data_list) == 0:
+        if not data_list:
             # no reviews for the given country code
             raise ValueError()
 

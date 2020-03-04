@@ -82,9 +82,13 @@ class DatabaseTaskTest(unittest.TestCase):
         with facts_task.output().open('r') as facts_file:
             self.facts = json.load(facts_file)
 
+        self.dirty_file_paths = []
+
     def tearDown(self):
-        super().tearDown()
         self.db.tearDown()
+        for file in self.dirty_file_paths:
+            os.remove(file)
+        super().tearDown()
 
     def isolate(self, task):
         task.complete = True
@@ -101,5 +105,6 @@ class DatabaseTaskTest(unittest.TestCase):
     def dump_mock_target_into_fs(self, mock_target):
         # We need to bypass MockFileSystem for accessing the file from node.js
         with open(mock_target.path, 'w') as output_file:
+            self.dirty_file_paths.append(mock_target.path)
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
