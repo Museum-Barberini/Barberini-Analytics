@@ -35,9 +35,9 @@ class EventsToDB(CsvToDb):
             'target_column': 'customer_id'
         },
         {
-            'origin_column': "booking_id',
-            'target_table': "gomus_booking',
-            'target_column': "booking_id'
+            'origin_column': 'booking_id',
+            'target_table': 'gomus_booking',
+            'target_column': 'booking_id'
         }
     ]
 

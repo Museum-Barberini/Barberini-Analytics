@@ -34,7 +34,7 @@ class ExtractGomusBookings(luigi.Task):
                 hash_booker_id, args=(self.seed,))
             bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
-            bookings['start_datetime'] = bookings.apply(
+            bookings['Startzeit'] = bookings.apply(
                 lambda x: self.calculate_start_datetime(
                     x['Datum'], x['Uhrzeit von']), axis=1)
             bookings['Dauer'] = bookings.apply(
@@ -43,9 +43,9 @@ class ExtractGomusBookings(luigi.Task):
 
             # order_date and language are added by scraper
         else:
-            # manually append "start_datetime" and "Dauer" to ensure pandas
+            # manually append "Startzeit" and "Dauer" to ensure pandas
             # doesn't crash even though nothing will be added
-            bookings['start_datetime'] = 0
+            bookings['Startzeit'] = 0
             bookings['Dauer'] = 0
 
         bookings = bookings.filter(['Buchung',
@@ -57,7 +57,7 @@ class ExtractGomusBookings(luigi.Task):
                                     'Ausstellung',
                                     'Titel',
                                     'Status',
-                                    'start_datetime'])
+                                    'Startzeit'])
         bookings.columns = [
             'booking_id',
             'customer_id',
