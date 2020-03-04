@@ -81,7 +81,7 @@ class ExtractGomusBookings(luigi.Task):
 
     def calculate_start_datetime(self, date_str, time_str):
         return dt.datetime.strptime(f'{date_str} {time_str}',
-                                 '%d.%m.%Y %H:%M')
+                                    '%d.%m.%Y %H:%M')
 
     def calculate_duration(self, from_str, to_str):
         return (dt.datetime.strptime(to_str, '%H:%M') -
