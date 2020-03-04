@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import luigi
 
-from src._utils.csv_to_db import CsvToDb
+from csv_to_db import CsvToDb
 from task_test import DatabaseTaskTest
 
 # Initialize test and write it to a csv file
@@ -60,7 +60,7 @@ def get_temp_table():
 
 class TestCsvToDb(DatabaseTaskTest):
 
-    @patch("src._utils.csv_to_db.set_db_connection_options")
+    @patch("csv_to_db.set_db_connection_options")
     def setUp(self, mock):
 
         super().setUp()
@@ -71,7 +71,6 @@ class TestCsvToDb(DatabaseTaskTest):
 
     def tearDown(self):
 
-        self.mock_set_db_conn_options.assert_called_once()
         self.db.connection.set_isolation_level(0)
         self.db.commit(f"DROP TABLE {self.table_name};")
         # Make absolutely sure that each test gets fresh params
@@ -84,6 +83,7 @@ class TestCsvToDb(DatabaseTaskTest):
         self.dummy.run()
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, expected_data)
+        self.mock_set_db_conn_options.assert_called_once()
 
     def test_adding_data_to_database_existing_table(self):
 
@@ -103,6 +103,7 @@ class TestCsvToDb(DatabaseTaskTest):
         # ----- Inspect result ------
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, [(0, 1, "a", "b"), *expected_data])
+        self.mock_set_db_conn_options.assert_called_once()
 
     def test_no_duplicates_are_inserted(self):
 
@@ -124,3 +125,4 @@ class TestCsvToDb(DatabaseTaskTest):
         # ----- Inspect result ------
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, expected_data)
+        self.mock_set_db_conn_options.assert_called_once()
