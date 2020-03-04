@@ -74,7 +74,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         row_count = len(bookings.index)
 
         db_booking_rows = []
-        booking_in_db = np.zeros((row_count,), dtype=bool)
 
         scraped_bookings = pd.DataFrame(columns=self.columns)
 
@@ -106,12 +105,13 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
 
-            for row in db_booking_rows:
-                if row[0] == booking_id:
-                    booking_in_db[i] = True
+            booking_in_db = False
+            for db_row in db_booking_rows:
+                if db_row[0] == booking_id:
+                    booking_in_db = True
                     break
 
-            if not booking_in_db[i]:
+            if not booking_in_db:
 
                 booking_url = (self.base_url + "/admin/bookings/"
                                + str(booking_id))
@@ -134,15 +134,13 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 raw_order_date = self.extract_from_html(
                     booking_details,
                     'div[1]/div[2]/small/dl/dd[2]').strip()
-                bookings.at[i, 'order_date'] = dateparser.parse(raw_order_date)
+                row['order_date'] = dateparser.parse(raw_order_date)
 
                 # Language
-                bookings.at[i, 'language'] = self.extract_from_html(
+                row['language'] = self.extract_from_html(
                     booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
 
-                scraped_row = bookings.loc[
-                    bookings['booking_id'] == booking_id]
-                scraped_bookings = scraped_bookings.append(scraped_row)
+                scraped_bookings = scraped_bookings.append(row)
 
         with self.output().open('w') as output_file:
             scraped_bookings.to_csv(
