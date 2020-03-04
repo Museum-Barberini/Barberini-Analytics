@@ -109,6 +109,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             for row in db_booking_rows:
                 if row[0] == booking_id:
                     booking_in_db[i] = True
+                    break
 
             if not booking_in_db[i]:
 
