@@ -18,9 +18,10 @@ def hash_booker_id(email, seed=666):
 class ExtractGomusBookings(luigi.Task):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
+    timespan = luigi.parameter.Parameter(default='_nextYear')
 
     def requires(self):
-        return FetchGomusReport(report='bookings', suffix='_all')
+        return FetchGomusReport(report='bookings', suffix=self.timespan)
 
     def output(self):
         return luigi.LocalTarget(
@@ -32,7 +33,7 @@ class ExtractGomusBookings(luigi.Task):
             bookings['Buchung'] = bookings['Buchung'].apply(int)
             bookings['E-Mail'] = bookings['E-Mail'].apply(
                 hash_booker_id, args=(self.seed,))
-            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
+            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(self.safe_parse_int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
             bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
             bookings['daytime'] = bookings['Uhrzeit von'].apply(
@@ -91,3 +92,6 @@ class ExtractGomusBookings(luigi.Task):
     def calculate_duration(self, from_str, to_str):
         return (datetime.strptime(to_str, '%H:%M') -
                 datetime.strptime(from_str, '%H:%M')).seconds // 60
+
+    def safe_parse_int(self, numString):
+        return int(np.nan_to_num(numString))

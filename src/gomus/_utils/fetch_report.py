@@ -11,6 +11,7 @@ from gomus._utils.fetch_report_helper import (REPORT_IDS, csv_from_excel,
 
 
 class FetchGomusReport(luigi.Task):
+    today = luigi.parameter.DateParameter()
     report = luigi.parameter.Parameter(
         description="The report name (e.g. \'bookings\')")
     suffix = luigi.parameter.OptionalParameter(
@@ -33,7 +34,8 @@ class FetchGomusReport(luigi.Task):
 
     def requires(self):
         if REPORT_IDS[f'{self.report_name}'] > 0:  # report refreshable
-            start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
+            start_time, end_time = parse_timespan(
+                self.suffix.replace('_', ''), self.today)
             yield EditGomusReport(
                 report=REPORT_IDS[self.report_name],
                 start_at=start_time,

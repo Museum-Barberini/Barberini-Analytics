@@ -20,6 +20,9 @@ REPORT_IDS = {
     'bookings_7days': 0,
     'bookings_1month': -3,
     'bookings_1year': -1,
+    'bookings_nextYear': -5,
+    'bookings_all': -11,
+
     'guides': -2
 }
 REPORT_IDS_INV = {v: k for k, v in REPORT_IDS.items()}
@@ -81,7 +84,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def parse_timespan(timespan, today):
+def parse_timespan(timespan, today=datetime.date.today()):
     # today = datetime.date.today()
     end_time = today - datetime.timedelta(days=1)
     if timespan == '7days':

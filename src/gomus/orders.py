@@ -54,11 +54,11 @@ class ExtractOrderData(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
 
-    def _requires(self):
-        return luigi.task.flatten([
-            CustomersToDB(today=self.today),
-            super()._requires()
-        ])
+    # def _requires(self):
+    #     return luigi.task.flatten([
+    #         CustomersToDB(today=self.today),
+    #         super()._requires()
+    #     ])
 
     def requires(self):
         return FetchGomusReport(report='orders',

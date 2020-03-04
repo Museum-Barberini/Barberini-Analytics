@@ -55,8 +55,11 @@ class GomusScraperTask(luigi.Task):
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
+    worker_timeout = 36000
+    timespan = luigi.parameter.Parameter(default='_nextYear')
+
     def requires(self):
-        return ExtractGomusBookings()
+        return ExtractGomusBookings(timespan=self.timespan)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
