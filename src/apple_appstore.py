@@ -30,6 +30,11 @@ class FetchAppstoreReviews(luigi.Task):
         print()
         try:
             for index, country_code in enumerate(country_codes, start=1):
+                print(
+                    f"\rFetching appstore reviews for {country_code} "
+                    f"({100. * (index - 1) / len(country_codes)}%)",
+                    end='',
+                    flush=True)
                 try:
                     data.append(self.fetch_for_country(country_code))
                 except ValueError:
@@ -40,11 +45,6 @@ class FetchAppstoreReviews(luigi.Task):
                         pass
                     else:
                         raise
-                print(
-                    f"\rFetched appstore reviews for {country_code} "
-                    f"({100. * index / len(country_codes)}%)",
-                    end='',
-                    flush=True)
         finally:
             print()
         ret = pd.concat(data)
