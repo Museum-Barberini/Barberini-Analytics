@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import os
 
+from museum_facts import MuseumFacts
 import luigi
 import pandas as pd
 import requests
@@ -17,15 +18,17 @@ class FetchFbPosts(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
 
+    def requires(self):
+        return MuseumFacts()
+
     def output(self):
         return luigi.LocalTarget("output/facebook/fb_posts.csv", format=UTF8)
 
     def run(self):
-
         access_token = os.environ['FB_ACCESS_TOKEN']
-        with open('data/barberini-facts.json') as facts_json:
-            barberini_facts = json.load(facts_json)
-            page_id = barberini_facts['ids']['facebook']['pageId']
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+        page_id = facts['ids']['facebook']['pageId']
 
         posts = []
 
@@ -165,10 +168,13 @@ class FbPostPerformanceToDB(CsvToDb):
 
     primary_key = ('fb_post_id', 'time_stamp')
 
-    foreign_keys = [{
-        "origin_column": "fb_post_id",
-        "target_table": "fb_post",
-        "target_column": "fb_post_id"}]
+    foreign_keys = [
+            {
+                "origin_column": "fb_post_id",
+                "target_table": "fb_post",
+                "target_column": "fb_post_id"
+            }
+        ]
 
     def requires(self):
         return FetchFbPostPerformance()

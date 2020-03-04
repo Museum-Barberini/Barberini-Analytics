@@ -1,11 +1,10 @@
+import unittest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 import requests
-import unittest
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
 from apple_appstore import FetchAppstoreReviews
-
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
 
@@ -18,6 +17,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.task.get_country_codes = lambda: FAKE_COUNTRY_CODES
 
     def test_germany_basic(self):
+        self.task.requires().run()  # workaround
         result = self.task.fetch_for_country('DE')
         self.assertIsInstance(result, pd.DataFrame)
 
@@ -112,8 +112,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), len(FAKE_COUNTRY_CODES))
 
-        # get a list with all args passed to the mock (hopefully all country
-        # ids)
+        # get a list with all args passed to mock (hopefully all country ids)
         args = [args[0] for (args, _) in mock.call_args_list]
         for arg in args:
             self.assertRegex(arg, r'^\w{2}$')
