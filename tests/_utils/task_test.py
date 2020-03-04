@@ -80,7 +80,7 @@ class DatabaseTaskTest(unittest.TestCase):
         facts_task.run()
         with facts_task.output().open('r') as facts_file:
             self.facts = json.load(facts_file)
-        
+
         self.dirty_file_paths = []
 
     def tearDown(self):
