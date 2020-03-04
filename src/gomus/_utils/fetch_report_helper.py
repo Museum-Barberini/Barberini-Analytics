@@ -97,7 +97,7 @@ def parse_timespan(timespan):
         start_time = end_time
     elif timespan == 'nextYear':
         start_time = end_time
-        end_time = end_time + datetime.timedelta(days=365)
+        end_time = end_time + dt.datetime.timedelta(days=365)
     else:
         start_time = dt.date.min  # check this for error handling
     return start_time, end_time
