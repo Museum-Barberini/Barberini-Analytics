@@ -1,9 +1,9 @@
-from unittest.mock import patch
 import json
+from unittest.mock import patch
 
 from google_trends.gtrends_topics import GtrendsTopics
-from task_test import DatabaseTaskTest
 from museum_facts import MuseumFacts
+from task_test import DatabaseTaskTest
 
 
 class TestGtrendsTopics(DatabaseTaskTest):

@@ -1,5 +1,6 @@
-import luigi
 import json
+
+import luigi
 
 from museum_facts import MuseumFacts
 

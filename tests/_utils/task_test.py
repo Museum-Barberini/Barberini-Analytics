@@ -1,10 +1,10 @@
-import unittest
-from luigi.mock import MockTarget
-from luigi.format import UTF8
 import json
 import os
+import unittest
 
 import psycopg2
+from luigi.format import UTF8
+from luigi.mock import MockTarget
 
 from museum_facts import MuseumFacts
 
@@ -29,12 +29,12 @@ def create_database_if_necessary():
         assert 'test' in database, (
             'Tests cannot be run on production database.'
             'Use GitLab Runner or make test.')
-        try:
-            # each test execution should get a fresh database
-            cur.execute(f"DROP DATABASE {database};")
-        except BaseException:
-            pass  # did not exist ¯\_(ツ)_/¯
+
+        # each test execution should get a fresh database
+        cur.execute(f"DROP DATABASE IF EXISTS {database}")
+
         cur.execute(f"CREATE DATABASE {database};")
+
     finally:
         if cur is not None:
             cur.close()
@@ -82,9 +82,13 @@ class DatabaseTaskTest(unittest.TestCase):
         with facts_task.output().open('r') as facts_file:
             self.facts = json.load(facts_file)
 
+        self.dirty_file_paths = []
+
     def tearDown(self):
-        super().tearDown()
         self.db.tearDown()
+        for file in self.dirty_file_paths:
+            os.remove(file)
+        super().tearDown()
 
     def isolate(self, task):
         task.complete = True
@@ -101,5 +105,6 @@ class DatabaseTaskTest(unittest.TestCase):
     def dump_mock_target_into_fs(self, mock_target):
         # We need to bypass MockFileSystem for accessing the file from node.js
         with open(mock_target.path, 'w') as output_file:
+            self.dirty_file_paths.append(mock_target.path)
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())

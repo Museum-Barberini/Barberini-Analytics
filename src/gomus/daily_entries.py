@@ -45,7 +45,7 @@ class ExtractDailyEntryData(luigi.Task):
         return FetchGomusReport(
             report='entries', suffix='_1day', sheet_indices=[
                 0, 1] if not self.expected else [
-                2, 3], refresh_wait_time=20)
+                2, 3])
 
     def output(self):
         return luigi.LocalTarget(

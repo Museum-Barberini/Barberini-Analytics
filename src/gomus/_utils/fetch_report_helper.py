@@ -20,6 +20,7 @@ REPORT_IDS = {
     'bookings_7days': 0,
     'bookings_1month': -3,
     'bookings_1year': -1,
+    'bookings_nextYear': -5,
 
     'guides': -2
 }
@@ -94,6 +95,9 @@ def parse_timespan(timespan):
         start_time = end_time - dt.timedelta(days=365)
     elif timespan == '1day':
         start_time = end_time
+    elif timespan == 'nextYear':
+        start_time = end_time
+        end_time = end_time + datetime.timedelta(days=365)
     else:
         start_time = dt.date.min  # check this for error handling
     return start_time, end_time
