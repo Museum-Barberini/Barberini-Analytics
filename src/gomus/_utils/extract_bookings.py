@@ -33,7 +33,8 @@ class ExtractGomusBookings(luigi.Task):
             bookings['Buchung'] = bookings['Buchung'].apply(int)
             bookings['E-Mail'] = bookings['E-Mail'].apply(
                 hash_booker_id, args=(self.seed,))
-            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(self.safe_parse_int)
+            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(
+                self.safe_parse_int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
             bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
             bookings['daytime'] = bookings['Uhrzeit von'].apply(

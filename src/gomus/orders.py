@@ -8,7 +8,7 @@ from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import CustomersToDB
+# from gomus.customers import CustomersToDB
 from set_db_connection_options import set_db_connection_options
 
 
