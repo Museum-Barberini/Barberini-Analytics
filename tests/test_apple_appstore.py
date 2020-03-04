@@ -1,11 +1,10 @@
+import unittest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 import requests
-import unittest
-from unittest.mock import MagicMock
-from unittest.mock import patch
 
 from apple_appstore import FetchAppstoreReviews
-
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
 

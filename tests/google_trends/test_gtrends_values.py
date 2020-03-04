@@ -1,13 +1,13 @@
 import datetime as dt
-from queue import Queue
-
-from unittest.mock import patch
-import luigi
 import json
+from queue import Queue
+from unittest.mock import patch
 
-from task_test import DatabaseTaskTest
+import luigi
+
 import google_trends.gtrends_values as gtrends_values
 from museum_facts import MuseumFacts
+from task_test import DatabaseTaskTest
 
 
 class TestFetchGtrendsValues(DatabaseTaskTest):

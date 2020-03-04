@@ -5,6 +5,7 @@ import unittest
 import psycopg2
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+
 from museum_facts import MuseumFacts
 
 
@@ -28,12 +29,12 @@ def create_database_if_necessary():
         assert 'test' in database, (
             'Tests cannot be run on production database.'
             'Use GitLab Runner or make test.')
-        try:
-            # each test execution should get a fresh database
-            cur.execute(f"DROP DATABASE {database};")
-        except BaseException:
-            pass  # did not exist ¯\_(ツ)_/¯
+
+        # each test execution should get a fresh database
+        cur.execute(f"DROP DATABASE IF EXISTS {database}")
+
         cur.execute(f"CREATE DATABASE {database};")
+
     finally:
         if cur is not None:
             cur.close()
