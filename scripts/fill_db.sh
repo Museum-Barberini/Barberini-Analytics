@@ -7,7 +7,7 @@ case $1 in
         TASK=FillDBHourly
         ;;
     *)
-        TASK=UnknownTask
+        TASK=FillDB
         ;;
 esac
 

@@ -1,19 +1,75 @@
-# BP Barberini
+# Awesome Barberini Tool
 
-### Run luigi
+A suite of data analytics tools to create an awesome dashboard for the Museum Barberini, Potsdam, in order to help them analyze and assess customer, advertising, and social media data!  
 
-At the moment we are using a setup with two docker containers. One container is used to 
-run the luigi pipeline (the luigi container), one container is used for a postgres database
-(the postgres container). The two containers are connected with a docker network.
+## Installation
 
-1. Make sure you have [docker](https://docs.docker.com/v17.09/engine/installation/) installed.
-2. Pull the base images (ubuntu and postgres): `[sudo] make pull`
-3. Build the docker image for the luigi container (this will take a while): `[sudo] make build-luigi`
-4. Startup the two docker containers and connect them with a docker network: `[sudo] make startup`
-5. Get a terminal in the luigi container: `[sudo] make connect`
-6. From inside the luigi container
-    1. Start the scheduling server: `make luigi-scheduler`
-    2. Run the luigi pipeline: `make luigi`
-7. Take a look at the visualization: `http://localhost:8082`
-8. When you are done kill the two containers and remove the network: `[sudo] make shutdown`
+### Requirements
 
+- UNIX system (preferred Ubuntu; does not work well with WSL)
+
+Please note that these instructions are optimized for Ubuntu, amd64. If you use a different configuration, you may need to adapt the toolchain installation (see `install_toolchain.sh`).
+
+### Actual installation
+
+1. Clone the repository using git
+
+   ```bash
+   git clone https://gitlab.hpi.de/bp-barberini/bp-barberini.git
+   cd bp-barberini
+   chmod +x scripts/*.sh
+   ```
+   
+   - For best convenience, clone it into `/root/bp-barberini`.
+
+2. Copy the `secrets` folders (not available on the internet) into `/etc`
+
+3. Set up the toolchain. See `scripts/install_toolchain.sh` how to do this. If you use ubuntu/amd64, you can run the script directly. Use `sudo`!
+
+4. Set up docker network and add the current user to the `docker` user group.
+
+   ```bash
+   ./scripts/setup_docker.sh
+   ```
+
+### Schedule regular DB updates
+
+Run `sudo scripts/setup_cron.sh`. If you cloned the repository in a different folder than `/root/bp-barberini`, you may want to adapt the paths in `scripts/.crontab` first. If no crontab exists before, create it using `crontab -e`.
+
+
+## Usage
+
+### Controlling the pipeline
+
+#### Open the luigi webinterface
+
+```bash
+ make docker-do do='make luigi-scheduler'
+```
+
+This will also start a webserver on http://localhost:8082 where you can trace all running tasks.
+
+#### Running the pipeline manually
+
+```bash
+ make docker-do do='make luigi'
+```
+
+#### Accessing the docker containers
+
+Have a look at our beautiful `Makefile`! To access the luigi docker, do:
+
+```bash
+make startup connect
+```
+
+Close the session by executing:
+
+```bash
+make shutdown
+```
+
+## Credits
+
+**Authors:** Laura Holz, Selina Reinhard, Leon Schmidt, Georg Tennigkeit, Christoph Thiede, Tom Wollnik (bachelor project BPFN1 @ HPI).
+**Organizations:** [Hasso Plattner Institute, Potsdam](https://hpi.de/en); [Museum Barberini](https://www.museum-barberini.com/en/); Hasso Plattner Foundation.
