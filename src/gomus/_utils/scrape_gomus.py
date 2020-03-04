@@ -75,7 +75,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         db_booking_rows = []
 
-        scraped_bookings = pd.DataFrame(columns=self.columns)
+        enhanced_bookings = pd.DataFrame(columns=self.columns)
 
         try:
             conn = psycopg2.connect(
@@ -140,10 +140,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 row['language'] = self.extract_from_html(
                     booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
 
-                scraped_bookings = scraped_bookings.append(row)
+                enhanced_bookings = enhanced_bookings.append(row)
 
         with self.output().open('w') as output_file:
-            scraped_bookings.to_csv(
+            enhanced_bookings.to_csv(
                 output_file,
                 index=False,
                 header=True,
