@@ -1,15 +1,15 @@
+import json
 import os
 
 import luigi
-from luigi.contrib.external_program import ExternalProgramTask
 import psycopg2
-import json
+from luigi.contrib.external_program import ExternalProgramTask
 
-from set_db_connection_options import set_db_connection_options
 from csv_to_db import CsvToDb
+from google_trends.gtrends_topics import GtrendsTopics
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
-from google_trends.gtrends_topics import GtrendsTopics
+from set_db_connection_options import set_db_connection_options
 
 
 class FetchGtrendsValues(ExternalProgramTask):

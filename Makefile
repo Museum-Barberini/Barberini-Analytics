@@ -41,25 +41,6 @@ docker-do:
 docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
 
-# --- To access postgres ---
-
-# opens a psql shell inside the database container
-db-psql:
-	docker exec -it db psql -U postgres
-
-# runs a command for the database in the container
-# example: sudo make db-do do='\\d'
-db = barberini # default database for db-do
-db-do:
-	docker exec -it db psql -U postgres -a $(db) -c $(do)
-
-db-backup:
-	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
-
-# Restore the database from a dump/backup
-db-restore:
-	docker exec -i db psql -U postgres barberini < $(dump)
-
 
 # ------ For use inside the Luigi container ------
 
@@ -98,11 +79,13 @@ coverage: luigi-clean
 	# generate html report. Is stored as artefact in gitlab CI job (stage: coverage)
 	python3 -m coverage html
 
-# use db-psql to get a psql shell inside the database container
+# --- To access postgres ---
+
+# opens a psql shell inside the database container
 db-psql:
 	docker exec -it db psql -U postgres
 
-# use db-do to run a command for the database in the container
+# runs a command for the database in the container
 # example: sudo make db-do do='\\d'
 db = barberini # default database for db-do
 db-do:
@@ -111,5 +94,6 @@ db-do:
 db-backup:
 	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
+# Restore the database from a dump/backup
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
