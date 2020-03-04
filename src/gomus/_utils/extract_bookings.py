@@ -46,7 +46,7 @@ class ExtractGomusBookings(luigi.Task):
             # manually append "start_datetime" and "Dauer" to ensure pandas
             # doesn't crash
             # even though nothing will be added
-            #bookings['start_datetime'] = 0
+            bookings['start_datetime'] = 0
             bookings['Dauer'] = 0
 
         bookings = bookings.filter(['Buchung',
