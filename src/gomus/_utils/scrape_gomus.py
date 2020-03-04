@@ -5,7 +5,6 @@ import time
 
 import dateparser
 import luigi
-import numpy as np
 import pandas as pd
 import psycopg2
 import requests
