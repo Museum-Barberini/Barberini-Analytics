@@ -17,7 +17,7 @@ class EventsToDB(CsvToDb):
     table = 'gomus_event'
 
     columns = [
-        ('id', 'INT'),
+        ('event_id', 'INT'),
         ('customer_id', 'INT'),
         ('booking_id', 'INT'),
         ('reservation_count', 'INT'),
@@ -26,7 +26,20 @@ class EventsToDB(CsvToDb):
         ('category', 'TEXT')
     ]
 
-    primary_key = 'id'
+    primary_key = 'event_id'
+
+    foreign_keys = [
+        {
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
+        },
+        {
+            'origin_column': 'booking_id',
+            'target_table': 'gomus_booking',
+            'target_column': 'booking_id'
+        }
+    ]
 
     def requires(self):
         return ExtractEventData(columns=[col[0] for col in self.columns])
@@ -95,7 +108,7 @@ class ExtractEventData(luigi.Task):
 
         event_df.columns = self.columns
 
-        event_df['id'] = event_df['id'].apply(int)
+        event_df['event_id'] = event_df['event_id'].apply(int)
         event_df['customer_id'] = event_df['customer_id'].apply(
             hash_booker_id, args=(self.seed,))
         event_df['reservation_count'] = event_df['reservation_count'].apply(
