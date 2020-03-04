@@ -38,7 +38,7 @@ class ExtractCustomerData(luigi.Task):
         description="Seed to use for hashing", default=666)
 
     def requires(self):
-        return FetchGomusReport(report='customers', refresh_wait_time=120)
+        return FetchGomusReport(report='customers')
 
     def output(self):
         return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
