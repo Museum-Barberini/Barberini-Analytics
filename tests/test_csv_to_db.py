@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import luigi
 
-from src._utils.csv_to_db import CsvToDb
+from csv_to_db import CsvToDb
 from task_test import DatabaseTaskTest
 
 # Initialize test and write it to a csv file
