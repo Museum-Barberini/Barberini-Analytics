@@ -44,8 +44,7 @@ class ExtractGomusBookings(luigi.Task):
             # order_date and language are added by scraper
         else:
             # manually append "start_datetime" and "Dauer" to ensure pandas
-            # doesn't crash
-            # even though nothing will be added
+            # doesn't crash even though nothing will be added
             bookings['start_datetime'] = 0
             bookings['Dauer'] = 0
 
