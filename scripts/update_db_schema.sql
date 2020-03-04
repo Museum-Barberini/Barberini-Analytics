@@ -14,3 +14,8 @@ ALTER TABLE tweet_performance ALTER COLUMN timestamp TYPE timestamp;
 
 ALTER TABLE gomus_event RENAME id TO event_id;
 DROP TABLE gomus_booking;
+
+DROP TABLE gtrends_topics;
+DROP TABLE gtrends_interests;
+DROP TABLE gtrends_topic;
+DROP TABLE gtrends_interest;

@@ -4,10 +4,7 @@ from apple_appstore import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from twitter import TweetsToDB, TweetPerformanceToDB
-
-from google_trends.gtrends_interest_table import GtrendsInterestToDB
-from google_trends.gtrends_topics_table import GtrendsTopicsToDB
-
+from google_trends.gtrends_values import GtrendsValuesToDB
 from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
@@ -28,9 +25,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield FbPostsToDB()
         yield GoogleMapsReviewsToDB()
         yield TweetsToDB()
-
-        yield GtrendsInterestToDB()
-        yield GtrendsTopicsToDB()
+        yield GtrendsValuesToDB()
 
         yield BookingsToDB()
         yield CustomersToDB()
