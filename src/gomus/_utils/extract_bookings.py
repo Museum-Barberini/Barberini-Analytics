@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dt
 
 import luigi
 import mmh3
@@ -83,11 +83,11 @@ class ExtractGomusBookings(luigi.Task):
         return mmh3.hash(guide, self.seed, signed=True)
 
     def parse_date(self, date_str):
-        return datetime.strptime(date_str, '%d.%m.%Y').date()
+        return dt.datetime.strptime(date_str, '%d.%m.%Y').date()
 
     def parse_daytime(self, daytime_str):
-        return datetime.strptime(daytime_str, '%H:%M').time()
+        return dt.datetime.strptime(daytime_str, '%H:%M').time()
 
     def calculate_duration(self, from_str, to_str):
-        return (datetime.strptime(to_str, '%H:%M') -
-                datetime.strptime(from_str, '%H:%M')).seconds // 60
+        return (dt.datetime.strptime(to_str, '%H:%M') -
+                dt.datetime.strptime(from_str, '%H:%M')).seconds // 60
