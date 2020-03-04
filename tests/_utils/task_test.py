@@ -1,11 +1,10 @@
-import unittest
-from luigi.mock import MockTarget
-from luigi.format import UTF8
 import json
 import os
+import unittest
 
 import psycopg2
-
+from luigi.format import UTF8
+from luigi.mock import MockTarget
 from museum_facts import MuseumFacts
 
 
