@@ -13,12 +13,11 @@ class BookingsToDB(CsvToDb):
         ('category', 'TEXT'),
         ('participants', 'INT'),
         ('guide_id', 'INT'),
-        ('date', 'DATE'),
-        ('daytime', 'TIME'),
         ('duration', 'INT'),  # in minutes
         ('exhibition', 'TEXT'),
         ('title', 'TEXT'),
         ('status', 'TEXT'),
+        ('start_datetime', 'TIMESTAMP'),
         ('order_date', 'DATE'),
         ('language', 'TEXT')
     ]
