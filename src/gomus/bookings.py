@@ -13,12 +13,11 @@ class BookingsToDB(CsvToDb):
         ('category', 'TEXT'),
         ('participants', 'INT'),
         ('guide_id', 'INT'),
-        ('date', 'DATE'),
-        ('daytime', 'TIME'),
         ('duration', 'INT'),  # in minutes
         ('exhibition', 'TEXT'),
         ('title', 'TEXT'),
         ('status', 'TEXT'),
+        ('start_datetime', 'TIMESTAMP'),
         ('order_date', 'DATE'),
         ('language', 'TEXT')
     ]
@@ -27,9 +26,9 @@ class BookingsToDB(CsvToDb):
 
     foreign_keys = [
         {
-            "origin_column": "customer_id",
-            "target_table": "gomus_customer",
-            "target_column": "customer_id"
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 

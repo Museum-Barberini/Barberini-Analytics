@@ -34,19 +34,18 @@ class ExtractGomusBookings(luigi.Task):
                 hash_booker_id, args=(self.seed,))
             bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
-            bookings['Datum'] = bookings['Datum'].apply(self.parse_date)
-            bookings['daytime'] = bookings['Uhrzeit von'].apply(
-                self.parse_daytime)
+            bookings['Startzeit'] = bookings.apply(
+                lambda x: self.calculate_start_datetime(
+                    x['Datum'], x['Uhrzeit von']), axis=1)
             bookings['Dauer'] = bookings.apply(
                 lambda x: self.calculate_duration(
                     x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 
             # order_date and language are added by scraper
         else:
-            # manually append "daytime" and "Dauer" to ensure pandas
-            # doesn't crash
-            # even though nothing will be added
-            bookings['daytime'] = 0
+            # manually append "Startzeit" and "Dauer" to ensure pandas
+            # doesn't crash even though nothing will be added
+            bookings['Startzeit'] = 0
             bookings['Dauer'] = 0
 
         bookings = bookings.filter(['Buchung',
@@ -54,24 +53,22 @@ class ExtractGomusBookings(luigi.Task):
                                     'Angebotskategorie',
                                     'Teilnehmerzahl',
                                     'Guide',
-                                    'Datum',
-                                    'daytime',
                                     'Dauer',
                                     'Ausstellung',
                                     'Titel',
-                                    'Status'])
+                                    'Status',
+                                    'Startzeit'])
         bookings.columns = [
             'booking_id',
             'customer_id',
             'category',
             'participants',
             'guide_id',
-            'date',
-            'daytime',
             'duration',
             'exhibition',
             'title',
-            'status']
+            'status',
+            'start_datetime']
         with self.output().open('w') as output_file:
             bookings.to_csv(output_file, header=True, index=False)
 
@@ -82,11 +79,9 @@ class ExtractGomusBookings(luigi.Task):
         guide = guides[0]
         return mmh3.hash(guide, self.seed, signed=True)
 
-    def parse_date(self, date_str):
-        return dt.datetime.strptime(date_str, '%d.%m.%Y').date()
-
-    def parse_daytime(self, daytime_str):
-        return dt.datetime.strptime(daytime_str, '%H:%M').time()
+    def calculate_start_datetime(self, date_str, time_str):
+        return dt.datetime.strptime(f'{date_str} {time_str}',
+                                    '%d.%m.%Y %H:%M')
 
     def calculate_duration(self, from_str, to_str):
         return (dt.datetime.strptime(to_str, '%H:%M') -

@@ -10,8 +10,10 @@ ALTER TABLE gomus_order RENAME id TO order_id;
 ALTER TABLE google_maps_review RENAME content TO text_german;
 ALTER TABLE google_maps_review RENAME content_original TO text;
 ALTER TABLE google_maps_review RENAME id TO google_maps_review_id;
--- ALTER TABLE gomus_event RENAME id TO event_id;
 ALTER TABLE tweet_performance ALTER COLUMN timestamp TYPE timestamp;
+
+ALTER TABLE gomus_event RENAME id TO event_id;
+DROP TABLE gomus_booking;
 
 DROP TABLE gtrends_topics;
 DROP TABLE gtrends_interests;
