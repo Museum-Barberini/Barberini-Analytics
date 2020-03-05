@@ -49,6 +49,9 @@ class CsvToDb(CopyToTable):
             self.requires = lambda: []
         self.seed = 666
 
+        # Default: no foreign key definitions
+        self.foreign_keys = []
+
     def init_copy(self, connection):
         if not self.check_existence(connection):
             raise UndefinedTableError()
@@ -78,6 +81,7 @@ class CsvToDb(CopyToTable):
         super().create_table(connection)
         print("INFO: Create table " + self.table)
         self.create_primary_key(connection)
+        self.create_foreign_key(connection)
 
     def create_primary_key(self, connection):
         connection.cursor().execute(
@@ -87,6 +91,18 @@ class CsvToDb(CopyToTable):
                 self.tuple_like_string(self.primary_key)
             )
         )
+
+    def create_foreign_key(self, connection):
+        for key in self.foreign_keys:
+            connection.cursor().execute(
+                self.load_sql_script(
+                    'set_foreign_key',
+                    self.table,
+                    key['origin_column'],
+                    key['target_table'],
+                    key['target_column']
+                )
+            )
 
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:

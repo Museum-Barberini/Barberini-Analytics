@@ -140,7 +140,7 @@ class TweetPerformanceToDB(CsvToDb):
         {
             "origin_column": "tweet_id",
             "target_table": "tweet",
-            "target_column": "tweeet_id"
+            "target_column": "tweet_id"
         }
     ]
 
