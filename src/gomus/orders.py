@@ -75,7 +75,8 @@ class ExtractOrderData(luigi.Task):
 
         df['order_id'] = df['order_id'].apply(int)
         df['order_date'] = df['order_date'].apply(self.float_to_datetime)
-        df['customer_id'] = df['customer_id'].apply(self.query_customer_id)
+        df['customer_id'] = df['customer_id'].apply(
+            self.query_customer_id).astype('Int64')
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
         df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
 
@@ -86,9 +87,9 @@ class ExtractOrderData(luigi.Task):
         return xldate_as_datetime(float(string), 0).date()
 
     def query_customer_id(self, customer_string):
-        customer_id = 0
         if np.isnan(customer_string):
-            org_id = int(np.nan_to_num(customer_string))
+            return 0
+            # if the customer_string is NaN, we set the customer_id to 0
         else:
             org_id = int(float(customer_string))
         try:
@@ -106,10 +107,9 @@ class ExtractOrderData(luigi.Task):
             if customer_row is not None:
                 customer_id = customer_row[0]
             else:
-                pass
-                # print("Error: Customer ID not found in Database")
-                # This happens often atm, because only customers
-                # who registered during the last 7 days are known
+                customer_id = np.nan
+                # if we can't find the customer_id, but it isn't NaN,
+                # we set the customer_id to NaN
         except psycopg2.DatabaseError as error:
             print(error)
             exit(1)
