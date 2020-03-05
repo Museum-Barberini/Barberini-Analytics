@@ -26,7 +26,7 @@ class FetchAppstoreReviews(luigi.Task):
 
     def fetch_all(self):
         data = []
-        country_codes = self.get_country_codes()
+        country_codes = sorted(self.get_country_codes())
         print()
         try:
             for index, country_code in enumerate(country_codes, start=1):
@@ -61,7 +61,7 @@ class FetchAppstoreReviews(luigi.Task):
                f'page=1/id={app_id}/sortby=mostrecent/xml')
         data_list = []
 
-        while url is not None:
+        while url:
             data, url = self.fetch_page(url)
             data_list += data
 
