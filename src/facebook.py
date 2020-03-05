@@ -186,4 +186,5 @@ class FbPostPerformanceToDB(CsvToDb):
         ]
 
     def requires(self):
-        return FetchFbPostPerformance()
+        yield FetchFbPostPerformance()
+        yield FbPostsToDB()

@@ -1,5 +1,6 @@
 from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
+from gomus.orders import OrdersToDB
 
 
 class OrderContainsToDB(CsvToDb):
@@ -26,4 +27,5 @@ class OrderContainsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ScrapeGomusOrderContains()
+        yield ScrapeGomusOrderContains()
+        yield OrdersToDB()

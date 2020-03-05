@@ -1,6 +1,6 @@
 from csv_to_db import CsvToDb
-
-from ._utils.scrape_gomus import EnhanceBookingsWithScraper
+from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
+from gomus.customers import CustomersToDB
 
 
 class BookingsToDB(CsvToDb):
@@ -33,5 +33,6 @@ class BookingsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return EnhanceBookingsWithScraper(
+        yield EnhanceBookingsWithScraper(
             columns=[col[0] for col in self.columns])
+        yield CustomersToDB()

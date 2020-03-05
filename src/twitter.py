@@ -145,4 +145,5 @@ class TweetPerformanceToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractPerformanceTweets()
+        yield ExtractPerformanceTweets()
+        yield TweetsToDB()

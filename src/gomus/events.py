@@ -10,6 +10,7 @@ from csv_to_db import CsvToDb
 from gomus._utils.extract_bookings import hash_booker_id
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
+from gomus.customers import CustomersToDB
 from set_db_connection_options import set_db_connection_options
 
 
@@ -42,7 +43,8 @@ class EventsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractEventData(columns=[col[0] for col in self.columns])
+        yield ExtractEventData(columns=[col[0] for col in self.columns])
+        yield CustomersToDB()
 
 
 class ExtractEventData(luigi.Task):
