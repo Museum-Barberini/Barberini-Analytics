@@ -99,6 +99,7 @@ class CsvToDb(CopyToTable):
         return f'({string})'
 
     def csv_rows(self):
+        raise Exception('is this ever called? I believe not.')
         with self.input().open('r') as csv_file:
             reader = csv.reader(csv_file)
             next(reader)
