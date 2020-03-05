@@ -61,8 +61,8 @@ class TestFetchAppleReviews(unittest.TestCase):
                 <im:version>2.10.7</im:version>
                 <author><name>Blubb</name></author>
                 <content type="html">
-                <somethtml> note=&quot;We don't want to parse\
-                this&quot;&gt;&lt;anIrrelevantTag /&gt;</somehtml>;
+                <somehtml> note=&quot;We don't want to parse\
+                this&quot;&gt;&lt;anIrrelevantTag /&gt;</somehtml>
                 </content>
             </entry>''',
             XML_EMPTY_FRAME
