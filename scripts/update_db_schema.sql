@@ -1,5 +1,6 @@
 ALTER TABLE fb_post RENAME id TO fb_post_id;
 ALTER TABLE fb_post_performance RENAME post_id TO fb_post_id;
+ALTER TABLE fb_post_performance ADD COLUMN paid_impressions INT;
 ALTER TABLE appstore_review RENAME id TO appstore_review_id;
 ALTER TABLE appstore_review RENAME content TO text;
 ALTER TABLE gomus_customer RENAME id TO gomus_id;
