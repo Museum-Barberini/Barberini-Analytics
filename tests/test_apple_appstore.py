@@ -15,8 +15,8 @@ XML_FRAME = '''<?xml version="1.0" encoding="utf-8"?>
     <link rel="not-next" href="this is some other link in the response;
         we don't ever want to access this"/>
     <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/\
-        page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/\
-            id=1150432552/mostrecent/xml"/>
+        page=2/id=288286261/sortby=mostrecent/xml?urlDesc=/customerreviews/\
+            id=288286261/mostrecent/xml"/>
     %s
     </feed>'''
 XML_EMPTY_FRAME = XML_FRAME % ''
@@ -61,8 +61,8 @@ class TestFetchAppleReviews(unittest.TestCase):
                 <im:version>2.10.7</im:version>
                 <author><name>Blubb</name></author>
                 <content type="html">
-                &lt;somethtml note=&quot;We don't want to parse\
-                this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;
+                <somethtml> note=&quot;We don't want to parse\
+                this&quot;&gt;&lt;anIrrelevantTag /&gt;</somehtml>;
                 </content>
             </entry>''',
             XML_EMPTY_FRAME
