@@ -52,14 +52,18 @@ class TestFetchAppleReviews(unittest.TestCase):
                 <updated>2012-11-10T09:08:07-07:00</updated>
                 <id>5483431986</id>
                 <title>I'm a fish</title>
-                <content type="text">The fish life is thug af #okboomer</content>
+                <content type="text">
+                The fish life is thug af #okboomer
+                </content>
                 <im:voteSum>9</im:voteSum>
                 <im:voteCount>42</im:voteCount>
                 <im:rating>5</im:rating>
                 <im:version>2.10.7</im:version>
                 <author><name>Blubb</name></author>
-                <content type="html">&lt;somethtml note=&quot;We don't want to parse\
-                    this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;</content>
+                <content type="html">
+                &lt;somethtml note=&quot;We don't want to parse\
+                this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;
+                </content>
             </entry>''',
             XML_EMPTY_FRAME
         ]
