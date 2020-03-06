@@ -113,7 +113,7 @@ class DatabaseTaskTest(unittest.TestCase):
 
     def run_task(self, task: luigi.Task):
         """
-        Run task and all its dependencies synchronous.
+        Run task and all its dependencies synchronously.
         This is probably some kind of reinvention of the wheel,
         but I don't know how to do this better.
         """
