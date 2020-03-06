@@ -78,7 +78,7 @@ class FetchAppstoreReviews(luigi.Task):
 
         response = requests.get(url)
         response.raise_for_status()
-        # specify encoding explicitly because the autodection failes sometimes
+        # specify encoding explicitly because the autodetection fails sometimes
         response.encoding = 'utf-8'
         response_content = xmltodict.parse(response.text)['feed']
 
