@@ -22,3 +22,5 @@ DROP TABLE gtrends_topic;
 DROP TABLE gtrends_interest;
 
 ALTER TABLE gomus_event DROP COLUMN customer_id;
+
+DROP TABLE gomus_customer;
