@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime as dt
 import os
 
 import luigi
@@ -11,7 +12,7 @@ from gomus._utils.fetch_report_helper import (REPORT_IDS, csv_from_excel,
 
 
 class FetchGomusReport(luigi.Task):
-    today = luigi.parameter.DateParameter()
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     report = luigi.parameter.Parameter(
         description="The report name (e.g. \'bookings\')")
     suffix = luigi.parameter.OptionalParameter(
@@ -73,7 +74,11 @@ class FetchEventReservations(luigi.Task):
     def run(self):
         url = (f'https://barberini.gomus.de/bookings/{self.booking_id}/'
                f'seats.xlsx')
-        res_content = requests.get(url, cookies=dict(
-            _session_id=os.environ['GOMUS_SESS_ID'])).content
+        response = requests.get(url, cookies=dict(
+            _session_id=os.environ['GOMUS_SESS_ID']))
+        res_content = response.content
+        print(type(res_content), response.status_code)
+
         with self.output().open('w') as target_csv:
-            csv_from_excel(res_content, target_csv, self.status)
+            if response.status_code != 500:
+                csv_from_excel(res_content, target_csv, self.status)

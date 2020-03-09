@@ -12,6 +12,8 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 
 class AbstractDailyEntriesToDB(CsvToDb):
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     columns = [
         ('id', 'INT'),
         ('ticket', 'TEXT'),
@@ -26,17 +28,22 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_daily_entry'
 
     def requires(self):
-        return ExtractDailyEntryData(expected=False, columns=self.columns)
+        return ExtractDailyEntryData(expected=False,
+                                     columns=self.columns,
+                                     today=self.today)
 
 
 class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_expected_daily_entry'
 
     def requires(self):
-        return ExtractDailyEntryData(expected=True, columns=self.columns)
+        return ExtractDailyEntryData(expected=True,
+                                     columns=self.columns,
+                                     today=self.today)
 
 
 class ExtractDailyEntryData(luigi.Task):
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     expected = luigi.parameter.BoolParameter(
         description="Whether to return actual or expected entries")
     columns = luigi.parameter.ListParameter(description="Column names")
@@ -45,7 +52,7 @@ class ExtractDailyEntryData(luigi.Task):
         return FetchGomusReport(
             report='entries', suffix='_1day', sheet_indices=[
                 0, 1] if not self.expected else [
-                2, 3])
+                2, 3], today=self.today)
 
     def output(self):
         return luigi.LocalTarget(
@@ -91,3 +98,6 @@ class ExtractDailyEntryData(luigi.Task):
 
             with self.output().open('w') as output_csv:
                 entries_df.to_csv(output_csv, index=False, header=True)
+
+    def safe_parse_int(self, val):
+        return int(np.nan_to_num(val))

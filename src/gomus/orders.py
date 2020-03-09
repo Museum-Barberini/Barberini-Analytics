@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime as dt
 import luigi
 import numpy as np
 import pandas as pd
@@ -8,7 +9,7 @@ from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from gomus._utils.fetch_report import FetchGomusReport
-# from gomus.customers import CustomersToDB
+from gomus.customers import CustomersToDB
 from set_db_connection_options import set_db_connection_options
 
 
@@ -42,7 +43,7 @@ class OrdersToDB(CsvToDb):
 
 
 class ExtractOrderData(luigi.Task):
-    today = luigi.parameter.DateParameter()
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
 
     host = None
@@ -54,11 +55,11 @@ class ExtractOrderData(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
 
-    # def _requires(self):
-    #     return luigi.task.flatten([
-    #         CustomersToDB(today=self.today),
-    #         super()._requires()
-    #     ])
+    def _requires(self):
+        return luigi.task.flatten([
+            CustomersToDB(today=self.today),
+            super()._requires()
+        ])
 
     def requires(self):
         return FetchGomusReport(report='orders',

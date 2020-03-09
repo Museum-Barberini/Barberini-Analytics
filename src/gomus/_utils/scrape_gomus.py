@@ -153,7 +153,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
-    worker_timeout = 2000  # seconds ≈ 30 minutes until the task will timeout
+    worker_timeout = 800000  # 2000
+    # seconds ≈ 30 minutes until the task will timeout
 
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
@@ -183,6 +184,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         order_details = []
 
         for i in range(len(order_ids)):
+
             url = self.base_url + "/admin/orders/" + str(order_ids[i])
             print(
                 (f"requesting order details for id: "
@@ -197,7 +199,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
             # every other td contains the information of an article in the
             # order
             for article in tree_details.xpath(
-                    'table/tbody[1]/tr[position() mod 2 = 1]'):
+                   # 'table/tbody[1]/tr[position() mod 2 = 1]'):
+                   'table/tbody[1]/tr'):
 
                 new_article = dict()
 
@@ -215,6 +218,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
                 new_article["ticket"] = self.extract_from_html(
                     article, 'td[3]/strong').strip()
+
+                if new_article["ticket"] != '\n':
+                    continue
 
                 infobox_str = html.tostring(
                     article.xpath('td[2]/div')[0],
@@ -241,6 +247,18 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                         "€", ""))
 
                 order_details.append(new_article)
+
+                # TODO remove
+                if i % 10000 == 0:
+                    backup_csv = luigi.LocalTarget(
+                        f'output/gomus/scraped_orders_{i//10000}.csv',
+                        format=UTF8)
+                    with backup_csv.open('w') as output_csv:
+                        df = pd.DataFrame(order_details)
+                        df.to_csv(output_csv,
+                                  index=False,
+                                  quoting=csv.QUOTE_NONNUMERIC)
+                    order_details = []
 
         df = pd.DataFrame(order_details)
         with self.output().open('w') as output_file:

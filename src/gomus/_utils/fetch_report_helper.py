@@ -45,6 +45,12 @@ def parse_arguments(args):
         type=str,
         help='Type of the report',
         choices=REPORT_IDS.keys())
+    parser.add_argument(
+        '-s',
+        '--session-id',
+        type=str,
+        help='Session ID to use for authentication',
+        required=True)
 
     parser.add_argument(
         'action',
@@ -55,13 +61,6 @@ def parse_arguments(args):
             'fetch'],
         nargs='?',
         default='fetch')
-    parser.add_argument(
-        '-s',
-        '--session-id',
-        type=str,
-        help='Session ID to use for authentication',
-        required=True)
-
     parser.add_argument(
         '-I',
         '--sheet-index',
@@ -84,7 +83,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def parse_timespan(timespan, today=dt.date.today()):
+def parse_timespan(timespan, today=dt.datetime.today()):
     end_time = today - dt.timedelta(days=1)
     if timespan == '7days':
         # grab everything from yesterday till a week before
@@ -97,10 +96,10 @@ def parse_timespan(timespan, today=dt.date.today()):
         start_time = end_time
     elif timespan == 'nextYear':
         start_time = end_time
-        end_time = end_time + dt.datetime.timedelta(days=365)
+        end_time = end_time + dt.timedelta(days=365)
     elif timespan == 'all':
-        start_time = today - dt.datetime.timedelta(days=365*5)
-        end_time = today + dt.datetime.timedelta(days=365*2)
+        start_time = today - dt.timedelta(days=365*5)
+        end_time = today + dt.timedelta(days=365*2)
     else:
         start_time = dt.date.min  # check this for error handling
     return start_time, end_time

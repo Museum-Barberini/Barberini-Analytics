@@ -88,3 +88,6 @@ class ExtractGomusBookings(luigi.Task):
     def calculate_duration(self, from_str, to_str):
         return (dt.datetime.strptime(to_str, '%H:%M') -
                 dt.datetime.strptime(from_str, '%H:%M')).seconds // 60
+
+    def safe_parse_int(self, number_string):
+        return int(np.nan_to_num(number_string))
