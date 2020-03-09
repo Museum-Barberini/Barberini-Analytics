@@ -185,6 +185,11 @@ class FbPostPerformanceToDB(CsvToDb):
             }
         ]
 
+    def _requires(self):
+        return luigi.task.flatten([
+            FbPostsToDB(),
+            super()._requires()
+        ])
+
     def requires(self):
-        yield FetchFbPostPerformance()
-        yield FbPostsToDB()
+        return FetchFbPostPerformance()

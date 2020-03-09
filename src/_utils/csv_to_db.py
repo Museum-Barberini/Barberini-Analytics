@@ -20,8 +20,11 @@ class CsvToDb(CopyToTable):
     def primary_key(self):
         raise NotImplementedError
 
-    sql_file_path_pattern = luigi.Parameter(
-        default='src/_utils/sql_scripts/{0}.sql')
+    @property
+    def foreign_keys(self):
+        # Default: no foreign key definitions
+        return []
+
     schema_only = luigi.BoolParameter(
         default=False,
         description=("If True, the table will be only created "
@@ -49,8 +52,7 @@ class CsvToDb(CopyToTable):
             self.requires = lambda: []
         self.seed = 666
 
-        # Default: no foreign key definitions
-        self.foreign_keys = []
+        self.sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
     def init_copy(self, connection):
         if not self.check_existence(connection):

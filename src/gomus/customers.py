@@ -13,7 +13,6 @@ class CustomersToDB(CsvToDb):
     table = 'gomus_customer'
 
     columns = [
-        ('gomus_id', 'INT'),
         ('customer_id', 'INT'),
         ('postal_code', 'TEXT'),  # e.g. non-german
         ('newsletter', 'BOOL'),
@@ -26,10 +25,40 @@ class CustomersToDB(CsvToDb):
         ('annual_ticket', 'BOOL')
     ]
 
-    primary_key = 'gomus_id'
+    primary_key = 'customer_id'
 
     def requires(self):
         return ExtractCustomerData(columns=[col[0] for col in self.columns])
+
+
+class GomusToCustomerMappingToDB(CsvToDb):
+
+    table = 'gomus_to_customer_mapping'
+
+    columns = [
+        ('gomus_id', 'INT'),
+        ('customer_id', 'INT')
+    ]
+
+    primary_key = 'gomus_id'
+
+    foreign_keys = [
+        {
+            'origin_column': 'gomus_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'gomus_id'
+        }
+    ]
+
+    def _requires(self):
+        return luigi.task.flatten(
+            CustomersToDB(),
+            super()._requires()
+        )
+
+    def requires(self):
+        return ExtractGomusToCustomerMapping(
+            columns=[col[0] for col in self.columns])
 
 
 class ExtractCustomerData(luigi.Task):
@@ -47,15 +76,14 @@ class ExtractCustomerData(luigi.Task):
         with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
         df = df.filter([
-            'Nummer', 'E-Mail', 'PLZ',
+            'E-Mail', 'PLZ',
             'Newsletter', 'Anrede', 'Kategorie',
             'Sprache', 'Land', 'Typ',
             'Erstellt am', 'Jahreskarte'])
 
         df.columns = self.columns
 
-        df['gomus_id'] = df['gomus_id'].apply(int)
-        df['customer_id'] = df['customer_id'].apply(self.hash_id)
+        df['customer_id'] = df['customer_id'].apply(hash_id, args=(self.seed,))
         df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
         df['newsletter'] = df['newsletter'].apply(self.parse_boolean)
         df['gender'] = df['gender'].apply(self.parse_gender)
@@ -75,12 +103,39 @@ class ExtractCustomerData(luigi.Task):
             return 'm'
         return ''
 
-    def hash_id(self, email):
-        if not isinstance(email, str):
-            return 0
-        return mmh3.hash(email, self.seed, signed=True)
-
     def cut_decimal_digits(self, post_string):
         if len(post_string) >= 2:
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
+
+
+class ExtractGomusToCustomerMapping(luigi.Task):
+    columns = luigi.parameter.ListParameter(description="Column names")
+    seed = luigi.parameter.IntParameter(
+        description="Seed to use for hashing", default=666)
+
+    def requires(self):
+        return FetchGomusReport(report='customers')
+
+    def output(self):
+        return luigi.LocalTarget('output/gomus/gomus_to_customers_mapping.csv',
+                                 format=UTF8)
+
+    def run(self):
+        with next(self.input()).open('r') as input_csv:
+            df = pd.read_csv(input_csv)
+
+        df = df.filter(['Nummer', 'E-Mail'])
+        df.columns = self.columns
+
+        df['gomus_id'] = df['gomus_id'].apply(int)
+        df['customer_id'] = df['customer_id'].apply(hash_id, args=(self.seed,))
+
+        with self.output().open('w') as output_csv:
+            df.to_csv(output_csv, index=False, header=True)
+
+
+def hash_id(self, email, seed):
+    if not isinstance(email, str):
+        return 0
+    return mmh3.hash(email, seed, signed=True)

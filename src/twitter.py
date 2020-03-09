@@ -144,6 +144,11 @@ class TweetPerformanceToDB(CsvToDb):
         }
     ]
 
+    def _requires(self):
+        return luigi.task.flatten([
+            TweetsToDB(),
+            super()._requires()
+        ])
+
     def requires(self):
-        yield ExtractPerformanceTweets()
-        yield TweetsToDB()
+        return ExtractPerformanceTweets()

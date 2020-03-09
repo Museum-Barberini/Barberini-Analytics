@@ -1,3 +1,5 @@
+import luigi
+
 from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
 from gomus.orders import OrdersToDB
@@ -26,6 +28,11 @@ class OrderContainsToDB(CsvToDb):
         }
     ]
 
+    def _requires(self):
+        return luigi.task.flatten([
+            OrdersToDB(),
+            super()._requires()
+        ])
+
     def requires(self):
-        yield ScrapeGomusOrderContains()
-        yield OrdersToDB()
+        return ScrapeGomusOrderContains()
