@@ -57,7 +57,7 @@ class ExtractOrderData(luigi.Task):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(today=self.today),
+            # CustomersToDB(today=self.today),
             super()._requires()
         ])
 

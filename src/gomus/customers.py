@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import datetime as dt
 import luigi
 import mmh3
 import pandas as pd
+import numpy as np
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
@@ -11,7 +13,7 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 class CustomersToDB(CsvToDb):
 
-    today = luigi.parameter.DateParameter()
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     table = 'gomus_customer'
 
@@ -37,7 +39,8 @@ class CustomersToDB(CsvToDb):
 
 
 class ExtractCustomerData(luigi.Task):
-    today = luigi.parameter.DateParameter()
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
@@ -86,6 +89,9 @@ class ExtractCustomerData(luigi.Task):
         return mmh3.hash(email, self.seed, signed=True)
 
     def cut_decimal_digits(self, post_string):
+        if post_string is np.nan:
+            post_string = ''
+        post_string = str(post_string)
         if len(post_string) >= 2:
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string

@@ -219,7 +219,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 new_article["ticket"] = self.extract_from_html(
                     article, 'td[3]/strong').strip()
 
-                if new_article["ticket"] != '\n':
+                if new_article["ticket"] == '\n':
                     continue
 
                 infobox_str = html.tostring(

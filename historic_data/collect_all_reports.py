@@ -18,7 +18,7 @@ sp.run(
 report_type = sys.argv[1]
 cap_type = report_type.capitalize()
 
-for week_offset in range(250):
+for week_offset in range(8):  # 250):
 
     print(report_type, week_offset)
 
