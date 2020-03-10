@@ -44,25 +44,28 @@ class GomusToCustomerMappingToDB(CsvToDb):
 
     foreign_keys = [
         {
-            'origin_column': 'gomus_id',
+            'origin_column': 'customer_id',
             'target_table': 'gomus_customer',
-            'target_column': 'gomus_id'
+            'target_column': 'customer_id'
         }
     ]
 
     def _requires(self):
-        return luigi.task.flatten(
+        return luigi.task.flatten([
             CustomersToDB(),
             super()._requires()
-        )
+        ])
 
     def requires(self):
         return ExtractGomusToCustomerMapping(
-            columns=[col[0] for col in self.columns])
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)
 
 
 class ExtractCustomerData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
+    foreign_keys = luigi.parameter.ListParameter(
+        description="The foreign keys to be asserted")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
 
@@ -90,6 +93,13 @@ class ExtractCustomerData(luigi.Task):
         df['register_date'] = pd.to_datetime(
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
+
+        # Drop duplicate occurences of customers with same mail,
+        # keeping the most recent one
+        df = df.drop_duplicates(subset=['customer_id'], keep='last')
+
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
@@ -107,6 +117,14 @@ class ExtractCustomerData(luigi.Task):
         if len(post_string) >= 2:
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
+
+    def ensure_foreign_keys(self, df):
+        # TODO: 1. Load existing customer_id's from DB (use self.foreign_keys!)
+        # 2. Ensure that every row in the df references a valid ID
+        # and delete every row that doesn't
+        # 3. ???
+        # 4. Profit
+        pass
 
 
 class ExtractGomusToCustomerMapping(luigi.Task):
@@ -135,7 +153,7 @@ class ExtractGomusToCustomerMapping(luigi.Task):
             df.to_csv(output_csv, index=False, header=True)
 
 
-def hash_id(self, email, seed):
+def hash_id(email, seed):
     if not isinstance(email, str):
         return 0
     return mmh3.hash(email, seed, signed=True)

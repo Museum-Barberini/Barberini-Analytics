@@ -7,6 +7,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from gomus._utils.fetch_report import FetchGomusReport
+from gomus.customers import CustomersToDB
 
 
 def hash_booker_id(email, seed=666):
@@ -18,6 +19,12 @@ def hash_booker_id(email, seed=666):
 class ExtractGomusBookings(luigi.Task):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
+
+    def _requires(self):
+        return luigi.task.flatten([
+            CustomersToDB(),
+            super()._requires()
+        ])
 
     def requires(self):
         return FetchGomusReport(report='bookings', suffix='_nextYear')

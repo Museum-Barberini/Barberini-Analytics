@@ -11,10 +11,9 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
+from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.orders import ExtractOrderData
 from set_db_connection_options import set_db_connection_options
-
-from .extract_bookings import ExtractGomusBookings
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
