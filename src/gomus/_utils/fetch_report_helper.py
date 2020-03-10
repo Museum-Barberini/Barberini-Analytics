@@ -46,13 +46,6 @@ def parse_arguments(args):
         help='Type of the report',
         choices=REPORT_IDS.keys())
     parser.add_argument(
-        '-s',
-        '--session-id',
-        type=str,
-        help='Session ID to use for authentication',
-        required=True)
-
-    parser.add_argument(
         'action',
         type=str,
         help='Action to take',
@@ -61,6 +54,13 @@ def parse_arguments(args):
             'fetch'],
         nargs='?',
         default='fetch')
+    parser.add_argument(
+        '-s',
+        '--session-id',
+        type=str,
+        help='Session ID to use for authentication',
+        required=True)
+
     parser.add_argument(
         '-I',
         '--sheet-index',

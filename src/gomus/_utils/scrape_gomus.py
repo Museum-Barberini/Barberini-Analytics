@@ -219,7 +219,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 new_article["ticket"] = self.extract_from_html(
                     article, 'td[3]/strong').strip()
 
-                if new_article["ticket"] == '\n':
+                if new_article["ticket"] == '':
                     continue
 
                 infobox_str = html.tostring(
@@ -249,9 +249,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 order_details.append(new_article)
 
                 # TODO remove
-                if i % 10000 == 0:
+                if i % 5000 == 0:
                     backup_csv = luigi.LocalTarget(
-                        f'output/gomus/scraped_orders_{i//10000}.csv',
+                        f'output/gomus/scraped_orders_{i//5000}.csv',
                         format=UTF8)
                     with backup_csv.open('w') as output_csv:
                         df = pd.DataFrame(order_details)

@@ -77,7 +77,6 @@ class FetchEventReservations(luigi.Task):
         response = requests.get(url, cookies=dict(
             _session_id=os.environ['GOMUS_SESS_ID']))
         res_content = response.content
-        print(type(res_content), response.status_code)
 
         with self.output().open('w') as target_csv:
             if response.status_code != 500:
