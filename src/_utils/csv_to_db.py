@@ -98,14 +98,6 @@ class CsvToDb(CopyToTable):
             string = ','.join(value)
         return f'({string})'
 
-    def csv_rows(self):
-        raise Exception('is this ever called? I believe not.')
-        with self.input().open('r') as csv_file:
-            reader = csv.reader(csv_file)
-            next(reader)
-            for row in reader:
-                yield row
-
 
 class UndefinedTableError(psycopg2.ProgrammingError):
     pgcode = psycopg2.errorcodes.UNDEFINED_TABLE
