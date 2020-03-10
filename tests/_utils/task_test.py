@@ -1,8 +1,10 @@
 import json
 import os
 import unittest
+from queue import Queue
 
 import psycopg2
+import luigi
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
@@ -108,3 +110,24 @@ class DatabaseTaskTest(unittest.TestCase):
             self.dirty_file_paths.append(mock_target.path)
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
+
+    def run_task(self, task: luigi.Task):
+        """
+        Run task and all its dependencies synchronously.
+        This is probably some kind of reinvention of the wheel,
+        but I don't know how to do this better.
+        """
+        all_tasks = Queue()
+        all_tasks.put(task)
+        requirements = []
+        while all_tasks.qsize():
+            next_task = all_tasks.get()
+            requirements.insert(0, next_task)
+            next_requirement = next_task.requires()
+            try:
+                for requirement in next_requirement:
+                    all_tasks.put(requirement)
+            except TypeError:
+                all_tasks.put(next_requirement)
+        for requirement in list(dict.fromkeys(requirements)):
+            requirement.run()
