@@ -22,7 +22,8 @@ class CustomersToDB(CsvToDb):
         ('country', 'TEXT'),
         ('type', 'TEXT'),  # shop, shop guest or normal
         ('register_date', 'DATE'),
-        ('annual_ticket', 'BOOL')
+        ('annual_ticket', 'BOOL'),
+        ('valid_mail', 'BOOL')
     ]
 
     primary_key = 'customer_id'
@@ -58,14 +59,13 @@ class GomusToCustomerMappingToDB(CsvToDb):
 
     def requires(self):
         return ExtractGomusToCustomerMapping(
-            columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            columns=[col[0] for col in self.columns])
 
 
 class ExtractCustomerData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
+    # foreign_keys = luigi.parameter.ListParameter(
+    #    description="The foreign keys to be asserted")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
 
@@ -78,15 +78,24 @@ class ExtractCustomerData(luigi.Task):
     def run(self):
         with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
+
+        df['Gültige E-Mail'] = df['E-Mail'].apply(isinstance, args=(str,))
+
+        # Insert Hash of E-Mail into E-Mail field,
+        # or original ID if there is none
+        df['E-Mail'] = df.apply(
+            lambda x: hash_id(
+                x['E-Mail'], self.seed, x['Nummer']
+            ), axis=1)
+
         df = df.filter([
             'E-Mail', 'PLZ',
             'Newsletter', 'Anrede', 'Kategorie',
             'Sprache', 'Land', 'Typ',
-            'Erstellt am', 'Jahreskarte'])
+            'Erstellt am', 'Jahreskarte', 'Gültige E-Mail'])
 
         df.columns = self.columns
 
-        df['customer_id'] = df['customer_id'].apply(hash_id, args=(self.seed,))
         df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
         df['newsletter'] = df['newsletter'].apply(self.parse_boolean)
         df['gender'] = df['gender'].apply(self.parse_gender)
@@ -124,7 +133,7 @@ class ExtractCustomerData(luigi.Task):
         # and delete every row that doesn't
         # 3. ???
         # 4. Profit
-        pass
+        return df
 
 
 class ExtractGomusToCustomerMapping(luigi.Task):
@@ -147,13 +156,18 @@ class ExtractGomusToCustomerMapping(luigi.Task):
         df.columns = self.columns
 
         df['gomus_id'] = df['gomus_id'].apply(int)
-        df['customer_id'] = df['customer_id'].apply(hash_id, args=(self.seed,))
+        df['customer_id'] = df.apply(
+            lambda x: hash_id(
+                x['customer_id'], self.seed, x['gomus_id']
+            ), axis=1)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
 
-def hash_id(email, seed):
+# Return hash for e-mail value, or alternative (usually original gomus_id)
+# if the e-mail is invalid
+def hash_id(email, seed, alternative):
     if not isinstance(email, str):
-        return 0
+        return int(float(alternative))
     return mmh3.hash(email, seed, signed=True)
