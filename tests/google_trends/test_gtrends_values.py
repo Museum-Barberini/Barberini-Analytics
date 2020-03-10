@@ -1,9 +1,6 @@
 import datetime as dt
 import json
-from queue import Queue
 from unittest.mock import patch
-
-import luigi
 
 import google_trends.gtrends_values as gtrends_values
 from museum_facts import MuseumFacts
@@ -119,24 +116,3 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
 
         self.assertCountEqual([(1,)], self.db.request(
             'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
-
-    def run_task(self, task: luigi.Task):
-        """
-        Run task and all its dependencies synchronous.
-        This is probably some kind of reinvention of the wheel,
-        but I don't know how to do this better.
-        """
-        all_tasks = Queue()
-        all_tasks.put(task)
-        requirements = []
-        while all_tasks.qsize():
-            next_task = all_tasks.get()
-            requirements.insert(0, next_task)
-            next_requirement = next_task.requires()
-            try:
-                for requirement in next_requirement:
-                    all_tasks.put(requirement)
-            except TypeError:
-                all_tasks.put(next_requirement)
-        for requirement in list(dict.fromkeys(requirements)):
-            requirement.run()

@@ -26,10 +26,15 @@ class FetchAppstoreReviews(luigi.Task):
 
     def fetch_all(self):
         data = []
-        country_codes = self.get_country_codes()
+        country_codes = sorted(self.get_country_codes())
         print()
         try:
             for index, country_code in enumerate(country_codes, start=1):
+                print(
+                    f"\rFetching appstore reviews for {country_code} "
+                    f"({100. * (index - 1) / len(country_codes)}%)",
+                    end='',
+                    flush=True)
                 try:
                     data.append(self.fetch_for_country(country_code))
                 except ValueError:
@@ -40,11 +45,6 @@ class FetchAppstoreReviews(luigi.Task):
                         pass
                     else:
                         raise
-                print(
-                    f"\rFetched appstore reviews for {country_code} "
-                    f"({100. * index / len(country_codes)}%)",
-                    end='',
-                    flush=True)
         finally:
             print()
         ret = pd.concat(data)
@@ -61,7 +61,7 @@ class FetchAppstoreReviews(luigi.Task):
                f'page=1/id={app_id}/sortby=mostrecent/xml')
         data_list = []
 
-        while url is not None:
+        while url:
             data, url = self.fetch_page(url)
             data_list += data
 
@@ -78,6 +78,8 @@ class FetchAppstoreReviews(luigi.Task):
 
         response = requests.get(url)
         response.raise_for_status()
+        # specify encoding explicitly because the autodetection fails sometimes
+        response.encoding = 'utf-8'
         response_content = xmltodict.parse(response.text)['feed']
 
         if 'entry' not in response_content:

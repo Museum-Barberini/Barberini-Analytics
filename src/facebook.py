@@ -85,8 +85,11 @@ class FetchFbPostPerformance(luigi.Task):
             # {str(post_id)} ###")
             url = (f"https://graph.facebook.com/{post_id}/insights?"
                    f"access_token={access_token}&metric="
-                   f"post_reactions_by_type_total,post_activity_by_action_type"
-                   f",post_clicks_by_type,post_negative_feedback")
+                   f"post_reactions_by_type_total,"
+                   f"post_activity_by_action_type,"
+                   f"post_clicks_by_type,"
+                   f"post_negative_feedback,"
+                   f"post_impressions_paid")
             response = requests.get(url)
             response.raise_for_status()
 
@@ -118,8 +121,13 @@ class FetchFbPostPerformance(luigi.Task):
             post_perf["other_clicks"] = int(clicks.get('other clicks', 0))
 
             # negative feedback (only one field)
-            post_perf["negative_feedback"] = clicks = \
+            post_perf["negative_feedback"] = \
                 response_content['data'][3]['values'][0]['value']
+
+            # number of times the post entered a person's screen through
+            # paid distribution such as an ad
+            post_perf["paid_impressions"] = \
+                response_content['data'][4]['values'][0]['value']
 
             performances.append(post_perf)
 
@@ -163,7 +171,8 @@ class FbPostPerformanceToDB(CsvToDb):
         ("video_clicks", "INT"),
         ("link_clicks", "INT"),
         ("other_clicks", "INT"),
-        ("negative_feedback", "INT")
+        ("negative_feedback", "INT"),
+        ("paid_impressions", "INT")
     ]
 
     primary_key = ('fb_post_id', 'time_stamp')

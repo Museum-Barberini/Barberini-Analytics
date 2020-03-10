@@ -1,4 +1,3 @@
-import csv
 import datetime as dt
 
 import luigi
@@ -97,13 +96,6 @@ class CsvToDb(CopyToTable):
         if isinstance(value, tuple):
             string = ','.join(value)
         return f'({string})'
-
-    def csv_rows(self):
-        with self.input().open('r') as csv_file:
-            reader = csv.reader(csv_file)
-            next(reader)
-            for row in reader:
-                yield row
 
 
 class UndefinedTableError(psycopg2.ProgrammingError):
