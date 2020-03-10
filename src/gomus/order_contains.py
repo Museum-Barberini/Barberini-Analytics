@@ -1,8 +1,5 @@
-import luigi
-
 from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
-from gomus.orders import OrdersToDB
 
 
 class OrderContainsToDB(CsvToDb):
@@ -22,17 +19,12 @@ class OrderContainsToDB(CsvToDb):
 
     foreign_keys = [
         {
-            "origin_column": "order_id",
-            "target_table": "gomus_order",
-            "target_column": "order_id"
+            'origin_column': 'order_id',
+            'target_table': 'gomus_order',
+            'target_column': 'order_id'
         }
     ]
 
-    def _requires(self):
-        return luigi.task.flatten([
-            OrdersToDB(),
-            super()._requires()
-        ])
-
     def requires(self):
-        return ScrapeGomusOrderContains()
+        return ScrapeGomusOrderContains(
+            foreign_keys=self.foreign_keys)

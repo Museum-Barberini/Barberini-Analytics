@@ -4,8 +4,9 @@ import pandas as pd
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-
+from ensure_foreign_keys import ensure_foreign_keys
 from gomus._utils.fetch_report import FetchGomusReport
+from set_db_connection_options import set_db_connection_options
 
 
 class CustomersToDB(CsvToDb):
@@ -51,23 +52,14 @@ class GomusToCustomerMappingToDB(CsvToDb):
         }
     ]
 
-    def _requires(self):
-        return luigi.task.flatten([
-            CustomersToDB(),
-            super()._requires()
-        ])
-
     def requires(self):
         return ExtractGomusToCustomerMapping(
-            columns=[col[0] for col in self.columns])
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)
 
 
 class ExtractCustomerData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
-    # foreign_keys = luigi.parameter.ListParameter(
-    #    description="The foreign keys to be asserted")
-    seed = luigi.parameter.IntParameter(
-        description="Seed to use for hashing", default=666)
 
     def requires(self):
         return FetchGomusReport(report='customers')
@@ -85,7 +77,7 @@ class ExtractCustomerData(luigi.Task):
         # or original ID if there is none
         df['E-Mail'] = df.apply(
             lambda x: hash_id(
-                x['E-Mail'], self.seed, x['Nummer']
+                x['E-Mail'], alternative=x['Nummer']
             ), axis=1)
 
         df = df.filter([
@@ -107,8 +99,6 @@ class ExtractCustomerData(luigi.Task):
         # keeping the most recent one
         df = df.drop_duplicates(subset=['customer_id'], keep='last')
 
-        df = self.ensure_foreign_keys(df)
-
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
@@ -127,19 +117,26 @@ class ExtractCustomerData(luigi.Task):
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
 
-    def ensure_foreign_keys(self, df):
-        # TODO: 1. Load existing customer_id's from DB (use self.foreign_keys!)
-        # 2. Ensure that every row in the df references a valid ID
-        # and delete every row that doesn't
-        # 3. ???
-        # 4. Profit
-        return df
-
 
 class ExtractGomusToCustomerMapping(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
-    seed = luigi.parameter.IntParameter(
-        description="Seed to use for hashing", default=666)
+    foreign_keys = luigi.parameter.ListParameter(
+        description="The foreign keys to be asserted")
+
+    host = None
+    database = None
+    user = None
+    password = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
+
+    def _requires(self):
+        return luigi.task.flatten([
+            CustomersToDB(),
+            super()._requires()
+        ])
 
     def requires(self):
         return FetchGomusReport(report='customers')
@@ -158,16 +155,24 @@ class ExtractGomusToCustomerMapping(luigi.Task):
         df['gomus_id'] = df['gomus_id'].apply(int)
         df['customer_id'] = df.apply(
             lambda x: hash_id(
-                x['customer_id'], self.seed, x['gomus_id']
+                x['customer_id'], alternative=x['gomus_id']
             ), axis=1)
+
+        df = ensure_foreign_keys(
+            df,
+            self.foreign_keys,
+            self.host,
+            self.database,
+            self.user,
+            self.password)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
 
-# Return hash for e-mail value, or alternative (usually original gomus_id)
-# if the e-mail is invalid
-def hash_id(email, seed, alternative):
+# Return hash for e-mail value, or alternative (usually original gomus_id
+# or default value 0 for the dummy customer) if the e-mail is invalid
+def hash_id(email, alternative=0, seed=666):
     if not isinstance(email, str):
         return int(float(alternative))
     return mmh3.hash(email, seed, signed=True)

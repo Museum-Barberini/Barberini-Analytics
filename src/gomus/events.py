@@ -7,6 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
+from ensure_foreign_keys import ensure_foreign_keys
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB
@@ -36,8 +37,7 @@ class EventsToDB(CsvToDb):
     ]
 
     def requires(self):
-        yield ExtractEventData(columns=[col[0] for col in self.columns])
-        yield CustomersToDB()
+        return ExtractEventData(columns=[col[0] for col in self.columns])
 
 
 class ExtractEventData(luigi.Task):
@@ -45,8 +45,14 @@ class ExtractEventData(luigi.Task):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
 
+    host = None
+    database = None
+    user = None
+    password = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
         self.events_df = None
         self.categories = [
             'Öffentliche Führung',
@@ -56,6 +62,12 @@ class ExtractEventData(luigi.Task):
             'Konzert',
             'Lesung',
             'Vortrag']
+
+    def _requires(self):
+        return luigi.task.flatten([
+            CustomersToDB(),
+            super()._requires()
+        ])
 
     def requires(self):
         for category in self.categories:
@@ -84,6 +96,14 @@ class ExtractEventData(luigi.Task):
                         self.append_event_data(event_data,
                                                'Storniert',
                                                category)
+
+        self.events_df = ensure_foreign_keys(
+            self.events_df,
+            self.foreign_keys,
+            self.host,
+            self.database,
+            self.user,
+            self.password)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)

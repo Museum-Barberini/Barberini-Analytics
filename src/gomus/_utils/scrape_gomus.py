@@ -11,7 +11,7 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
-from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus.bookings import ExtractGomusBookings
 from gomus.orders import ExtractOrderData
 from set_db_connection_options import set_db_connection_options
 
@@ -58,9 +58,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
     # could take up to an hour to scrape all bookings in the next year
     worker_timeout = 3600
     columns = luigi.parameter.ListParameter(description="Column names")
+    foreign_keys = luigi.parameter.ListParameter(
+        description="The foreign keys to be asserted")
 
     def requires(self):
-        return ExtractGomusBookings()
+        return ExtractGomusBookings(foreign_keys=self.foreign_keys)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
@@ -151,6 +153,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 class ScrapeGomusOrderContains(GomusScraperTask):
 
     worker_timeout = 2000  # seconds ≈ 30 minutes until the task will timeout
+    foreign_keys = luigi.parameter.ListParameter(
+        description="The foreign keys to be asserted")
 
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
@@ -164,7 +168,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 'customer_id',
                 'valid',
                 'paid',
-                'origin'])
+                'origin'],
+            foreign_keys=self.foreign_keys)
         # this array is kind of unnecessary, but currently
         # required by ExtractOrderData()
         # the design of that task requiring a column-array is also
