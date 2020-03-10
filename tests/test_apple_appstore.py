@@ -4,9 +4,22 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import requests
 
-from apple_appstore import FetchAppstoreReviews
+from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDB
+from task_test import DatabaseTaskTest
+
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
+XML_FRAME = '''<?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns:im="http://itunes.apple.com/rss"
+        xmlns="http://www.w3.org/2005/Atom" xml:lang="de">
+    <link rel="not-next" href="this is some other link in the response;
+        we don't ever want to access this"/>
+    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/\
+        page=2/id=288286261/sortby=mostrecent/xml?urlDesc=/customerreviews/\
+            id=288286261/mostrecent/xml"/>
+    %s
+    </feed>'''
+XML_EMPTY_FRAME = XML_FRAME % ''
 
 
 class TestFetchAppleReviews(unittest.TestCase):
@@ -34,68 +47,47 @@ class TestFetchAppleReviews(unittest.TestCase):
     @patch('apple_appstore.requests.get')
     def test_only_one_review_fetched(self, mock):
 
-        first_return = '''<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/\
-    Atom" xml:lang="de">
-    <id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/\
-        mostrecent/xml</id>
-    <title>iTunes Store: Rezensionen</title>
-    <updated>2020-02-04T02:59:47-07:00</updated>
-    <link rel="not-next" href="this is some other link in the response; \
-        we don't ever want to access this"/>
-    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/\
-        page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/\
-            id=1150432552/mostrecent/xml"/>
-
-    <entry>
-        <updated>2012-11-10T09:08:07-07:00</updated>
-        <id>5483431986</id>
-        <title>I'm a fish</title>
-        <content type="text">The fish life is thug af #okboomer</content>
-        <im:voteSum>9</im:voteSum>
-        <im:voteCount>42</im:voteCount>
-        <im:rating>5</im:rating>
-        <im:version>2.10.7</im:version>
-        <author><name>Blubb</name></author>
-        <content type="html">&lt;somethtml note=&quot;We don't want to parse\
-            this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;</content>
-    </entry>
-
-</feed>'''
-
-        second_return = '''<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns:im="http://itunes.apple.com/rss" xmlns="http://www.w3.org/2005/\
-    Atom" xml:lang="de">
-    <id>https://itunes.apple.com/de/rss/customerreviews/id=1150432552/\
-        mostrecent/xml</id>
-    <title>iTunes Store: Rezensionen</title>
-    <updated>2020-02-04T02:59:47-07:00</updated>
-    <link rel="not-next" href="this is some other link in the response; \
-        we don't ever want to access this"/>
-    <link rel="next" href="https://itunes.apple.com/de/rss/customerreviews/\
-        page=2/id=1150432552/sortby=mostrecent/xml?urlDesc=/customerreviews/\
-            id=1150432552/mostrecent/xml"/>
-    </feed>'''
+        return_values = [
+            XML_FRAME % '''<entry>
+                <updated>2012-11-10T09:08:07-07:00</updated>
+                <id>5483431986</id>
+                <title>I'm a fish</title>
+                <content type="text">
+                The fish life is thug af #okboomer
+                </content>
+                <im:voteSum>9</im:voteSum>
+                <im:voteCount>42</im:voteCount>
+                <im:rating>5</im:rating>
+                <im:version>2.10.7</im:version>
+                <author><name>Blubb</name></author>
+                <content type="html">
+                <somehtml> note=&quot;We don't want to parse\
+                this&quot;&gt;&lt;anIrrelevantTag /&gt;</somehtml>
+                </content>
+            </entry>''',
+            XML_EMPTY_FRAME
+        ]
 
         mock.side_effect = [
-            MagicMock(ok=True, text=first_return),
-            MagicMock(ok=True, text=second_return)
+            MagicMock(ok=True, text=return_value)
+            for return_value in return_values
         ]
 
         result = self.task.fetch_for_country('made_up_country')
 
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(len(result), 1)
-        self.assertListEqual(['appstore_review_id',
-                              'text',
-                              'rating',
-                              'app_version',
-                              'vote_count',
-                              'vote_sum',
-                              'title',
-                              'date',
-                              'country_code'],
-                             list(result.columns))
+        self.assertListEqual([
+            'appstore_review_id',
+            'text',
+            'rating',
+            'app_version',
+            'vote_count',
+            'vote_sum',
+            'title',
+            'date',
+            'country_code'],
+            list(result.columns))
 
     @patch.object(FetchAppstoreReviews, 'fetch_for_country')
     def test_all_countries(self, mock):
@@ -191,3 +183,72 @@ class TestFetchAppleReviews(unittest.TestCase):
             }),
             result.drop(columns=['country_code'])
         )
+
+
+class TestAppstoreReviewsToDB(DatabaseTaskTest):
+
+    @patch.object(FetchAppstoreReviews, 'get_country_codes')
+    @patch('apple_appstore.requests.get')
+    def test_umlauts(self, requests_mock, country_codes_mock):
+
+        umlaut_title = "Än ümlaut cömment"
+        umlaut_text = (
+            "Süßölgefäß "
+            "Großfräsmaschinenöffnungstür "
+            "Grießklößchensüppchenschälchen")
+        umlaut_author = "Ölrückstoßabdämpfung"
+        return_values = [
+            XML_FRAME % f'''<entry>
+                <updated>2012-11-10T09:08:07-07:00</updated>
+                <id>5483431986</id>
+                <title>{umlaut_title}</title>
+                <content type="text">{umlaut_text}</content>
+                <content type="html">
+                    &lt;somethtml note=&quot;We don't want to parse\
+                    this&quot;&gt;&lt;anIrrelevantTag /&gt;&lt;/somehtml&gt;
+                </content>
+                <im:voteSum>-42</im:voteSum>
+                <im:voteCount>42</im:voteCount>
+                <im:rating>1</im:rating>
+                <im:version>1.2.3</im:version>
+                <author><name>{umlaut_author}</name></author>
+            </entry>''',
+            XML_EMPTY_FRAME
+        ]
+
+        class MockResponse(requests.Response):
+
+            def __init__(self, mock_content):
+                super().__init__()
+                self.mock_content = mock_content
+                self.status_code = 200  # OK
+
+            mock_content = None
+
+            @property
+            def content(self):
+                return bytearray(self.mock_content, encoding='utf-8')
+
+            @property
+            def apparent_encoding(self):
+                """
+                By overriding this property, we simulate the behavior of
+                Response/chardet to detect a wrong encoding. This happened a
+                few times in production.
+                ptcp154 encoding (Kazakh) is definitely the wrong encoding.
+                """
+                return 'ptcp154'
+
+        requests_mock.side_effect = [
+            MockResponse(return_value)
+            for return_value in return_values]
+        country_codes_mock.return_value = ['DE']
+
+        self.task = AppstoreReviewsToDB()
+        self.run_task(self.task)
+
+        result = self.db.request('SELECT title, text FROM appstore_review')
+        self.assertListEqual(
+            [(umlaut_title, umlaut_text)],
+            result,
+            msg="Encodings differ")
