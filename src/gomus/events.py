@@ -37,7 +37,9 @@ class EventsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractEventData(columns=[col[0] for col in self.columns])
+        return ExtractEventData(
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)
 
 
 class ExtractEventData(luigi.Task):
@@ -65,7 +67,7 @@ class ExtractEventData(luigi.Task):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            BookingsToDB(),
             super()._requires()
         ])
 

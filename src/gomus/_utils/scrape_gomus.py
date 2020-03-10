@@ -11,8 +11,9 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
+from ensure_foreign_keys import ensure_foreign_keys
 from gomus._utils.extract_bookings import ExtractGomusBookings
-from gomus.orders import ExtractOrderData
+from gomus.orders import ExtractOrderData, OrdersToDB
 from set_db_connection_options import set_db_connection_options
 
 
@@ -156,6 +157,21 @@ class ScrapeGomusOrderContains(GomusScraperTask):
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted")
 
+    host = None
+    database = None
+    user = None
+    password = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
+
+    def _requires(self):
+        return luigi.task.flatten([
+            OrdersToDB(),
+            super()._requires()
+        ])
+
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
         return orders['order_id']
@@ -245,5 +261,14 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
+
+        df = ensure_foreign_keys(
+            df,
+            self.foreign_keys,
+            self.host,
+            self.database,
+            self.user,
+            self.password)
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import luigi
 import numpy as np
 import pandas as pd
@@ -29,9 +28,9 @@ class OrdersToDB(CsvToDb):
 
     foreign_keys = [
         {
-            "origin_column": "customer_id",
-            "target_table": "gomus_customer",
-            "target_column": "customer_id"
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 
