@@ -10,7 +10,6 @@ from csv_to_db import CsvToDb
 from ensure_foreign_keys import ensure_foreign_keys
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
-from gomus.customers import CustomersToDB
 from set_db_connection_options import set_db_connection_options
 
 
@@ -46,6 +45,8 @@ class ExtractEventData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
+    foreign_keys = luigi.parameter.ListParameter(
+        description="The foreign key constraints to be asserted")
 
     host = None
     database = None

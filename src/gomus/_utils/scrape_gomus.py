@@ -185,7 +185,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 'valid',
                 'paid',
                 'origin'],
-            foreign_keys=self.foreign_keys)
+            foreign_keys=[])
         # this array is kind of unnecessary, but currently
         # required by ExtractOrderData()
         # the design of that task requiring a column-array is also

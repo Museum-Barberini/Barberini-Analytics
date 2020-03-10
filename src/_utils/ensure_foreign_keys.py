@@ -26,7 +26,7 @@ def ensure_foreign_keys(df, foreign_keys, host, database, user, password):
             difference = old_count - df[foreign_key['origin_column']] \
                 .count()
             if difference > 0:
-                print(f"INFO: Deleted {difference} out of {old_count}"
+                print(f"INFO: Deleted {difference} out of {old_count} "
                       f"data sets due to foreign key violation: "
                       f"{foreign_key}")
 
