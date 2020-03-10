@@ -5,6 +5,7 @@ import luigi
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
+import csv
 
 from csv_to_db import CsvToDb
 from museum_facts import MuseumFacts
@@ -56,8 +57,12 @@ class ExtractTweets(luigi.Task):
         df = df.drop_duplicates()
         with self.output().open('w') as output_file:
             print(df)
-            df.to_csv(output_file, index=False, header=True)
-
+            df.to_csv(
+                output_file,
+                index=False,
+                header=True,
+                quoting=csv.QUOTE_NONNUMERIC)
+            # avoid interpreting IDs as numbers
     def output(self):
         return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
 
