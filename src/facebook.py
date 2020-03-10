@@ -65,7 +65,7 @@ class FetchFbPosts(luigi.Task):
 
 
 class FetchFbPostPerformance(luigi.Task):
-    foreign_keys = luigi.task.ListParameter(
+    foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted")
 
     host = None
