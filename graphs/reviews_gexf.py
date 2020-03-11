@@ -15,16 +15,27 @@ conn = psycopg2.connect(
     user=os.environ['POSTGRES_USER'],
     password=os.environ['POSTGRES_PASSWORD'])
 cur = conn.cursor()
-cur.execute('select text from google_maps_review')
+cur.execute('(select text from google_maps_review) UNION (select text from appstore_review) UNION (select text from tweet)')
 reviews = cur.fetchall()
-reviews = reviews[:100]  # debug
-texts = [re.sub('[;\r\n]', '', text) for [text] in reviews if text]
-text_words = {text: [word.lower() for word in text.split(' ')] for text in texts}
+#reviews = reviews[:10000]  # debug
+texts = [
+    re.sub('[;\r\n,;]', '', text).lower()
+    for [text] in reviews
+    if text]
+stopwords = set([''] + list('-+/&.,;:') + [word.lower() for word in pd.read_csv('graphs/stopwords.csv', header=None)[0]])
+stopwords.add('museumbarberini')
+text_words = {
+    text: [
+        word
+        for word in [word.strip(',-+/&.,;:#@') for word in text.split(' ')]
+        if word not in stopwords]
+    for text in texts}
+"""
+further cleansing ideas:
+- define custom ignore words/replacements (e. g., museumbarberini -> barberini)
+"""
 
-#ignored = set([''] + list('-+/&') + [word.lower() for word in pd.read_csv('ignored_words.csv', header=None)[0]])
 words = [word for words in text_words.values() for word in words]
-
-#cleansed_words = [word for word in words if word not in ignored]
 
 word_counts = pd.Series(words).value_counts()
 
@@ -43,8 +54,8 @@ for text, words in text_words.items():
 
 #nx.write_gexf(G, 'output/reviews.gexf')
 
-DEBUG_LIMIT = 90 # sometimes works, sometimes fails!
-G.add_node(str(DEBUG_LIMIT), weight=0.05)
+DEBUG_LIMIT = 80  # sometimes works, sometimes fails!
+#G.add_node(str(DEBUG_LIMIT), weight=0.05)
 node_weights = nx.get_node_attributes(G, 'weight')
 def gexf_escape(str):
     return str.replace('\'', '\\')
@@ -59,7 +70,7 @@ G = G.subgraph(nodes)
 edges = list(G.edges)
 edge_ids = {item: index for index, item in enumerate(edges)}
 edges.sort(key=lambda edge: G[edge[0]][edge[1]]['weight'], reverse=True)
-edges = edges[:50]
+#edges = edges[:50]
 
 gexf_contents = f"""
 <?xml version="1.0" encoding="UTF-8"?>
