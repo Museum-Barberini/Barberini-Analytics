@@ -15,7 +15,8 @@ from set_db_connection_options import set_db_connection_options
 
 
 class OrdersToDB(CsvToDb):
-    today = luigi.parameter.DateParameter()
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today() - dt.timedelta(days=1))
     table = 'gomus_order'
 
     columns = [
@@ -44,7 +45,8 @@ class OrdersToDB(CsvToDb):
 
 
 class ExtractOrderData(luigi.Task):
-    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today() - dt.timedelta(days=1))
     columns = luigi.parameter.ListParameter(description="Column names")
 
     host = None
@@ -58,7 +60,7 @@ class ExtractOrderData(luigi.Task):
 
     def _requires(self):
         return luigi.task.flatten([
-            # CustomersToDB(today=self.today),
+            # CustomersToDB(),
             # GomusToCustomerMappingToDB(),
             super()._requires()
         ])

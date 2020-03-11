@@ -96,8 +96,6 @@ class ExtractCustomerData(luigi.Task):
 
         df.columns = self.columns
 
-        df['gomus_id'] = df['gomus_id'].apply(int)
-        df['customer_id'] = df['customer_id'].apply(self.hash_id)
         df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
         df['newsletter'] = df['newsletter'].apply(self.parse_boolean)
         df['gender'] = df['gender'].apply(self.parse_gender)
