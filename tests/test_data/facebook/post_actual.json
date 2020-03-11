@@ -2,13 +2,19 @@
     "data": [
         {
             "created_time": "2020-03-10T11:49:09+0000",
-            "message": "Dies ist ein absolut echter Facebook-Post, dessen Daten uns viel Gewinn einbringen.",
-            "id": "1234567890"
+            "message": "Dies ist ein absolut \"echter\" Facebook-Post, dessen Daten uns viel Gewinn einbringen.",
+            "id": "1234567890_0987654321"
         },
         {
             "created_time": "2018-09-16T04:04:44+0000",
-            "message": "Your Posts are belong to us",
-            "id": "0987654321"
+            "message": "Your posts are\nbelong to us",
+            "id": "0987654321_1234567890"
         }
-    ]
+    ],
+    "paging": {
+        "cursors": {
+            "before": "something_irrelevant",
+            "after": "something_irrelevent_too"
+        }
+    }
 }
