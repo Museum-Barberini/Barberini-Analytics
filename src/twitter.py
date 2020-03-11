@@ -29,7 +29,6 @@ class FetchTwitter(luigi.Task):
         tweets = ts.query_tweets(self.query, begindate=self.min_timestamp)
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
-
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
@@ -40,7 +39,15 @@ class ExtractTweets(luigi.Task):
         yield FetchTwitter()
 
     def run(self):
-        df = pd.read_csv(self.input()[1].path)
+        with self.input()[1].open('r') as input_file:
+            df = pd.read_csv(
+                input_file,
+                dtype={
+                    'user_id': str,
+                    'tweet_id': str,
+                    'parent_tweet_id': str
+                    })
+        # panda would by default store them as int64 or float64
         df = df.filter([
             'user_id',
             'tweet_id',
@@ -56,13 +63,8 @@ class ExtractTweets(luigi.Task):
         df['is_from_barberini'] = df['user_id'] == self.museum_user_id()
         df = df.drop_duplicates()
         with self.output().open('w') as output_file:
-            print(df)
-            df.to_csv(
-                output_file,
-                index=False,
-                header=True,
-                quoting=csv.QUOTE_NONNUMERIC)
-            # avoid interpreting IDs as numbers
+            df.to_csv(output_file, index=False, header=True)
+
     def output(self):
         return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
 
