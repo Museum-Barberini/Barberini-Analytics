@@ -1,0 +1,36 @@
+<html>
+<head>
+	<script type="text/javascript" src="js/sigma.min.js"></script>
+	<script type="text/javascript" src="js/sigma.parseGexf.js"></script>
+	<script type="text/javascript" src="js/sigma.forceatlas2.js"></script>
+</head>
+<body>
+	Hello world.
+	<div style="width: 100%; height: 100%; background-color: white;" id="sigma-example-parent">
+		<div class="sigma-expand" style="width: 100%; height: 100%;" id="foo"></div>
+	</div>
+	
+	<script type="text/javascript">
+	var sigInst = sigma.init(document.getElementById('foo')).drawingProperties({
+      defaultLabelColor: '#003',
+      defaultLabelSize: 20,
+      defaultLabelBGColor: '#eee',
+      defaultLabelHoverColor: '#000',
+      labelThreshold: 6,
+	  defaultEdgeType: 'curve',
+	  edgeWeightInfluence: 0
+    }).graphProperties({
+      minNodeSize: 0.5,
+      maxNodeSize: 15,
+      minEdgeSize: 0.3,
+      maxEdgeSize: 1  }).mouseProperties({
+      maxRatio: 4
+	});
+	gexfString = '<?gefx template="true"?>';
+	gexf = ( new window.DOMParser() ).parseFromString(gexfString, "text/xml");
+	parseGexf(sigInst, gexf);
+	sigInst.startForceAtlas2();
+	sigInst.stopForceAtlas2();
+	</script>
+</body>
+</html>
