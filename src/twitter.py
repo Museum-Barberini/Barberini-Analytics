@@ -47,7 +47,7 @@ class ExtractTweets(luigi.Task):
                     'tweet_id': str,
                     'parent_tweet_id': str
                     })
-        # panda would by default store them as int64 or float64
+        # pandas would by default store them as int64 or float64
         df = df.filter([
             'user_id',
             'tweet_id',
@@ -74,12 +74,13 @@ class ExtractTweets(luigi.Task):
         return facts['ids']['twitter']['userId']
 
 
-class ExtractPerformanceTweets(luigi.Task):
+class ExtractTweetPerformance(luigi.Task):
     def requires(self):
         return FetchTwitter()
 
     def run(self):
-        df = pd.read_csv(self.input().path)
+        with self.input().open('r') as input_file:
+            df = pd.read_csv(input_file)
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
@@ -133,4 +134,4 @@ class TweetPerformanceToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractPerformanceTweets()
+        return ExtractTweetPerformance()
