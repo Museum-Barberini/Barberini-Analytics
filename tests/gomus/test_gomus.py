@@ -38,7 +38,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
             'country',
             'type',
             'register_date',
-            'annual_ticket']
+            'annual_ticket',
+            'valid_mail']
 
     @patch.object(ExtractCustomerData, 'output')
     @patch.object(ExtractCustomerData, 'input')
