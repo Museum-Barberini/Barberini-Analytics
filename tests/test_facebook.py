@@ -1,5 +1,6 @@
+import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
@@ -23,9 +24,12 @@ class TestFacebookPost(unittest.TestCase):
             expected_data = data_out.read()
 
         # Overwrite requests 'get' return value to provide our test data
-        requests_get_mock.return_value = actual_data
+        def mock_json():
+            return json.loads(actual_data)
+        mock_response = MagicMock(ok=True, json=mock_json)
+        requests_get_mock.return_value = mock_response
 
-        facebook.FbPostsToDB().run()
+        facebook.FetchFbPosts().run()
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
