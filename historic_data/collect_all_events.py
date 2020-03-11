@@ -4,6 +4,7 @@ import subprocess as sp
 
 # -Events-
 #   run bookings before events
+#   remove conditional in EnsureBookingsIsRun (collect all event_ids)
 
 sp.run(
     "make luigi-scheduler".split()

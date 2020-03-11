@@ -1,5 +1,6 @@
 import csv
 
+import datetime as dt
 import luigi
 import pandas as pd
 import psycopg2
@@ -143,8 +144,12 @@ class EnsureBookingsIsRun(luigi.Task):
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
+
+            today_time = dt.datetime.today()
+
             query = (f'SELECT booking_id FROM gomus_booking WHERE category=\''
-                     f'{self.category}\'')
+                     f'{self.category}\''
+                     f' AND start_datetime > \'{today_time}\'')
             cur.execute(query)
 
             row = cur.fetchone()
@@ -173,7 +178,7 @@ class EnsureBookingsIsRun(luigi.Task):
                                  format=UTF8)
 
     def requires(self):
-        yield BookingsToDB(timespan='_7days')
+        yield BookingsToDB()
 
     # this function should not have to exist, but luigi apparently
     # can't deal with UTF-8 symbols in their target paths

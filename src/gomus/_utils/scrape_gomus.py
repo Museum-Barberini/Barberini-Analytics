@@ -56,11 +56,12 @@ class GomusScraperTask(luigi.Task):
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
-    worker_timeout = 36000
-    timespan = luigi.parameter.Parameter(default='_nextYear')
-    # could take up to an hour to scrape all bookings in the next year
-    # worker_timeout = 3600
     columns = luigi.parameter.ListParameter(description="Column names")
+    timespan = luigi.parameter.Parameter(default='_nextYear')
+
+    # could take up to an hour to scrape all bookings in the next year
+    # increase if neccessary for collecting historic data (e.g. 40000)
+    worker_timeout = 3600
 
     def requires(self):
         return ExtractGomusBookings(timespan=self.timespan)
@@ -153,12 +154,13 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
-    worker_timeout = 800000  # 2000
-    # seconds ≈ 30 minutes until the task will timeout
+    # 2000 seconds ≈ 30 minutes until the task will timeout
+    # set to about 800000 for collecting historic data ≈ 7 Days
+    worker_timeout = 800000
 
-    def get_order_ids(self):
-        orders = pd.read_csv(self.input().path)
-        return orders['order_id']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
 
     def requires(self):
         return ExtractOrderData(
@@ -177,6 +179,37 @@ class ScrapeGomusOrderContains(GomusScraperTask):
     def output(self):
         return luigi.LocalTarget(
             'output/gomus/scraped_order_contains.csv', format=UTF8)
+
+    def get_order_ids(self):
+        # orders = pd.read_csv(self.input().path)
+        # return orders['order_id']
+        try:
+            conn = psycopg2.connect(
+                host=self.host, database=self.database,
+                user=self.user, password=self.password
+            )
+            cur = conn.cursor()
+
+            cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
+                        f" WHERE table_name=\'gomus_order_contains\')")
+            order_ids = []
+
+            if cur.fetchone()[0]:
+                query = (f'SELECT order_id FROM gomus_order WHERE order_id '
+                         'NOT IN (SELECT order_id FROM gomus_order_contains)')
+                cur.execute(query)
+                order_ids = cur.fetchall()
+
+            else:
+                query = (f'SELECT order_id FROM gomus_order')
+                cur.execute(query)
+                order_ids = cur.fetchall()
+
+        finally:
+            if conn is not None:
+                conn.close()
+
+        return order_ids
 
     def run(self):
         order_ids = self.get_order_ids()

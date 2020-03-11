@@ -25,12 +25,12 @@ for day_offset in range(250 * 7):
     )
     sp.run(
         f"mv output/gomus/daily_entries.csv output/gomus/daily_entries"
-        f"_{cur_day}.csv".split()
+        f"_{day_offset}.csv".split()
     )
     for i in range(2):
         sp.run(
             f"mv output/gomus/entries_1day.{i}.csv "
-            f"output/gomus/entries_1day_{cur_day}.{i}.csv".split()
+            f"output/gomus/entries_1day_{day_offset}.{i}.csv".split()
         )
 
     # expected daily entries
@@ -41,12 +41,11 @@ for day_offset in range(250 * 7):
     )
     sp.run(
         f"mv output/gomus/expected_daily_entries.csv "
-        f"output/gomus/expected_daily_entries_{cur_day}.csv".split()
+        f"output/gomus/expected_daily_entries_{day_offset}.csv".split()
     )
-    for i in range(2):
-        j = i+2
+    for j in range(2, 4):
         sp.run(
             f"mv output/gomus/entries_1day.{j}.csv "
-            f"output/gomus/entries_1day_{cur_day}.{j}"
+            f"output/gomus/entries_1day_{day_offset}.{j}"
             ".csv".split()
         )
