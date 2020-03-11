@@ -43,7 +43,7 @@ class OrdersToDB(CsvToDb):
 class ExtractOrderData(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
     foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
+        description="The foreign keys to be asserted", default=[])
 
     host = None
     database = None

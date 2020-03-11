@@ -30,7 +30,7 @@ class DummyWriteCsvToDb(CsvToDb):
 
         # By default luigi assigns the same task_id to the objects of
         # this class.
-        # That leads to errors when updating the marker table (tablue_updates).
+        # That leads to errors when updating the marker table (table_updates).
         self.task_id = f"{self.task_id}_{str(dt.datetime.now())}"
 
     columns = [

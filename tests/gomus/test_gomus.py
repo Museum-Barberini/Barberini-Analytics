@@ -29,7 +29,6 @@ class TestGomusCustomerTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = [
-            'gomus_id',
             'customer_id',
             'postal_code',
             'newsletter',
