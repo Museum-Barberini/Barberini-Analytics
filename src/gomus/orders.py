@@ -102,7 +102,7 @@ class ExtractOrderData(luigi.Task):
             cur.execute(query)
 
             customer_row = cur.fetchone()
-            customer_id = customer_row[0] if customer_row else np.nan
+            customer_id = customer_row[0] or np.nan
         finally:
             if conn is not None:
                 conn.close()
