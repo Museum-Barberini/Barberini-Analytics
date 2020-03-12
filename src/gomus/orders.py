@@ -89,9 +89,7 @@ class ExtractOrderData(luigi.Task):
     def query_customer_id(self, customer_string):
         if np.isnan(customer_string):
             return 0
-            # if the customer_string is NaN, we set the customer_id to 0
-        else:
-            org_id = int(float(customer_string))
+        org_id = int(float(customer_string))
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
