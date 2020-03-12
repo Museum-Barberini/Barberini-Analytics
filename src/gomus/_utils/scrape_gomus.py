@@ -84,14 +84,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
             cur = conn.cursor()
 
-            cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
-                        f" WHERE table_name=\'gomus_booking\')")
-            db_booking_rows = []
-
-            if cur.fetchone()[0]:
-                query = (f'SELECT booking_id FROM gomus_booking')
-                cur.execute(query)
+            try:
+                cur.execute('SELECT booking_id FROM gomus_booking')
                 db_booking_rows = cur.fetchall()
+            except psycopg2.errors.UndefinedTable:
+                db_booking_rows = []
 
         finally:
             if conn is not None:
