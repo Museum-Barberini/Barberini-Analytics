@@ -66,7 +66,7 @@ class GtrendsValuesAddToDB(CsvToDb):
         return ConvertGtrendsValues()
 
 
-class GtrendsValuesClearDB(luigi.WrapperTask):
+class GtrendsValuesClearDB(luigi.Task):
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
