@@ -104,15 +104,7 @@ class ExtractOrderData(luigi.Task):
             cur.execute(query)
 
             customer_row = cur.fetchone()
-            if customer_row is not None:
-                customer_id = customer_row[0]
-            else:
-                customer_id = np.nan
-                # if we can't find the customer_id, but it isn't NaN,
-                # we set the customer_id to NaN
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
+            customer_id = customer_row[0] if customer_row else np.nan
         finally:
             if conn is not None:
                 conn.close()
