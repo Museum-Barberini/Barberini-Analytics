@@ -81,15 +81,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 host=self.host, database=self.database,
                 user=self.user, password=self.password
             )
-
             cur = conn.cursor()
-
             try:
                 cur.execute('SELECT booking_id FROM gomus_booking')
                 db_booking_rows = cur.fetchall()
             except psycopg2.errors.UndefinedTable:
                 db_booking_rows = []
-
         finally:
             if conn is not None:
                 conn.close()
