@@ -9,14 +9,9 @@ import requests
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from set_db_connection_options import set_db_connection_options
 
 
 class FetchFbPosts(luigi.Task):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def requires(self):
         return MuseumFacts()

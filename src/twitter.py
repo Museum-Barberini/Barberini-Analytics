@@ -8,14 +8,9 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from museum_facts import MuseumFacts
-from set_db_connection_options import set_db_connection_options
 
 
 class FetchTwitter(luigi.Task):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     query = luigi.Parameter(default="museumbarberini")
     table = luigi.Parameter(default="tweets")
@@ -32,25 +27,6 @@ class FetchTwitter(luigi.Task):
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
-    """
-    def get_latest_timestamp(self):
-
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
-            cur = conn.cursor()
-            cur.execute(f"SELECT MAX(timestamp) FROM {self.table}")
-            return cur.fetchone()[0] or self.min_timestamp
-            conn.close()
-
-        except psycopg2.DatabaseError as error:
-            print(error)
-            if conn is not None:
-                conn.close()
-            return self.min_timestamp
-    """
 
 
 class ExtractTweets(luigi.Task):
