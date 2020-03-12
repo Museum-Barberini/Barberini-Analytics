@@ -94,42 +94,31 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
 
-            booking_in_db = False
-            for db_row in db_booking_rows:
-                if db_row[0] == booking_id:
-                    booking_in_db = True
-                    break
+            if any(db_row[0] == booking_id for db_row in db_booking_rows):
+                continue  # booking is already in db
 
-            if not booking_in_db:
+            booking_url = f'{self.base_url}/admin/bookings/{booking_id}'
+            print(
+                (f"requesting booking details for id: "
+                    f"{str(booking_id)} ({i+1}/{row_count})"))
+            res_details = self.polite_get(booking_url, cookies=self.cookies)
+            tree_details = html.fromstring(res_details.text)
 
-                booking_url = (self.base_url + "/admin/bookings/"
-                               + str(booking_id))
-                print(
-                    (f"requesting booking details for id: "
-                     f"{str(booking_id)} ({i+1}/{row_count})"))
-                res_details = self.polite_get(booking_url,
-                                              cookies=self.cookies)
+            # firefox says the the xpath starts with //body/div[3]/ but we
+            # apparently need div[2] instead
+            booking_details = tree_details.xpath(
+                '//body/div[2]/div[2]/div[3]'
+                '/div[4]/div[2]/div[1]/div[3]')[0]
 
-                tree_details = html.fromstring(res_details.text)
+            raw_order_date = self.extract_from_html(
+                booking_details,
+                'div[1]/div[2]/small/dl/dd[2]').strip()
+            row['order_date'] = dateparser.parse(raw_order_date)
 
-                # firefox says the the xpath starts with //body/div[3]/ but we
-                # apparently need div[2] instead
-                booking_details = tree_details.xpath(
-                    '//body/div[2]/div[2]/div[3]'
-                    '/div[4]/div[2]/div[1]/div[3]')[0]
+            row['language'] = self.extract_from_html(
+                booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
 
-                # Order Date
-                # .strip() removes \n in front of and behind string
-                raw_order_date = self.extract_from_html(
-                    booking_details,
-                    'div[1]/div[2]/small/dl/dd[2]').strip()
-                row['order_date'] = dateparser.parse(raw_order_date)
-
-                # Language
-                row['language'] = self.extract_from_html(
-                    booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
-
-                enhanced_bookings = enhanced_bookings.append(row)
+            enhanced_bookings = enhanced_bookings.append(row)
 
         with self.output().open('w') as output_file:
             enhanced_bookings.to_csv(
