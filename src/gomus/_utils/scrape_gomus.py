@@ -93,10 +93,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 cur.execute(query)
                 db_booking_rows = cur.fetchall()
 
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
-
         finally:
             if conn is not None:
                 conn.close()
