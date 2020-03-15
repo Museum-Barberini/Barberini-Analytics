@@ -7,6 +7,8 @@ import sys
 # before start: run 'make connect'
 
 # -Customers-
+#   some reports need to be adjusted manually (misplaced columns)
+#   -> make sure you got all reports that require fixing
 # -Orders-
 #   run customers before orders
 #   comment out: _required CustomersToDB-Task in ExtractOrderData
