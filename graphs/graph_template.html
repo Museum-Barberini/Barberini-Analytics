@@ -5,8 +5,13 @@
 	<script type="text/javascript" src="js/sigma.forceatlas2.js"></script>
 </head>
 <body>
+	<p>
+		<b>Legend:</b> <span style="color: red;">Appstore Reviews</span> · <span style="color: green;">Google Maps Reviews</span> · <span style="color: blue">Tweets</span>
+	</p>
+	
+	<div style="height: 90%">
 	<div style="width: 100%; height: 100%; background-color: white;" id="sigma-example-parent">
-		<div class="sigma-expand" style="width: 100%; height: 100%;" id="foo"></div>
+		<div class="sigma-expand" style="width: 100%; height: 90%;" id="foo"></div>
 	</div>
 	
 	
@@ -17,8 +22,8 @@
       defaultLabelColor: '#f00',
       defaultLabelSize: 20,
       defaultLabelBGColor: '#eee',
-      defaultLabelHoverColor: '#000',
-      labelThreshold: 6,
+      defaultLabelHoverColor: '#f00',
+      labelThreshold: 4,
 	  defaultEdgeType: 'curve',
 	  edgeWeightInfluence: 0
     }).graphProperties({
@@ -35,6 +40,6 @@
 	sigInst.stopForceAtlas2();
 	sigInst.activateFishEye().draw();
 	</script>
-	
+	</div>
 </body>
 </html>
