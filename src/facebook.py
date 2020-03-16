@@ -79,6 +79,7 @@ class FetchFbPostPerformance(luigi.Task):
         performances = []
         df = pd.read_csv(self.input().path)
 
+        invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
             # print(f"### Facebook - loading performance data for post
@@ -92,7 +93,11 @@ class FetchFbPostPerformance(luigi.Task):
                    f"post_impressions_paid")
             response = requests.get(url)
             if not response.ok:
-                print(response.text)
+                # print(response.text)
+                if response.status_code == 400:
+                    invalid_count += 1
+                    print(post_id)
+                    continue
             response.raise_for_status()
 
             response_content = response.json()
@@ -112,9 +117,9 @@ class FetchFbPostPerformance(luigi.Task):
 
             # Activity
             activity = response_content['data'][1]['values'][0]['value']
-            post_perf["likes"] = int(activity.get('like', 0))
-            post_perf["shares"] = int(activity.get('share', 0))
-            post_perf["comments"] = int(activity.get('comment', 0))
+            post_perf["likes"] = int(activity.get('LIKE', 0))
+            post_perf["shares"] = int(activity.get('SHARE', 0))
+            post_perf["comments"] = int(activity.get('COMMENT', 0))
 
             # Clicks
             clicks = response_content['data'][2]['values'][0]['value']
@@ -132,6 +137,8 @@ class FetchFbPostPerformance(luigi.Task):
                 response_content['data'][4]['values'][0]['value']
 
             performances.append(post_perf)
+
+        print(f"Skipped {invalid_count} posts")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
