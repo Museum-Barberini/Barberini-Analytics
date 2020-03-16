@@ -27,7 +27,7 @@ stopwords.add('museumbarberini')
 text_words = {
     text: [
         word
-        for word in [word.strip(',-+/&.,;:#@') for word in text.split(' ')]
+        for word in [word.strip(',-+/&.,;:#@_') for word in text.split(' ')]
         if word not in stopwords]
     for text in texts}
 """
@@ -52,25 +52,15 @@ for text, words in text_words.items():
             edge_weights[(word1, word2)] += 1
     G.add_weighted_edges_from([list(edge) + [weight] for edge, weight in edge_weights.items()])
 
-#nx.write_gexf(G, 'output/reviews.gexf')
-
-DEBUG_LIMIT = 80  # sometimes works, sometimes fails!
-#G.add_node(str(DEBUG_LIMIT), weight=0.05)
 node_weights = nx.get_node_attributes(G, 'weight')
 def gexf_escape(str):
     return str.replace('\'', '\\')
 nodes = list(G.nodes)
 node_ids = {item: index for index, item in enumerate(nodes)}
 nodes.sort(key=lambda node: node_weights[node], reverse=True)
-### DEBUG
-nodes = nodes[:DEBUG_LIMIT]
-nodes = list([node for node in nodes if node])
-G = G.subgraph(nodes)
-### BUGED
 edges = list(G.edges)
 edge_ids = {item: index for index, item in enumerate(edges)}
 edges.sort(key=lambda edge: G[edge[0]][edge[1]]['weight'], reverse=True)
-#edges = edges[:50]
 
 gexf_contents = f"""
 <?xml version="1.0" encoding="UTF-8"?>
