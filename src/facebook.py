@@ -77,7 +77,8 @@ class FetchFbPostPerformance(luigi.Task):
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         performances = []
-        df = pd.read_csv(self.input().path)
+        with self.input().open('r') as csv_in:
+            df = pd.read_csv(csv_in)
 
         invalid_count = 0
         for index in df.index:
@@ -93,12 +94,10 @@ class FetchFbPostPerformance(luigi.Task):
                    f"post_impressions_paid")
             response = requests.get(url)
             if not response.ok:
-                # print(response.text)
                 if response.status_code == 400:
                     invalid_count += 1
-                    print(post_id)
                     continue
-            response.raise_for_status()
+            response.raise_for_status() #  in case of another error
 
             response_content = response.json()
 

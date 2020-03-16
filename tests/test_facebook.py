@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import jstyleson
 import unittest
@@ -107,34 +108,31 @@ class TestFacebookPost(unittest.TestCase):
 
 class TestFacebookPostPerformance(unittest.TestCase):
 
-    @patch('facebook.dt.datetime.strftime')
     @patch('facebook.requests.get')
-    @patch.object(facebook.FetchFbPosts, 'output')
-    @patch.object(facebook.FetchFbPosts, 'input')
+    @patch.object(facebook.FetchFbPostPerformance, 'output')
+    @patch.object(facebook.FetchFbPostPerformance, 'input')
     def test_post_performance_transformation(self,
                                              input_mock,
                                              output_mock,
-                                             requests_get_mock,
-                                             time_mock):
+                                             requests_get_mock):
         
         input_target = MockTarget('posts_in', format=UTF8)
         input_mock.return_value = input_target
         output_target = MockTarget('insights_out', format=UTF8)
         output_mock.return_value = output_target
 
-        with open('tests/test_data/facebook/post_expected.csv') as posts_in:
-            with input_target.open('w') as posts_target:
-                posts_target.write(posts_in.read())
+        with input_target.open('w') as posts_target:
+            with open('tests/test_data/facebook/post_expected.csv',
+                      'r',
+                      encoding='utf-8') as posts_input:
+                read_in = posts_input.read()
+                print(read_in)
+                posts_target.write(read_in)
         
         with open('tests/test_data/facebook/post_insights_actual.json',
                   'r',
                   encoding='utf-8') as json_in:
             actual_insights = json_in.read()
-        
-        with open('tests/test_data/facebook/post_insights_expected.csv',
-                  'r',
-                  encoding='utf-8') as csv_out:
-            expected_insights = csv_out.read()
 
         def mock_json():
             return json.loads(actual_insights)
@@ -142,9 +140,21 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        time_mock.return_value = '2020-01-01 00:00:05'
+        class MockDatetime(dt.datetime):
+            @classmethod
+            def now(cls):
+                return cls(2020, 1, 1, 0, 0, 5)
+
+        facebook.dt.datetime = MockDatetime
 
         facebook.FetchFbPostPerformance().run()
+
+        with open('tests/test_data/facebook/post_insights_expected.csv',
+                  'r',
+                  encoding='utf-8') as csv_out:
+            expected_insights = csv_out.read()
+
+        self.maxDiff = None
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_insights)
