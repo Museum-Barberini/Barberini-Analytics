@@ -6,7 +6,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from ensure_foreign_keys import ensure_foreign_keys
+from foreign_key_task import ForeignKeyTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
 from set_db_connection_options import set_db_connection_options
@@ -40,19 +40,8 @@ class OrdersToDB(CsvToDb):
             foreign_keys=self.foreign_keys)
 
 
-class ExtractOrderData(luigi.Task):
+class ExtractOrderData(ForeignKeyTask):
     columns = luigi.parameter.ListParameter(description="Column names")
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted", default=[])
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def _requires(self):
         return luigi.task.flatten([
@@ -84,13 +73,7 @@ class ExtractOrderData(luigi.Task):
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
         df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
 
-        df = ensure_foreign_keys(
-            df,
-            self.foreign_keys,
-            self.host,
-            self.database,
-            self.user,
-            self.password)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)

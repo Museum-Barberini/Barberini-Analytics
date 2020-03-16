@@ -8,7 +8,7 @@ import requests
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from ensure_foreign_keys import ensure_foreign_keys
+from foreign_key_task import ForeignKeyTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
@@ -64,18 +64,7 @@ class FetchFbPosts(luigi.Task):
             df.to_csv(output_file, index=False, header=True)
 
 
-class FetchFbPostPerformance(luigi.Task):
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
+class FetchFbPostPerformance(ForeignKeyTask):
 
     def _requires(self):
         return luigi.task.flatten([
@@ -149,13 +138,7 @@ class FetchFbPostPerformance(luigi.Task):
 
             performances.append(post_perf)
 
-        df = ensure_foreign_keys(
-            df,
-            self.foreign_keys,
-            self.host,
-            self.database,
-            self.user,
-            self.password)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])

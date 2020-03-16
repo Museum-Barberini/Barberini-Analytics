@@ -7,7 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from ensure_foreign_keys import ensure_foreign_keys
+from foreign_key_task import ForeignKeyTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from set_db_connection_options import set_db_connection_options
@@ -41,21 +41,13 @@ class EventsToDB(CsvToDb):
             foreign_keys=self.foreign_keys)
 
 
-class ExtractEventData(luigi.Task):
+class ExtractEventData(ForeignKeyTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign key constraints to be asserted")
-
-    host = None
-    database = None
-    user = None
-    password = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
         self.events_df = None
         self.categories = [
             'Öffentliche Führung',
@@ -100,13 +92,7 @@ class ExtractEventData(luigi.Task):
                                                'Storniert',
                                                category)
 
-        self.events_df = ensure_foreign_keys(
-            self.events_df,
-            self.foreign_keys,
-            self.host,
-            self.database,
-            self.user,
-            self.password)
+        self.events_df = self.ensure_foreign_keys(self.events_df)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)

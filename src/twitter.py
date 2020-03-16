@@ -7,7 +7,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from ensure_foreign_keys import ensure_foreign_keys
+from foreign_key_task import ForeignKeyTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
@@ -88,18 +88,7 @@ class ExtractTweets(luigi.Task):
         return facts['ids']['twitter']['userId']
 
 
-class ExtractPerformanceTweets(luigi.Task):
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
+class ExtractPerformanceTweets(ForeignKeyTask):
 
     def _requires(self):
         return luigi.task.flatten([
@@ -116,13 +105,7 @@ class ExtractPerformanceTweets(luigi.Task):
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
 
-        df = ensure_foreign_keys(
-            df,
-            self.foreign_keys,
-            self.host,
-            self.database,
-            self.user,
-            self.password)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
