@@ -1,6 +1,6 @@
 # Configuration
 
-## Barberini facts
+dgfdgd## Barberini facts
 
 The file `data/barberini_facts.jsonc` includes information that is specific to the Museum Barberini. By modifiying it, you can change the social media pages, topics, and items tracked by Awesome Barberini Tool. You can also reuse this tool for different POIs by changing that file.
 
