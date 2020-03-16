@@ -32,7 +32,7 @@ class FetchFbPosts(luigi.Task):
 
         posts = []
 
-        url = (f"https://graph.facebook.com/{page_id}/posts?access_token="
+        url = (f"https://graph.facebook.com/v6.0/{page_id}/feed?access_token="
                f"{access_token}")
 
         response = requests.get(url)
@@ -83,7 +83,7 @@ class FetchFbPostPerformance(luigi.Task):
             post_id = df['fb_post_id'][index]
             # print(f"### Facebook - loading performance data for post
             # {str(post_id)} ###")
-            url = (f"https://graph.facebook.com/{post_id}/insights?"
+            url = (f"https://graph.facebook.com/v6.0/{post_id}/insights?"
                    f"access_token={access_token}&metric="
                    f"post_reactions_by_type_total,"
                    f"post_activity_by_action_type,"
@@ -91,6 +91,8 @@ class FetchFbPostPerformance(luigi.Task):
                    f"post_negative_feedback,"
                    f"post_impressions_paid")
             response = requests.get(url)
+            if not response.ok:
+                print(response.text)
             response.raise_for_status()
 
             response_content = response.json()
