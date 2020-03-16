@@ -41,14 +41,14 @@ class TestExtractTweets(DatabaseTaskTest):
     @patch.object(ExtractTweets, 'museum_user_id')
     def test_extract_tweets(self, user_id_mock, raw_tweets_mock):
 
-        raw_tweets = '''timestamp,user_id,tweet_id,text,parent_tweet_id,likes,retweets,replies,some_other_value
-2020-01-01 23:59:59,42,1337,Welcome to the exhibition!,,5,4,1,foo
-2020-01-02 00:00:00,43,9999,I am so exited!,1337,1,0,0,fooooo
-'''
-        extracted_tweets = '''user_id,tweet_id,text,response_to,post_date,is_from_barberini
-42,1337,Welcome to the exhibition!,,2020-01-01 23:59:59,True
-43,9999,I am so exited!,1337,2020-01-02 00:00:00,False
-'''
+        with open('tests/test_data/twitter/raw_tweets.csv', 'r') as data_in:
+            raw_tweets = data_in.read()
+
+        with open(
+            'tests/test_data/twitter/expected_extracted_tweets.csv',
+                'r') as data_out:
+            extracted_tweets = data_out.read()
+
         user_id = '42'
 
         self.install_mock_target(
@@ -64,7 +64,7 @@ class TestExtractTweets(DatabaseTaskTest):
         self.assertEquals(output, extracted_tweets)
 
 
-class TestExtractTweetPerfromance(DatabaseTaskTest):
+class TestExtractTweetPerformance(DatabaseTaskTest):
 
     def setUp(self):
         super().setUp()
@@ -73,14 +73,14 @@ class TestExtractTweetPerfromance(DatabaseTaskTest):
     @patch.object(FetchTwitter, 'output')
     def test_extract_tweets(self, raw_tweets_mock):
 
-        raw_tweets = '''timestamp,user_id,tweet_id,text,parent_tweet_id,likes,retweets,replies,some_other_value
-2020-01-01 23:59:59,42,1337,Welcome to the exhibition!,,5,4,1,foo
-2020-01-02 00:00:00,43,9999,I am so exited!,1337,1,0,0,fooooo
-'''
-        extracted_performance = '''tweet_id,likes,retweets,replies,timestamp
-1337,5,4,1,SOME_TIMESTAMP
-9999,1,0,0,SOME_TIMESTAMP
-'''
+        with open('tests/test_data/twitter/raw_tweets.csv', 'r') as data_in:
+            raw_tweets = data_in.read()
+
+        with open(
+            'tests/test_data/twitter/expected_tweet_performance.csv',
+                'r') as data_out:
+            extracted_performance = data_out.read()
+
         self.install_mock_target(
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))

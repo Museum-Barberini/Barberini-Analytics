@@ -1,0 +1,3 @@
+user_id,tweet_id,text,response_to,post_date,is_from_barberini
+42,1337,Welcome to the exhibition!,,2020-01-01 23:59:59,True
+43,9999,I am so exited!,1337,2020-01-02 00:00:00,False
