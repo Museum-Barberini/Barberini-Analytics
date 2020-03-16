@@ -14,7 +14,6 @@ from lxml import html
 from foreign_key_task import ForeignKeyTask
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.orders import ExtractOrderData, OrdersToDB
-from set_db_connection_options import set_db_connection_options
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
@@ -242,13 +241,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
         df = pd.DataFrame(order_details)
 
-        df = ensure_foreign_keys(
-            df,
-            self.foreign_keys,
-            self.host,
-            self.database,
-            self.user,
-            self.password)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

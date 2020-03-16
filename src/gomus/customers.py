@@ -6,7 +6,6 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from foreign_key_task import ForeignKeyTask
 from gomus._utils.fetch_report import FetchGomusReport
-from set_db_connection_options import set_db_connection_options
 
 
 class CustomersToDB(CsvToDb):

@@ -9,7 +9,6 @@ from luigi.format import UTF8
 from foreign_key_task import ForeignKeyTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import CustomersToDB, hash_id
-from set_db_connection_options import set_db_connection_options
 
 
 class ExtractGomusBookings(ForeignKeyTask):

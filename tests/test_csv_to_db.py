@@ -69,7 +69,7 @@ class TestCsvToDb(DatabaseTaskTest):
 
         # Insert manually calculated dummy_date because otherwise,
         # luigi may not create a new DummyWriteCsvToDb Task
-        # 
+        #
         # This should be kept in mind in case the behaviour is seen elsewhere
         # as well
         self.dummy = DummyWriteCsvToDb(

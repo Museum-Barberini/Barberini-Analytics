@@ -9,7 +9,6 @@ from csv_to_db import CsvToDb
 from foreign_key_task import ForeignKeyTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
-from set_db_connection_options import set_db_connection_options
 
 
 class OrdersToDB(CsvToDb):

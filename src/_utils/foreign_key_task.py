@@ -36,7 +36,7 @@ class ForeignKeyTask(luigi.Task):
 
                 cursor = conn.cursor()
                 query = (f"SELECT {foreign_key['target_column']} "
-                        f"FROM {foreign_key['target_table']}")
+                         f"FROM {foreign_key['target_table']}")
                 cursor.execute(query)
 
                 foreign_values = [row[0] for row in cursor.fetchall()]
@@ -49,8 +49,8 @@ class ForeignKeyTask(luigi.Task):
                     .count()
                 if difference > 0:
                     print(f"INFO: Deleted {difference} out of {old_count} "
-                        f"data sets due to foreign key violation: "
-                        f"{foreign_key}")
+                          f"data sets due to foreign key violation: "
+                          f"{foreign_key}")
 
             return df
 
