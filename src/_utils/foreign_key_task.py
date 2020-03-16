@@ -54,9 +54,6 @@ class ForeignKeyTask(luigi.Task):
 
             return df
 
-        except psycopg2.DatabaseError:
-            raise
-
         finally:
             if conn is not None:
                 conn.close()

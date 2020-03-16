@@ -69,6 +69,9 @@ class TestCsvToDb(DatabaseTaskTest):
 
         # Insert manually calculated dummy_date because otherwise,
         # luigi may not create a new DummyWriteCsvToDb Task
+        # 
+        # This should be kept in mind in case the behaviour is seen elsewhere
+        # as well
         self.dummy = DummyWriteCsvToDb(
             self.table_name,
             dummy_date=mmh3.hash(self.table_name, 666))
@@ -99,7 +102,7 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                ADD CONSTRAINT {self.table_name}_primkey\
                     PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (0, 1, 'a', 'b');")
@@ -119,7 +122,7 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                ADD CONSTRAINT {self.table_name}_primkey\
                     PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (1, 2, "
