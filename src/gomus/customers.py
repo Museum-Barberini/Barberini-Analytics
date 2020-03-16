@@ -41,6 +41,8 @@ class CustomersToDB(CsvToDb):
 
 class GomusToCustomerMappingToDB(CsvToDb):
 
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     table = 'gomus_to_customer_mapping'
 
     columns = [
@@ -61,7 +63,7 @@ class GomusToCustomerMappingToDB(CsvToDb):
     def requires(self):
         return ExtractGomusToCustomerMapping(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            foreign_keys=self.foreign_keys, today=self.today)
 
 
 class ExtractCustomerData(luigi.Task):
@@ -129,6 +131,7 @@ class ExtractCustomerData(luigi.Task):
 
 class ExtractGomusToCustomerMapping(luigi.Task):
     columns = luigi.parameter.ListParameter(description="Column names")
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted")
 
@@ -148,7 +151,7 @@ class ExtractGomusToCustomerMapping(luigi.Task):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='customers')
+        return FetchGomusReport(report='customers', today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/gomus_to_customers_mapping.csv',

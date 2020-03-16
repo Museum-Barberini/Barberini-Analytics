@@ -9,14 +9,14 @@ from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from gomus._utils.fetch_report import FetchGomusReport
-# from gomus.customers import CustomersToDB
-# from gomus.customers import GomusToCustomerMappingToDB
+from gomus.customers import CustomersToDB
+from gomus.customers import GomusToCustomerMappingToDB
 from set_db_connection_options import set_db_connection_options
 
 
 class OrdersToDB(CsvToDb):
     today = luigi.parameter.DateParameter(
-        default=dt.datetime.today() - dt.timedelta(days=1))
+        default=dt.datetime.today())
     table = 'gomus_order'
 
     columns = [
@@ -46,7 +46,7 @@ class OrdersToDB(CsvToDb):
 
 class ExtractOrderData(luigi.Task):
     today = luigi.parameter.DateParameter(
-        default=dt.datetime.today() - dt.timedelta(days=1))
+        default=dt.datetime.today()) 
     columns = luigi.parameter.ListParameter(description="Column names")
 
     host = None
@@ -60,8 +60,8 @@ class ExtractOrderData(luigi.Task):
 
     def _requires(self):
         return luigi.task.flatten([
-            # CustomersToDB(),
-            # GomusToCustomerMappingToDB(),
+            CustomersToDB(),
+            GomusToCustomerMappingToDB(),
             super()._requires()
         ])
 
@@ -81,7 +81,6 @@ class ExtractOrderData(luigi.Task):
             'Bestellnummer', 'Erstellt', 'Kundennummer',
             'ist gültig?', 'Bezahlstatus', 'Herkunft'
         ])
-
         df.columns = self.columns
 
         df['order_id'] = df['order_id'].apply(int)
