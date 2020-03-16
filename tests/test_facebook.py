@@ -125,9 +125,7 @@ class TestFacebookPostPerformance(unittest.TestCase):
             with open('tests/test_data/facebook/post_expected.csv',
                       'r',
                       encoding='utf-8') as posts_input:
-                read_in = posts_input.read()
-                print(read_in)
-                posts_target.write(read_in)
+                posts_target.write(posts_input.read())
         
         with open('tests/test_data/facebook/post_insights_actual.json',
                   'r',
