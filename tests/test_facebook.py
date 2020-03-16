@@ -39,7 +39,7 @@ class TestFacebookPost(unittest.TestCase):
     @patch('facebook.requests.get')
     def test_invalid_response_raises_error(self, requests_get_mock):
         error_mock = MagicMock(status_code=404)
-        
+
         def error_raiser():
             return facebook.requests.Response.raise_for_status(error_mock)
 
