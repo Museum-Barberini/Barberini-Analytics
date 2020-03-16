@@ -5,7 +5,6 @@ import luigi
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
-import csv
 
 from csv_to_db import CsvToDb
 from museum_facts import MuseumFacts
@@ -19,14 +18,19 @@ class FetchTwitter(luigi.Task):
         set_db_connection_options(self)
 
     query = luigi.Parameter(default="museumbarberini")
-    min_timestamp = luigi.DateParameter(default=dt.date(2015, 1, 1))
+    min_timestamp = luigi.DateParameter(default=dt.date(2020, 3, 15))
+    max_timestamp = luigi.DateParameter(
+        default=dt.date.today() + dt.timedelta(days=1))
 
     def output(self):
         return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
 
     def run(self):
 
-        tweets = ts.query_tweets(self.query, begindate=self.min_timestamp)
+        tweets = ts.query_tweets(
+            self.query,
+            begindate=self.min_timestamp,
+            enddate=self.max_timestamp)
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
         with self.output().open('w') as output_file:
