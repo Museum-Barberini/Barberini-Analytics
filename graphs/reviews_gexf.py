@@ -27,7 +27,7 @@ stopwords.add('museumbarberini')
 text_words = {
     text: [
         word
-        for word in [word.strip(',-+/&.,;:#@_') for word in text.split(' ')]
+        for word in [word.strip(',-+/&.,;:#@_()[]"\'') for word in text.split(' ')]
         if word not in stopwords]
     for text in texts}
 """
@@ -41,7 +41,7 @@ word_counts = pd.Series(words).value_counts()
 
 G = nx.Graph()
 for word, count in word_counts.iteritems():
-    G.add_node(word, weight=float(count)/len(words))
+    G.add_node(word, weight=float(count)/len(words)/2)
 for text, words in text_words.items():
     edge_weights = {}
     for word1 in words:
