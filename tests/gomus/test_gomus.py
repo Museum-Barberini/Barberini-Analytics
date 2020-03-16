@@ -52,16 +52,16 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 
         # Write test data to input mock
         with input_target.open('w') as input_data:
-            filename = 'tests/test_data/gomus_customers_in.csv'
+            filename = 'tests/test_data/gomus/customers_in.csv'
             with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
         # Execute task
-        ExtractCustomerData(self.columns).run()
+        ExtractCustomerData(columns=self.columns).run()
 
         # Check result in output mock
         with output_target.open('r') as output_data:
-            filename = 'tests/test_data/gomus_customers_out.csv'
+            filename = 'tests/test_data/gomus/customers_out.csv'
             with open(filename, 'r', encoding='utf-8') as test_data_out:
                 self.assertEqual(output_data.read(), test_data_out.read())
 
@@ -71,12 +71,13 @@ class TestGomusCustomerTransformations(unittest.TestCase):
         input_mock.return_value = iter([input_target])
 
         with input_target.open('w') as input_data:
-            filename = 'tests/test_data/gomus_customers_invalid_date.csv'
+            filename = 'tests/test_data/gomus/customers_invalid_date.csv'
             with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
         # 30.21.2005 should not be a valid date
-        self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
+        self.assertRaises(ValueError,
+                          ExtractCustomerData(columns=self.columns).run)
 
 
 class TestGomusOrdersTransformations(unittest.TestCase):
@@ -104,7 +105,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
 
         # Write test data to input mock
         with input_target.open('w') as input_data:
-            filename = 'tests/test_data/gomus_orders_in.csv'
+            filename = 'tests/test_data/gomus/orders_in.csv'
             with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
@@ -113,7 +114,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
 
         # Check result in output mock
         with output_target.open('r') as output_data:
-            filename = 'tests/test_data/gomus_orders_out.csv'
+            filename = 'tests/test_data/gomus/orders_out.csv'
             with open(filename, 'r', encoding='utf-8') as test_data_out:
                 self.assertEqual(output_data.read(), test_data_out.read())
 
@@ -123,7 +124,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
         input_mock.return_value = iter([input_target])
 
         with input_target.open('w') as input_data:
-            filename = 'tests/test_data/gomus_orders_invalid_date.csv'
+            filename = 'tests/test_data/gomus/orders_invalid_date.csv'
             with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 

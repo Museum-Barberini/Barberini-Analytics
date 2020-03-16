@@ -1,8 +1,6 @@
 import csv
 import json
 
-import luigi
-
 from data_preparation_task import DataPreparationTask
 
 
