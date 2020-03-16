@@ -1,7 +1,7 @@
 import luigi
 
 from apple_appstore import AppstoreReviewsToDB
-from facebook import FbPostsToDB, FbPostPerformanceToDB
+# from facebook import FbPostsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from twitter import TweetsToDB, TweetPerformanceToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
