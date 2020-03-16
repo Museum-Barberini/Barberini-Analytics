@@ -4,7 +4,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
@@ -57,7 +57,7 @@ class GomusToCustomerMappingToDB(CsvToDb):
             foreign_keys=self.foreign_keys)
 
 
-class ExtractCustomerData(luigi.Task):
+class ExtractCustomerData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
@@ -117,7 +117,7 @@ class ExtractCustomerData(luigi.Task):
                 post_string
 
 
-class ExtractGomusToCustomerMapping(ForeignKeyTask):
+class ExtractGomusToCustomerMapping(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):

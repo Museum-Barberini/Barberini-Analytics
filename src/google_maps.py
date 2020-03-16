@@ -8,9 +8,10 @@ import pandas as pd
 from oauth2client.file import Storage
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 
 
-class FetchGoogleMapsReviews(luigi.Task):
+class FetchGoogleMapsReviews(DataPreparationTask):
 
     # secret_files is a folder mounted from /etc/secrets via docker-compose
     token_cache = luigi.Parameter(

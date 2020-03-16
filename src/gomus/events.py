@@ -7,7 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from set_db_connection_options import set_db_connection_options
@@ -41,7 +41,7 @@ class EventsToDB(CsvToDb):
             foreign_keys=self.foreign_keys)
 
 
-class ExtractEventData(ForeignKeyTask):
+class ExtractEventData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)

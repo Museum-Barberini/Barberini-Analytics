@@ -11,7 +11,7 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.orders import ExtractOrderData, OrdersToDB
 
@@ -19,7 +19,7 @@ from gomus.orders import ExtractOrderData, OrdersToDB
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
-class GomusScraperTask(ForeignKeyTask):
+class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
 
     sess_id = os.environ['GOMUS_SESS_ID']

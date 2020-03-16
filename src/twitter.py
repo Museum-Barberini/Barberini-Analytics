@@ -7,7 +7,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
@@ -54,7 +54,7 @@ class FetchTwitter(luigi.Task):
     """
 
 
-class ExtractTweets(luigi.Task):
+class ExtractTweets(DataPreparationTask):
 
     def requires(self):
         yield MuseumFacts()
@@ -88,7 +88,7 @@ class ExtractTweets(luigi.Task):
         return facts['ids']['twitter']['userId']
 
 
-class ExtractPerformanceTweets(ForeignKeyTask):
+class ExtractPerformanceTweets(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([

@@ -4,7 +4,7 @@ import psycopg2
 from set_db_connection_options import set_db_connection_options
 
 
-class ForeignKeyTask(luigi.Task):
+class DataPreparationTask(luigi.Task):
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted",
         default=[])
@@ -17,11 +17,6 @@ class ForeignKeyTask(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
-
-    def _requires(self):
-        raise NotImplementedError("Use this method to introduce "
-                                  "dependencies to ToDB tasks for "
-                                  "foreign key relations")
 
     def ensure_foreign_keys(self, df):
 

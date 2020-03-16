@@ -6,7 +6,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
 
@@ -39,7 +39,7 @@ class OrdersToDB(CsvToDb):
             foreign_keys=self.foreign_keys)
 
 
-class ExtractOrderData(ForeignKeyTask):
+class ExtractOrderData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):

@@ -8,12 +8,12 @@ import requests
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
-class FetchFbPosts(luigi.Task):
+class FetchFbPosts(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -64,7 +64,7 @@ class FetchFbPosts(luigi.Task):
             df.to_csv(output_file, index=False, header=True)
 
 
-class FetchFbPostPerformance(ForeignKeyTask):
+class FetchFbPostPerformance(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([

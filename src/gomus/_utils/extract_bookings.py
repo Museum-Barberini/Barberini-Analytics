@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
-from foreign_key_task import ForeignKeyTask
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import CustomersToDB, hash_id
 
 
-class ExtractGomusBookings(ForeignKeyTask):
+class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
 
