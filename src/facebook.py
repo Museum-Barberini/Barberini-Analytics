@@ -32,7 +32,7 @@ class FetchFbPosts(luigi.Task):
 
         posts = []
 
-        url = (f"https://graph.facebook.com/v6.0/{page_id}/posts?access_token="
+        url = (f"https://graph.facebook.com/v6.0/{page_id}/feed?access_token="
                f"{access_token}")
 
         response = requests.get(url)
