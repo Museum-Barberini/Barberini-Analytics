@@ -6,7 +6,7 @@ The file `data/barberini_facts.jsonc` includes information that is specific to t
 
 ### Google Trends
 
-For Google Trends, the facts file contains the value `ids.google.knowledgeId`. It points to the identifier google associates with the museum of interest. This is how you can find out the knowledge id of any another POI:
+gdfgdfFor Google Trends, the facts file contains the value `ids.google.knowledgeId`. It points to the identifier google associates with the museum of interest. This is how you can find out the knowledge id of any another POI:
 
 1. Visit https://google.com/trends (make sure to choose the appropriate TLD for your country)
 2. Type in your museum's name without accepting
