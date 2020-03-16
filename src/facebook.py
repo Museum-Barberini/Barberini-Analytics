@@ -91,6 +91,8 @@ class FetchFbPostPerformance(luigi.Task):
                    f"post_negative_feedback,"
                    f"post_impressions_paid")
             response = requests.get(url)
+            if not response.ok:
+                print(response.text)
             response.raise_for_status()
 
             response_content = response.json()
