@@ -6,7 +6,8 @@ from set_db_connection_options import set_db_connection_options
 
 class ForeignKeyTask(luigi.Task):
     foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
+        description="The foreign keys to be asserted",
+        default=[])
 
     host = None
     database = None
