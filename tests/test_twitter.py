@@ -41,12 +41,16 @@ class TestExtractTweets(DatabaseTaskTest):
     @patch.object(ExtractTweets, 'museum_user_id')
     def test_extract_tweets(self, user_id_mock, raw_tweets_mock):
 
-        with open('tests/test_data/twitter/raw_tweets.csv', 'r', encoding='utf-8') as data_in:
+        with open(
+                'tests/test_data/twitter/raw_tweets.csv',
+                'r',
+                encoding='utf-8') as data_in:
             raw_tweets = data_in.read()
 
         with open(
-            'tests/test_data/twitter/expected_extracted_tweets.csv',
-                'r', encoding='utf-8') as data_out:
+                'tests/test_data/twitter/expected_extracted_tweets.csv',
+                'r',
+                encoding='utf-8') as data_out:
             extracted_tweets = data_out.read()
 
         user_id = '42'
@@ -73,12 +77,16 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
     @patch.object(FetchTwitter, 'output')
     def test_extract_tweets(self, raw_tweets_mock):
 
-        with open('tests/test_data/twitter/raw_tweets.csv', 'r', encoding='utf-8') as data_in:
+        with open(
+                'tests/test_data/twitter/raw_tweets.csv',
+                'r',
+                encoding='utf-8') as data_in:
             raw_tweets = data_in.read()
 
         with open(
-            'tests/test_data/twitter/expected_tweet_performance.csv',
-                'r', encoding='utf-8') as data_out:
+                'tests/test_data/twitter/expected_tweet_performance.csv',
+                'r',
+                encoding='utf-8') as data_out:
             extracted_performance = data_out.read()
 
         self.install_mock_target(
