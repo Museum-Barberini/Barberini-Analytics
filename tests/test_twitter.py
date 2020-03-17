@@ -17,7 +17,7 @@ class TextFetchTwitter(DatabaseTaskTest):
             'timestamp']
         timespan_start = dt.date(2020, 2, 6)
         timespan_end = dt.date(2020, 2, 7)
-        # in this timespan out team account had
+        # in this timespan our team account had
         # sent one tweet with #MuseumBarberini
         task = FetchTwitter(
             min_timestamp=timespan_start,
