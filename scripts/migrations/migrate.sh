@@ -11,31 +11,33 @@ DB_CRED_FILE="/etc/secrets/database.env"
 
 for MIGRATION_FILE in $MIGRATION_FILES
 do
-    MIGRATION_FILE="$(basename $MIGRATION_FILE)"
+    MIGRATION_FILE_NAME="$(basename $MIGRATION_FILE)"
 
     # Only for files which are not yet applied
-    if ! grep -Fxq "$MIGRATION_FILE" $APPLIED_FILE
+    if ! grep -Fxq "$MIGRATION_FILE_NAME" $APPLIED_FILE
     then
         # Execute .sql scripts directly
-        if [[ "$MIGRATION_FILE" =~ *.sql ]]
+        if [[ "$MIGRATION_FILE_NAME" == *.sql ]]
         then
             # Read in DB credentials
             . $DB_CRED_FILE
             
             # Set default Postgres Env variables to
             # avoid having to specify passwords etc. manually
-            PGHOST="localhost"
-            PGDATABASE=$POSTGRES_DB
-            PGUSER=$POSTGRES_USER
-            PGPASSWORD=$POSTGRES_PASSWORD
+            export PGHOST="localhost"
+            export PGDATABASE=$POSTGRES_DB
+            export PGUSER=$POSTGRES_USER
+            export PGPASSWORD=$POSTGRES_PASSWORD
 
-            psql < $MIGRATION_FILE
+            # ON_ERROR_STOP makes psql abort when the first error is encountered
+            # as well as makes it return a non-zero exit code
+            psql -v ON_ERROR_STOP=1 < $MIGRATION_FILE
             EXIT_VAL=$?
 
         # Otherwise let it be interpreted by bash
-        # (use shebang-line for python scripts!)
+        # (use shebang-line for scripts!)
         else
-            chmod +x $MIGRATION_FILE
+            chmod u+x $MIGRATION_FILE
             ./$MIGRATION_FILE
             EXIT_VAL=$?
         fi
@@ -44,10 +46,15 @@ do
         if [ $EXIT_VAL -eq 0 ]
         then
             # Save applied migration
-            echo "$MIGRATION_FILE" >> $APPLIED_FILE
+            echo "$MIGRATION_FILE_NAME" >> $APPLIED_FILE
+            echo "INFO: Applied migration: $MIGRATION_FILE_NAME"
         else
-            echo "WARNING: Migration $MIGRATION_FILE failed to apply!"
-            echo "Please apply it manually and add it to '$APPLIED_FILE'"
+            # Print warning and exit so that the following migrations
+            # are not applied as well
+            echo
+            echo "WARNING: Migration failed to apply: $MIGRATION_FILE_NAME"
+            echo "    Please resolve the issue manually and add"
+            echo "    it to '$(basename $APPLIED_FILE)' or try again!"
             exit $EXIT_VAL
         fi
     fi
