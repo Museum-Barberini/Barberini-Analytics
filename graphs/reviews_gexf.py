@@ -34,7 +34,7 @@ all_text_words = {
     source: {
         text: [
             word
-            for word in [word.strip(',-–—+/&.,;:#@_()[]"\'') for word in text.split(' ')]
+            for word in [word.strip(',-–—+/&.,;:!?#@_()[]"\'') for word in text.split(' ')]
             if word not in stopwords]
         for text in texts
     }
