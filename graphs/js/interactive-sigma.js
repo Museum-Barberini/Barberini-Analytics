@@ -8,82 +8,53 @@ var active_communities = 0;
 var visible_nodes = new Array();
 
 
-
-// Bind events :
-sigInst.bind('overnodes', function (event) {
-	var nodes = event.content;
-	var neighbors = {};
-
-	sigInst.iterEdges(function (e) {
-
-		if (nodes.indexOf(e.source) >= 0 || nodes.indexOf(e.target) >= 0) {
-			neighbors[e.source] = 1;
-			neighbors[e.target] = 1;
-
-		}
-	}).iterNodes(function (n) {
-		if (!neighbors[n.id]) {
-			n.hidden = 1;
-		} else {
-			n.hidden = 0;
-		}
-	}).draw(2, 2, 2);
-}).bind('outnodes', function (event) {
-
-	var nodes = event.content;
-
-	if (isVisible && !isPinned) {
-
-		if (active_communities > 0) {
-			sigInst.iterNodes(function (n) {
-
-				if ($.inArray(parseInt(n.id), visible_nodes) > -1) {
-
-					n.hidden = 0;
-				} else {
-
-					n.hidden = 1;
-				}
-			}).draw(2, 2, 2);
-		}
-		else {
-			sigInst.iterEdges(function (e) {
-				e.hidden = 0;
-			}).iterNodes(function (n) {
-				n.hidden = 0;
-			}).draw(2, 2, 2);
-		}
-
+function applyFilters(filters) {
+	if (filters.size == 0) {
+		sigInst.iterNodes(node => node.hidden = false);
+	} else {
+		filters = Array.from(filters);
+		var neighbors = new Map();
+		sigInst
+			.iterEdges(edge => {
+				if (!neighbors.has(edge.source))
+					neighbors.set(edge.source, new Set());
+				if (!neighbors.has(edge.target))
+					neighbors.set(edge.target, new Set());
+				neighbors.get(edge.source).add(edge.target);
+				neighbors.get(edge.target).add(edge.source);
+			})
+			.iterNodes(node => {
+				node.hidden = !filters.every(filter =>
+					node.id == filter || (neighbors.has(node.id) && neighbors.get(node.id).has(filter)))
+			});
 	}
+	sigInst.draw(2,2,2);
+};
+
+hoverFilters = new Set();
+pinFilters = new Set();
+
+function applyAllFilters() {
+	applyFilters(new Set([...pinFilters, ...hoverFilters]));
+}
 
 
-	else if (!isVisible && !isPinned) {
-		sigInst.iterNodes(function (n) {
-				n.hidden = 1;
-		}).draw(2, 2, 2);
-
-
-	} else if (nodes != oldPin) {
-
-
-		var neighbors = {};
-
-		sigInst.iterEdges(function (e) {
-
-			if (oldPin.indexOf(e.source) >= 0 || oldPin.indexOf(e.target) >= 0) {
-				neighbors[e.source] = 1;
-				neighbors[e.target] = 1;
-
-			}
-		}).iterNodes(function (n) {
-			if (!neighbors[n.id]) {
-				n.hidden = 1;
+sigInst
+	.bind('overnodes', event => {
+		event.content.forEach(hoverFilters.add, hoverFilters)
+		applyAllFilters()
+	})
+	.bind('outnodes', event => {
+		event.content.forEach(hoverFilters.delete, hoverFilters);
+		applyAllFilters();
+	})
+	.bind('downnodes', event => {
+		event.content.forEach(node => {
+			if (!pinFilters.has(node)) {
+				pinFilters.add(node);
 			} else {
-				n.hidden = 0;
+				pinFilters.delete(node);
 			}
-		}).draw(2, 2, 2);
-
-	}
-
-
-});
+		});
+		applyAllFilters();
+	});
