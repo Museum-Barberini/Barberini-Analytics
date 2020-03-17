@@ -18,7 +18,7 @@ class FetchTwitter(luigi.Task):
         set_db_connection_options(self)
 
     query = luigi.Parameter(default="museumbarberini")
-    min_timestamp = luigi.DateParameter(default=dt.date(2020, 3, 15))
+    min_timestamp = luigi.DateParameter(default=dt.date(2015, 1, 1))
     max_timestamp = luigi.DateParameter(
         default=dt.date.today() + dt.timedelta(days=1))
 
