@@ -143,9 +143,12 @@ class TestFacebookPostPerformance(unittest.TestCase):
             def now(cls):
                 return cls(2020, 1, 1, 0, 0, 5)
 
-        facebook.dt.datetime = MockDatetime
+        tmp_datetime = dt.datetime
+        dt.datetime = MockDatetime
 
         facebook.FetchFbPostPerformance().run()
+
+        dt.datetime = tmp_datetime
 
         with open('tests/test_data/facebook/post_insights_expected.csv',
                   'r',
