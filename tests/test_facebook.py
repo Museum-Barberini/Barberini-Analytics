@@ -172,4 +172,33 @@ class TestFacebookPostPerformance(unittest.TestCase):
                                          input_mock,
                                          output_mock,
                                          requests_get_mock):
-        pass
+        input_target = MockTarget('posts_in', format=UTF8)
+        input_mock.return_value = input_target
+        output_target = MockTarget('insights_out', format=UTF8)
+        output_mock.return_value = output_target
+
+        with input_target.open('w') as posts_target:
+            with open('tests/test_data/facebook/post_expected.csv',
+                      'r',
+                      encoding='utf-8') as posts_input:
+                posts_target.write(posts_input.read())
+
+        with open('tests/test_data/facebook/post_insights_edgecases.json',
+                  'r',
+                  encoding='utf-8') as json_in:
+            edge_insights = json_in.read()
+
+        def mock_json():
+            return json.loads(edge_insights)
+
+        mock_response = MagicMock(ok=True, json=mock_json)
+        requests_get_mock.return_value = mock_response
+
+        # The current edge case test data should cause the interpretation to
+        # fail at a very specific point (processing "react_anger")
+        with self.assertRaises(ValueError) as cm:
+            facebook.FetchFbPostPerformance().run()
+
+        error = cm.exception
+        self.assertEqual(str(error),
+                         'invalid literal for int() with base 10: \'4.4\'')
