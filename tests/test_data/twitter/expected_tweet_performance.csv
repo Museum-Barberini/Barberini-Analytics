@@ -1,3 +1,4 @@
 tweet_id,likes,retweets,replies,timestamp
 1337,5,4,1,SOME_TIMESTAMP
 9999,1,0,0,SOME_TIMESTAMP
+8888,1,2,3,SOME_TIMESTAMP
