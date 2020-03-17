@@ -92,12 +92,17 @@ class FetchFbPostPerformance(luigi.Task):
                    f"post_clicks_by_type,"
                    f"post_negative_feedback,"
                    f"post_impressions_paid")
-            response = requests.get(url)
-            if not response.ok:
-                if response.status_code == 400:
-                    invalid_count += 1
-                    continue
-            response.raise_for_status() #  in case of another error
+
+            for _ in range(3):
+                response = requests.get(url)
+                if response.ok:
+                    break
+
+            if response.status_code == 400:
+                invalid_count += 1
+                continue
+
+            response.raise_for_status()  # in case of another error
 
             response_content = response.json()
 
