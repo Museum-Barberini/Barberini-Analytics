@@ -80,7 +80,7 @@ class ExtractTweets(DataPreparationTask):
         return facts['ids']['twitter']['userId']
 
 
-class ExtractTweetPerformance(luigi.Task):
+class ExtractTweetPerformance(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
