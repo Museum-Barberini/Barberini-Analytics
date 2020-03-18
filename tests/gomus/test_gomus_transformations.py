@@ -6,6 +6,7 @@ from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData
+from gomus.events import ExtractEventData
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.daily_entries import ExtractDailyEntryData
@@ -197,7 +198,6 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.test_data_path += 'daily_entries/'
-        self.maxDiff = None  # TODO: remove
 
     # Don't prepare targets like usual because two inputs are expected
     def prepare_mock_targets(self,
@@ -248,3 +248,39 @@ class TestDailyEntryTransformation(GomusTransformationTest):
         self.check_result(
             output_target,
             'daily_entry_expected_out.csv')
+
+
+class TestEventTransformation(GomusTransformationTest):
+    def __init__(self, *args, **kwargs):
+        super().__init__([
+            'event_id',
+            'customer_id',
+            'booking_id',
+            'reservation_count',
+            'order_date',
+            'status',
+            'category'],
+            ExtractEventData,
+            *args, **kwargs)
+
+        self.test_data_path += 'events/'
+
+        self.categories = [
+            'Oeffentliche Fuehrung',
+            'Event',
+            'Gespraech',
+            'Kinder-Workshop',
+            'Konzert',
+            'Lesung',
+            'Vortrag']
+
+    @patch.object(ExtractEventData, 'output')
+    @patch.object(ExtractEventData, 'input')
+    def test_events_transformation(self, input_mock, output_mock):
+        def generate_input_targets():
+            for category in self.categories:
+                yield MockTarget(category + '_in.csv', format=UTF8)
+
+        input_mock.return_value = generate_input_targets
+
+    # TODO: Properly test 'EnsureBookingsIsRun'
