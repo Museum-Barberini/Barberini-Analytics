@@ -10,6 +10,7 @@ id_*
 *.key
 
 *.env
+*.pbix
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
