@@ -3,15 +3,19 @@ from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData
 from gomus.orders import ExtractOrderData
+from gomus._utils.extract_bookings import ExtractGomusBookings
 
 
-class TestGomusTransformation(unittest.TestCase):
-    def __init__(self, columns, *args, **kwargs):
+class GomusTransformationTest(unittest.TestCase):
+    def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns
+        self.task = task
+
         self.test_data_path = 'tests/test_data/gomus/'
 
     def _prepare_input_target(self, input_mock, infile):
@@ -39,6 +43,12 @@ class TestGomusTransformation(unittest.TestCase):
 
         return output_target
 
+    def execute_task(self):
+        try:
+            self.task(columns=self.columns).run()
+        except UnknownParameterException:
+            self.task().run()
+
     def check_result(self, output_target, outfile):
         outfile = self.test_data_path + outfile
 
@@ -47,7 +57,7 @@ class TestGomusTransformation(unittest.TestCase):
                 self.assertEqual(output_data.read(), test_data_out.read())
 
 
-class TestCustomerTransformation(TestGomusTransformation):
+class TestCustomerTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
         super().__init__([
             'gomus_id',
@@ -61,6 +71,7 @@ class TestCustomerTransformation(TestGomusTransformation):
             'type',
             'register_date',
             'annual_ticket'],
+            ExtractCustomerData,
             *args, **kwargs)
 
     @patch.object(ExtractCustomerData, 'output')
@@ -71,8 +82,7 @@ class TestCustomerTransformation(TestGomusTransformation):
             output_mock,
             'customers_in.csv')
 
-        # Execute task
-        ExtractCustomerData(self.columns).run()
+        self.execute_task()
 
         self.check_result(output_target, 'customers_out.csv')
 
@@ -84,7 +94,7 @@ class TestCustomerTransformation(TestGomusTransformation):
         self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
 
 
-class TestOrderTransformation(TestGomusTransformation):
+class TestOrderTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
         super().__init__([
             'order_id',
@@ -93,6 +103,7 @@ class TestOrderTransformation(TestGomusTransformation):
             'valid',
             'paid',
             'origin'],
+            ExtractOrderData,
             *args, **kwargs)
 
     @patch.object(ExtractOrderData, 'query_customer_id')
@@ -106,7 +117,7 @@ class TestOrderTransformation(TestGomusTransformation):
 
         cust_id_mock.return_value = 0
 
-        ExtractOrderData(self.columns).run()
+        self.execute_task()
 
         self.check_result(output_target, 'orders_out.csv')
 
@@ -119,6 +130,32 @@ class TestOrderTransformation(TestGomusTransformation):
 
 
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
-class TestBookingTransformation(TestGomusTransformation):
+class TestBookingTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__([
+            'booking_id',
+            'customer_id',
+            'category',
+            'participants',
+            'guide_id',
+            'duration',
+            'exhibition',
+            'title',
+            'status',
+            'start_datetime'],
+            ExtractGomusBookings,
+            *args, **kwargs)
+
+    @patch.object(ExtractGomusBookings, 'output')
+    @patch.object(ExtractGomusBookings, 'input')
+    def test_booking_transformation(self, input_mock, output_mock):
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'bookings_in.csv')
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'bookings_out.csv')

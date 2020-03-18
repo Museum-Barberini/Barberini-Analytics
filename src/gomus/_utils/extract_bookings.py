@@ -27,7 +27,9 @@ class ExtractGomusBookings(luigi.Task):
             f'output/gomus/bookings_prepared.csv', format=UTF8)
 
     def run(self):
-        bookings = pd.read_csv(next(self.input()).path)
+        with next(self.input()).open('r') as bookings_file:
+            bookings = pd.read_csv(bookings_file)
+
         if not bookings.empty:
             bookings['Buchung'] = bookings['Buchung'].apply(int)
             bookings['E-Mail'] = bookings['E-Mail'].apply(
