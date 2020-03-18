@@ -197,6 +197,7 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.test_data_path += 'daily_entries/'
+        self.maxDiff = None  # TODO: remove
 
     # Don't prepare targets like usual because two inputs are expected
     def prepare_mock_targets(self,
@@ -222,8 +223,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
         output_target = self.prepare_mock_targets(
             input_mock,
             output_mock,
-            'daily_entry_actual_1.csv',
-            'daily_entry_actual_2.csv')
+            'daily_entry_actual_in_1.csv',
+            'daily_entry_actual_in_2.csv')
 
         self.execute_task(expected=False)
 
@@ -239,8 +240,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
         output_target = self.prepare_mock_targets(
             input_mock,
             output_mock,
-            'daily_entry_expected_1.csv',
-            'daily_entry_expected_2.csv')
+            'daily_entry_expected_in_1.csv',
+            'daily_entry_expected_in_2.csv')
 
         self.execute_task(expected=False)
 
