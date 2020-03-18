@@ -1,0 +1,79 @@
+{
+    "data": [
+        {
+            "name": "post_reactions_by_type_total",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": {
+                        "like": 3.3,
+                        "love": 9.9,
+                        "wow": -27,
+                        "haha": "78",
+                        "anger": "4.4"
+                    }
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_activity_by_action_type",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": {
+                        "SHARE": 0,
+                        "LIKE": 0,
+                        "COMMENT": 0
+                    }
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_clicks_by_type",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": {
+                        "video play": 0,
+                        "link clicks": 0,
+                        "other clicks": 0
+                    }
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_negative_feedback",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": 0
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_impressions_paid",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": 0
+                }
+            ]
+        }
+    ],
+    "paging": {
+        "previous": "https://prev-link",
+        "next": "https://next-link"
+    }
+}
