@@ -1,0 +1,80 @@
+{
+    "data": [
+        {
+            "name": "post_reactions_by_type_total",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": {
+                        "like": 3,
+                        "love": 9,
+                        "wow": 27,
+                        "haha": 78,
+                        "sorry": 98,
+                        "anger": 10
+                    }
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_activity_by_action_type",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": {
+                        "SHARE": 420,
+                        "LIKE": 690,
+                        "COMMENT": 666
+                    }
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_clicks_by_type",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": {
+                        "video play": 112,
+                        "link clicks": 334,
+                        "other clicks": 556
+                    }
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_negative_feedback",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": 1
+                }
+            ],
+            "title": "title",
+            "description": "description",
+            "id": "blabla-url"
+        },
+        {
+            "name": "post_impressions_paid",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": 10000000
+                }
+            ]
+        }
+    ],
+    "paging": {
+        "previous": "https://prev-link",
+        "next": "https://next-link"
+    }
+}

@@ -84,8 +84,10 @@ class FetchFbPostPerformance(DataPreparationTask):
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         performances = []
-        df = pd.read_csv(self.input().path)
+        with self.input().open('r') as csv_in:
+            df = pd.read_csv(csv_in)
 
+        invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
             # print(f"### Facebook - loading performance data for post
@@ -97,10 +99,17 @@ class FetchFbPostPerformance(DataPreparationTask):
                    f"post_clicks_by_type,"
                    f"post_negative_feedback,"
                    f"post_impressions_paid")
-            response = requests.get(url)
-            if not response.ok:
-                print(response.text)
-            response.raise_for_status()
+
+            for _ in range(3):
+                response = requests.get(url)
+                if response.ok:
+                    break
+
+            if response.status_code == 400:
+                invalid_count += 1
+                continue
+
+            response.raise_for_status()  # in case of another error
 
             response_content = response.json()
 
@@ -119,9 +128,9 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             # Activity
             activity = response_content['data'][1]['values'][0]['value']
-            post_perf['likes'] = int(activity.get('like', 0))
-            post_perf['shares'] = int(activity.get('share', 0))
-            post_perf['comments'] = int(activity.get('comment', 0))
+            post_perf['likes'] = int(activity.get('LIKE', 0))
+            post_perf['shares'] = int(activity.get('SHARE', 0))
+            post_perf['comments'] = int(activity.get('COMMENT', 0))
 
             # Clicks
             clicks = response_content['data'][2]['values'][0]['value']
@@ -141,6 +150,7 @@ class FetchFbPostPerformance(DataPreparationTask):
             performances.append(post_perf)
 
         df = self.ensure_foreign_keys(df)
+        print(f"Skipped {invalid_count} posts")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
