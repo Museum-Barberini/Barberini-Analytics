@@ -32,7 +32,7 @@ class FetchFbPosts(luigi.Task):
 
         posts = []
 
-        url = f'https://graph.facebook.com/{page_id}/posts'
+        url = f'https://graph.facebook.com/v6.0/{page_id}/feed'
         headers = {'Authorization': 'Bearer ' + access_token}
 
         response = requests.get(url, headers=headers)
@@ -77,8 +77,10 @@ class FetchFbPostPerformance(luigi.Task):
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         performances = []
-        df = pd.read_csv(self.input().path)
+        with self.input().open('r') as csv_in:
+            df = pd.read_csv(csv_in)
 
+        invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
             # print(f"[FB] Loading performance data for post {str(post_id)}")
@@ -89,14 +91,21 @@ class FetchFbPostPerformance(luigi.Task):
                 'post_negative_feedback',
                 'post_impressions_paid'
             ]
-            response = requests.get(
-                f'https://graph.facebook.com/{post_id}/insights?',
-                params={'metric': ','.join(metrics)},
-                headers={'Authorization': 'Bearer ' + access_token}
-            )
-            if not response.ok:
-                print(response.text)
-            response.raise_for_status()
+            
+            for _ in range(3):
+                response = requests.get(
+                    f'https://graph.facebook.com/v6.0/{post_id}/insights',
+                    params={'metric': ','.join(metrics)},
+                    headers={'Authorization': 'Bearer ' + access_token}
+                )
+                if response.ok:
+                    break
+            
+            if response.status_code == 400:
+                invalid_count += 1
+                continue
+            
+            response.raise_for_status()  # in case of another error
 
             response_content = response.json()
 
@@ -115,9 +124,9 @@ class FetchFbPostPerformance(luigi.Task):
 
             # Activity
             activity = response_content['data'][1]['values'][0]['value']
-            post_perf["likes"] = int(activity.get('like', 0))
-            post_perf["shares"] = int(activity.get('share', 0))
-            post_perf["comments"] = int(activity.get('comment', 0))
+            post_perf["likes"] = int(activity.get('LIKE', 0))
+            post_perf["shares"] = int(activity.get('SHARE', 0))
+            post_perf["comments"] = int(activity.get('COMMENT', 0))
 
             # Clicks
             clicks = response_content['data'][2]['values'][0]['value']
@@ -135,6 +144,8 @@ class FetchFbPostPerformance(luigi.Task):
                 response_content['data'][4]['values'][0]['value']
 
             performances.append(post_perf)
+
+        print(f"Skipped {invalid_count} posts")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
