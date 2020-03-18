@@ -243,7 +243,7 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             'daily_entry_expected_in_1.csv',
             'daily_entry_expected_in_2.csv')
 
-        self.execute_task(expected=False)
+        self.execute_task(expected=True)
 
         self.check_result(
             output_target,

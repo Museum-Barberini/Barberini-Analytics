@@ -72,7 +72,7 @@ class ExtractDailyEntryData(luigi.Task):
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
             entries_df = pd.DataFrame(columns=self.columns)
-            print(df)
+
             for index, row in df.iterrows():
                 for i in range(24):
                     row_index = index * 24 + i

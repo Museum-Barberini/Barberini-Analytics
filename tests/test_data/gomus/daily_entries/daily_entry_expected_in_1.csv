@@ -1,0 +1,11 @@
+"Erwartete Besucher","","","","",""
+"über Tickets nach Eintrittsdatum","","","","",""
+"von Dienstag, 17. März 2020, 00:00 Uhr bis Mittwoch, 18. März 2020, 00:00 Uhr","","","","",""
+"","","","","",""
+"Eintritte gesamt","",0.0,"","",""
+"Durchschnitt pro Tag","",0.0,"","",""
+"","","","","",""
+"ID","Ticket","17.03.2020","18.03.2020","Gesamt",""
+0.0,"Ein bestimmtes Ticket","egal","immer leer","uninteressant, selbst wenns ein string ist",""
+10.0,"Ein irrelevanter Name","whatever","foo",0.0,""
+was hier steht dürfte bis auf das Datum in Zeile 6 eh keinen Unterschied machen :)
