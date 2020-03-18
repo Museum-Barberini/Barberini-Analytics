@@ -148,3 +148,6 @@ dmypy.json
 package-lock.json
 
 .vscode/
+
+# pbiviz
+.tmp/

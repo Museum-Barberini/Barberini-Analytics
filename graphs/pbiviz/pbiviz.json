@@ -1,0 +1,27 @@
+{
+    "visual": {
+        "name": "circleCard",
+        "displayName": "CircleCard",
+        "guid": "circleCard582DA2C87D79468FB9128E39B66FCAB7",
+        "visualClassName": "Visual",
+        "version": "1.0.0",
+        "description": "",
+        "supportUrl": "",
+        "gitHubUrl": ""
+    },
+    "apiVersion": "2.6.0",
+    "author": {
+        "name": "",
+        "email": ""
+    },
+    "assets": {
+        "icon": "assets/icon.png"
+    },
+    "externalJS": [
+        "node_modules/sigma/build/plugins/sigma.layout.forceAtlas2.min"
+    ],
+    "style": "style/visual.less",
+    "capabilities": "capabilities.json",
+    "dependencies": null,
+    "stringResources": []
+}
