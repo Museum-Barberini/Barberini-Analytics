@@ -8,6 +8,7 @@ from luigi.parameter import UnknownParameterException
 from gomus.customers import ExtractCustomerData
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus.daily_entries import ExtractDailyEntryData
 
 
 class GomusTransformationTest(unittest.TestCase):
@@ -18,18 +19,20 @@ class GomusTransformationTest(unittest.TestCase):
 
         self.test_data_path = 'tests/test_data/gomus/'
 
-    def _prepare_input_target(self, input_mock, infile):
-        infile = self.test_data_path + infile
+    def _write_file_to_target(self, target, filename):
+        filename = self.test_data_path + filename
 
+        with target.open('w') as input_data:
+            with open(filename, 'r', encoding='utf-8') as test_data_in:
+                input_data.write(test_data_in.read())
+
+    def _prepare_input_target(self, input_mock, infile):
         input_target = MockTarget('data_in', format=UTF8)
 
         # FetchGomusReport returns iterable, to simulate this for most tasks:
         input_mock.return_value = iter([input_target])
 
-        # Write test data to input mock
-        with input_target.open('w') as input_data:
-            with open(infile, 'r', encoding='utf-8') as test_data_in:
-                input_data.write(test_data_in.read())
+        self._write_file_to_target(input_target, infile)
 
     def _prepare_output_target(self, output_mock):
         output_target = MockTarget('data_out', format=UTF8)
@@ -43,11 +46,11 @@ class GomusTransformationTest(unittest.TestCase):
 
         return output_target
 
-    def execute_task(self):
+    def execute_task(self, **kwargs):
         try:
-            self.task(columns=self.columns).run()
+            self.task(columns=self.columns, **kwargs).run()
         except UnknownParameterException:
-            self.task().run()
+            self.task(**kwargs).run()
 
     def check_result(self, output_target, outfile):
         outfile = self.test_data_path + outfile
@@ -91,7 +94,7 @@ class TestCustomerTransformation(GomusTransformationTest):
         self._prepare_input_target(input_mock, 'customers_invalid_date.csv')
 
         # 30.21.2005 should not be a valid date
-        self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
+        self.assertRaises(ValueError, self.execute_task)
 
 
 class TestOrderTransformation(GomusTransformationTest):
@@ -126,7 +129,9 @@ class TestOrderTransformation(GomusTransformationTest):
         self._prepare_input_target(input_mock, 'orders_invalid_date.csv')
 
         # 10698846.0 should be out of range
-        self.assertRaises(OverflowError, ExtractOrderData(self.columns).run)
+        self.assertRaises(OverflowError, self.execute_task)
+
+    # TODO: Properly test 'query_customer_id'
 
 
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
@@ -173,3 +178,62 @@ class TestBookingTransformation(GomusTransformationTest):
         self.check_result(
             output_target,
             'bookings_empty_out.csv')
+
+
+class TestDailyEntryTransformation(GomusTransformationTest):
+    def __init__(*args, **kwargs):
+        super().__init__([
+            'id',
+            'ticket',
+            'datetime',
+            'count'],
+            ExtractDailyEntryData,
+            *args, **kwargs)
+
+    # Don't prepare targets like usual because two inputs are expected
+    def prepare_mock_targets(self,
+                             input_mock,
+                             output_mock,
+                             infile_1,
+                             infile_2):
+        input_target_1 = MockTarget('data_in_1', format=UTF8)
+        input_target_2 = MockTarget('data_in_2', format=UTF8)
+        input_mock.return_value = iter([input_target_1, input_target_2])
+        output_target = self._prepare_output_target(output_mock)
+
+        self._write_file_to_target(input_target_1, infile_1)
+        self._write_file_to_target(input_target_2, infile_2)
+
+        return output_target
+
+    @patch.object(ExtractDailyEntryData, 'output')
+    @patch.object(ExtractDailyEntryData, 'input')
+    def test_actual_daily_entry_transformation(
+            self, input_mock, output_mock):
+
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'daily_entry_actual_1.csv',
+            'daily_entry_actual_2.csv')
+
+        self.execute_task(expected=False)
+
+        self.check_result(
+            output_target,
+            'daily_entry_actual_out.csv')
+
+    def test_expected_daily_entry_transformation(
+            self, input_mock, output_mock):
+
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'daily_entry_expected_1.csv',
+            'daily_entry_expected_2.csv')
+
+        self.execute_task(expected=False)
+
+        self.check_result(
+            output_target,
+            'daily_entry_expected_out.csv')
