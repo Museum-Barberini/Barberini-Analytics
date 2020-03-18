@@ -159,3 +159,17 @@ class TestBookingTransformation(GomusTransformationTest):
         self.check_result(
             output_target,
             'bookings_out.csv')
+
+    @patch.object(ExtractGomusBookings, 'output')
+    @patch.object(ExtractGomusBookings, 'input')
+    def test_empty_bookings(self, input_mock, output_mock):
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'bookings_empty_in.csv')
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'bookings_empty_out.csv')
