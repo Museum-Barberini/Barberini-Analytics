@@ -1,6 +1,6 @@
 from csv_to_db import CsvToDb
 
-from ._utils.scrape_gomus import EnhanceBookingsWithScraper
+from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 
 class BookingsToDB(CsvToDb):
