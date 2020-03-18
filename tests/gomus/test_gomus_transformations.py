@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
@@ -10,6 +10,7 @@ from gomus.events import ExtractEventData
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.daily_entries import ExtractDailyEntryData
+from task_test import DatabaseHelper
 
 
 class GomusTransformationTest(unittest.TestCase):
@@ -113,17 +114,38 @@ class TestOrderTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.test_data_path += 'orders/'
+        self.db_helper = DatabaseHelper()
 
-    @patch.object(ExtractOrderData, 'query_customer_id')
+    # Provide mock customer IDs to be found by querying
+    def setUp(self):
+        self.db_helper.setUp()
+        self.db_helper.commit(
+            ('CREATE TABLE gomus_customer '
+             '(gomus_id INTEGER, customer_id INTEGER)'),
+            'INSERT INTO gomus_customer VALUES (117899, 100)',
+            'INSERT INTO gomus_customer VALUES (117900, 1000)'
+        )
+
+    def tearDown(self):
+        self.db_helper.commit(
+            'DROP TABLE gomus_customer'
+        )
+        self.db_helper.tearDown()
+
+    @patch.object(ExtractOrderData, 'database', new_callable=PropertyMock)
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
-    def test_order_transformation(self, input_mock, output_mock, cust_id_mock):
+    def test_order_transformation(self,
+                                  input_mock,
+                                  output_mock,
+                                  database_mock):
+
         output_target = self.prepare_mock_targets(
             input_mock,
             output_mock,
             'orders_in.csv')
 
-        cust_id_mock.return_value = 0
+        database_mock.return_value = 'barberini_test'
 
         self.execute_task()
 
@@ -135,8 +157,6 @@ class TestOrderTransformation(GomusTransformationTest):
 
         # 10698846.0 should be out of range
         self.assertRaises(OverflowError, self.execute_task)
-
-    # TODO: Properly test 'query_customer_id'
 
 
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
