@@ -14,7 +14,10 @@ do
     MIGRATION_FILE_NAME="$(basename $MIGRATION_FILE)"
 
     # Only for files which are not yet applied
-    if grep -Fxq "$MIGRATION_FILE_NAME" $APPLIED_FILE; then continue; fi
+    if grep -Fxq "$MIGRATION_FILE_NAME" $APPLIED_FILE
+    then
+        continue
+    fi
 
     if [[ "$MIGRATION_FILE_NAME" == *.sql ]]
     # Execute .sql scripts directly
@@ -51,10 +54,12 @@ do
     else
         # Print warning and exit so that the following migrations
         # are not applied as well
-        echo
-        echo "WARNING: Migration failed to apply: $MIGRATION_FILE_NAME"
-        echo "    Please resolve the issue manually and add"
-        echo "    it to '$(basename $APPLIED_FILE)' or try again!"
+        {
+            echo
+            echo "WARNING: Migration failed to apply: $MIGRATION_FILE_NAME"
+            echo "    Please resolve the issue manually and add"
+            echo "    it to '$(basename $APPLIED_FILE)' or try again!"
+        } >&2
         exit $EXIT_VAL
     fi
 done
