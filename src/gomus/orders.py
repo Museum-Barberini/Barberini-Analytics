@@ -110,9 +110,7 @@ class ExtractOrderData(luigi.Task):
                 customer_id = np.nan
                 # if we can't find the customer_id, but it isn't NaN,
                 # we set the customer_id to NaN
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
+
         finally:
             if conn is not None:
                 conn.close()

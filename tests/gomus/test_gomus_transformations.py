@@ -122,8 +122,7 @@ class TestOrderTransformation(GomusTransformationTest):
         self.db_helper.commit(
             ('CREATE TABLE gomus_customer '
              '(gomus_id INTEGER, customer_id INTEGER)'),
-            'INSERT INTO gomus_customer VALUES (117899, 100)',
-            'INSERT INTO gomus_customer VALUES (117900, 1000)'
+            'INSERT INTO gomus_customer VALUES (117899, 100)'
         )
 
     def tearDown(self):

@@ -1,3 +1,4 @@
 order_id,order_date,customer_id,valid,paid,origin
 607230,2020-01-10,100,False,False,Online Shop
-607231,2020-01-11,1000,True,True,Mars
+607231,2020-01-11,,True,True,Mars
+607231,2020-01-11,0,True,True,Jupiter
