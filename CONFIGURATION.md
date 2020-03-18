@@ -12,3 +12,12 @@ gdfgdfFor Google Trends, the facts file contains the value `ids.google.knowledge
 2. Type in your museum's name without accepting
 3. From the suggestion list, don't choose the "search phrase" item itself but the capitalized version of the name that contains the additional information.
 4. This is the knowledge graph object. Click it and identify the query parameter that has been added to the URL.
+
+## Email alerts
+
+Email alerts will be sent if any task in the luigi pipeline fails. To set up these alerts, edit the `/etc/secrets/smtp.env` file and update the following variables:
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USERNAME`
+- `SMTP_PASSWORD`

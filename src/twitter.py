@@ -18,39 +18,23 @@ class FetchTwitter(luigi.Task):
         set_db_connection_options(self)
 
     query = luigi.Parameter(default="museumbarberini")
-    table = luigi.Parameter(default="tweets")
     min_timestamp = luigi.DateParameter(default=dt.date(2015, 1, 1))
+    max_timestamp = luigi.DateParameter(
+        default=dt.date.today() + dt.timedelta(days=1))
 
     def output(self):
         return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
 
     def run(self):
 
-        tweets = ts.query_tweets(self.query, begindate=self.min_timestamp)
+        tweets = ts.query_tweets(
+            self.query,
+            begindate=self.min_timestamp,
+            enddate=self.max_timestamp)
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
-
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
-    """
-    def get_latest_timestamp(self):
-
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
-            cur = conn.cursor()
-            cur.execute(f"SELECT MAX(timestamp) FROM {self.table}")
-            return cur.fetchone()[0] or self.min_timestamp
-            conn.close()
-
-        except psycopg2.DatabaseError as error:
-            print(error)
-            if conn is not None:
-                conn.close()
-            return self.min_timestamp
-    """
 
 
 class ExtractTweets(luigi.Task):
@@ -59,7 +43,15 @@ class ExtractTweets(luigi.Task):
         yield FetchTwitter()
 
     def run(self):
-        df = pd.read_csv(self.input()[1].path)
+        with self.input()[1].open('r') as input_file:
+            df = pd.read_csv(
+                input_file,
+                dtype={
+                    'user_id': str,
+                    'tweet_id': str,
+                    'parent_tweet_id': str
+                    })
+        # pandas would by default store them as int64 or float64
         df = df.filter([
             'user_id',
             'tweet_id',
@@ -72,7 +64,7 @@ class ExtractTweets(luigi.Task):
             'text',
             'response_to',
             'post_date']
-        df['is_from_barberini'] = df['user_id'] == self.barberini_user_id()
+        df['is_from_barberini'] = df['user_id'] == self.museum_user_id()
         df = df.drop_duplicates()
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
@@ -80,18 +72,19 @@ class ExtractTweets(luigi.Task):
     def output(self):
         return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
 
-    def barberini_user_id(self):
+    def museum_user_id(self):
         with self.input()[0].open('r') as facts_file:
             facts = json.load(facts_file)
         return facts['ids']['twitter']['userId']
 
 
-class ExtractPerformanceTweets(luigi.Task):
+class ExtractTweetPerformance(luigi.Task):
     def requires(self):
         return FetchTwitter()
 
     def run(self):
-        df = pd.read_csv(self.input().path)
+        with self.input().open('r') as input_file:
+            df = pd.read_csv(input_file)
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
@@ -145,4 +138,4 @@ class TweetPerformanceToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractPerformanceTweets()
+        return ExtractTweetPerformance()
