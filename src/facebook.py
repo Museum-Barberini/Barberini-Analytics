@@ -91,7 +91,7 @@ class FetchFbPostPerformance(luigi.Task):
                 'post_negative_feedback',
                 'post_impressions_paid'
             ]
-            
+
             for _ in range(3):
                 response = requests.get(
                     f'https://graph.facebook.com/v6.0/{post_id}/insights',
@@ -100,11 +100,11 @@ class FetchFbPostPerformance(luigi.Task):
                 )
                 if response.ok:
                     break
-            
+
             if response.status_code == 400:
                 invalid_count += 1
                 continue
-            
+
             response.raise_for_status()  # in case of another error
 
             response_content = response.json()
