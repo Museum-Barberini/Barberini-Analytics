@@ -1,8 +1,6 @@
-import os
 import unittest
 from unittest.mock import patch
 
-import requests
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
@@ -10,22 +8,7 @@ from gomus.customers import ExtractCustomerData
 from gomus.orders import ExtractOrderData
 
 
-class TestGomusConnection(unittest.TestCase):
-    """
-    Does not test whether data is put into DB correctly
-    because CsvToDb is tested separately.
-    """
-
-    def test_session_id_is_valid(self):
-        # test if GOMUS_SESS_ID env variable contains a valid session id
-        response = requests.get(
-            'https://barberini.gomus.de/',
-            cookies={'_session_id': os.environ['GOMUS_SESS_ID']},
-            allow_redirects=False)
-        self.assertEqual(response.status_code, 200)
-
-
-class TestGomusCustomerTransformations(unittest.TestCase):
+class TestCustomerTransformation(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = [
@@ -43,7 +26,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
 
     @patch.object(ExtractCustomerData, 'output')
     @patch.object(ExtractCustomerData, 'input')
-    def test_customers_transformation(self, input_mock, output_mock):
+    def test_customer_transformation(self, input_mock, output_mock):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('customer_data_in', format=UTF8)
         output_target = MockTarget('customer_data_out', format=UTF8)
@@ -79,7 +62,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
         self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
 
 
-class TestGomusOrdersTransformations(unittest.TestCase):
+class TestOrderTransformation(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = [
@@ -93,7 +76,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
     @patch.object(ExtractOrderData, 'query_customer_id')
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
-    def test_orders_transformation(
+    def test_order_transformation(
             self, input_mock, output_mock, cust_id_mock):
         # Overwrite input and output of target task with MockTargets
         input_target = MockTarget('order_data_in', format=UTF8)
@@ -129,3 +112,8 @@ class TestGomusOrdersTransformations(unittest.TestCase):
 
         # 10698846.0 should be out of range
         self.assertRaises(OverflowError, ExtractOrderData(self.columns).run)
+
+
+class TestBookingTransformation(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
