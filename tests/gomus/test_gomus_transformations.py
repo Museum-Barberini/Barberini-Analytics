@@ -77,6 +77,8 @@ class TestCustomerTransformation(GomusTransformationTest):
             ExtractCustomerData,
             *args, **kwargs)
 
+        self.test_data_path += 'customers/'
+
     @patch.object(ExtractCustomerData, 'output')
     @patch.object(ExtractCustomerData, 'input')
     def test_customer_transformation(self, input_mock, output_mock):
@@ -108,6 +110,8 @@ class TestOrderTransformation(GomusTransformationTest):
             'origin'],
             ExtractOrderData,
             *args, **kwargs)
+
+        self.test_data_path += 'orders/'
 
     @patch.object(ExtractOrderData, 'query_customer_id')
     @patch.object(ExtractOrderData, 'output')
@@ -151,6 +155,8 @@ class TestBookingTransformation(GomusTransformationTest):
             ExtractGomusBookings,
             *args, **kwargs)
 
+        self.test_data_path += 'bookings/'
+
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(ExtractGomusBookings, 'input')
     def test_booking_transformation(self, input_mock, output_mock):
@@ -181,7 +187,7 @@ class TestBookingTransformation(GomusTransformationTest):
 
 
 class TestDailyEntryTransformation(GomusTransformationTest):
-    def __init__(*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__([
             'id',
             'ticket',
@@ -189,6 +195,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             'count'],
             ExtractDailyEntryData,
             *args, **kwargs)
+
+        self.test_data_path += 'daily_entries/'
 
     # Don't prepare targets like usual because two inputs are expected
     def prepare_mock_targets(self,
@@ -223,6 +231,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             output_target,
             'daily_entry_actual_out.csv')
 
+    @patch.object(ExtractDailyEntryData, 'output')
+    @patch.object(ExtractDailyEntryData, 'input')
     def test_expected_daily_entry_transformation(
             self, input_mock, output_mock):
 
