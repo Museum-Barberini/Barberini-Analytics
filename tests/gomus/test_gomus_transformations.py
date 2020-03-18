@@ -21,6 +21,9 @@ class GomusTransformationTest(unittest.TestCase):
 
         self.test_data_path = 'tests/test_data/gomus/'
 
+        # TODO: Set up proper MockFileSystem isolation between tests
+        # (apparently, this is just kept constantly otherwise)
+
     def _write_file_to_target(self, target, filename):
         filename = self.test_data_path + filename
 
@@ -298,8 +301,18 @@ class TestEventTransformation(GomusTransformationTest):
     def test_events_transformation(self, input_mock, output_mock):
         def generate_input_targets():
             for category in self.categories:
-                yield MockTarget(category + '_in.csv', format=UTF8)
+                target = MockTarget(category, format=UTF8)
+                self._write_file_to_target(target, category + '_in.csv')
+                yield target
 
-        input_mock.return_value = generate_input_targets
+        input_mock.return_value = generate_input_targets()
+
+        output_target = self._prepare_output_target(output_mock)
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'events_out.csv')
 
     # TODO: Properly test 'EnsureBookingsIsRun'

@@ -1,1 +1,15 @@
 event_id,customer_id,booking_id,reservation_count,order_date,status,category
+0,908131457,10,10,1899-12-31,Gebucht,Öffentliche Führung
+1,-1641723203,20,15,1900-01-01,Storniert,Öffentliche Führung
+2,-1699354973,30,20,1900-01-02,Gebucht,Event
+3,TODO,40,25,1900-01-03,Storniert,Event
+4,TODO,50,30,1900-01-04,Gebucht,Gespräch
+5,TODO,60,35,1900-01-05,Storniert,Gespräch
+6,TODO,70,40,1900-01-06,Gebucht,Kinder-Workshop
+7,TODO,80,45,1900-01-07,Storniert,Kinder-Workshop
+8,TODO,90,50,1900-01-08,Gebucht,Konzert
+9,TODO,100,55,1900-01-09,Storniert,Konzert
+10,TODO,110,60,1900-01-10,Gebucht,Lesung
+11,TODO,120,65,1900-01-11,Storniert,Lesung
+12,TODO,130,70,1900-01-12,Gebucht,Vortrag
+13,TODO,140,75,1900-01-13,Storniert,Vortrag
