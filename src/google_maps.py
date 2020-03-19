@@ -155,6 +155,9 @@ class FetchGoogleMapsReviews(luigi.Task):
             raw_comment = raw.get('comment', None)
             if (raw_comment):
                 # this assumes possibly unintended behavior of Google's API
+                # see for details:
+                # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
+                # We want to ALWAYS KEEP THE ORIGINAL review (no translation)
 
                 # german reviews have this format:
                 #   [german review]\n\n
@@ -181,7 +184,8 @@ class FetchGoogleMapsReviews(luigi.Task):
                     extracted['language'] = "other"
 
                 else:
-                    print(f"WARNING: unknown format of review:\n{raw_comment}")
+                    raise Exception(
+                        f"Review has unexpected format:\n{raw_comment}")
             extracted_reviews.append(extracted)
         return pd.DataFrame(extracted_reviews)
 
