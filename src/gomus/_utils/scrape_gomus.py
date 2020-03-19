@@ -12,9 +12,34 @@ from luigi.format import UTF8
 from lxml import html
 
 from gomus.orders import ExtractOrderData
+from gomus._utils.extract_bookings import ExtractGomusBookings
 from set_db_connection_options import set_db_connection_options
 
-from .extract_bookings import ExtractGomusBookings
+
+class FetchGomusHTML(luigi.Task):
+    url = luigi.parameter.Parameter(description="The URL to fetch")
+
+    def output(self):
+        name = self.url. \
+            replace('http://', ''). \
+            replace('https://', ''). \
+            replace('/', '_') + \
+            '.html'
+
+        return luigi.LocalTarget(name, format=UTF8)
+
+    # simply wait for a moment before requesting, as we don't want to
+    # overwhelm the server with our interest in classified information...
+    def run(self):
+        time.sleep(0.5)
+        response = requests.get(
+            self.url,
+            cookies=dict(
+                _session_id=os.environ['GOMUS_SESS_ID']))
+        response.raise_for_status()
+
+        with self.output().open('r') as html_out:
+            html_out.write(response.text)
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
@@ -22,9 +47,6 @@ from .extract_bookings import ExtractGomusBookings
 # gomus)
 class GomusScraperTask(luigi.Task):
     base_url = "https://barberini.gomus.de"
-
-    sess_id = os.environ['GOMUS_SESS_ID']
-    cookies = dict(_session_id=sess_id)
 
     host = None
     database = None
@@ -34,17 +56,6 @@ class GomusScraperTask(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
-
-    # simply wait for a moment before requesting, as we don't want to
-    # overwhelm the server with our interest in classified information...
-    def polite_get(self, url, cookies):
-        time.sleep(0.5)
-        response = requests.get(url, cookies=cookies)
-        if not response.ok:
-            print(
-                f'Error with HTTP request: Status code {response.status_code}')
-            exit(1)
-        return response
 
     def extract_from_html(self, base_html, xpath):
         try:
@@ -57,7 +68,7 @@ class GomusScraperTask(luigi.Task):
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
     # could take up to an hour to scrape all bookings in the next year
-    worker_timeout = 3600
+    worker_timeout = 3600 * 24
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
@@ -93,10 +104,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 cur.execute(query)
                 db_booking_rows = cur.fetchall()
 
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
-
         finally:
             if conn is not None:
                 conn.close()
@@ -117,10 +124,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 print(
                     (f"requesting booking details for id: "
                      f"{str(booking_id)} ({i+1}/{row_count})"))
-                res_details = self.polite_get(booking_url,
-                                              cookies=self.cookies)
 
-                tree_details = html.fromstring(res_details.text)
+                html_target = yield FetchGomusHTML(booking_url)
+                with html_target.open('r') as html_in:
+                    res_details = html_in.read()
+
+                tree_details = html.fromstring(res_details)
 
                 # firefox says the the xpath starts with //body/div[3]/ but we
                 # apparently need div[2] instead
@@ -185,8 +194,12 @@ class ScrapeGomusOrderContains(GomusScraperTask):
             print(
                 (f"requesting order details for id: "
                  f"{order_ids[i]} ({i+1} out of {len(order_ids)})"))
-            res_order = self.polite_get(url, self.cookies)
-            tree_order = html.fromstring(res_order.text)
+
+            html_target = yield FetchGomusHTML(url)
+            with html_target.open('r') as html_in:
+                res_order = html_in.read()
+
+            tree_order = html.fromstring(res_order)
 
             tree_details = tree_order.xpath(
                 ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/'
