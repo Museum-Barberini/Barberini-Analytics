@@ -24,30 +24,30 @@ class GomusTransformationTest(unittest.TestCase):
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
 
-    def _write_file_to_target(self, target, filename):
+    def write_file_to_target(self, target, filename):
         filename = self.test_data_path + filename
 
         with target.open('w') as input_data:
             with open(filename, 'r', encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
-    def _prepare_input_target(self, input_mock, infile):
+    def prepare_input_target(self, input_mock, infile):
         input_target = MockTarget('data_in', format=UTF8)
 
         # FetchGomusReport returns iterable, to simulate this for most tasks:
         input_mock.return_value = iter([input_target])
 
-        self._write_file_to_target(input_target, infile)
+        self.write_file_to_target(input_target, infile)
 
-    def _prepare_output_target(self, output_mock):
+    def prepare_output_target(self, output_mock):
         output_target = MockTarget('data_out', format=UTF8)
         output_mock.return_value = output_target
         return output_target
 
     def prepare_mock_targets(self, input_mock, output_mock, infile):
         # Overwrite input and output of target task with MockTargets
-        self._prepare_input_target(input_mock, infile)
-        output_target = self._prepare_output_target(output_mock)
+        self.prepare_input_target(input_mock, infile)
+        output_target = self.prepare_output_target(output_mock)
 
         return output_target
 
@@ -98,7 +98,7 @@ class TestCustomerTransformation(GomusTransformationTest):
 
     @patch.object(ExtractCustomerData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
-        self._prepare_input_target(input_mock, 'customers_invalid_date.csv')
+        self.prepare_input_target(input_mock, 'customers_invalid_date.csv')
 
         # 30.21.2005 should not be a valid date
         self.assertRaises(ValueError, self.execute_task)
@@ -155,7 +155,7 @@ class TestOrderTransformation(GomusTransformationTest):
 
     @patch.object(ExtractOrderData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
-        self._prepare_input_target(input_mock, 'orders_invalid_date.csv')
+        self.prepare_input_target(input_mock, 'orders_invalid_date.csv')
 
         # 10698846.0 should be out of range
         self.assertRaises(OverflowError, self.execute_task)
@@ -230,10 +230,10 @@ class TestDailyEntryTransformation(GomusTransformationTest):
         input_target_1 = MockTarget('data_in_1', format=UTF8)
         input_target_2 = MockTarget('data_in_2', format=UTF8)
         input_mock.return_value = iter([input_target_1, input_target_2])
-        output_target = self._prepare_output_target(output_mock)
+        output_target = self.prepare_output_target(output_mock)
 
-        self._write_file_to_target(input_target_1, infile_1)
-        self._write_file_to_target(input_target_2, infile_2)
+        self.write_file_to_target(input_target_1, infile_1)
+        self.write_file_to_target(input_target_2, infile_2)
 
         return output_target
 
@@ -302,12 +302,12 @@ class TestEventTransformation(GomusTransformationTest):
         def generate_input_targets():
             for category in self.categories:
                 target = MockTarget(category, format=UTF8)
-                self._write_file_to_target(target, category + '_in.csv')
+                self.write_file_to_target(target, category + '_in.csv')
                 yield target
 
         input_mock.return_value = generate_input_targets()
 
-        output_target = self._prepare_output_target(output_mock)
+        output_target = self.prepare_output_target(output_mock)
 
         self.execute_task()
 
