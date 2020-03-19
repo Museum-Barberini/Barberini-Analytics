@@ -151,3 +151,4 @@ package-lock.json
 
 # pbiviz
 .tmp/
+webpack.statistics.dev.html
