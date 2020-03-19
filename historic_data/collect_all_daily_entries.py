@@ -11,11 +11,11 @@ sp.run(
     "make luigi-scheduler".split()
 )
 
-for day_offset in range(250 * 7):
+cur_day = dt.date.today()
+
+for day_offset in range(7 * 7):
 
     print(day_offset)
-
-    cur_day = dt.date.today() - dt.timedelta(days=day_offset)
 
     # daily entries
 
@@ -49,3 +49,5 @@ for day_offset in range(250 * 7):
             f"output/gomus/entries_1day_{day_offset}.{j}"
             ".csv".split()
         )
+
+    cur_day = cur_day - dt.timedelta(days=1)

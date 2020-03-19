@@ -145,7 +145,7 @@ class EnsureBookingsIsRun(luigi.Task):
             )
             cur = conn.cursor()
 
-            today_time = dt.datetime.today()
+            today_time = dt.datetime.today() - dt.timedelta(weeks=5)
 
             query = (f'SELECT booking_id FROM gomus_booking WHERE category=\''
                      f'{self.category}\''

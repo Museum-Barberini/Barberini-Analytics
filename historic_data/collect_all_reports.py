@@ -24,8 +24,8 @@ today = dt.date.today()
 # if report_type == 'orders':
 #     today = today - dt.timedelta(days=1)
 
-for week_offset in range(250):
-    
+for week_offset in range(0, 250):
+
     print(report_type, week_offset, today)
 
     sp.run(
