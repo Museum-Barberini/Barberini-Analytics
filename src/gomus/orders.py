@@ -13,20 +13,22 @@ from gomus.customers import CustomersToDB
 from gomus.customers import GomusToCustomerMappingToDB
 from set_db_connection_options import set_db_connection_options
 
+COLUMNS = [
+    ('order_id', 'INT'),
+    ('order_date', 'DATE'),
+    ('customer_id', 'INT'),
+    ('valid', 'BOOL'),
+    ('paid', 'BOOL'),
+    ('origin', 'TEXT')
+]
+
 
 class OrdersToDB(CsvToDb):
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     table = 'gomus_order'
 
-    columns = [
-        ('order_id', 'INT'),
-        ('order_date', 'DATE'),
-        ('customer_id', 'INT'),
-        ('valid', 'BOOL'),
-        ('paid', 'BOOL'),
-        ('origin', 'TEXT')
-    ]
+    columns = COLUMNS
 
     primary_key = 'order_id'
 
@@ -39,15 +41,12 @@ class OrdersToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractOrderData(
-            columns=[col[0] for col in self.columns],
-            today=self.today)
+        return ExtractOrderData(today=self.today)
 
 
 class ExtractOrderData(luigi.Task):
     today = luigi.parameter.DateParameter(
-        default=dt.datetime.today()) 
-    columns = luigi.parameter.ListParameter(description="Column names")
+        default=dt.datetime.today())
 
     host = None
     database = None
@@ -57,6 +56,7 @@ class ExtractOrderData(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
+        self.columns = [col[0] for col in COLUMNS]
 
     def _requires(self):
         return luigi.task.flatten([
