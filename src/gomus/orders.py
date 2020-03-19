@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime as dt
 import luigi
 import numpy as np
 import pandas as pd
@@ -9,10 +10,13 @@ from xlrd import xldate_as_datetime
 from csv_to_db import CsvToDb
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import CustomersToDB
+from gomus.customers import GomusToCustomerMappingToDB
 from set_db_connection_options import set_db_connection_options
 
 
 class OrdersToDB(CsvToDb):
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
     table = 'gomus_order'
 
     columns = [
@@ -35,10 +39,14 @@ class OrdersToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractOrderData(columns=[col[0] for col in self.columns])
+        return ExtractOrderData(
+            columns=[col[0] for col in self.columns],
+            today=self.today)
 
 
 class ExtractOrderData(luigi.Task):
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today()) 
     columns = luigi.parameter.ListParameter(description="Column names")
 
     host = None
@@ -53,11 +61,14 @@ class ExtractOrderData(luigi.Task):
     def _requires(self):
         return luigi.task.flatten([
             CustomersToDB(),
+            GomusToCustomerMappingToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchGomusReport(report='orders', suffix='_1day')
+        return FetchGomusReport(report='orders',
+                                suffix='_7days',
+                                today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
@@ -70,7 +81,6 @@ class ExtractOrderData(luigi.Task):
             'Bestellnummer', 'Erstellt', 'Kundennummer',
             'ist gültig?', 'Bezahlstatus', 'Herkunft'
         ])
-
         df.columns = self.columns
 
         df['order_id'] = df['order_id'].apply(int)
@@ -99,8 +109,8 @@ class ExtractOrderData(luigi.Task):
             )
 
             cur = conn.cursor()
-            query = (f'SELECT customer_id FROM gomus_customer WHERE '
-                     f'gomus_id = {org_id}')
+            query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
+                     f'WHERE gomus_id = {org_id}')
             cur.execute(query)
 
             customer_row = cur.fetchone()

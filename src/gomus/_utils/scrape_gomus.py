@@ -3,6 +3,7 @@ import os
 import re
 import time
 
+import datetime as dt
 import dateparser
 import luigi
 import pandas as pd
@@ -67,12 +68,15 @@ class GomusScraperTask(luigi.Task):
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
+    columns = luigi.parameter.ListParameter(description="Column names")
+    timespan = luigi.parameter.Parameter(default='_nextYear')
+
     # could take up to an hour to scrape all bookings in the next year
     worker_timeout = 3600 * 24
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return ExtractGomusBookings()
+        return ExtractGomusBookings(timespan=self.timespan)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
@@ -99,8 +103,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                         f" WHERE table_name=\'gomus_booking\')")
             db_booking_rows = []
 
+            today_time = dt.datetime.today() - dt.timedelta(weeks=5)
             if cur.fetchone()[0]:
-                query = (f'SELECT booking_id FROM gomus_booking')
+                query = (f'SELECT booking_id FROM gomus_booking'
+                         f' WHERE start_datetime < \'{today_time}\'')
+
                 cur.execute(query)
                 db_booking_rows = cur.fetchall()
 
@@ -160,11 +167,13 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
-    worker_timeout = 2000  # seconds ≈ 30 minutes until the task will timeout
+    # 2000 seconds ≈ 30 minutes until the task will timeout
+    # set to about 800000 for collecting historic data ≈ 7 Days
+    worker_timeout = 800000
 
-    def get_order_ids(self):
-        orders = pd.read_csv(self.input().path)
-        return orders['order_id']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
 
     def requires(self):
         return ExtractOrderData(
@@ -175,6 +184,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 'valid',
                 'paid',
                 'origin'])
+        pass
         # this array is kind of unnecessary, but currently
         # required by ExtractOrderData()
         # the design of that task requiring a column-array is also
@@ -182,14 +192,49 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.csv', format=UTF8)
+            'output/gomus/scraped_order_contains.txt', format=UTF8)
+
+    def get_order_ids(self):
+        orders = pd.read_csv(self.input().path)
+        return orders['order_id']
+        """
+        try:
+            conn = psycopg2.connect(
+                host=self.host, database=self.database,
+                user=self.user, password=self.password
+            )
+            cur = conn.cursor()
+
+            cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
+                        f" WHERE table_name=\'gomus_order_contains\')")
+            order_ids = []
+
+            if cur.fetchone()[0]:
+                query = (f'SELECT order_id FROM gomus_order WHERE order_id '
+                         'NOT IN (SELECT order_id FROM gomus_order_contains)')
+                cur.execute(query)
+                order_ids = cur.fetchall()
+
+            else:
+                query = (f'SELECT order_id FROM gomus_order')
+                cur.execute(query)
+                order_ids = cur.fetchall()
+
+        finally:
+            if conn is not None:
+                conn.close()
+
+        return order_ids
+        """
 
     def run(self):
         order_ids = self.get_order_ids()
 
-        order_details = []
+        # order_details = []
+        order_details_output = []
 
         for i in range(len(order_ids)):
+
             url = self.base_url + "/admin/orders/" + str(order_ids[i])
             print(
                 (f"requesting order details for id: "
@@ -208,7 +253,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
             # every other td contains the information of an article in the
             # order
             for article in tree_details.xpath(
-                    'table/tbody[1]/tr[position() mod 2 = 1]'):
+                   # 'table/tbody[1]/tr[position() mod 2 = 1]'):
+                   'table/tbody[1]/tr'):
 
                 new_article = dict()
 
@@ -226,6 +272,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
                 new_article["ticket"] = self.extract_from_html(
                     article, 'td[3]/strong').strip()
+
+                if new_article["ticket"] == '':
+                    continue
 
                 infobox_str = html.tostring(
                     article.xpath('td[2]/div')[0],
@@ -253,6 +302,23 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
                 order_details.append(new_article)
 
+                # TODO remove
+                if i % 5000 == 0:
+                    backup_csv = luigi.LocalTarget(
+                        f'output/gomus/scraped_orders_{i//5000}.csv',
+                        format=UTF8)
+                    with backup_csv.open('w') as output_csv:
+                        df = pd.DataFrame(order_details)
+                        df.to_csv(output_csv,
+                                  index=False,
+                                  quoting=csv.QUOTE_NONNUMERIC)
+                    order_details = []
+
         df = pd.DataFrame(order_details)
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
+        """
+
+        with self.output().open('w') as output_file:
+            output_file.write('\n'.join(order_details_output))
+        """
