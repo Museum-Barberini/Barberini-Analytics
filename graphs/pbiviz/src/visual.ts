@@ -23,7 +23,8 @@ const sigmaatlas = null; // DEBUG
 // LATEST TODO: The stuff above documents all fruiteless approaches to import the whole sigma module.
 // PROBLEM: I failed on several ways to import sigma.parsers.gexfparser here. sigma should be a module, but is a public function from the module.
 // See also here: https://github.com/jacomyal/sigma.js/issues/871#issuecomment-600577941
-        
+// And see also here: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34776
+
 export class Visual implements IVisual {
     
     private target: HTMLElement;
