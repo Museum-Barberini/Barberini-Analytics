@@ -138,6 +138,7 @@ class EnsureBookingsIsRun(luigi.Task):
         self.row_list = []
 
     def run(self):
+        print(self.row_list)
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,

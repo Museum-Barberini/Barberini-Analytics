@@ -31,8 +31,6 @@ class ExtractGomusBookings(luigi.Task):
         bookings = pd.read_csv(next(self.input()).path)
         if not bookings.empty:
             bookings['Buchung'] = bookings['Buchung'].apply(int)
-            bookings['E-Mail'] = bookings['E-Mail'].apply(
-                hash_booker_id, args=(self.seed,))
             bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(
                 self.safe_parse_int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
@@ -51,7 +49,6 @@ class ExtractGomusBookings(luigi.Task):
             bookings['Dauer'] = 0
 
         bookings = bookings.filter(['Buchung',
-                                    'E-Mail',
                                     'Angebotskategorie',
                                     'Teilnehmerzahl',
                                     'Guide',
@@ -62,7 +59,6 @@ class ExtractGomusBookings(luigi.Task):
                                     'Startzeit'])
         bookings.columns = [
             'booking_id',
-            'customer_id',
             'category',
             'participants',
             'guide_id',

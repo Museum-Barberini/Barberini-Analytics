@@ -13,7 +13,7 @@ from luigi.format import UTF8
 from lxml import html
 
 from gomus.orders import ExtractOrderData
-from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_bookings import ExtractGomusBookings, hash_booker_id
 from set_db_connection_options import set_db_connection_options
 
 
@@ -21,10 +21,12 @@ class FetchGomusHTML(luigi.Task):
     url = luigi.parameter.Parameter(description="The URL to fetch")
 
     def output(self):
-        name = self.url. \
+        name = 'output/gomus/html/' + \
+            self.url. \
             replace('http://', ''). \
             replace('https://', ''). \
-            replace('/', '_') + \
+            replace('/', '_'). \
+            replace('.', '_') + \
             '.html'
 
         return luigi.LocalTarget(name, format=UTF8)
@@ -39,7 +41,7 @@ class FetchGomusHTML(luigi.Task):
                 _session_id=os.environ['GOMUS_SESS_ID']))
         response.raise_for_status()
 
-        with self.output().open('r') as html_out:
+        with self.output().open('w') as html_out:
             html_out.write(response.text)
 
 
@@ -66,30 +68,31 @@ class GomusScraperTask(luigi.Task):
             return ""
 
 
-class EnhanceBookingsWithScraper(GomusScraperTask):
-
-    columns = luigi.parameter.ListParameter(description="Column names")
+class FetchBookingsHTML(luigi.Task):
     timespan = luigi.parameter.Parameter(default='_nextYear')
+    base_url = luigi.parameter.Parameter(
+        description="Base URL to append bookings IDs to")
 
-    # could take up to an hour to scrape all bookings in the next year
-    worker_timeout = 3600 * 24
-    columns = luigi.parameter.ListParameter(description="Column names")
+    host = None
+    database = None
+    user = None
+    password = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
+        self.output_list = []
 
     def requires(self):
         return ExtractGomusBookings(timespan=self.timespan)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+        return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
 
     def run(self):
         bookings = pd.read_csv(self.input().path)
-        bookings['order_date'] = None
-        bookings['language'] = ""
-        row_count = len(bookings.index)
 
         db_booking_rows = []
-
-        enhanced_bookings = pd.DataFrame(columns=self.columns)
 
         try:
             conn = psycopg2.connect(
@@ -101,7 +104,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
                         f" WHERE table_name=\'gomus_booking\')")
-            db_booking_rows = []
 
             today_time = dt.datetime.today() - dt.timedelta(weeks=5)
             if cur.fetchone()[0]:
@@ -125,18 +127,51 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     break
 
             if not booking_in_db:
-
-                booking_url = (self.base_url + "/admin/bookings/"
-                               + str(booking_id))
-                print(
-                    (f"requesting booking details for id: "
-                     f"{str(booking_id)} ({i+1}/{row_count})"))
+                booking_url = self.base_url + str(booking_id)
 
                 html_target = yield FetchGomusHTML(booking_url)
-                with html_target.open('r') as html_in:
-                    res_details = html_in.read()
+                self.output_list.append(html_target.path)
 
+        with self.output().open('w') as html_files:
+            html_files.write('\n'.join(self.output_list))
+
+
+class EnhanceBookingsWithScraper(GomusScraperTask):
+
+    columns = luigi.parameter.ListParameter(description="Column names")
+    timespan = luigi.parameter.Parameter(default='_nextYear')
+
+    # could take up to an hour to scrape all bookings in the next year
+    worker_timeout = 3600 * 24
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def requires(self):
+        yield ExtractGomusBookings(timespan=self.timespan)
+        yield FetchBookingsHTML(timespan=self.timespan,
+                                base_url=self.base_url + '/admin/bookings/')
+
+    def output(self):
+        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+
+    def run(self):
+        bookings = pd.read_csv(self.input()[0].path)
+        bookings['order_date'] = None
+        bookings['language'] = ""
+        bookings['customer_id'] = 0
+        enhanced_bookings = pd.DataFrame(columns=self.columns)
+
+        with self.input()[1].open('r') as all_htmls:
+            for i, html_path in enumerate(all_htmls):
+                html_path = html_path.replace('\n', '')
+                with open(html_path,
+                          'r',
+                          encoding='utf-8') as html_file:
+                    res_details = html_file.read()
                 tree_details = html.fromstring(res_details)
+
+                row = bookings.iloc[[i]]
 
                 # firefox says the the xpath starts with //body/div[3]/ but we
                 # apparently need div[2] instead
@@ -155,7 +190,30 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 row['language'] = self.extract_from_html(
                     booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
 
+                try:
+                    customer_details = tree_details.xpath(
+                        '/html/body/div[2]/div[2]/div[3]/'
+                        'div[4]/div[2]/div[2]/div[2]')[0]
+
+                    # Customer E-Mail (not necessarily same as in report)
+                    customer_mail = self.extract_from_html(
+                        customer_details,
+                        'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
+                    print("=================================")
+                    print(customer_mail)  # TODO: REMOVE
+                    print("=================================")
+
+                    # flake8 doesn't recognize \S as valid pattern -> disable
+                    if re.match('^\S+@\S+\.\S+$', customer_mail): # noqa
+                        row['customer_id'] = hash_booker_id(customer_mail)
+
+                except IndexError:  # can't find customer mail
+                    row['customer_id'] = 0
+
                 enhanced_bookings = enhanced_bookings.append(row)
+
+        # ensure proper order
+        enhanced_bookings = enhanced_bookings.filter(self.columns)
 
         with self.output().open('w') as output_file:
             enhanced_bookings.to_csv(
@@ -318,7 +376,6 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
         """
-
         with self.output().open('w') as output_file:
             output_file.write('\n'.join(order_details_output))
         """
