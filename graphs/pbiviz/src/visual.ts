@@ -1,3 +1,6 @@
+// THIS WORKS!!!!!!!!!!!!
+
+
 "use strict";
 
 import "core-js/stable";
@@ -16,15 +19,16 @@ type Selection<T extends d3.BaseType> = d3.Selection<T, any,any, any>;
 
 //import 'sigma/build/plugins/sigma.parsers.json.require.js'; // file does not exist
 //import '../node_modules/sigma/build/plugins/sigma.parsers.json.min.js'; // Browser: sigma is not declared, even if added to pbiviz.json/externalJS
-import Sigma from 'sigma';
+//import * as sigma from 'sigma'; // Does only import a function, but not a module
+//import {sigma} from 'sigma';
 //const sigmaatlas = import('sigma/build/plugins/sigma.layout.forceAtlas2.min'); // Browser: ChunkLoadError (promise rejeted), even if added to pbiviz.json/externalJS
 //const sigmaatlas = require('sigma/build/plugins/sigma.layout.forceAtlas2.min'); // Browser: uncaught sigma is not declared, even if added to pbiviz.json/externalJS
 const sigmaatlas = null; // DEBUG
-// LATEST TODO: The stuff above documents all fruiteless approaches to import the whole sigma module.
+// The stuff above documents all fruiteless approaches to import the whole sigma module.
 // PROBLEM: I failed on several ways to import sigma.parsers.gexfparser here. sigma should be a module, but is a public function from the module.
 // See also here: https://github.com/jacomyal/sigma.js/issues/871#issuecomment-600577941
 // And see also here: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34776
-
+        
 export class Visual implements IVisual {
     
     private target: HTMLElement;
@@ -48,16 +52,40 @@ export class Visual implements IVisual {
         options.element.appendChild(this.outerContainer);
         
         this.container = document.createElement('div');
+        this.container.id = 'foo';
         this.container.className = 'sigma-expand';
         this.container.style.width = '100%';
         this.container.style.height = '100%';
         this.outerContainer.appendChild(this.container);
         
-        console.log("Sigma?");
-        console.log(Sigma);
+        /*var script = document.createElement('script');
+        script.type = "text/javascript"; 
+        script.src = "https://textexture.com/js/sigma.min.js";
+        this.container.appendChild(script);*/
+        
+        var jQ = window['$'];
+        console.log(jQ);
+        jQ.getScript("https://textexture.com/js/sigma.min.js", function (data, textStatus, jqxhr) {
+            // LATEST TODO: Start here to work with sigma.
+            var sig: any = window.sigma;
+            console.log("window.sigma", sig);
+            var sigInst = sig.init(document.getElementById("foo"));//.drawingProperties({});
+            console.log("hhhheeeerrrreeee", sigInst);
+        });
+        /*var script2 = document.createElement('script');
+        script2.type = "text/javascript"; 
+        script2.innerHTML = '// We can import public js files by dynically \
+        console.log("before");\
+        $.getScript("https://textexture.com/js/sigma.min.js", function (data, textStatus, jqxhr) {\
+            var sigInst = sigma.init(document.getElementById("foo")).drawingProperties({}); console.log("hhhheeeerrrreeee", sigInst);\
+        });';
+        this.container.appendChild(script2);*/
+        
+        /*console.log("sigma?");
+        console.log(sigma);
         console.log("sigmaatlas?");
         console.log(sigmaatlas);
-        var sigInst: SigmaJs.Sigma = new Sigma({
+        var sigInst: SigmaJs.Sigma = sigma.sigma({
             container: this.container,
             settings: {
                 defaultLabelColor: '#f00',
@@ -72,10 +100,9 @@ export class Visual implements IVisual {
                 minEdgeSize: 0.3,
                 maxEdgeSize: 1
             }
-        });
-        /*}).mouseProperties({
+        });*//*}).mouseProperties({
             maxRatio: 4
-        });*/
+        });* /
         console.log("siginst?");
         console.log(sigInst);
         

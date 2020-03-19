@@ -18,7 +18,8 @@
         "icon": "assets/icon.png"
     },
     "externalJS": [
-        "node_modules/sigma/build/plugins/sigma.layout.forceAtlas2.min"
+        "node_modules/sigma/build/plugins/sigma.layout.forceAtlas2.min",
+        "node_modules/jquery/dist/jquery.min.js"
     ],
     "style": "style/visual.less",
     "capabilities": "capabilities.json",
