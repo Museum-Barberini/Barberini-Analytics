@@ -19,7 +19,10 @@
     },
     "externalJS": [
         "node_modules/sigma/build/plugins/sigma.layout.forceAtlas2.min",
-        "node_modules/jquery/dist/jquery.min.js"
+        "node_modules/jquery/dist/jquery.min.js",
+        "src/js/sigma.min.js",
+        "src/js/sigma.forceatlas2.js",
+        "src/js/sigma.parseGexf.js"
     ],
     "style": "style/visual.less",
     "capabilities": "capabilities.json",

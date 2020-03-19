@@ -3,16 +3,23 @@
         {
             "displayName": "Measure",
             "name": "measure",
-            "kind": "Measure"
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Category",
+            "name": "category",
+            "kind": "Grouping"
         }
     ],
     "dataViewMappings": [
         {
-            "conditions": [
-                { "measure": { "max": 1 } }
-            ],
-            "single": {
-                "role": "measure"
+            "table": {
+                "rows": {
+                    "select": [
+                        { "for": { "in": "category" } },
+                        { "for": { "in": "measure" } }
+                    ]
+                }
             }
         }
     ]
