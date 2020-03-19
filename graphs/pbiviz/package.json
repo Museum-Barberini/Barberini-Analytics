@@ -21,6 +21,7 @@
     "powerbi-visuals-utils-dataviewutils": "2.2.1"
   },
   "devDependencies": {
+    "csv-string": "^3.1.8",
     "sigma": "^1.0.3",
     "ts-loader": "6.1.0",
     "tslint": "^5.18.0",

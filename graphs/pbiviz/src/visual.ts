@@ -26,9 +26,9 @@ import PrimitiveValue = powerbi.PrimitiveValue;
 // See also here: https://github.com/jacomyal/sigma.js/issues/871#issuecomment-600577941
 // And see also here: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34776
 
-require("./js/sigma.min");
-require("./js/sigma.forceatlas2");
-require("./js/sigma.parseGexf");
+require('./js/sigma.min');
+require('./js/sigma.forceatlas2');
+require('./js/sigma.parseGexf');
 
 // IMPORT TODO: This looks better now. If we cannot use TypeScript, we should declare sigma here as any.
 
@@ -40,6 +40,8 @@ export class Visual implements IVisual {
     private container: HTMLDivElement;
     
     private sigInst: any;
+    
+    private stopwords: string[];
     
     constructor(options: VisualConstructorOptions) {
         console.log("Visual constructor", options, new Date().toLocaleString());
@@ -101,6 +103,10 @@ export class Visual implements IVisual {
                 "width": "100%",
                 "height": "100%"
             });*/
+        
+        this.stopwords = require('./stopwords').stopwords;
+        // TODO: It would be nicer to specify this information as a table, but unfortunately,
+        // Power BI does not yet support multiple distinct data view mappings.
         
         console.log("constructor done");
     }
