@@ -203,7 +203,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
     timespan = luigi.parameter.Parameter(default='_nextYear')
 
     # could take up to an hour to scrape all bookings in the next year
-    worker_timeout = 3600 * 24
+    worker_timeout = 3600
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -282,9 +282,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
-    # 2000 seconds ≈ 30 minutes until the task will timeout
+    # 60 minutes until the task will timeout
     # set to about 800000 for collecting historic data ≈ 7 Days
-    worker_timeout = 800000
+    worker_timeout = 3600
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

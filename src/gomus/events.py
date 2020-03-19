@@ -146,11 +146,11 @@ class EnsureBookingsIsRun(luigi.Task):
             )
             cur = conn.cursor()
 
-            today_time = dt.datetime.today() - dt.timedelta(weeks=5)
+            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
 
             query = (f'SELECT booking_id FROM gomus_booking WHERE category=\''
                      f'{self.category}\''
-                     f' AND start_datetime > \'{today_time}\'')
+                     f' AND start_datetime > \'{two_weeks_ago}\'')
             cur.execute(query)
 
             row = cur.fetchone()

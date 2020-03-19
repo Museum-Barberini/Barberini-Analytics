@@ -170,14 +170,6 @@ class ExtractGomusToCustomerMapping(luigi.Task):
                 x['customer_id'], alternative=x['gomus_id']
             ), axis=1)
 
-        # df = ensure_foreign_keys(
-        #     df,
-        #     self.foreign_keys,
-        #     self.host,
-        #     self.database,
-        #     self.user,
-        #     self.password)
-
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
