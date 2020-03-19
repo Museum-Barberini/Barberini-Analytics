@@ -92,7 +92,7 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                ADD CONSTRAINT {self.table_name}_primkey\
                     PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (0, 1, 'a', 'b');")
@@ -112,7 +112,7 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                ADD CONSTRAINT {self.table_name}_primkey\
                     PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (1, 2, "

@@ -34,7 +34,7 @@ class FetchGomusHTML(luigi.Task):
     # simply wait for a moment before requesting, as we don't want to
     # overwhelm the server with our interest in classified information...
     def run(self):
-        time.sleep(0.5)
+        time.sleep(0.2)
         response = requests.get(
             self.url,
             cookies=dict(
@@ -149,6 +149,7 @@ class FetchOrdersHTML(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
         self.output_list = []
+        self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
 
     def requires(self):
         return OrdersToDB()
@@ -185,11 +186,9 @@ class FetchOrdersHTML(luigi.Task):
                 conn.close()
 
     def run(self):
-        order_ids = [order_id[0] for order_id in self.get_order_ids()]
+        for i in range(len(self.order_ids)):
 
-        for i in range(len(order_ids)):
-
-            url = self.base_url + str(order_ids[i])
+            url = self.base_url + str(self.order_ids[i])
 
             html_target = yield FetchGomusHTML(url)
             self.output_list.append(html_target.path)
