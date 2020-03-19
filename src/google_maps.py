@@ -149,19 +149,39 @@ class FetchGoogleMapsReviews(luigi.Task):
             extracted['google_maps_review_id'] = raw['reviewId']
             extracted['date'] = raw['createTime']
             extracted['rating'] = self.stars_dict[raw['starRating']]
-            extracted['text_german'] = None
             extracted['text'] = None
+            extracted['language'] = None
 
             raw_comment = raw.get('comment', None)
             if (raw_comment):
-                # making google consistent with itself
-                raw_comment.replace(
-                    "\n\n(Original)\n",
-                    "\n\n(Translated by Google)\n")
-                comment_pieces = raw_comment.split(
-                    "\n\n(Translated by Google)\n")
-                extracted['text_german'] = comment_pieces[0].strip()
-                extracted['text'] = comment_pieces[-1].strip()
+                # this assumes possibly unintended behavior of Google's API
+
+                # german reviews have this format:
+                #   [german review]\n\n
+                #   (Translated by Google)\n[english translation]
+                if ("(Original)" not in raw_comment and
+                        "(Translated by Google)" in raw_comment):
+                    extracted['text'] = raw_comment.split(
+                        "(Translated by Google)")[0].strip()
+                    extracted['language'] = "german"
+
+                # english reviews are as is
+                elif ("(Original)" not in raw_comment and
+                        "(Translated by Google)" not in raw_comment):
+                    extracted['text'] = raw_comment
+                    extracted['language'] = "english"
+
+                # other reviews have this format:
+                #   (Translated by Google)[english translation]\n\n
+                #   (Original)\n[original review]
+                elif ("(Original)" in raw_comment and
+                        "(Translated by Google)" in raw_comment):
+                    extracted['text'] = raw_comment.split(
+                        "(Original)")[1].strip()
+                    extracted['language'] = "other"
+
+                else:
+                    print(f"WARNING: unknown format of review:\n{raw_comment}")
             extracted_reviews.append(extracted)
         return pd.DataFrame(extracted_reviews)
 
@@ -174,8 +194,8 @@ class GoogleMapsReviewsToDB(CsvToDb):
         ('google_maps_review_id', 'TEXT'),
         ('date', 'DATE'),
         ('rating', 'INT'),
-        ('text_german', 'TEXT'),
-        ('text', 'TEXT')
+        ('text', 'TEXT'),
+        ('language', 'TEXT')
     ]
 
     primary_key = 'google_maps_review_id'
