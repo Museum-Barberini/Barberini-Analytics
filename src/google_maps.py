@@ -121,7 +121,7 @@ class FetchGoogleMapsReviews(luigi.Task):
         total_reviews = review_list['totalReviewCount']
         try:
             print(
-                "Fetched {len(reviews)} out of {total_reviews} reviews",
+                f"Fetched {len(reviews)} out of {total_reviews} reviews",
                 end='', flush=True)
 
             while 'nextPageToken' in review_list:
