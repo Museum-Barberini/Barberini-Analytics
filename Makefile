@@ -4,6 +4,7 @@
 
 # ------ Internal variables ------
 
+SHELL := /bin/bash
 SSL_CERT_DIR := /var/db-data
 
 
