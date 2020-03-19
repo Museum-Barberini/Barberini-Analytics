@@ -72,12 +72,12 @@ for word, counts in all_word_counts.items():
 for source, text_words in all_text_words.items():
     edge_weights = {}
     for text, words in text_words.items():
-        for word1 in words:
-            for word2 in words:
-                if word1 >= word2: continue
+        for index1, word1 in enumerate(words):
+            for index2, word2 in enumerate(words):
+                if index1 >= index2: continue  # don't match twice
                 if (word1, word2) not in edge_weights:
                     edge_weights[(word1, word2)] = 0
-                edge_weights[(word1, word2)] += 1
+                edge_weights[(word1, word2)] += index2 - index1
     G.add_weighted_edges_from([list(edge) + [weight] for edge, weight in edge_weights.items()])
 
 #nx.write_gexf(G, 'output/reviews.gexf')
