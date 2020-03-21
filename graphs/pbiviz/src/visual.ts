@@ -26,7 +26,6 @@ import {logExceptions} from "./utils/logExceptions";
 export class Visual implements IVisual {
     
     private target: HTMLElement;
-    private outerContainer: HTMLDivElement;
     private container: HTMLDivElement;
     
     private sigInst: any;
@@ -37,21 +36,13 @@ export class Visual implements IVisual {
         console.log("Visual constructor", options, new Date().toLocaleString());
         this.target = options.element;
         
-        this.outerContainer = document.createElement('div');
-        this.outerContainer.id = 'sigma-example-parent';
-        this.outerContainer.style.width = '100%';
-        this.outerContainer.style.height = '100%';
-        options.element.appendChild(this.outerContainer);
-        
         this.container = document.createElement('div');
-        this.container.id = 'foo';
         this.container.className = 'sigma-expand';
         this.container.style.width = '100%';
         this.container.style.height = '100%';
-        this.outerContainer.appendChild(this.container);
+        this.target.appendChild(this.container);
         
-        
-        this.sigInst = (sigma as any).init(document.getElementById("foo"));
+        this.sigInst = (sigma as any).init(this.container);
         this.sigInst.drawingProperties = {
             defaultLabelColor: '#f00',
             defaultLabelSize: 20,
@@ -70,29 +61,6 @@ export class Visual implements IVisual {
         };
         this.sigInst.startForceAtlas2();
         this.sigInst.stopForceAtlas2();
-        
-        
-        // TODO: Apply rest of sigma stuff here.
-        
-        //sigma.parsers.gefx('foo.gefx', sigInst);
-        /*var gexfString = '<?gefx template="true"?>';
-        var gexf = ( new window.DOMParser() ).parseFromString(gexfString, "text/xml");
-        sigma.parseGexf(sigInst, gexf);
-        sigInst.startForceAtlas2();
-        sigInst.stopForceAtlas2();
-        sigInst.activateFishEye().draw();*/
-        //this.root = $("<div>");//.appendTo(this.target);
-            /*.attr("drag-resize-disabled", "true")
-            .css({
-                "background_color": "red",
-                "position": "absolute"
-            });*/
-        /*this.container = $('<div class="sigma-expand"></div>').appendTo(this.outerContainer)
-            .attr("id", "foo")
-            .css({
-                "width": "100%",
-                "height": "100%"
-            });*/
         
         this.stopwords = require('csv-loader!../static/stopwords.csv');
         // TODO: It would be nicer to specify this information as a table, but unfortunately,
