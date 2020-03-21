@@ -13,6 +13,7 @@ import DataViewValueColumns = powerbi.DataViewValueColumns;
 import DataViewValueColumn = powerbi.DataViewValueColumn;
 import PrimitiveValue = powerbi.PrimitiveValue;
 
+import {logExceptions} from "./utils/logExceptions";
 
 // WHY WE CANNOT IMPORT SIGMA.JS AS DEFINED IN NPM
 // The problem is that sigma is always imported as a function rather than as a module.
@@ -100,6 +101,7 @@ export class Visual implements IVisual {
         console.log("constructor done");
     }
 
+    @logExceptions()
     public update(options: VisualUpdateOptions) {
         console.log('Visual update', options, new Date().toLocaleString());
         
