@@ -104,7 +104,7 @@ export class Visual implements IVisual {
                 "height": "100%"
             });*/
         
-        this.stopwords = require('./stopwords').stopwords;
+        this.stopwords = require('csv-loader!../static/stopwords.csv');
         // TODO: It would be nicer to specify this information as a table, but unfortunately,
         // Power BI does not yet support multiple distinct data view mappings.
         

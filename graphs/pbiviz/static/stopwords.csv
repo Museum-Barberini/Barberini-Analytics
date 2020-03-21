@@ -1,8 +1,3 @@
-import * as CSV from 'csv-string';
-// TODO: It would be much nicer to declare static/stopwords.csv and require it via a custom loader,
-// but unfortunately pbiviz does not support specifying your own webpack.config.js at the moment.
-// See also: https://github.com/microsoft/PowerBI-visuals-tools/issues/303
-export const stopwords: string[] = CSV.parse(`
 ist
 zu
 von
@@ -162,4 +157,3 @@ from
 also
 we
 me
-`).map((line: string[]) => line[0]).filter(String);
