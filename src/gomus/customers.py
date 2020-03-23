@@ -149,7 +149,6 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
         df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
-            print(df)
             df.to_csv(output_csv, index=False, header=True)
 
 
