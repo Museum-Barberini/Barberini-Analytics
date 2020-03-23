@@ -11,28 +11,22 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
-from gomus.orders import ExtractOrderData
+from data_preparation_task import DataPreparationTask
+from gomus.orders import ExtractOrderData, OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
-from set_db_connection_options import set_db_connection_options
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
-class GomusScraperTask(luigi.Task):
+class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
 
     sess_id = os.environ['GOMUS_SESS_ID']
     cookies = dict(_session_id=sess_id)
 
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
+    def _requires(self):
+        return []
 
     # simply wait for a moment before requesting, as we don't want to
     # overwhelm the server with our interest in classified information...
@@ -60,7 +54,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return ExtractGomusBookings()
+        return ExtractGomusBookings(foreign_keys=self.foreign_keys)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
@@ -152,6 +146,12 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     worker_timeout = 2000  # seconds ≈ 30 minutes until the task will timeout
 
+    def _requires(self):
+        return luigi.task.flatten([
+            OrdersToDB(),
+            super()._requires()
+        ])
+
     def get_order_ids(self):
         orders = pd.read_csv(self.input().path)
         return orders['order_id']
@@ -240,5 +240,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
+
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

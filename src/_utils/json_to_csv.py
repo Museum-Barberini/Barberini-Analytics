@@ -1,10 +1,10 @@
 import csv
 import json
 
-import luigi
+from data_preparation_task import DataPreparationTask
 
 
-class JsonToCsv(luigi.Task):
+class JsonToCsv(DataPreparationTask):
     def run(self):
         my_json = self.getJson()
 

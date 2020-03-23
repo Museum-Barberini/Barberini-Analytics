@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import luigi
 import numpy as np
 import pandas as pd
@@ -7,9 +6,9 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import CustomersToDB
-from set_db_connection_options import set_db_connection_options
+from gomus.customers import GomusToCustomerMappingToDB
 
 
 class OrdersToDB(CsvToDb):
@@ -28,31 +27,24 @@ class OrdersToDB(CsvToDb):
 
     foreign_keys = [
         {
-            "origin_column": "customer_id",
-            "target_table": "gomus_customer",
-            "target_column": "customer_id"
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 
     def requires(self):
-        return ExtractOrderData(columns=[col[0] for col in self.columns])
+        return ExtractOrderData(
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)
 
 
-class ExtractOrderData(luigi.Task):
+class ExtractOrderData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            GomusToCustomerMappingToDB(),
             super()._requires()
         ])
 
@@ -80,6 +72,8 @@ class ExtractOrderData(luigi.Task):
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
         df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
 
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
@@ -99,8 +93,8 @@ class ExtractOrderData(luigi.Task):
             )
 
             cur = conn.cursor()
-            query = (f'SELECT customer_id FROM gomus_customer WHERE '
-                     f'gomus_id = {org_id}')
+            query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
+                     f'WHERE gomus_id = {org_id}')
             cur.execute(query)
 
             customer_row = cur.fetchone()

@@ -1,5 +1,4 @@
 from csv_to_db import CsvToDb
-
 from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 
@@ -34,4 +33,5 @@ class BookingsToDB(CsvToDb):
 
     def requires(self):
         return EnhanceBookingsWithScraper(
-            columns=[col[0] for col in self.columns])
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)

@@ -7,7 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from gomus._utils.extract_bookings import hash_booker_id
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from set_db_connection_options import set_db_connection_options
@@ -18,7 +18,6 @@ class EventsToDB(CsvToDb):
 
     columns = [
         ('event_id', 'INT'),
-        ('customer_id', 'INT'),
         ('booking_id', 'INT'),
         ('reservation_count', 'INT'),
         ('order_date', 'DATE'),
@@ -30,11 +29,6 @@ class EventsToDB(CsvToDb):
 
     foreign_keys = [
         {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        },
-        {
             'origin_column': 'booking_id',
             'target_table': 'gomus_booking',
             'target_column': 'booking_id'
@@ -42,10 +36,12 @@ class EventsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractEventData(columns=[col[0] for col in self.columns])
+        return ExtractEventData(
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)
 
 
-class ExtractEventData(luigi.Task):
+class ExtractEventData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
@@ -61,6 +57,12 @@ class ExtractEventData(luigi.Task):
             'Konzert',
             'Lesung',
             'Vortrag']
+
+    def _requires(self):
+        return luigi.task.flatten([
+            BookingsToDB(),
+            super()._requires()
+        ])
 
     def requires(self):
         for category in self.categories:
@@ -90,6 +92,8 @@ class ExtractEventData(luigi.Task):
                                                'Storniert',
                                                category)
 
+        self.events_df = self.ensure_foreign_keys(self.events_df)
+
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
 
@@ -109,8 +113,6 @@ class ExtractEventData(luigi.Task):
         event_df.columns = self.columns
 
         event_df['event_id'] = event_df['event_id'].apply(int)
-        event_df['customer_id'] = event_df['customer_id'].apply(
-            hash_booker_id, args=(self.seed,))
         event_df['reservation_count'] = event_df['reservation_count'].apply(
             int)
         event_df['order_date'] = event_df['order_date'].apply(

@@ -6,18 +6,20 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
+from gomus.customers import CustomersToDB, hash_id
 
 
-def hash_booker_id(email, seed=666):
-    if not isinstance(email, str):
-        return 0
-    return mmh3.hash(email, seed, signed=True)
-
-
-class ExtractGomusBookings(luigi.Task):
+class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
+
+    def _requires(self):
+        return luigi.task.flatten([
+            CustomersToDB(),
+            super()._requires()
+        ])
 
     def requires(self):
         return FetchGomusReport(report='bookings', suffix='_nextYear')
@@ -28,18 +30,17 @@ class ExtractGomusBookings(luigi.Task):
 
     def run(self):
         with next(self.input()).open('r') as bookings_file:
-            bookings = pd.read_csv(bookings_file)
+            df = pd.read_csv(bookings_file)
 
-        if not bookings.empty:
-            bookings['Buchung'] = bookings['Buchung'].apply(int)
-            bookings['E-Mail'] = bookings['E-Mail'].apply(
-                hash_booker_id, args=(self.seed,))
-            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(int)
-            bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
-            bookings['Startzeit'] = bookings.apply(
+        if not df.empty:
+            df['Buchung'] = df['Buchung'].apply(int)
+            df['E-Mail'] = df['E-Mail'].apply(hash_id)
+            df['Teilnehmerzahl'] = df['Teilnehmerzahl'].apply(int)
+            df['Guide'] = df['Guide'].apply(self.hash_guide)
+            df['Startzeit'] = df.apply(
                 lambda x: self.calculate_start_datetime(
                     x['Datum'], x['Uhrzeit von']), axis=1)
-            bookings['Dauer'] = bookings.apply(
+            df['Dauer'] = df.apply(
                 lambda x: self.calculate_duration(
                     x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 
@@ -47,20 +48,20 @@ class ExtractGomusBookings(luigi.Task):
         else:
             # manually append "Startzeit" and "Dauer" to ensure pandas
             # doesn't crash even though nothing will be added
-            bookings['Startzeit'] = 0
-            bookings['Dauer'] = 0
+            df['Startzeit'] = 0
+            df['Dauer'] = 0
 
-        bookings = bookings.filter(['Buchung',
-                                    'E-Mail',
-                                    'Angebotskategorie',
-                                    'Teilnehmerzahl',
-                                    'Guide',
-                                    'Dauer',
-                                    'Ausstellung',
-                                    'Titel',
-                                    'Status',
-                                    'Startzeit'])
-        bookings.columns = [
+        df = df.filter(['Buchung',
+                        'E-Mail',
+                        'Angebotskategorie',
+                        'Teilnehmerzahl',
+                        'Guide',
+                        'Dauer',
+                        'Ausstellung',
+                        'Titel',
+                        'Status',
+                        'Startzeit'])
+        df.columns = [
             'booking_id',
             'customer_id',
             'category',
@@ -71,8 +72,11 @@ class ExtractGomusBookings(luigi.Task):
             'title',
             'status',
             'start_datetime']
+
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
-            bookings.to_csv(output_file, header=True, index=False)
+            df.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
         if guide_name is np.NaN:
