@@ -21,8 +21,6 @@ report_type = sys.argv[1]
 cap_type = report_type.capitalize()
 
 today = dt.date.today()
-# if report_type == 'orders':
-#     today = today - dt.timedelta(days=1)
 
 for week_offset in range(0, 250):
 
