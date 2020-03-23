@@ -41,6 +41,7 @@ class FetchGplayReviews(luigi.Task):
 
     def fetch_for_language(self, language_code):
 
+        # send a request to the webserver running google-play-api (https://github.com/facundoolano/google-play-api)
         res = requests.get(
             url = f"http://localhost:3000/api/apps/{self.get_app_id()}/reviews",
             params = {
