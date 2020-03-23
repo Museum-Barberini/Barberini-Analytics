@@ -6,7 +6,7 @@ from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData
-from gomus.events import ExtractEventData
+from gomus.events import ExtractEventData, cleanse_umlauts
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.daily_entries import ExtractDailyEntryData
@@ -28,7 +28,10 @@ class GomusTransformationTest(unittest.TestCase):
         filename = self.test_data_path + filename
 
         with target.open('w') as input_data:
-            with open(filename, 'r', encoding='utf-8') as test_data_in:
+            with open(
+                    filename.encode('utf-8'),
+                    'r',
+                    encoding='utf-8') as test_data_in:
                 input_data.write(test_data_in.read())
 
     def prepare_input_target(self, input_mock, infile):
@@ -68,7 +71,6 @@ class GomusTransformationTest(unittest.TestCase):
 class TestCustomerTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
         super().__init__([
-            'gomus_id',
             'customer_id',
             'postal_code',
             'newsletter',
@@ -78,7 +80,8 @@ class TestCustomerTransformation(GomusTransformationTest):
             'country',
             'type',
             'register_date',
-            'annual_ticket'],
+            'annual_ticket',
+            'valid_mail'],
             ExtractCustomerData,
             *args, **kwargs)
 
@@ -123,14 +126,14 @@ class TestOrderTransformation(GomusTransformationTest):
     def setUp(self):
         self.db_helper.setUp()
         self.db_helper.commit(
-            ('CREATE TABLE gomus_customer '
+            ('CREATE TABLE gomus_to_customer_mapping '
              '(gomus_id INTEGER, customer_id INTEGER)'),
-            'INSERT INTO gomus_customer VALUES (117899, 100)'
+            'INSERT INTO gomus_to_customer_mapping VALUES (117899, 100)'
         )
 
     def tearDown(self):
         self.db_helper.commit(
-            'DROP TABLE gomus_customer'
+            'DROP TABLE gomus_to_customer_mapping'
         )
         self.db_helper.tearDown()
 
@@ -276,7 +279,6 @@ class TestEventTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
         super().__init__([
             'event_id',
-            'customer_id',
             'booking_id',
             'reservation_count',
             'order_date',
@@ -288,9 +290,9 @@ class TestEventTransformation(GomusTransformationTest):
         self.test_data_path += 'events/'
 
         self.categories = [
-            'Oeffentliche Fuehrung',
+            'Öffentliche Führung',
             'Event',
-            'Gespraech',
+            'Gespräch',
             'Kinder-Workshop',
             'Konzert',
             'Lesung',
@@ -301,7 +303,7 @@ class TestEventTransformation(GomusTransformationTest):
     def test_events_transformation(self, input_mock, output_mock):
         def generate_input_targets():
             for category in self.categories:
-                target = MockTarget(category, format=UTF8)
+                target = MockTarget(cleanse_umlauts(category), format=UTF8)
                 self.write_file_to_target(target, category + '_in.csv')
                 yield target
 

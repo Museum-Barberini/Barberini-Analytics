@@ -107,7 +107,7 @@ class ExtractEventData(DataPreparationTask):
         event_df['Event_id'] = event_id
         event_df['Kategorie'] = category
         event_df = event_df.filter([
-            'Id', 'E-Mail', 'Event_id', 'Plätze',
+            'Id', 'Event_id', 'Plätze',
             'Datum', 'Status', 'Kategorie'])
 
         event_df.columns = self.columns
@@ -166,17 +166,18 @@ class EnsureBookingsIsRun(luigi.Task):
 
     # save a list of paths for all single csv files
     def output(self):
-        cat = self.cleanse_umlauts(self.category)
+        cat = cleanse_umlauts(self.category)
         return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
                                  format=UTF8)
 
     def requires(self):
         yield BookingsToDB()
 
-    # this function should not have to exist, but luigi apparently
-    # can't deal with UTF-8 symbols in their target paths
-    def cleanse_umlauts(self, string):
-        return string.translate(string.maketrans({
-            'Ä': 'Ae', 'ä': 'ae',
-            'Ö': 'Oe', 'ö': 'oe',
-            'Ü': 'Ue', 'ü': 'ue'}))
+
+# this function should not have to exist, but luigi apparently
+# can't deal with UTF-8 symbols in their target paths
+def cleanse_umlauts(string):
+    return string.translate(string.maketrans({
+        'Ä': 'Ae', 'ä': 'ae',
+        'Ö': 'Oe', 'ö': 'oe',
+        'Ü': 'Ue', 'ü': 'ue'}))
