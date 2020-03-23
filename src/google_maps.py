@@ -150,7 +150,7 @@ class FetchGoogleMapsReviews(luigi.Task):
             extracted['date'] = raw['createTime']
             extracted['rating'] = self.stars_dict[raw['starRating']]
             extracted['text'] = None
-            extracted['english_translation'] = None
+            extracted['text_english'] = None
             extracted['language'] = None
 
             raw_comment = raw.get('comment', None)
@@ -158,24 +158,23 @@ class FetchGoogleMapsReviews(luigi.Task):
                 # this assumes possibly unintended behavior of Google's API
                 # see for details:
                 # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
-                # We want to ALWAYS KEEP THE ORIGINAL review (no translation)
+                # We want to keep both original and english translation)
 
                 # german reviews have this format:
                 #   [german review]\n\n
                 #   (Translated by Google)\n[english translation]
                 if ("(Original)" not in raw_comment and
                         "(Translated by Google)" in raw_comment):
-                    extracted['text'] = raw_comment.split(
-                        "(Translated by Google)")[0].strip()
-                    extracted['english_translation'] = raw_comment.split(
-                        "(Translated by Google)")[1].strip()
+                    parts = raw_comment.split("(Translated by Google)")
+                    extracted['text'] = parts[0].strip()
+                    extracted['text_english'] = parts[1].strip()
                     extracted['language'] = "german"
 
                 # english reviews are as is
                 elif ("(Original)" not in raw_comment and
                         "(Translated by Google)" not in raw_comment):
                     extracted['text'] = raw_comment
-                    extracted['english_translation'] = raw_comment
+                    extracted['text_english'] = raw_comment
                     extracted['language'] = "english"
 
                 # other reviews have this format:
@@ -185,7 +184,7 @@ class FetchGoogleMapsReviews(luigi.Task):
                         "(Translated by Google)" in raw_comment):
                     extracted['text'] = raw_comment.split(
                         "(Original)")[1].strip()
-                    extracted['english_translation'] = raw_comment.split(
+                    extracted['text_english'] = raw_comment.split(
                         "(Original)")[0].split(
                         "(Translated by Google)")[1].strip()
                     extracted['language'] = "other"
@@ -206,7 +205,7 @@ class GoogleMapsReviewsToDB(CsvToDb):
         ('date', 'DATE'),
         ('rating', 'INT'),
         ('text', 'TEXT'),
-        ('english_translation', 'TEXT'),
+        ('text_english', 'TEXT'),
         ('language', 'TEXT')
     ]
 
