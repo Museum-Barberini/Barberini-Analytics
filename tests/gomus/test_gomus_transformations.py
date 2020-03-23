@@ -1,12 +1,14 @@
 import unittest
-from unittest.mock import patch, PropertyMock
+from unittest.mock import call, patch, PropertyMock
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData
-from gomus.events import ExtractEventData, cleanse_umlauts
+from gomus.events import (cleanse_umlauts,
+                          ExtractEventData,
+                          FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.daily_entries import ExtractDailyEntryData
@@ -20,6 +22,7 @@ class GomusTransformationTest(unittest.TestCase):
         self.task = task
 
         self.test_data_path = 'tests/test_data/gomus/'
+        self.test_db_name = 'barberini_test'
 
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
@@ -56,13 +59,12 @@ class GomusTransformationTest(unittest.TestCase):
 
     def execute_task(self, **kwargs):
         try:
-            self.task(columns=self.columns, **kwargs).run()
-        except UnknownParameterException:
-            self.task(**kwargs).run()
+            return self.task(columns=self.columns, **kwargs).run()
+        except UnknownParameterException:  # no columns parameter
+            return self.task(**kwargs).run()
 
     def check_result(self, output_target, outfile):
         outfile = self.test_data_path + outfile
-
         with output_target.open('r') as output_data:
             with open(outfile, 'r', encoding='utf-8') as test_data_out:
                 self.assertEqual(output_data.read(), test_data_out.read())
@@ -150,7 +152,7 @@ class TestOrderTransformation(GomusTransformationTest):
             output_mock,
             'orders_in.csv')
 
-        database_mock.return_value = 'barberini_test'
+        database_mock.return_value = self.test_db_name
 
         self.execute_task()
 
@@ -287,8 +289,6 @@ class TestEventTransformation(GomusTransformationTest):
             ExtractEventData,
             *args, **kwargs)
 
-        self.test_data_path += 'events/'
-
         self.categories = [
             'Öffentliche Führung',
             'Event',
@@ -297,6 +297,24 @@ class TestEventTransformation(GomusTransformationTest):
             'Konzert',
             'Lesung',
             'Vortrag']
+
+        self.test_data_path += 'events/'
+        self.db_helper = DatabaseHelper()
+
+    # Provide mock booking IDs to be found by querying
+    def setUp(self):
+        self.db_helper.setUp()
+        self.db_helper.commit(
+            ('CREATE TABLE gomus_booking '
+             '(booking_id INTEGER, category VARCHAR(255))'),
+            'INSERT INTO gomus_booking VALUES (0, \'Öffentliche Führung\')'
+        )
+
+    def tearDown(self):
+        self.db_helper.commit(
+            'DROP TABLE gomus_booking'
+        )
+        self.db_helper.tearDown()
 
     @patch.object(ExtractEventData, 'output')
     @patch.object(ExtractEventData, 'input')
@@ -317,4 +335,40 @@ class TestEventTransformation(GomusTransformationTest):
             output_target,
             'events_out.csv')
 
-    # TODO: Properly test 'EnsureBookingsIsRun'
+    @patch('gomus.events.FetchEventReservations')
+    @patch.object(
+        FetchCategoryReservations,
+        'database',
+        new_callable=PropertyMock)
+    @patch.object(FetchCategoryReservations, 'output')
+    def test_fetch_category_seats(self,
+                                  output_mock,
+                                  database_mock,
+                                  fetch_reservations_mock):
+        self.task = FetchCategoryReservations
+
+        reservations_booked_target = MockTarget(
+            'reservations_booked',
+            format=UTF8)
+        reservations_cancelled_target = MockTarget(
+            'reservations_cancelled',
+            format=UTF8)
+
+        fetch_reservations_mock.side_effect = [
+            reservations_booked_target,
+            reservations_cancelled_target]
+
+        database_mock.return_value = self.test_db_name
+
+        output_target = self.prepare_output_target(output_mock)
+
+        gen = self.execute_task(category='Öffentliche Führung')
+        for _, _ in enumerate(gen):  # iterate generator to its end
+            pass
+
+        calls = [call(0, 0), call(0, 1)]
+        fetch_reservations_mock.assert_has_calls(calls)
+
+        self.check_result(
+            output_target,
+            'reservations_out.txt')

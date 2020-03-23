@@ -57,7 +57,7 @@ class FetchGomusReport(luigi.Task):
 
 class FetchEventReservations(luigi.Task):
     booking_id = luigi.parameter.IntParameter(
-        description="The booking's index")
+        description="The bookings' index")
     status = luigi.parameter.IntParameter(
         description="ID of stats (0 = booked, 1 = cancelled) (default: 0)",
         default=0)
