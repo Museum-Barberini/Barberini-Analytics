@@ -113,9 +113,9 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
             'tests/test_data/google_maps/expected_extracted_reviews.csv')
 
         # ----- Execute code under test ----
-        actual_expected_reviews = self.task.extract_reviews(raw_reviews)
+        actual_extracted_reviews = self.task.extract_reviews(raw_reviews)
 
         # ----- Inspect result ------
         pd.testing.assert_frame_equal(
             expected_extracted_reviews,
-            actual_expected_reviews)
+            actual_extracted_reviews)
