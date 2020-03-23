@@ -32,10 +32,10 @@ class FetchFbPosts(luigi.Task):
 
         posts = []
 
-        url = (f"https://graph.facebook.com/v6.0/{page_id}/feed?access_token="
-               f"{access_token}")
+        url = f'https://graph.facebook.com/v6.0/{page_id}/feed'
+        headers = {'Authorization': 'Bearer ' + access_token}
 
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
 
         response_content = response.json()
@@ -47,7 +47,7 @@ class FetchFbPosts(luigi.Task):
         while ('next' in response_content['paging']):
             page_count = page_count + 1
             url = response_content['paging']['next']
-            response = requests.get(url)
+            response = requests.get(url, headers=headers)
             response.raise_for_status()
 
             response_content = response.json()
@@ -70,7 +70,7 @@ class FetchFbPostPerformance(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            "output/facebook/fb_post_performances.csv", format=UTF8)
+            'output/facebook/fb_post_performances.csv', format=UTF8)
 
     def run(self):
         access_token = os.environ['FB_ACCESS_TOKEN']
@@ -83,18 +83,22 @@ class FetchFbPostPerformance(luigi.Task):
         invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
-            # print(f"### Facebook - loading performance data for post
-            # {str(post_id)} ###")
-            url = (f"https://graph.facebook.com/v6.0/{post_id}/insights?"
-                   f"access_token={access_token}&metric="
-                   f"post_reactions_by_type_total,"
-                   f"post_activity_by_action_type,"
-                   f"post_clicks_by_type,"
-                   f"post_negative_feedback,"
-                   f"post_impressions_paid")
+            # print(f"[FB] Loading performance data for post {str(post_id)}")
+            url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
+            metrics = [
+                'post_reactions_by_type_total',
+                'post_activity_by_action_type',
+                'post_clicks_by_type',
+                'post_negative_feedback',
+                'post_impressions_paid'
+            ]
+            request_args = {
+                'params': {'metric': ','.join(metrics)},
+                'headers': {'Authorization': 'Bearer ' + access_token}
+            }
 
             for _ in range(3):
-                response = requests.get(url)
+                response = requests.get(url, request_args)
                 if response.ok:
                     break
 
