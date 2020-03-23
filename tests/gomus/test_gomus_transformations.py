@@ -5,7 +5,7 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
-from gomus.customers import ExtractCustomerData
+from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
 from gomus.events import (cleanse_umlauts,
                           ExtractEventData,
                           FetchCategoryReservations)
@@ -100,6 +100,25 @@ class TestCustomerTransformation(GomusTransformationTest):
         self.execute_task()
 
         self.check_result(output_target, 'customers_out.csv')
+
+    @patch.object(ExtractGomusToCustomerMapping, 'output')
+    @patch.object(ExtractGomusToCustomerMapping, 'input')
+    def test_gomus_to_customer_mapping_transformation(self,
+                                                      input_mock,
+                                                      output_mock):
+        self.task = ExtractGomusToCustomerMapping
+        self.columns = ['gomus_id', 'customer_id']
+
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'customers_in.csv')
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'gomus_to_customers_mapping_out.csv')
 
     @patch.object(ExtractCustomerData, 'input')
     def test_invalid_date_raises_exception(self, input_mock):
