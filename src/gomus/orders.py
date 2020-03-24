@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import datetime as dt
 import luigi
 import numpy as np
@@ -8,10 +7,9 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import CustomersToDB
 from gomus.customers import GomusToCustomerMappingToDB
-from set_db_connection_options import set_db_connection_options
 
 COLUMNS = [
     ('order_id', 'INT'),
@@ -34,33 +32,28 @@ class OrdersToDB(CsvToDb):
 
     foreign_keys = [
         {
-            "origin_column": "customer_id",
-            "target_table": "gomus_customer",
-            "target_column": "customer_id"
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 
     def requires(self):
-        return ExtractOrderData(today=self.today)
+        return ExtractOrderData(
+            foreign_keys=self.foreign_keys,
+            today=self.today)
 
 
-class ExtractOrderData(luigi.Task):
+class ExtractOrderData(DataPreparationTask):
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
 
-    host = None
-    database = None
-    user = None
-    password = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
         self.columns = [col[0] for col in COLUMNS]
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
             GomusToCustomerMappingToDB(),
             super()._requires()
         ])
@@ -89,6 +82,8 @@ class ExtractOrderData(luigi.Task):
             self.query_customer_id).astype('Int64')
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
         df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
+
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
