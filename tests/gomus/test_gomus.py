@@ -1,6 +1,7 @@
 import os
 import unittest
 from unittest.mock import patch
+import datetime as dt
 
 import requests
 from luigi.format import UTF8
@@ -8,6 +9,7 @@ from luigi.mock import MockTarget
 
 from gomus.customers import ExtractCustomerData
 from gomus.orders import ExtractOrderData
+from gomus._utils.fetch_report import FetchGomusReport
 
 
 class TestGomusConnection(unittest.TestCase):
@@ -129,3 +131,84 @@ class TestGomusOrdersTransformations(unittest.TestCase):
 
         # 10698846.0 should be out of range
         self.assertRaises(OverflowError, ExtractOrderData(self.columns).run)
+
+
+class TestReportFormats(unittest.TestCase):
+    @patch.object(FetchGomusReport, 'output')
+    def test_gomus_formats(self, output_mock):
+        output_target = MockTarget('report_out', format=UTF8)
+
+        today = dt.datetime.now().strftime("%d.%m.%Y")
+        yesterday = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%d.%m.%Y")
+
+        bookings_format = '"Buchung","Datum","Uhrzeit von","Uhrzeit bis","Museum",'\
+            '"Ausstellung","Raum","Treffpunkt","Angebotskategorie","Titel",'\
+            '"Teilnehmerzahl","Guide","Kunde","E-Mail","Institution","Notiz",'\
+            '"Führungsentgelt / Summe Endkundenpreis ohne Storno","Honorar",'\
+            '"Zahlungsart","Kommentar","Status"\n'
+        orders_format = '"Bestellnummer","Erstellt","Kundennummer","Kunde",'\
+            '"Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?",'\
+            '"Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft",'\
+            '"Kostenstellen","In Rechnung gestellt am","Rechnungen",'\
+            '"Korrekturrechnungen","Rating"\n'
+        customers_format = '"Nummer","Anrede","Vorname","Name","E-Mail",'\
+            '"Telefon","Mobil","Fax","Sprache","Kategorie","Straße","PLZ",'\
+            '"Stadt","Land","Typ","Erstellt am","Newsletter","Jahreskarte"\n'
+        entries_0and2_sheet_format = f'"ID","Ticket","{yesterday}",'\
+            f'"{today}","Gesamt",""\n'
+        entries_1_sheet_format = '"ID","Ticket",0.0,1.0,2.0,3.0,4.0,5.0,'\
+            '6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,'\
+            '18.0,19.0,20.0,21.0,22.0,23.0,"Gesamt"\n'
+        entries_3_sheet_format ='"ID","Ticket","0:00","1:00","2:00","3:00",'\
+            '"4:00","5:00","6:00","7:00","8:00","9:00","10:00","11:00",'\
+            '"12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00",'\
+            '"20:00","21:00","22:00","23:00","Gesamt"\n'
+
+        self.assertTrue(self.check_expected_format(output_mock,
+                                                   output_target,
+                                                   'bookings',
+                                                   bookings_format))
+        #self.assertTrue(self.check_expected_format(output_mock,
+        #                                           output_target,
+        #                                           'orders',
+        #                                           orders_format,
+        #                                           '_1day'))
+        #self.assertTrue(self.check_expected_format(output_mock,
+        #                                           output_target,
+        #                                           'orders',
+        #                                           output_target,
+        #                                           orders_format))
+        self.assertTrue(self.check_expected_format(output_mock,
+                                                   output_target,
+                                                   'customers',
+                                                   customers_format))
+        self.assertTrue(self.check_expected_format(output_mock,
+                                                   output_target,
+                                                   'entries',
+                                                   entries_0and2_sheet_format,
+                                                   '_1day'))
+        self.assertTrue(self.check_expected_format(output_mock,
+                                                   output_target,
+                                                   'entries',
+                                                   entries_1_sheet_format,
+                                                   '_1day',
+                                                   [1]))
+        self.assertTrue(self.check_expected_format(output_mock,
+                                                   output_target,
+                                                   'entries',
+                                                   entries_0and2_sheet_format,
+                                                   '_1day',
+                                                   [2]))
+        self.assertTrue(self.check_expected_format(output_mock,
+                                                   output_target,
+                                                   'entries',
+                                                   entries_3_sheet_format,
+                                                   '_1day',
+                                                   [3]))
+
+    def check_expected_format(self, output_mock, output_target, report, expected_format, suffix='_7days', sheet=[0]):
+        output_mock.return_value = iter([output_target])
+        FetchGomusReport(report=report, suffix=suffix, sheet_indices=sheet).run()
+        with output_target.open('r') as output_file:
+            return expected_format in output_file.read()
+                 
