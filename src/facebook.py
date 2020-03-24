@@ -31,6 +31,7 @@ class FbPostsToDB(CsvToDb):
 
 
 class FbPostPerformanceToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'fb_post_performance'
 
@@ -65,7 +66,8 @@ class FbPostPerformanceToDB(CsvToDb):
 
     def requires(self):
         return FetchFbPostPerformance(
-            foreign_keys=self.foreign_keys)
+            foreign_keys=self.foreign_keys,
+            minimal=self.minimal)
 
 
 class FetchFbPosts(DataPreparationTask):
@@ -125,15 +127,16 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostPerformance(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def _requires(self):
         return luigi.task.flatten([
-            FbPostsToDB(),
+            FbPostsToDB(minimal=self.minimal),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchFbPosts()
+        return FetchFbPosts(minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget(
@@ -146,6 +149,9 @@ class FetchFbPostPerformance(DataPreparationTask):
         performances = []
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
+
+        if self.minimal:
+            df = df.head(5)
 
         invalid_count = 0
         for index in df.index:
