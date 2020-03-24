@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-from historic_data_helper import HistoricData
+from historic_data_helper import prepare_task, run_luigi_task
 
 # -Bookings-
 
 # run 'make connect' first
 
-HistoricData.prepare_task()
+prepare_task()
 
-HistoricData.run_luigi_task('bookings',
-                            'Bookings',
-                            'timespan',
-                            '_all')
+run_luigi_task('bookings',
+               'Bookings',
+               'timespan',
+               '_all')

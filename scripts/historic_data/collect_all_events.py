@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from historic_data_helper import HistoricData
+from historic_data_helper import prepare_task, run_luigi_task
 
 # -Events-
 #   run bookings before events
@@ -8,6 +8,6 @@ from historic_data_helper import HistoricData
 
 # run 'make connect' first
 
-HistoricData.prepare_task()
+prepare_task()
 
-HistoricData.run_luigi_task('events', 'Events')
+run_luigi_task('events', 'Events')
