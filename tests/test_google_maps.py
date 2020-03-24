@@ -1,6 +1,8 @@
 import unittest
 import warnings
 from unittest.mock import MagicMock
+import json
+import pandas as pd
 
 import googleapiclient.discovery
 
@@ -100,3 +102,20 @@ class TestFetchGoogleMapsReviews(unittest.TestCase):
             parent=location_name,
             pageSize=page_size,
             pageToken=latest_page_token)  # refers to last call
+
+    def test_extract_reviews(self):
+        with open(
+            'tests/test_data/google_maps/raw_reviews.json',
+                'r',
+                encoding='utf-8') as raw_reviews_file:
+            raw_reviews = json.load(raw_reviews_file,)
+        expected_extracted_reviews = pd.read_csv(
+            'tests/test_data/google_maps/expected_extracted_reviews.csv')
+
+        # ----- Execute code under test ----
+        actual_extracted_reviews = self.task.extract_reviews(raw_reviews)
+
+        # ----- Inspect result ------
+        pd.testing.assert_frame_equal(
+            expected_extracted_reviews,
+            actual_extracted_reviews)
