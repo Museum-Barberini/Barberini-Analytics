@@ -107,19 +107,13 @@ CREATE TABLE google_maps_review (
 ALTER TABLE google_maps_review
     ADD CONSTRAINT google_maps_review_primkey PRIMARY KEY (google_maps_review_id);
 
-CREATE TABLE gtrends_interest (
-    topic_id TEXT,
-    date DATE,
-    interest_value INTEGER
-);
-ALTER TABLE gtrends_interest
-    ADD CONSTRAINT gtrends_interest_primkey PRIMARY KEY (topic_id, date);
-
 CREATE TABLE gtrends_value (
     topic TEXT,
     date DATE,
     interest_value INTEGER
-)
+);
+ALTER TABLE gtrends_value
+    ADD CONSTRAINT gtrends_value_primkey PRIMARY KEY (topic, date);
 
 ALTER TABLE gomus_booking
     ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id);
