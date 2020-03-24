@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-# before start run 'make connect'
+from historic_data_helper import HistoricData
 
-import subprocess as sp
+# -Bookings-
 
-sp.run(
-    "make luigi-scheduler".split()
-)
-sp.run(
-    "luigi --module gomus.bookings BookingsToDB "
-    "--timespan _all".split()
-)
+# run 'make connect' first
+
+HistoricData.prepare_task()
+
+HistoricData.run_luigi_task('bookings',
+                            'Bookings',
+                            'timespan',
+                            '_all')

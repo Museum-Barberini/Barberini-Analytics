@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-import subprocess as sp
+from historic_data_helper import HistoricData
 
 # -Events-
 #   run bookings before events
 #   remove conditional in EnsureBookingsIsRun (collect all event_ids)
 
-sp.run(
-    "make luigi-scheduler".split()
-)
-sp.run(
-    "luigi --module gomus.events EventsToDB".split()
-)
+# run 'make connect' first
+
+HistoricData.prepare_task()
+
+HistoricData.run_luigi_task('events', 'Events')
