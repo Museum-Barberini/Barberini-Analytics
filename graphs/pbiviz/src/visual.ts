@@ -55,7 +55,6 @@ export class Visual implements IVisual {
         console.log("Visual constructor", options, new Date().toLocaleString());
         this.target = options.element;
         
-        debugger;
         this.container = document.createElement('div');
         this.container.className = 'sigma-expand';
         this.container.style.width = '100%';
@@ -130,10 +129,7 @@ export class Visual implements IVisual {
         let histogram = this.histogram(allWords);
         console.log("histogram", histogram);
         
-        // TODO: If we don't use gexf, maybe this helps: https://github.com/jacomyal/sigma.js/issues/229
-        //this.sigInst.iterNodes(node => this.sigInst.dropNode(node.id));
-        debugger;
-        this.sigInst.clear();
+        this.sigInst._core.graph.empty();
         
         let sum = Array.from(histogram.values()).reduce((s, v) => s + v, 0);
         let nodeIds = new Map();
