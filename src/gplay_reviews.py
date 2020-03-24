@@ -29,23 +29,24 @@ class FetchGplayReviews(luigi.Task):
             reviews.to_csv(output_file, index=False)
 
     def fetch_all(self):
-        
+
         # Different languages have different reviews. Iterate over
-        # the lanugage codes to fetch all reviews. 
+        # the lanugage codes to fetch all reviews.
         language_codes = self.get_language_codes()
         reviews_nested = [
             self.fetch_for_language(language_code)
             for language_code in language_codes
         ]
         reviews_flattened = list(chain.from_iterable(reviews_nested))
-        
+
         if len(reviews_flattened) > 0:
             return pd.DataFrame(reviews_flattened).drop_duplicates()
         else:
             # even if no reviews were found the output dataframe should
             # conform to the expected format.
             return pd.DataFrame(
-                columns=['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
+                columns=['id', 'date', 'score', 'text',
+                         'title', 'thumbsUp', 'version']
             )
 
     def get_language_codes(self):
@@ -55,8 +56,8 @@ class FetchGplayReviews(luigi.Task):
 
         # send a request to the webserver that serves the gplay api
         res = requests.get(
-            url = self.get_url(),
-            params = {
+            url=self.get_url(),
+            params={
                 'lang': language_code,
                 'num': 1000000
             }
@@ -67,16 +68,17 @@ class FetchGplayReviews(luigi.Task):
         res = json.loads(res.text)["results"]
 
         # only return the values we want to keep
-        keep_values = ['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
+        keep_values = ['id', 'date', 'score',
+                       'text', 'title', 'thumbsUp', 'version']
         res_reduced = [{key: r[key] for key in keep_values} for r in res]
 
         return res_reduced
 
     def get_url(self):
 
-        # The webserver that serves the gplay api runs in a different container. 
+        # The webserver that serves the gplay api runs in a different container.
         # The container name is user specific: [CONTAINER_USER]-gplay-api
-        # Note that the container name and the CONTAINER_USER environment variable 
+        # Note that the container name and the CONTAINER_USER environment variable
         # are set in the docker-compose.yml
         user = os.getenv('CONTAINER_USER')
         app_id = self.get_app_id()
@@ -98,8 +100,8 @@ class FetchGplayReviews(luigi.Task):
             'version': 'app_version',
             'thumbsUp': 'thumbs_up'
         })
-        reviews = reviews[['playstore_review_id', 'text', 'rating', 
-            'app_version', 'thumbs_up', 'title', 'date']]
+        reviews = reviews[['playstore_review_id', 'text', 'rating',
+                           'app_version', 'thumbs_up', 'title', 'date']]
         reviews = reviews.astype({
             'playstore_review_id': str,
             'text': str,
@@ -110,6 +112,7 @@ class FetchGplayReviews(luigi.Task):
             'date': str
         })
         return reviews
+
 
 class GooglePlaystoreReviewsToDB(CsvToDb):
 
