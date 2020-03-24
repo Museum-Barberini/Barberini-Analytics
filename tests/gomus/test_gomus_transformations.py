@@ -28,8 +28,6 @@ class GomusTransformationTest(unittest.TestCase):
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
 
-        self.maxDiff = None
-
     def write_file_to_target(self, target, filename):
         filename = self.test_data_path + filename
 
@@ -391,6 +389,10 @@ class TestEventTransformation(GomusTransformationTest):
         for _, _ in enumerate(gen):  # iterate generator to its end
             pass
 
+        # A 'call(x, y)' represents a call to a mock object with
+        # the parameters (x, y)
+        # In this case, it should be called
+        # twice with the given parameters
         calls = [call(0, 0), call(0, 1)]
         fetch_reservations_mock.assert_has_calls(calls)
 
