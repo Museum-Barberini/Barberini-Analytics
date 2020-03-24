@@ -13,7 +13,63 @@ from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
+class FbPostsToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = 'fb_post'
+
+    columns = [
+        ('post_date', 'TIMESTAMP'),
+        ('text', 'TEXT'),
+        ('fb_post_id', 'TEXT')
+    ]
+
+    primary_key = 'fb_post_id'
+
+    def requires(self):
+        return FetchFbPosts(minimal=self.minimal)
+
+
+class FbPostPerformanceToDB(CsvToDb):
+
+    table = 'fb_post_performance'
+
+    columns = [
+        ('fb_post_id', 'TEXT'),
+        ('time_stamp', 'TIMESTAMP'),
+        ('react_like', 'INT'),
+        ('react_love', 'INT'),
+        ('react_wow', 'INT'),
+        ('react_haha', 'INT'),
+        ('react_sorry', 'INT'),
+        ('react_anger', 'INT'),
+        ('likes', 'INT'),
+        ('shares', 'INT'),
+        ('comments', 'INT'),
+        ('video_clicks', 'INT'),
+        ('link_clicks', 'INT'),
+        ('other_clicks', 'INT'),
+        ('negative_feedback', 'INT'),
+        ('paid_impressions', 'INT')
+    ]
+
+    primary_key = ('fb_post_id', 'time_stamp')
+
+    foreign_keys = [
+            {
+                'origin_column': 'fb_post_id',
+                'target_table': 'fb_post',
+                'target_column': 'fb_post_id'
+            }
+        ]
+
+    def requires(self):
+        return FetchFbPostPerformance(
+            foreign_keys=self.foreign_keys)
+
+
 class FetchFbPosts(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,6 +111,10 @@ class FetchFbPosts(DataPreparationTask):
             for post in (response_content['data']):
                 posts.append(post)
             print(f"\rFetched facebook page {page_count}", end='', flush=True)
+
+            if self.minimal:
+                break
+
         print("Fetching of facebook posts completed")
 
         with self.output().open('w') as output_file:
@@ -159,57 +219,3 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
-
-
-class FbPostsToDB(CsvToDb):
-
-    table = 'fb_post'
-
-    columns = [
-        ('post_date', 'TIMESTAMP'),
-        ('text', 'TEXT'),
-        ('fb_post_id', 'TEXT')
-    ]
-
-    primary_key = 'fb_post_id'
-
-    def requires(self):
-        return FetchFbPosts()
-
-
-class FbPostPerformanceToDB(CsvToDb):
-
-    table = 'fb_post_performance'
-
-    columns = [
-        ('fb_post_id', 'TEXT'),
-        ('time_stamp', 'TIMESTAMP'),
-        ('react_like', 'INT'),
-        ('react_love', 'INT'),
-        ('react_wow', 'INT'),
-        ('react_haha', 'INT'),
-        ('react_sorry', 'INT'),
-        ('react_anger', 'INT'),
-        ('likes', 'INT'),
-        ('shares', 'INT'),
-        ('comments', 'INT'),
-        ('video_clicks', 'INT'),
-        ('link_clicks', 'INT'),
-        ('other_clicks', 'INT'),
-        ('negative_feedback', 'INT'),
-        ('paid_impressions', 'INT')
-    ]
-
-    primary_key = ('fb_post_id', 'time_stamp')
-
-    foreign_keys = [
-            {
-                'origin_column': 'fb_post_id',
-                'target_table': 'fb_post',
-                'target_column': 'fb_post_id'
-            }
-        ]
-
-    def requires(self):
-        return FetchFbPostPerformance(
-            foreign_keys=self.foreign_keys)
