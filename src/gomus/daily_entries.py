@@ -61,7 +61,6 @@ class ExtractDailyEntryData(DataPreparationTask):
 
     def run(self):
         # get date from first sheet
-        self.columns = [col[0] for col in self.columns]
         inputs = self.input()
         with next(inputs).open('r') as first_sheet:
             while True:

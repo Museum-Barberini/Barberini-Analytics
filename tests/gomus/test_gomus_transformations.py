@@ -1,3 +1,4 @@
+import datetime as dt
 import unittest
 from unittest.mock import call, patch, PropertyMock
 
@@ -26,6 +27,8 @@ class GomusTransformationTest(unittest.TestCase):
 
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
+
+        self.maxDiff = None
 
     def write_file_to_target(self, target, filename):
         filename = self.test_data_path + filename
@@ -324,9 +327,12 @@ class TestEventTransformation(GomusTransformationTest):
     def setUp(self):
         self.db_helper.setUp()
         self.db_helper.commit(
-            ('CREATE TABLE gomus_booking '
-             '(booking_id INTEGER, category VARCHAR(255))'),
-            'INSERT INTO gomus_booking VALUES (0, \'Öffentliche Führung\')'
+            ('CREATE TABLE gomus_booking ('
+                'booking_id INTEGER, '
+                'category VARCHAR(255), '
+                'start_datetime TIMESTAMP)'),
+            (f'INSERT INTO gomus_booking VALUES ('
+                f'0, \'Öffentliche Führung\', \'{dt.datetime.today()}\')')
         )
 
     def tearDown(self):
@@ -360,10 +366,10 @@ class TestEventTransformation(GomusTransformationTest):
         'database',
         new_callable=PropertyMock)
     @patch.object(FetchCategoryReservations, 'output')
-    def test_fetch_category_seats(self,
-                                  output_mock,
-                                  database_mock,
-                                  fetch_reservations_mock):
+    def test_fetch_category_reservations(self,
+                                         output_mock,
+                                         database_mock,
+                                         fetch_reservations_mock):
         self.task = FetchCategoryReservations
 
         reservations_booked_target = MockTarget(
