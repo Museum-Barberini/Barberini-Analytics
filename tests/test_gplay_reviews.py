@@ -13,7 +13,7 @@ from task_test import DatabaseTaskTest
 
 
 response_elem_1 = {
-        'id': 123,
+        'id': '123',
         'date': '2020-01-04T17:09:33.789Z',
         'score': 4,
         'text': 'elem 1 text',
@@ -162,4 +162,27 @@ class TestFetchGplayReviews(unittest.TestCase):
         app_id = FetchGplayReviews().get_app_id()
 
         self.assertEqual(app_id, 'some ID')
+
+    @patch('gplay_reviews.FetchGplayReviews.get_language_codes',
+            return_value=['en', 'de'])
+    @patch('gplay_reviews.FetchGplayReviews.fetch_for_language',
+            side_effect=[[response_elem_2], [response_elem_1], []])
+    @patch.object(FetchGplayReviews, 'output')
+    @patch.object(FetchGplayReviews, 'input')
+    def test_run(self, input_mock, output_mock, mock_fetch, mock_lang):
+
+        input_target = MockTarget('museum_facts', format=UTF8)
+        input_mock.return_value = input_target
+        with input_target.open('w') as fp:
+            json.dump({'ids': {'gplay': {'appId': 'com.barberini.museum.barberinidigital'}}}, fp)
+        output_target = MockTarget('gplay_reviews', format=UTF8)
+        output_mock.return_value = output_target
+
+        FetchGplayReviews().run()
+
+        expected = pd.DataFrame([response_elem_2, response_elem_1])
+        with output_target.open('r') as fp:
+            actual = pd.read_csv(fp) 
+
+        pd.testing.assert_frame_equal(expected, actual)
 
