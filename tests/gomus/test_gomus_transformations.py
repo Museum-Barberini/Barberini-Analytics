@@ -28,15 +28,15 @@ class GomusTransformationTest(unittest.TestCase):
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
 
+    # Write contents of file <filename> into passed luigi target
     def write_file_to_target(self, target, filename):
         filename = self.test_data_path + filename
 
-        with target.open('w') as input_data:
-            with open(
-                    filename.encode('utf-8'),
-                    'r',
-                    encoding='utf-8') as test_data_in:
-                input_data.write(test_data_in.read())
+        with target.open('w') as input_target:
+            with open(filename.encode('utf-8'),
+                      'r',
+                      encoding='utf-8') as test_data_file:
+                input_target.write(test_data_file.read())
 
     def prepare_input_target(self, input_mock, infile):
         input_target = MockTarget('data_in', format=UTF8)
