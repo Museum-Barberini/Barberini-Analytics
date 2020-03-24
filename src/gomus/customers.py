@@ -1,14 +1,21 @@
+#!/usr/bin/env python3
+import datetime as dt
 import luigi
 import mmh3
 import pandas as pd
+import numpy as np
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+from set_db_connection_options import set_db_connection_options
+
 from gomus._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
+
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     table = 'gomus_customer'
 
@@ -29,10 +36,13 @@ class CustomersToDB(CsvToDb):
     primary_key = 'customer_id'
 
     def requires(self):
-        return ExtractCustomerData(columns=[col[0] for col in self.columns])
+        return ExtractCustomerData(
+            columns=[col[0] for col in self.columns], today=self.today)
 
 
 class GomusToCustomerMappingToDB(CsvToDb):
+
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     table = 'gomus_to_customer_mapping'
 
@@ -41,7 +51,7 @@ class GomusToCustomerMappingToDB(CsvToDb):
         ('customer_id', 'INT')
     ]
 
-    primary_key = 'gomus_id'
+    primary_key = 'customer_id'
 
     foreign_keys = [
         {
@@ -54,14 +64,16 @@ class GomusToCustomerMappingToDB(CsvToDb):
     def requires(self):
         return ExtractGomusToCustomerMapping(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            foreign_keys=self.foreign_keys, today=self.today)
 
 
 class ExtractCustomerData(DataPreparationTask):
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return FetchGomusReport(report='customers')
+        return FetchGomusReport(report='customers', today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
@@ -112,6 +124,9 @@ class ExtractCustomerData(DataPreparationTask):
         return ''
 
     def cut_decimal_digits(self, post_string):
+        if post_string is np.nan:
+            post_string = ''
+        post_string = str(post_string)
         if len(post_string) >= 2:
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
@@ -119,6 +134,18 @@ class ExtractCustomerData(DataPreparationTask):
 
 class ExtractGomusToCustomerMapping(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+    foreign_keys = luigi.parameter.ListParameter(
+        description="The foreign keys to be asserted")
+
+    host = None
+    database = None
+    user = None
+    password = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
 
     def _requires(self):
         return luigi.task.flatten([
@@ -127,7 +154,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='customers')
+        return FetchGomusReport(report='customers', today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/gomus_to_customers_mapping.csv',

@@ -110,7 +110,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
                 input_data.write(test_data_in.read())
 
         # Execute task
-        ExtractOrderData(columns=self.columns).run()
+        ExtractOrderData().run()
 
         # Check result in output mock
         with output_target.open('r') as output_data:
@@ -129,6 +129,5 @@ class TestGomusOrdersTransformations(unittest.TestCase):
                 input_data.write(test_data_in.read())
 
         # 10698846.0 should be out of range
-        self.assertRaises(
-            OverflowError,
-            ExtractOrderData(columns=self.columns).run)
+        self.assertRaises(OverflowError,
+                          ExtractOrderData().run)

@@ -13,6 +13,8 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 
 class AbstractDailyEntriesToDB(CsvToDb):
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     columns = [
         ('id', 'INT'),
         ('ticket', 'TEXT'),
@@ -27,17 +29,22 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_daily_entry'
 
     def requires(self):
-        return ExtractDailyEntryData(expected=False, columns=self.columns)
+        return ExtractDailyEntryData(expected=False,
+                                     columns=self.columns,
+                                     today=self.today)
 
 
 class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_expected_daily_entry'
 
     def requires(self):
-        return ExtractDailyEntryData(expected=True, columns=self.columns)
+        return ExtractDailyEntryData(expected=True,
+                                     columns=self.columns,
+                                     today=self.today)
 
 
 class ExtractDailyEntryData(DataPreparationTask):
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     expected = luigi.parameter.BoolParameter(
         description="Whether to return actual or expected entries")
     columns = luigi.parameter.ListParameter(description="Column names")
@@ -46,13 +53,12 @@ class ExtractDailyEntryData(DataPreparationTask):
         return FetchGomusReport(
             report='entries', suffix='_1day', sheet_indices=[
                 0, 1] if not self.expected else [
-                2, 3])
+                2, 3], today=self.today)
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/gomus/{"expected_" if self.expected else ""}'
-             f'daily_entries.csv'),
-            format=UTF8)
+            f'output/gomus/{"expected_" if self.expected else ""}'
+            'daily_entries.csv', format=UTF8)
 
     def run(self):
         # get date from first sheet
@@ -61,8 +67,8 @@ class ExtractDailyEntryData(DataPreparationTask):
             while True:
                 try:
                     date_line = first_sheet.readline()
-                    date = pd.to_datetime(
-                        date_line.split(',')[2], format='"%d.%m.%Y"')
+                    date = pd.to_datetime(date_line.split(',')[2],
+                                          format='"%d.%m.%Y"')
                     break
                 except ValueError:
                     continue
@@ -83,8 +89,7 @@ class ExtractDailyEntryData(DataPreparationTask):
                     entries_df.at[row_index, 'datetime'] = \
                         dt.datetime.combine(date, time)
 
-                    # Handle different hour formats for expected and actual
-                    # entries
+                    # handle different hour formats for expected/actual entries
                     if self.expected:
                         count_index = str(i) + ':00'
                     else:
