@@ -2,6 +2,10 @@
 # This script reads files like 'migration_*' from its directory
 # and executes all it finds which are not yet listed in 'applied_migrations'
 
+# Potential ideas for commandline arguments:
+# - "reset" to drop database and apply all migrations
+# - "test" to set PGDATABASE to "barberini_test"
+
 # Directory and file names
 MIGRATION_DIR=$(dirname "$0")
 

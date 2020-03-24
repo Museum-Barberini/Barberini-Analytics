@@ -116,6 +116,17 @@ CREATE TABLE gomus_order (
 ALTER TABLE gomus_order
     ADD CONSTRAINT gomus_order_primkey PRIMARY KEY (order_id);
 
+CREATE TABLE gomus_order_contains (
+    article_id INTEGER,
+    order_id INTEGER,
+    ticket TEXT,
+    date DATE,
+    quantity INTEGER,
+    price FLOAT
+);
+ALTER TABLE gomus_order_contains
+    ADD CONSTRAINT gomus_order_contains_primkey PRIMARY KEY (article_id);
+
 CREATE TABLE gomus_to_customer_mapping (
     gomus_id INTEGER,
     customer_id INTEGER
@@ -172,4 +183,7 @@ ALTER TABLE gomus_event
 
 ALTER TABLE gomus_order
     ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id);
+
+ALTER TABLE gomus_order_contains
+    ADD CONSTRAINT order_id_fkey FOREIGN KEY (order_id) REFERENCES gomus_order (order_id);
 COMMIT;
