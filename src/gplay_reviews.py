@@ -16,7 +16,7 @@ class FetchGplayReviews(luigi.Task):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget('output/gplay_reviews.csv')
+        return luigi.LocalTarget('output/gplay_reviews.csv', format=luigi.format.UTF8)
 
     def run(self):
 
