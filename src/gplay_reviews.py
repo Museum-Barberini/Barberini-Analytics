@@ -33,8 +33,8 @@ class FetchGplayReviews(luigi.Task):
             self.fetch_for_language(language_code)
             for language_code in language_codes
         ]
-        reviews_flattened = list(chain.from_iterable(res))
-        return pd.DataFrame(reviews_flattened).drop_duplicates(subset = ["id"])
+        reviews_flattened = list(chain.from_iterable(reviews))
+        return pd.DataFrame(reviews_flattened).drop_duplicates()
 
     def get_language_codes(self):
         return pd.read_csv('data/language_codes_gplay.csv')['code'].to_list()
