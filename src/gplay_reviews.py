@@ -6,6 +6,7 @@ import requests
 
 from itertools import chain
 
+from csv_to_db import CsvToDb
 from museum_facts import MuseumFacts
 
 
@@ -21,6 +22,7 @@ class FetchGplayReviews(luigi.Task):
 
         print('Fetching Gplay reviews..')
         reviews = self.fetch_all()
+        reviews = self.prepare_for_output(reviews)
 
         print('Saving Gplay reviews')
         with self.output().open('w') as output_file:
@@ -36,7 +38,15 @@ class FetchGplayReviews(luigi.Task):
             for language_code in language_codes
         ]
         reviews_flattened = list(chain.from_iterable(reviews))
-        return pd.DataFrame(reviews_flattened).drop_duplicates()
+        
+        if len(reviews_flattened) > 0:
+            return pd.DataFrame(reviews_flattened).drop_duplicates()
+        else:
+            # even if no reviews were found the output dataframe should
+            # coform to the expected format.
+            return pd.DataFrame(
+                columns=['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
+            )
 
     def get_language_codes(self):
         return pd.read_csv('data/language_codes_gplay.csv')['code'].to_list()
@@ -76,3 +86,25 @@ class FetchGplayReviews(luigi.Task):
             facts = json.load(facts_file)
             app_id = facts['ids']['gplay']['appId']
         return app_id
+
+    def prepare_for_output(self, reviews):
+        """ Make sure that the review dataframe fits the format that the 
+        ToDB-Task expects. Rename and reorder columns, set data types explicitly."""
+
+        reviews = reviews.rename(columns={
+            'id': 'playstore_review_id',
+            'score': 'rating',
+            'version': 'app_version',
+            'thumbsUp': 'thumbs_up'
+        })
+        reviews = reviews[['playstore_review_id', 'text', 'rating', 'app_version', 'thumbs_up', 'title', 'date']]
+        reviews = reviews.astype({
+            'playstore_review_id': str,
+            'text': str,
+            'rating': int,
+            'app_version': str,
+            'thumbs_up': int,
+            'title': str,
+            'date': str
+        })
+        return reviews

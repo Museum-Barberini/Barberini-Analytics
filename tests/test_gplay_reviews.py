@@ -13,22 +13,31 @@ from task_test import DatabaseTaskTest
 
 
 response_elem_1 = {
-        'id': '123',
-        'date': '2020-01-04T17:09:33.789Z',
-        'score': 4,
-        'text': 'elem 1 text',
-        'title': 'elem 2 title',
-        'thumbsUp': 0,
-        'version': '2.10.7'
+    'id': '123a',
+    'date': '2020-01-04T17:09:33.789Z',
+    'score': 4,
+    'text': 'elem 1 text',
+    'title': 'elem 2 title',
+    'thumbsUp': 0,
+    'version': '2.10.7'
+}
+response_elem_1_renamed_cols = {
+    'playstore_review_id': '123a',
+    'text': 'elem 1 text',
+    'rating': 4,
+    'app_version': '2.10.7',
+    'thumbs_up': 0,
+    'title': 'elem 2 title',
+    'date': '2020-01-04T17:09:33.789Z'
 }
 response_elem_2 = {
-        'id': "abc",
-        'date': '2019-02-24T09:20:00.123Z',
-        'score': 0,
-        'text': 'elem 2 text',
-        'title': 'elem 2 title',
-        'thumbsUp': 9,
-        'version': '1.1.2'
+    'id': "abc",
+    'date': '2019-02-24T09:20:00.123Z',
+    'score': 0,
+    'text': 'elem 2 text',
+    'title': 'elem 2 title',
+    'thumbsUp': 9,
+    'version': '1.1.2'
 }
 
 
@@ -75,7 +84,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         self.assertIsInstance(res, list)
         self.assertEqual(len(res), 1)
-        self.assertDictContainsSubset(response_elem_1, res[0])
+        self.assertEqual(response_elem_1, res[0])
     
     @patch('gplay_reviews.FetchGplayReviews.get_app_id', 
            return_value='com.barberini.museum.barberinidigital')
@@ -88,8 +97,8 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         self.assertIsInstance(res, list)
         self.assertEqual(len(res), 2)
-        self.assertDictContainsSubset(response_elem_1, res[0])
-        self.assertDictContainsSubset(response_elem_2, res[1])
+        self.assertEqual(response_elem_1, res[0])
+        self.assertEqual(response_elem_2, res[1])
     
     @patch('gplay_reviews.FetchGplayReviews.get_app_id', 
            return_value='com.barberini.museum.barberinidigital')
@@ -137,7 +146,11 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         res = FetchGplayReviews().fetch_all()
 
-        pd.testing.assert_frame_equal(res, pd.DataFrame())
+        pd.testing.assert_frame_equal(
+            res, 
+            pd.DataFrame(
+                columns=['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version'])
+        )
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id', 
            return_value='com.barberini.museum.barberinidigital')
@@ -166,7 +179,7 @@ class TestFetchGplayReviews(unittest.TestCase):
     @patch('gplay_reviews.FetchGplayReviews.get_language_codes',
             return_value=['en', 'de'])
     @patch('gplay_reviews.FetchGplayReviews.fetch_for_language',
-            side_effect=[[response_elem_2], [response_elem_1], []])
+            side_effect=[[response_elem_1], [response_elem_1], []])
     @patch.object(FetchGplayReviews, 'output')
     @patch.object(FetchGplayReviews, 'input')
     def test_run(self, input_mock, output_mock, mock_fetch, mock_lang):
@@ -180,9 +193,17 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         FetchGplayReviews().run()
 
-        expected = pd.DataFrame([response_elem_2, response_elem_1])
+        expected = pd.DataFrame([response_elem_1_renamed_cols])
         with output_target.open('r') as fp:
             actual = pd.read_csv(fp) 
 
         pd.testing.assert_frame_equal(expected, actual)
 
+    def test_prepare_for_output(self):
+
+        reviews = pd.DataFrame([response_elem_1])
+
+        actual = FetchGplayReviews().prepare_for_output(reviews)
+        
+        expected = pd.DataFrame([response_elem_1_renamed_cols])
+        pd.testing.assert_frame_equal(expected, actual)
