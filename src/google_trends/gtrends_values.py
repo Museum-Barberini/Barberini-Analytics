@@ -97,6 +97,11 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
             print('Executing query: ' + query)
             connection.cursor().execute(query)
             connection.commit()
+
+        except psycopg2.errors.UndefinedTable:
+            # Table does not exist
+            pass
+
         finally:
             if connection is not None:
                 connection.close()

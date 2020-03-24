@@ -6,19 +6,21 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
+from gomus.customers import CustomersToDB
 
 
-def hash_booker_id(email, seed=666):
-    if not isinstance(email, str):
-        return 0
-    return mmh3.hash(email, seed, signed=True)
-
-
-class ExtractGomusBookings(luigi.Task):
+class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
     timespan = luigi.parameter.Parameter(default='_nextYear')
+
+    def _requires(self):
+        return luigi.task.flatten([
+            CustomersToDB(),
+            super()._requires()
+        ])
 
     def requires(self):
         return FetchGomusReport(report='bookings', suffix=self.timespan)
@@ -67,6 +69,9 @@ class ExtractGomusBookings(luigi.Task):
             'title',
             'status',
             'start_datetime']
+
+        bookings = self.ensure_foreign_keys(bookings)
+
         with self.output().open('w') as output_file:
             bookings.to_csv(output_file, header=True, index=False)
 

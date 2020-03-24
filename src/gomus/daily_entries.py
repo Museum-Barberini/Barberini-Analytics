@@ -8,6 +8,7 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
@@ -42,7 +43,7 @@ class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
                                      today=self.today)
 
 
-class ExtractDailyEntryData(luigi.Task):
+class ExtractDailyEntryData(DataPreparationTask):
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     expected = luigi.parameter.BoolParameter(
         description="Whether to return actual or expected entries")
