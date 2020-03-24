@@ -199,7 +199,6 @@ class FetchOrdersHTML(luigi.Task):
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
 
-    columns = luigi.parameter.ListParameter(description="Column names")
     timespan = luigi.parameter.Parameter(default='_nextYear')
 
     # could take up to an hour to scrape all bookings in the next year
@@ -218,10 +217,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
     def run(self):
         bookings = pd.read_csv(self.input()[0].path)
-        bookings['order_date'] = None
-        bookings['language'] = ""
-        bookings['customer_id'] = 0
-        enhanced_bookings = pd.DataFrame(columns=self.columns)
+        bookings.insert(1, 'customer_id', 0)  # new column at second position
+        bookings.insert(len(bookings.columns), 'order_date', None)
+        bookings.insert(len(bookings.columns), 'language', "")
+        enhanced_bookings = pd.DataFrame(
+            columns=list(bookings.columns))
 
         with self.input()[1].open('r') as all_htmls:
             for i, html_path in enumerate(all_htmls):
@@ -268,9 +268,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     row['customer_id'] = 0
 
                 enhanced_bookings = enhanced_bookings.append(row)
-
-        # ensure proper order
-        enhanced_bookings = enhanced_bookings.filter(self.columns)
 
         with self.output().open('w') as output_file:
             enhanced_bookings.to_csv(

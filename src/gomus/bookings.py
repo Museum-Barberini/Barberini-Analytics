@@ -36,5 +36,4 @@ class BookingsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return EnhanceBookingsWithScraper(
-            columns=[col[0] for col in self.columns], timespan=self.timespan)
+        return EnhanceBookingsWithScraper()
