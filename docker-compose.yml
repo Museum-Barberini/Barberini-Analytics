@@ -38,6 +38,16 @@ services:
         networks:
             - database_network
 
+    gplay_api:
+        container_name: gplay_api
+        build:
+            dockerfile: Dockerfile_gplay_api
+            context: .
+        networks:
+            - database_network
+        ports:
+            - "3000:3000"
+
 networks:
     database_network:
         external: true
