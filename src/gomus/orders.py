@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+import datetime as dt
 import luigi
 import numpy as np
 import pandas as pd
@@ -7,57 +7,61 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import CustomersToDB
-from set_db_connection_options import set_db_connection_options
+from gomus.customers import GomusToCustomerMappingToDB
+
+COLUMNS = [
+    ('order_id', 'INT'),
+    ('order_date', 'DATE'),
+    ('customer_id', 'INT'),
+    ('valid', 'BOOL'),
+    ('paid', 'BOOL'),
+    ('origin', 'TEXT')
+]
 
 
 class OrdersToDB(CsvToDb):
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
     table = 'gomus_order'
 
-    columns = [
-        ('order_id', 'INT'),
-        ('order_date', 'DATE'),
-        ('customer_id', 'INT'),
-        ('valid', 'BOOL'),
-        ('paid', 'BOOL'),
-        ('origin', 'TEXT')
-    ]
+    columns = COLUMNS
 
     primary_key = 'order_id'
 
     foreign_keys = [
         {
-            "origin_column": "customer_id",
-            "target_table": "gomus_customer",
-            "target_column": "customer_id"
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 
     def requires(self):
-        return ExtractOrderData(columns=[col[0] for col in self.columns])
+        return ExtractOrderData(
+            foreign_keys=self.foreign_keys,
+            today=self.today)
 
 
-class ExtractOrderData(luigi.Task):
-    columns = luigi.parameter.ListParameter(description="Column names")
-
-    host = None
-    database = None
-    user = None
-    password = None
+class ExtractOrderData(DataPreparationTask):
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
+        self.columns = [col[0] for col in COLUMNS]
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            GomusToCustomerMappingToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchGomusReport(report='orders', suffix='_1day')
+        return FetchGomusReport(report='orders',
+                                suffix='_7days',
+                                today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
@@ -70,7 +74,6 @@ class ExtractOrderData(luigi.Task):
             'Bestellnummer', 'Erstellt', 'Kundennummer',
             'ist gültig?', 'Bezahlstatus', 'Herkunft'
         ])
-
         df.columns = self.columns
 
         df['order_id'] = df['order_id'].apply(int)
@@ -79,6 +82,8 @@ class ExtractOrderData(luigi.Task):
             self.query_customer_id).astype('Int64')
         df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
         df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
+
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
@@ -99,8 +104,8 @@ class ExtractOrderData(luigi.Task):
             )
 
             cur = conn.cursor()
-            query = (f'SELECT customer_id FROM gomus_customer WHERE '
-                     f'gomus_id = {org_id}')
+            query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
+                     f'WHERE gomus_id = {org_id}')
             cur.execute(query)
 
             customer_row = cur.fetchone()
