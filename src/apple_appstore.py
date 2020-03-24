@@ -32,13 +32,11 @@ class AppstoreReviewsToDB(CsvToDb):
     primary_key = 'appstore_review_id'
 
     def requires(self):
-        return FetchAppstoreReviews(minimal=self.minimal,
-                                    columns=[col[0] for col in self.columns])
+        return FetchAppstoreReviews(minimal=self.minimal)
 
 
 class FetchAppstoreReviews(DataPreparationTask):
     minimal = luigi.parameter.BoolParameter(default=False)
-    columns = luigi.parameter.ListParameter()
 
     def requires(self):
         return MuseumFacts()
@@ -83,7 +81,8 @@ class FetchAppstoreReviews(DataPreparationTask):
         try:
             ret = pd.concat(data)
         except ValueError:
-            ret = pd.DataFrame(columns=self.columns)
+            ret = pd.DataFrame(columns=[])
+
         return ret.drop_duplicates(subset=['appstore_review_id'])
 
     def get_country_codes(self):
