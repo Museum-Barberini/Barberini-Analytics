@@ -3,7 +3,7 @@
 
 BEGIN;
 ALTER TABLE {0}
-	DROP CONSTRAINT IF EXISTS {0}_the_primary_key_constraint;
+	DROP CONSTRAINT IF EXISTS {0}_primkey;
 ALTER TABLE {0}
-	ADD CONSTRAINT {0}_the_primary_key_constraint PRIMARY KEY {1};
+	ADD CONSTRAINT {0}_primkey PRIMARY KEY {1};
 COMMIT;
