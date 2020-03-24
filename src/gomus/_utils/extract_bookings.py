@@ -8,12 +8,13 @@ from luigi.format import UTF8
 
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import CustomersToDB, hash_id
+from gomus.customers import CustomersToDB
 
 
 class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
+    timespan = luigi.parameter.Parameter(default='_nextYear')
 
     def _requires(self):
         return luigi.task.flatten([
@@ -22,7 +23,7 @@ class ExtractGomusBookings(DataPreparationTask):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='bookings', suffix='_nextYear')
+        return FetchGomusReport(report='bookings', suffix=self.timespan)
 
     def output(self):
         return luigi.LocalTarget(
@@ -30,17 +31,17 @@ class ExtractGomusBookings(DataPreparationTask):
 
     def run(self):
         with next(self.input()).open('r') as bookings_file:
-            df = pd.read_csv(bookings_file)
+            bookings = pd.read_csv(bookings_file)
 
-        if not df.empty:
-            df['Buchung'] = df['Buchung'].apply(int)
-            df['E-Mail'] = df['E-Mail'].apply(hash_id)
-            df['Teilnehmerzahl'] = df['Teilnehmerzahl'].apply(int)
-            df['Guide'] = df['Guide'].apply(self.hash_guide)
-            df['Startzeit'] = df.apply(
+        if not bookings.empty:
+            bookings['Buchung'] = bookings['Buchung'].apply(int)
+            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(
+                self.safe_parse_int)
+            bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
+            bookings['Startzeit'] = bookings.apply(
                 lambda x: self.calculate_start_datetime(
                     x['Datum'], x['Uhrzeit von']), axis=1)
-            df['Dauer'] = df.apply(
+            bookings['Dauer'] = bookings.apply(
                 lambda x: self.calculate_duration(
                     x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 
@@ -48,22 +49,20 @@ class ExtractGomusBookings(DataPreparationTask):
         else:
             # manually append "Startzeit" and "Dauer" to ensure pandas
             # doesn't crash even though nothing will be added
-            df['Startzeit'] = 0
-            df['Dauer'] = 0
+            bookings['Startzeit'] = 0
+            bookings['Dauer'] = 0
 
-        df = df.filter(['Buchung',
-                        'E-Mail',
-                        'Angebotskategorie',
-                        'Teilnehmerzahl',
-                        'Guide',
-                        'Dauer',
-                        'Ausstellung',
-                        'Titel',
-                        'Status',
-                        'Startzeit'])
-        df.columns = [
+        bookings = bookings.filter(['Buchung',
+                                    'Angebotskategorie',
+                                    'Teilnehmerzahl',
+                                    'Guide',
+                                    'Dauer',
+                                    'Ausstellung',
+                                    'Titel',
+                                    'Status',
+                                    'Startzeit'])
+        bookings.columns = [
             'booking_id',
-            'customer_id',
             'category',
             'participants',
             'guide_id',
@@ -73,10 +72,10 @@ class ExtractGomusBookings(DataPreparationTask):
             'status',
             'start_datetime']
 
-        df = self.ensure_foreign_keys(df)
+        bookings = self.ensure_foreign_keys(bookings)
 
         with self.output().open('w') as output_file:
-            df.to_csv(output_file, header=True, index=False)
+            bookings.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
         if guide_name is np.NaN:
@@ -92,3 +91,6 @@ class ExtractGomusBookings(DataPreparationTask):
     def calculate_duration(self, from_str, to_str):
         return (dt.datetime.strptime(to_str, '%H:%M') -
                 dt.datetime.strptime(from_str, '%H:%M')).seconds // 60
+
+    def safe_parse_int(self, number_string):
+        return int(np.nan_to_num(number_string))

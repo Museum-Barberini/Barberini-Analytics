@@ -1,3 +1,4 @@
+import datetime as dt
 import luigi
 import numpy as np
 import pandas as pd
@@ -10,18 +11,22 @@ from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
 
+COLUMNS = [
+    ('order_id', 'INT'),
+    ('order_date', 'DATE'),
+    ('customer_id', 'INT'),
+    ('valid', 'BOOL'),
+    ('paid', 'BOOL'),
+    ('origin', 'TEXT')
+]
+
 
 class OrdersToDB(CsvToDb):
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
     table = 'gomus_order'
 
-    columns = [
-        ('order_id', 'INT'),
-        ('order_date', 'DATE'),
-        ('customer_id', 'INT'),
-        ('valid', 'BOOL'),
-        ('paid', 'BOOL'),
-        ('origin', 'TEXT')
-    ]
+    columns = COLUMNS
 
     primary_key = 'order_id'
 
@@ -35,12 +40,17 @@ class OrdersToDB(CsvToDb):
 
     def requires(self):
         return ExtractOrderData(
-            columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            foreign_keys=self.foreign_keys,
+            today=self.today)
 
 
 class ExtractOrderData(DataPreparationTask):
-    columns = luigi.parameter.ListParameter(description="Column names")
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.columns = [col[0] for col in COLUMNS]
 
     def _requires(self):
         return luigi.task.flatten([
@@ -49,7 +59,9 @@ class ExtractOrderData(DataPreparationTask):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='orders', suffix='_1day')
+        return FetchGomusReport(report='orders',
+                                suffix='_7days',
+                                today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
@@ -62,7 +74,6 @@ class ExtractOrderData(DataPreparationTask):
             'Bestellnummer', 'Erstellt', 'Kundennummer',
             'ist gültig?', 'Bezahlstatus', 'Herkunft'
         ])
-
         df.columns = self.columns
 
         df['order_id'] = df['order_id'].apply(int)

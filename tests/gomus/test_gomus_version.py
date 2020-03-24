@@ -33,5 +33,4 @@ class TestGomusVersion(unittest.TestCase):
         # if this line no. changes, that also means that adjustments to Gomus
         # have been made
         version_tag = response.text.splitlines()[762]
-
         self.assertEqual(version_tag, EXPECTED_VERSION_TAG)
