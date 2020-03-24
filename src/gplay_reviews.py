@@ -1,5 +1,6 @@
 import json
 import luigi
+import os
 import pandas as pd
 import requests
 
@@ -27,7 +28,8 @@ class FetchGplayReviews(luigi.Task):
 
     def fetch_all(self):
         
-        # the reviews only change by language, not by country code
+        # Different languages have different reviews. Iterate over
+        # the lanugage codes to fetch all reviews. 
         language_codes = self.get_language_codes()
         reviews = [
             self.fetch_for_language(language_code)
@@ -41,12 +43,12 @@ class FetchGplayReviews(luigi.Task):
 
     def fetch_for_language(self, language_code):
 
-        # send a request to the webserver running google-play-api (https://github.com/facundoolano/google-play-api)
+        # send a request to the webserver that serves the gplay api
         res = requests.get(
-            url = f"http://gplay_api:3000/api/apps/{self.get_app_id()}/reviews",
+            url = self.get_url(),
             params = {
-                "lang": language_code,
-                "num": 1000000
+                'lang': language_code,
+                'num': 1000000
             }
         )
         # task should fail if request is not successful
@@ -59,6 +61,15 @@ class FetchGplayReviews(luigi.Task):
         res_reduced = [{key: r[key] for key in keep_values} for r in res]
 
         return res_reduced
+
+    def get_url(self):
+
+        # The webserver that serves the gplay api runs in a different 
+        # container. The container name is user specific: [CONTAINER_USER]-gplay-api
+        # Note that the container name is set in the docker-compose.yml
+        user = os.getenv('CONTAINER_USER')
+        app_id = self.get_app_id()
+        return f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
 
     def get_app_id(self):
         with self.input().open('r') as facts_file:
