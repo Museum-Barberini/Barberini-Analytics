@@ -21,6 +21,7 @@ REPORT_IDS = {
     'bookings_1month': -3,
     'bookings_1year': -1,
     'bookings_nextYear': -5,
+    'bookings_all': -11,
 
     'guides': -2
 }
@@ -44,7 +45,6 @@ def parse_arguments(args):
         type=str,
         help='Type of the report',
         choices=REPORT_IDS.keys())
-
     parser.add_argument(
         'action',
         type=str,
@@ -83,8 +83,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def parse_timespan(timespan):
-    today = dt.date.today()
+def parse_timespan(timespan, today=dt.datetime.today()):
     end_time = today - dt.timedelta(days=1)
     if timespan == '7days':
         # grab everything from yesterday till a week before
@@ -98,6 +97,9 @@ def parse_timespan(timespan):
     elif timespan == 'nextYear':
         start_time = end_time
         end_time = end_time + dt.timedelta(days=365)
+    elif timespan == 'all':
+        start_time = today - dt.timedelta(days=365*5)
+        end_time = today + dt.timedelta(days=365*2)
     else:
         start_time = dt.date.min  # check this for error handling
     return start_time, end_time
@@ -150,7 +152,6 @@ def request_report(args=sys.argv[1:]):
             exit(1)
 
     base_url = 'https://barberini.gomus.de'
-
     report_parts = REPORT_IDS_INV[report_id].split("_")
 
     print(f"Working with report '{report_parts[0]}.xlsx'")
@@ -169,9 +170,6 @@ def request_report(args=sys.argv[1:]):
 
     else:  # Work with the kind of report that is requested directly
         print("Directly downloading report")
-        if args.action == 'refresh':
-            print("Error: Directly downloaded reports cannot be refreshed")
-            exit(1)
         if len(report_parts) < 2:
             timespan = ''
         else:

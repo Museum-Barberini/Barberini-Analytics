@@ -1,5 +1,6 @@
 import csv
 
+import datetime as dt
 import luigi
 import pandas as pd
 import psycopg2
@@ -96,27 +97,31 @@ class ExtractEventData(luigi.Task):
     def append_event_data(self, event_data, status, category):
         with event_data.open('r') as sheet:
             sheet_reader = csv.reader(sheet)
-            event_id = int(float(next(sheet_reader)[0]))
+            try:
+                event_id = int(float(next(sheet_reader)[0]))
+            except StopIteration:
+                event_id = None
 
-        event_df = pd.read_csv(event_data.path, skiprows=5)
-        event_df['Status'] = status
-        event_df['Event_id'] = event_id
-        event_df['Kategorie'] = category
-        event_df = event_df.filter([
-            'Id', 'E-Mail', 'Event_id', 'Plätze',
-            'Datum', 'Status', 'Kategorie'])
+        if event_id:
+            event_df = pd.read_csv(event_data.path, skiprows=5)
+            event_df['Status'] = status
+            event_df['Event_id'] = event_id
+            event_df['Kategorie'] = category
+            event_df = event_df.filter([
+                'Id', 'E-Mail', 'Event_id', 'Plätze',
+                'Datum', 'Status', 'Kategorie'])
 
-        event_df.columns = self.columns
+            event_df.columns = self.columns
 
-        event_df['event_id'] = event_df['event_id'].apply(int)
-        event_df['customer_id'] = event_df['customer_id'].apply(
-            hash_booker_id, args=(self.seed,))
-        event_df['reservation_count'] = event_df['reservation_count'].apply(
-            int)
-        event_df['order_date'] = event_df['order_date'].apply(
-            self.float_to_datetime)
+            event_df['event_id'] = event_df['event_id'].apply(int)
+            event_df['customer_id'] = event_df['customer_id'].apply(
+                hash_booker_id, args=(self.seed,))
+            event_df['reservation_count'] = event_df[
+                'reservation_count'].apply(int)
+            event_df['order_date'] = event_df['order_date'].apply(
+                self.float_to_datetime)
 
-        self.events_df = self.events_df.append(event_df)
+            self.events_df = self.events_df.append(event_df)
 
     def float_to_datetime(self, string):
         return xldate_as_datetime(float(string), 0).date()
@@ -133,14 +138,19 @@ class EnsureBookingsIsRun(luigi.Task):
         self.row_list = []
 
     def run(self):
+        print(self.row_list)
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
+
+            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+
             query = (f'SELECT booking_id FROM gomus_booking WHERE category=\''
-                     f'{self.category}\'')
+                     f'{self.category}\''
+                     f' AND start_datetime > \'{two_weeks_ago}\'')
             cur.execute(query)
 
             row = cur.fetchone()

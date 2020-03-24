@@ -1,3 +1,5 @@
+import luigi
+
 from csv_to_db import CsvToDb
 
 from ._utils.scrape_gomus import EnhanceBookingsWithScraper
@@ -5,6 +7,7 @@ from ._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 class BookingsToDB(CsvToDb):
 
+    timespan = luigi.parameter.Parameter(default='_nextYear')
     table = 'gomus_booking'
 
     columns = [
@@ -34,4 +37,4 @@ class BookingsToDB(CsvToDb):
 
     def requires(self):
         return EnhanceBookingsWithScraper(
-            columns=[col[0] for col in self.columns])
+            columns=[col[0] for col in self.columns], timespan=self.timespan)

@@ -29,7 +29,6 @@ class TestGomusCustomerTransformations(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = [
-            'gomus_id',
             'customer_id',
             'postal_code',
             'newsletter',
@@ -39,7 +38,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
             'country',
             'type',
             'register_date',
-            'annual_ticket']
+            'annual_ticket',
+            'valid_mail']
 
     @patch.object(ExtractCustomerData, 'output')
     @patch.object(ExtractCustomerData, 'input')
@@ -57,7 +57,7 @@ class TestGomusCustomerTransformations(unittest.TestCase):
                 input_data.write(test_data_in.read())
 
         # Execute task
-        ExtractCustomerData(self.columns).run()
+        ExtractCustomerData(columns=self.columns).run()
 
         # Check result in output mock
         with output_target.open('r') as output_data:
@@ -76,7 +76,8 @@ class TestGomusCustomerTransformations(unittest.TestCase):
                 input_data.write(test_data_in.read())
 
         # 30.21.2005 should not be a valid date
-        self.assertRaises(ValueError, ExtractCustomerData(self.columns).run)
+        self.assertRaises(ValueError,
+                          ExtractCustomerData(columns=self.columns).run)
 
 
 class TestGomusOrdersTransformations(unittest.TestCase):
@@ -109,7 +110,7 @@ class TestGomusOrdersTransformations(unittest.TestCase):
                 input_data.write(test_data_in.read())
 
         # Execute task
-        ExtractOrderData(self.columns).run()
+        ExtractOrderData().run()
 
         # Check result in output mock
         with output_target.open('r') as output_data:
@@ -128,4 +129,5 @@ class TestGomusOrdersTransformations(unittest.TestCase):
                 input_data.write(test_data_in.read())
 
         # 10698846.0 should be out of range
-        self.assertRaises(OverflowError, ExtractOrderData(self.columns).run)
+        self.assertRaises(OverflowError,
+                          ExtractOrderData().run)
