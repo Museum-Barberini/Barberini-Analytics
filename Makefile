@@ -64,6 +64,11 @@ luigi-task: luigi-scheduler
 luigi-clean:
 	rm -rf output
 
+luigi-minimal:
+	make luigi-scheduler
+	mkdir -p output
+	luigi --module fill_db FillDB --minimal
+
 # --- Testing ---
 
 test: luigi-clean

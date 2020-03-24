@@ -14,6 +14,8 @@ from gomus.orders import OrdersToDB
 
 
 class FillDB(luigi.WrapperTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
     def requires(self):
         yield FillDBDaily()
         yield FillDBHourly()
