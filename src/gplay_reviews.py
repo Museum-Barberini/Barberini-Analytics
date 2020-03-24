@@ -20,7 +20,7 @@ class FetchGplayReviews(luigi.Task):
     def run(self):
 
         print('Fetching Gplay reviews..')
-        reviews = fetch_all()
+        reviews = self.fetch_all()
 
         print('Saving Gplay reviews')
         with self.output().open('w') as output_file:
