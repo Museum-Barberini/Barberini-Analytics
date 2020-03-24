@@ -1,18 +1,16 @@
 # This dockerfile is used to create containers that run a web
-# server allowing access to the google-play-api (see
+# server that serves the google-play-api (see
 # https://github.com/facundoolano/google-play-api)
 
 FROM ubuntu:18.04
-
 WORKDIR /gplay_api
-
 RUN apt-get update && apt-get install -y git
 
 # clone google play api repo
 RUN git clone https://github.com/facundoolano/google-play-api.git
 WORKDIR google-play-api
 
-# set google play api to commit that we know works. If the repo
+# set google play api to a commit that is known to work. If the repo
 # gets updated it may be wise to set the commit hash below to the new HEAD.
 RUN git reset 6d0e649a1f50ef26721f911032292f87e4f1383c --hard
 

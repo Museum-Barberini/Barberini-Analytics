@@ -33,17 +33,17 @@ class FetchGplayReviews(luigi.Task):
         # Different languages have different reviews. Iterate over
         # the lanugage codes to fetch all reviews. 
         language_codes = self.get_language_codes()
-        reviews = [
+        reviews_nested = [
             self.fetch_for_language(language_code)
             for language_code in language_codes
         ]
-        reviews_flattened = list(chain.from_iterable(reviews))
+        reviews_flattened = list(chain.from_iterable(reviews_nested))
         
         if len(reviews_flattened) > 0:
             return pd.DataFrame(reviews_flattened).drop_duplicates()
         else:
             # even if no reviews were found the output dataframe should
-            # coform to the expected format.
+            # conform to the expected format.
             return pd.DataFrame(
                 columns=['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
             )
@@ -74,9 +74,10 @@ class FetchGplayReviews(luigi.Task):
 
     def get_url(self):
 
-        # The webserver that serves the gplay api runs in a different 
-        # container. The container name is user specific: [CONTAINER_USER]-gplay-api
-        # Note that the container name is set in the docker-compose.yml
+        # The webserver that serves the gplay api runs in a different container. 
+        # The container name is user specific: [CONTAINER_USER]-gplay-api
+        # Note that the container name and the CONTAINER_USER environment variable 
+        # are set in the docker-compose.yml
         user = os.getenv('CONTAINER_USER')
         app_id = self.get_app_id()
         return f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
@@ -97,7 +98,8 @@ class FetchGplayReviews(luigi.Task):
             'version': 'app_version',
             'thumbsUp': 'thumbs_up'
         })
-        reviews = reviews[['playstore_review_id', 'text', 'rating', 'app_version', 'thumbs_up', 'title', 'date']]
+        reviews = reviews[['playstore_review_id', 'text', 'rating', 
+            'app_version', 'thumbs_up', 'title', 'date']]
         reviews = reviews.astype({
             'playstore_review_id': str,
             'text': str,
