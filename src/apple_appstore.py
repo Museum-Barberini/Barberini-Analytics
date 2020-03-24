@@ -2,6 +2,7 @@ import json
 
 import luigi
 import pandas as pd
+import random
 import requests
 import xmltodict
 from luigi.format import UTF8
@@ -11,7 +12,33 @@ from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
+class AppstoreReviewsToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = 'appstore_review'
+
+    columns = [
+        ('appstore_review_id', 'TEXT'),
+        ('text', 'TEXT'),
+        ('rating', 'INT'),
+        ('app_version', 'TEXT'),
+        ('vote_count', 'INT'),
+        ('vote_sum', 'INT'),
+        ('title', 'TEXT'),
+        ('date', 'TIMESTAMP'),
+        ('country_code', 'TEXT')
+    ]
+
+    primary_key = 'appstore_review_id'
+
+    def requires(self):
+        return FetchAppstoreReviews(minimal=self.minimal,
+                                    columns=[col[0] for col in self.columns])
+
+
 class FetchAppstoreReviews(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
+    columns = luigi.parameter.ListParameter()
 
     def requires(self):
         return MuseumFacts()
@@ -28,6 +55,11 @@ class FetchAppstoreReviews(DataPreparationTask):
     def fetch_all(self):
         data = []
         country_codes = sorted(self.get_country_codes())
+        if self.minimal:
+            random_num = random.randint(0, len(country_codes))
+            country_codes = [country_codes[random_num],
+                             country_codes[random_num + 1]]
+
         print()
         try:
             for index, country_code in enumerate(country_codes, start=1):
@@ -48,7 +80,10 @@ class FetchAppstoreReviews(DataPreparationTask):
                         raise
         finally:
             print()
-        ret = pd.concat(data)
+        try:
+            ret = pd.concat(data)
+        except ValueError:
+            ret = pd.DataFrame(columns=self.columns)
         return ret.drop_duplicates(subset=['appstore_review_id'])
 
     def get_country_codes(self):
@@ -111,25 +146,3 @@ class FetchAppstoreReviews(DataPreparationTask):
     # for when there are multiple 'contents'-elements in our response
     def find_first_conditional_tag(self, tags, condition):
         return next(each for each in tags if condition(each))
-
-
-class AppstoreReviewsToDB(CsvToDb):
-
-    table = 'appstore_review'
-
-    columns = [
-        ('appstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('vote_count', 'INT'),
-        ('vote_sum', 'INT'),
-        ('title', 'TEXT'),
-        ('date', 'TIMESTAMP'),
-        ('country_code', 'TEXT')
-    ]
-
-    primary_key = 'appstore_review_id'
-
-    def requires(self):
-        return FetchAppstoreReviews()

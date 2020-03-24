@@ -17,30 +17,35 @@ class FillDB(luigi.WrapperTask):
     minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield FillDBDaily()
-        yield FillDBHourly()
+        yield FillDBDaily(minimal=self.minimal)
+        yield FillDBHourly(minimal=self.minimal)
 
 
 class FillDBDaily(luigi.WrapperTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
     def requires(self):
-        yield AppstoreReviewsToDB()
-        yield FbPostsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield TweetsToDB()
-        yield GtrendsValuesToDB()
+        yield AppstoreReviewsToDB(minimal=self.minimal)
+        yield FbPostsToDB(minimal=self.minimal)
+        yield GoogleMapsReviewsToDB(minimal=self.minimal)
+        yield TweetsToDB(minimal=self.minimal)
+        yield GtrendsValuesToDB(minimal=self.minimal)
 
-        yield BookingsToDB()
-        yield CustomersToDB()
-        yield DailyEntriesToDB()
-        yield ExpectedDailyEntriesToDB()
-        yield EventsToDB()
-        yield OrderContainsToDB()
-        yield OrdersToDB()
+        yield BookingsToDB(minimal=self.minimal)
+        yield CustomersToDB(minimal=self.minimal)
+        yield DailyEntriesToDB(minimal=self.minimal)
+        yield ExpectedDailyEntriesToDB(minimal=self.minimal)
+        yield EventsToDB(minimal=self.minimal)
+        yield OrderContainsToDB(minimal=self.minimal)
+        yield OrdersToDB(minimal=self.minimal)
 
-        yield GomusToCustomerMappingToDB()
+        yield GomusToCustomerMappingToDB(minimal=self.minimal)
 
 
 class FillDBHourly(luigi.WrapperTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
     def requires(self):
-        yield FbPostPerformanceToDB()
-        yield TweetPerformanceToDB()
+        yield FbPostPerformanceToDB(minimal=self.minimal)
+        yield TweetPerformanceToDB(minimal=self.minimal)
+        pass
