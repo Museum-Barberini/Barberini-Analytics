@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import datetime as dt
 
 import luigi
@@ -76,7 +75,7 @@ class ExtractDailyEntryData(DataPreparationTask):
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
-            entries_df = pd.DataFrame(columns=[col[0] for col in self.columns])
+            entries_df = pd.DataFrame(columns=self.columns)
 
             for index, row in df.iterrows():
                 for i in range(24):

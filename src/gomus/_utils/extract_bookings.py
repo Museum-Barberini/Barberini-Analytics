@@ -30,7 +30,9 @@ class ExtractGomusBookings(DataPreparationTask):
             f'output/gomus/bookings_prepared.csv', format=UTF8)
 
     def run(self):
-        bookings = pd.read_csv(next(self.input()).path)
+        with next(self.input()).open('r') as bookings_file:
+            bookings = pd.read_csv(bookings_file)
+
         if not bookings.empty:
             bookings['Buchung'] = bookings['Buchung'].apply(int)
             bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(
@@ -76,7 +78,7 @@ class ExtractGomusBookings(DataPreparationTask):
             bookings.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
-        if guide_name is np.NaN:  # np.isnan(guide_name):
+        if guide_name is np.NaN:
             return 0  # 0 represents empty value
         guides = guide_name.lower().replace(' ', '').split(',')
         guide = guides[0]
