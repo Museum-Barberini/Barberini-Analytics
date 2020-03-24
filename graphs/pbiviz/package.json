@@ -17,7 +17,8 @@
     "jquery": "^3.4.1",
     "jquery-powerbi": "^1.0.0-beta.4",
     "powerbi-visuals-api": "^2.6.2",
-    "powerbi-visuals-utils-dataviewutils": "2.2.1"
+    "powerbi-visuals-utils-dataviewutils": "2.2.1",
+    "sigma": "^2.0.0-alpha32"
   },
   "devDependencies": {
     "csv-loader": "^3.0.2",
