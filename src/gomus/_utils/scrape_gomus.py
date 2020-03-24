@@ -13,8 +13,9 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
+from gomus.customers import hash_id
 from gomus.orders import OrdersToDB
-from gomus._utils.extract_bookings import ExtractGomusBookings, hash_id
+from gomus._utils.extract_bookings import ExtractGomusBookings
 from set_db_connection_options import set_db_connection_options
 
 
