@@ -47,8 +47,6 @@ services:
             context: .
         networks:
             - database_network
-        ports:
-            - "3000:3000"
 
 networks:
     database_network:
