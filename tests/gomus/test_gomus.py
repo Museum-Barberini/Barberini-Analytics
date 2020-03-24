@@ -141,74 +141,184 @@ class TestReportFormats(unittest.TestCase):
         today = dt.datetime.now().strftime("%d.%m.%Y")
         yesterday = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%d.%m.%Y")
 
-        bookings_format = '"Buchung","Datum","Uhrzeit von","Uhrzeit bis","Museum",'\
-            '"Ausstellung","Raum","Treffpunkt","Angebotskategorie","Titel",'\
-            '"Teilnehmerzahl","Guide","Kunde","E-Mail","Institution","Notiz",'\
-            '"Führungsentgelt / Summe Endkundenpreis ohne Storno","Honorar",'\
-            '"Zahlungsart","Kommentar","Status"\n'
-        orders_format = '"Bestellnummer","Erstellt","Kundennummer","Kunde",'\
-            '"Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?",'\
-            '"Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft",'\
-            '"Kostenstellen","In Rechnung gestellt am","Rechnungen",'\
-            '"Korrekturrechnungen","Rating"\n'
-        customers_format = '"Nummer","Anrede","Vorname","Name","E-Mail",'\
-            '"Telefon","Mobil","Fax","Sprache","Kategorie","Straße","PLZ",'\
-            '"Stadt","Land","Typ","Erstellt am","Newsletter","Jahreskarte"\n'
-        entries_0and2_sheet_format = f'"ID","Ticket","{yesterday}",'\
-            f'"{today}","Gesamt",""\n'
-        entries_1_sheet_format = '"ID","Ticket",0.0,1.0,2.0,3.0,4.0,5.0,'\
-            '6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,'\
-            '18.0,19.0,20.0,21.0,22.0,23.0,"Gesamt"\n'
-        entries_3_sheet_format ='"ID","Ticket","0:00","1:00","2:00","3:00",'\
-            '"4:00","5:00","6:00","7:00","8:00","9:00","10:00","11:00",'\
-            '"12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00",'\
-            '"20:00","21:00","22:00","23:00","Gesamt"\n'
+        bookings_format = [
+            ('"Buchung"', 'FLOAT'),
+            ('"Datum"', 'DATE'),
+            ('"Uhrzeit von"', 'TIME'),
+            ('"Uhrzeit bis"', 'TIME'),
+            ('"Museum"', 'STRING'),
+            ('"Ausstellung"', 'STRING'),
+            ('"Raum"', 'STRING'),
+            ('"Treffpunkt"', 'STRING'),
+            ('"Angebotskategorie"', 'STRING'),
+            ('"Titel"', 'STRING'),
+            ('"Teilnehmerzahl"', 'FLOAT'),
+            ('"Guide"', 'STRING'),
+            ('"Kunde"', 'STRING'),
+            ('"E-Mail"', 'STRING'),
+            ('"Institution"', 'STRING'),
+            ('"Notiz"', 'STRING'),
+            ('"Führungsentgelt / Summe Endkundenpreis ohne Storno"', 'FLOAT'),
+            ('"Honorar"', 'FLOAT'),
+            ('"Zahlungsart"', 'STRING'),
+            ('"Kommentar"', 'STRING'),
+            ('"Status"\n', 'STRING')
+        ]
+        orders_format = [ #doto: add type
+            ('"Bestellnummer"', 'FLOAT'),
+            ('"Erstellt"', 'DATE'),
+            ('"Kundennummer"', 'FLOAT'),
+            ('"Kunde"', 'STRING'),
+            ('"Bestellwert"', 'STRING'),
+            ('"Gutscheinwert"', 'STRING'),
+            ('"Gesamtbetrag"', 'STRING'),
+            ('"ist gültig?"', 'STRING'),
+            ('"Bezahlstatus"', 'STRING'),
+            ('"Bezahlmethode"', 'STRING'),
+            ('"ist storniert?"', 'STRING'),
+            ('"Herkunft"', 'STRING'),
+            ('"Kostenstellen"', 'STRING'),
+            ('"In Rechnung gestellt am"', 'STRING'),
+            ('"Rechnungen"', 'STRING'),
+            ('"Korrekturrechnungen"', 'STRING'),
+            ('"Rating"\n', 'STRING')
+        ]
+        customers_format = [
+            ('"Nummer"', 'FLOAT'),
+            ('"Anrede"', 'DATE'),
+            ('"Vorname"', 'TIME'),
+            ('"Name"', 'TIME'),
+            ('"E-Mail"', 'STRING'),
+            ('"Telefon"', 'STRING'),
+            ('"Mobil"', 'STRING'),
+            ('"Fax"', 'STRING'),
+            ('"Sprache"', 'STRING'),
+            ('"Kategorie"', 'STRING'),
+            ('"Straße"', 'STRING'),
+            ('"PLZ"', 'STRING'),
+            ('"Stadt"', 'STRING'),
+            ('"Land"', 'STRING'),
+            ('"Typ"', 'STRING'),
+            ('"Erstellt am"', 'STRING'),
+            ('"Newsletter"', 'STRING'),
+            ('"Jahreskarte"\n', 'STRING')
+        ]
+        entries_0and2_sheet_format = [
+            ('"ID"', 'FLOAT'),
+            ('"Ticket"', 'STRING'),
+            (f'"{yesterday}"', 'STRING'),
+            (f'"{today}"', 'STRING'),
+            ('"Gesamt"', 'STRING'),
+            ('""\n', 'STRING')
+        ]
+        entries_1_sheet_format = [
+            ('"ID"', 'FLOAT'),
+            ('"Ticket"', 'STRING'),
+            ('0.0', 'FLOAT'),
+            ('1.0', 'FLOAT'),
+            ('2.0', 'FLOAT'),
+            ('3.0', 'FLOAT'),
+            ('4.0', 'FLOAT'),
+            ('5.0', 'FLOAT'),
+            ('6.0', 'FLOAT'),
+            ('7.0', 'FLOAT'),
+            ('8.0', 'FLOAT'),
+            ('9.0', 'FLOAT'),
+            ('10.0', 'FLOAT'),
+            ('11.0', 'FLOAT'),
+            ('12.0', 'FLOAT'),
+            ('13.0', 'FLOAT'),
+            ('14.0', 'FLOAT'),
+            ('15.0', 'FLOAT'),
+            ('16.0', 'FLOAT'),
+            ('17.0', 'FLOAT'),
+            ('18.0', 'FLOAT'),
+            ('19.0', 'FLOAT'),
+            ('20.0', 'FLOAT'),
+            ('21.0', 'FLOAT'),
+            ('22.0', 'FLOAT'),
+            ('23.0', 'FLOAT'),
+            ('"Gesamt"\n', 'FLOAT')
+        ]
+        entries_3_sheet_format = [
+            ('"ID"', 'FLOAT'),
+            ('"Ticket"', 'STRING'),
+            ('"0:00"', 'FLOAT'),
+            ('"1:00"', 'FLOAT'),
+            ('"2:00"', 'FLOAT'),
+            ('"3:00"', 'FLOAT'),
+            ('"4:00"', 'FLOAT'),
+            ('"5:00"', 'FLOAT'),
+            ('"6:00"', 'FLOAT'),
+            ('"7:00"', 'FLOAT'),
+            ('"8:00"', 'FLOAT'),
+            ('"9:00"', 'FLOAT'),
+            ('"10:00"', 'FLOAT'),
+            ('"11:00"', 'FLOAT'),
+            ('"12:00"', 'FLOAT'),
+            ('"13:00"', 'FLOAT'),
+            ('"14:00"', 'FLOAT'),
+            ('"15:00"', 'FLOAT'),
+            ('"16:00"', 'FLOAT'),
+            ('"17:00"', 'FLOAT'),
+            ('"18:00"', 'FLOAT'),
+            ('"19:00"', 'FLOAT'),
+            ('"20:00"', 'FLOAT'),
+            ('"21:00"', 'FLOAT'),
+            ('"22:00"', 'FLOAT'),
+            ('"23:00"', 'FLOAT'),
+            ('"Gesamt"\n', 'FLOAT')
+        ]
+        self.check_format(output_mock,output_target,'bookings',bookings_format)
+        #self.check_format(output_mock,output_target,'orders',orders_format,'_1day')
+        #self.check_format(output_mock,output_target,'orders',orders_format)
+        #self.check_format(output_mock,output_target,'customers',customers_format)
+        self.check_format_entries(output_mock,output_target,'entries',entries_0and2_sheet_format)
+        self.check_format_entries(output_mock,output_target,'entries',entries_1_sheet_format,[1])
+        self.check_format_entries(output_mock,output_target,'entries',entries_0and2_sheet_format,[2])
+        self.check_format_entries(output_mock,output_target,'entries',entries_3_sheet_format,[3])
 
-        self.assertTrue(self.check_expected_format(output_mock,
-                                                   output_target,
-                                                   'bookings',
-                                                   bookings_format))
-        #self.assertTrue(self.check_expected_format(output_mock,
-        #                                           output_target,
-        #                                           'orders',
-        #                                           orders_format,
-        #                                           '_1day'))
-        #self.assertTrue(self.check_expected_format(output_mock,
-        #                                           output_target,
-        #                                           'orders',
-        #                                           output_target,
-        #                                           orders_format))
-        self.assertTrue(self.check_expected_format(output_mock,
-                                                   output_target,
-                                                   'customers',
-                                                   customers_format))
-        self.assertTrue(self.check_expected_format(output_mock,
-                                                   output_target,
-                                                   'entries',
-                                                   entries_0and2_sheet_format,
-                                                   '_1day'))
-        self.assertTrue(self.check_expected_format(output_mock,
-                                                   output_target,
-                                                   'entries',
-                                                   entries_1_sheet_format,
-                                                   '_1day',
-                                                   [1]))
-        self.assertTrue(self.check_expected_format(output_mock,
-                                                   output_target,
-                                                   'entries',
-                                                   entries_0and2_sheet_format,
-                                                   '_1day',
-                                                   [2]))
-        self.assertTrue(self.check_expected_format(output_mock,
-                                                   output_target,
-                                                   'entries',
-                                                   entries_3_sheet_format,
-                                                   '_1day',
-                                                   [3]))
-
-    def check_expected_format(self, output_mock, output_target, report, expected_format, suffix='_7days', sheet=[0]):
+    def check_format(self, output_mock, output_target, report, expected_format, 
+                     suffix='_7days'):
         output_mock.return_value = iter([output_target])
-        FetchGomusReport(report=report, suffix=suffix, sheet_indices=sheet).run()
+        FetchGomusReport(report=report, suffix=suffix).run()
         with output_target.open('r') as output_file:
-            return expected_format in output_file.read()
+            first_line = output_file.readline()
+            columns = first_line.split(',')
+            second_line = output_file.readline()
+            data = second_line.replace('"', '').split(',')
+            self.check(expected_format, columns, data)
+
+    def check_format_entries(self, output_mock, output_target, report, expected_format, sheet=[0]):
+        output_mock.return_value = iter([output_target])
+        FetchGomusReport(report=report, suffix='_1day', sheet_indices=sheet).run()
+        with output_target.open('r') as output_file:
+            first_line = output_file.readline()
+            while '"ID"' not in first_line:
+                first_line = output_file.readline()
+            columns = first_line.split(',')
+            second_line = output_file.readline()
+            data = second_line.replace('"', '').split(',')
+            self.check(expected_format, columns, data)
+
+    def check(self, expected_format, columns, data):
+        # i was looking for assertNotRaises() but it seems, 
+        # like this doesn't exist in python
+        for i in range(len(columns)):
+            # check, if the cloumn has the right name
+            self.assertEquals(columns[i],expected_format[i][0])
+            # check if the data has the right format
+            try:
+                if data[i]=='':
+                    pass
+                elif expected_format[i][1]=='FLOAT':
+                    float(data[i])
+                elif expected_format[i][1]=='DATE':
+                    dt.datetime.strptime(data[i], '%d.%m.%Y')
+                elif expected_format[i][1]=='TIME':
+                    dt.datetime.strptime(data[i], '%H:%M')
+            except ValueError:
+                self.assertTrue(False, f'The data in column '
+                    f'{columns[i]} has the wrong format. "{data[i]}" is not '
+                    f'from type {expected_format[i][1]}.')
                  
