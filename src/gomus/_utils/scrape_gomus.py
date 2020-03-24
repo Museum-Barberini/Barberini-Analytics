@@ -90,7 +90,8 @@ class FetchBookingsHTML(luigi.Task):
         return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
 
     def run(self):
-        bookings = pd.read_csv(self.input().path)
+        with open(self.input().path) as input_file:
+            bookings = pd.read_csv(input_file)
 
         db_booking_rows = []
 
@@ -216,7 +217,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
 
     def run(self):
-        bookings = pd.read_csv(self.input()[0].path)
+        with open(self.input()[0].path) as input_file:
+            bookings = pd.read_csv(input_file)
         bookings.insert(1, 'customer_id', 0)  # new column at second position
         bookings.insert(len(bookings.columns), 'order_date', None)
         bookings.insert(len(bookings.columns), 'language', "")
