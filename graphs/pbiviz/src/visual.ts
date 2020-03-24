@@ -51,6 +51,8 @@ export class Visual implements IVisual {
     
     private stopwords: string[];
     
+    private readonly nodeSize = 800;
+    
     constructor(options: VisualConstructorOptions) {
         console.log("Visual constructor", options, new Date().toLocaleString());
         this.target = options.element;
@@ -64,7 +66,7 @@ export class Visual implements IVisual {
         this.sigInst = (sigma as any).init(this.container);
         this.sigInst.drawingProperties = {
             defaultLabelColor: '#f00',
-            defaultLabelSize: 20,
+            defaultLabelSize: 24,
             defaultLabelBGColor: '#eee',
             defaultLabelHoverColor: '#f00',
             labelThreshold: 0,
@@ -129,6 +131,7 @@ export class Visual implements IVisual {
         let histogram = this.histogram(allWords);
         console.log("histogram", histogram);
         
+        // TODO: Ideally, we could update the graph differentially. This would require extra effort for dealing with the IDs.
         this.sigInst._core.graph.empty();
         
         let sum = Array.from(histogram.values()).reduce((s, v) => s + v, 0);
@@ -145,7 +148,7 @@ export class Visual implements IVisual {
                     255,
                     100,
                     0)}`,
-                size: count / sum,
+                size: count / sum * this.nodeSize,
                 labelSize: count,
                 attributes: []})});
         var edgeId = nodeId;
@@ -256,7 +259,7 @@ function applyAllFilters(sigInst) {
 }
 
 
-/*this.sigInst
+this.sigInst
 	.bind('overnodes', event => {
 		event.content.forEach(hoverFilters.add, hoverFilters)
 		applyAllFilters(this.sigInst)
@@ -268,13 +271,15 @@ function applyAllFilters(sigInst) {
 	.bind('downnodes', event => {
 		event.content.forEach(node => {
 			if (!pinFilters.has(node)) {
-				pinFilters.add(node);
+                pinFilters.add(node);
+                node.forceLabel = true;
 			} else {
-				pinFilters.delete(node);
+                pinFilters.delete(node);
+                node.forceLabel = false;
 			}
 		});
 		applyAllFilters(this.sigInst);
-	});*/
+	});
 
 applyAllFilters(this.sigInst);
 
@@ -402,10 +407,6 @@ applyAllFilters(this.sigInst);
 this.sigInst.activateFishEye().draw();
     }
     
-        this.sigInst.iterNodes(function(n){
-            n.forceLabel = !n.hidden
-        }).draw();
-      
         console.log("Update done");
     }
     
