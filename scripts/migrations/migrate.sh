@@ -60,7 +60,7 @@ do
         # are not applied as well
         {
             echo
-            echo "WARNING: Migration failed to apply: $MIGRATION_FILE_NAME"
+            echo "ERROR: Migration failed to apply: $MIGRATION_FILE_NAME"
             echo "    Please resolve the issue manually and add"
             echo "    it to '$(basename $APPLIED_FILE)' or try again!"
         } >&2
