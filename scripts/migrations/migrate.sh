@@ -26,7 +26,7 @@ do
     if [[ "$MIGRATION_FILE_NAME" == *.sql ]]
     # Execute .sql scripts directly
     then
-        # Read in DB credentials
+        # Read in DB credentials (POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD)
         . $DB_CRED_FILE
 
         # Set default Postgres Env variables to
