@@ -115,13 +115,9 @@ export class Visual implements IVisual {
                 [text,
                 text
                     .split(/\s+/)
-                    .map(word =>
-                        this.trimString(word, ',-–—+/&.,;:!?#@_()[]"\''))
-                    .filter(word =>
-                        word
-                            && !(/^\p{P}$/u.test(word))
-                            && !this.stopwords.includes(word)
-                    )
+                    .map(word => this.trimString(word, /\p{P}/gu))
+                    .filter(word => word)
+                    .filter(word => !this.stopwords.includes(word))
                 ]))
             );
         /** further cleansing ideas:
@@ -444,11 +440,8 @@ this.sigInst.activateFishEye().draw();
         return new Map(Array.from(map, ([key, value]) => [key, fun(value)]));
     }
     
-    private trimString(string: String, characters: String) {
-        var fun = char => !characters.includes(char);
-        let first = Array.from(string).findIndex(fun);
-        let last = Array.from(string).reverse().findIndex(fun);
-        return string.substring(first, string.length - last);
+    private trimString(string: String, pattern: RegExp) {
+        return string.replace(RegExp(`^${pattern.source}|${pattern.source}$`, pattern.flags), '');
     }
     
     private histogram<T>(values: T[]): Map<T, number> {
