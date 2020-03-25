@@ -90,9 +90,6 @@ class FetchBookingsHTML(luigi.Task):
         return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
 
     def run(self):
-        print(" I GOT HEREEEEEEEEEEEEEEEEEEEEEEEEE")# DEBUG
-        print(" I GOT HEREEEEEEEEEEEEEEEEEEEEEEEEE")# DEBUG
-
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
