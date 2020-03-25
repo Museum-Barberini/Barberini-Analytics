@@ -15,6 +15,8 @@ import PrimitiveValue = powerbi.PrimitiveValue;
 
 import {logExceptions} from "./utils/logExceptions";
 import { readFileSync } from "fs";
+import * as math from "mathjs";
+import * as d3 from "d3";
 
 // WHY WE CANNOT IMPORT SIGMA.JS AS DEFINED IN NPM
 // The problem is that sigma is always imported as a function rather than as a module.
@@ -81,10 +83,9 @@ export class Visual implements IVisual {
         this.sigInst.mouseProperties = {
             maxRatio: 4 // max zoom factor
         };
-        this.sigInst.startForceAtlas2();
-        this.sigInst.stopForceAtlas2();
         
         this.stopwords = require('csv-loader!../static/stopwords.csv').map((row: string[]) => row[0]);
+        this.stopwords.push("museumbarberini"); // TODO: Hardcoded thus ugly.
         // TODO: It would be nicer to specify this information as a table, but unfortunately,
         // Power BI does not yet support multiple distinct data view mappings.
         console.log("stopwords", this.stopwords);
@@ -107,6 +108,7 @@ export class Visual implements IVisual {
         console.log("tableDataView.rows", tableDataView.rows);
         
         let textsByCategory = this.groupBy(tableDataView.rows, row => String(row[1]), row => String(row[0]).toLowerCase());
+        let categories = Array.from(textsByCategory.keys());
         console.log("allTexts", textsByCategory);
         let wordsByTextByCategory = this.mapMap(textsByCategory, texts =>
             new Map(texts.map(text =>
@@ -130,6 +132,18 @@ export class Visual implements IVisual {
         let allWords = this.gather([...wordsByTextByCategory.values()].map(wordsByText => this.gather([...wordsByText.values()])));
         let histogram = this.histogram(allWords);
         console.log("histogram", histogram);
+        let allWordsByCategory = new Map(
+            [...wordsByTextByCategory.entries()].map(([category, wordsByText]) =>
+                [category, this.gather([...wordsByText.values()])]
+            )
+        );
+        let histogramsByCategory = new Map(
+            [...allWordsByCategory.entries()].map(([category, allWords]) =>
+                [category, this.histogram(allWords)]
+            )
+        );
+        
+        let hues = categories.map((category, index) => index / categories.length * 2 * Math.PI);
         
         // TODO: Ideally, we could update the graph differentially. This would require extra effort for dealing with the IDs.
         this.sigInst._core.graph.empty();
@@ -139,15 +153,21 @@ export class Visual implements IVisual {
         var nodeId = 0;
         histogram.forEach((count, word, _) => {
             nodeIds.set(word, ++nodeId);
+            let saturations = categories.map(category => histogramsByCategory.get(category).get(word) ?? 0);
+            let [hue, sat] = ((complex: math.Complex) => {let polar = complex.toPolar(); return [polar.phi, polar.r]})(
+                this.zip(hues, saturations, (hue, sat) => math.complex({r: sat, phi: hue}))
+                    .reduce((sum, next) => <math.Complex>math.add(sum, next), math.complex(0, 0)));
+            let light = Math.pow(1 - count, 42);
+            sat = Math.pow(sat, 0.1);
+            sat /= Math.SQRT2 * categories.length;
+            sat *= 3;
+            console.log(word, sat);
             this.sigInst.addNode(nodeId, {
                 x: 100 - 200*Math.random(),
                 y: 100 - 200*Math.random(),
                 id: nodeId,
                 label: word,
-                color: `#${(sigma as any).tools.rgbToHex(
-                    255,
-                    100,
-                    0)}`,
+                color: d3.hsl(hue / (2 * Math.PI) * 360, sat, light).hex(),
                 size: count / sum * this.nodeSize,
                 labelSize: count,
                 attributes: []})});
@@ -177,7 +197,8 @@ export class Visual implements IVisual {
             })
         });
         
-        this.sigInst.draw(2, 2, 2);
+        this.sigInst.startForceAtlas2();
+        this.sigInst.stopForceAtlas2();
         
         
         // BIG MUD STARTING HERE AND NEVER ENDING
@@ -438,6 +459,7 @@ this.sigInst.activateFishEye().draw();
                     ? histogram.get(value)
                     : 0) + 1);
         });
+        histogram.forEach((count, key) => histogram.set(key, count / values.length));
         return histogram
     }
     
@@ -452,4 +474,9 @@ this.sigInst.activateFishEye().draw();
     private gather<T>(array: T[][]): T[] {
         return [].concat.apply([], array);
     }
+    
+    private zip<T, U, V>(first: T[], second: U[], fun: (x: T, y: U) => V): V[] {
+        return first.map((x, i) => fun(x, second[i]));
+    }
+    
 }
