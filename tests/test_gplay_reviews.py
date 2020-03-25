@@ -80,7 +80,7 @@ class TestFetchGplayReviews(unittest.TestCase):
         for review in reviews_en:
             self.assertTrue(all(key in review for key in keys))
 
-   @patch('gplay_reviews.FetchGplayReviews.get_app_id',
+    @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
     def test_fetch_language_actual_data_wrong_country_code(self, mock_app_id):
 
