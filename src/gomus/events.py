@@ -67,7 +67,7 @@ class ExtractEventData(DataPreparationTask):
 
     def requires(self):
         for category in self.categories:
-            yield EnsureBookingsIsRun(category)
+            yield FetchCategoryReservations(category)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
@@ -129,9 +129,14 @@ class ExtractEventData(DataPreparationTask):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class EnsureBookingsIsRun(luigi.Task):
+class FetchCategoryReservations(luigi.Task):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
+
+    host = None
+    database = None
+    user = None
+    password = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -140,7 +145,6 @@ class EnsureBookingsIsRun(luigi.Task):
         self.row_list = []
 
     def run(self):
-        print(self.row_list)
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
@@ -159,16 +163,18 @@ class EnsureBookingsIsRun(luigi.Task):
             while row is not None:
                 event_id = row[0]
                 if event_id not in self.row_list:
-                    approved = yield FetchEventReservations(event_id, 0)
-                    cancelled = yield FetchEventReservations(event_id, 1)
-                    self.output_list.append(approved.path)
-                    self.output_list.append(cancelled.path)
+                    approved = FetchEventReservations(event_id, 0)
+                    yield approved
+                    cancelled = FetchEventReservations(event_id, 1)
+                    yield cancelled
+                    if approved and cancelled:
+                        self.output_list.append(approved.path)
+                        self.output_list.append(cancelled.path)
                     self.row_list.append(event_id)
                 row = cur.fetchone()
-
             # write list of all event reservation to output file
             with self.output().open('w') as all_outputs:
-                all_outputs.write('\n'.join(self.output_list))
+                all_outputs.write('\n'.join(self.output_list) + '\n')
 
         finally:
             if conn is not None:
@@ -176,17 +182,18 @@ class EnsureBookingsIsRun(luigi.Task):
 
     # save a list of paths for all single csv files
     def output(self):
-        cat = self.cleanse_umlauts(self.category)
+        cat = cleanse_umlauts(self.category)
         return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
                                  format=UTF8)
 
     def requires(self):
         yield BookingsToDB()
 
-    # this function should not have to exist, but luigi apparently
-    # can't deal with UTF-8 symbols in their target paths
-    def cleanse_umlauts(self, string):
-        return string.translate(string.maketrans({
-            'Ä': 'Ae', 'ä': 'ae',
-            'Ö': 'Oe', 'ö': 'oe',
-            'Ü': 'Ue', 'ü': 'ue'}))
+
+# this function should not have to exist, but luigi apparently
+# can't deal with UTF-8 symbols in their target paths
+def cleanse_umlauts(string):
+    return string.translate(string.maketrans({
+        'Ä': 'Ae', 'ä': 'ae',
+        'Ö': 'Oe', 'ö': 'oe',
+        'Ü': 'Ue', 'ü': 'ue'}))
