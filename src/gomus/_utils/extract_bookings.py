@@ -16,6 +16,7 @@ class ExtractGomusBookings(DataPreparationTask):
         description="Seed to use for hashing", default=666)
     timespan = luigi.parameter.Parameter(default='_nextYear')
     minimal = luigi.parameter.BoolParameter(default=False)
+    columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
@@ -62,16 +63,14 @@ class ExtractGomusBookings(DataPreparationTask):
                                     'Titel',
                                     'Status',
                                     'Startzeit'])
-        bookings.columns = [
-            'booking_id',
-            'category',
-            'participants',
-            'guide_id',
-            'duration',
-            'exhibition',
-            'title',
-            'status',
-            'start_datetime']
+
+        # the scraped columns are removed
+        columns_reduced = list(self.columns)
+
+        columns_reduced = [col for col in columns_reduced if col
+                           not in ('customer_id', 'order_date', 'language')]
+
+        bookings.columns = tuple(columns_reduced)
 
         bookings = self.ensure_foreign_keys(bookings)
 

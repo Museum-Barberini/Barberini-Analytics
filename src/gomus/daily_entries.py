@@ -12,6 +12,7 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 
 class AbstractDailyEntriesToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     columns = [
@@ -29,8 +30,9 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
 
     def requires(self):
         return ExtractDailyEntryData(expected=False,
-                                     columns=self.columns,
-                                     today=self.today)
+                                     columns=[col[0] for col in self.columns],
+                                     today=self.today,
+                                     minimal=self.minimal)
 
 
 class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
@@ -38,11 +40,13 @@ class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
 
     def requires(self):
         return ExtractDailyEntryData(expected=True,
-                                     columns=self.columns,
-                                     today=self.today)
+                                     columns=[col[0] for col in self.columns],
+                                     today=self.today,
+                                     minimal=self.minimal)
 
 
 class ExtractDailyEntryData(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     expected = luigi.parameter.BoolParameter(
         description="Whether to return actual or expected entries")

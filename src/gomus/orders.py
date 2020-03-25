@@ -11,22 +11,19 @@ from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
 
-COLUMNS = [
-    ('order_id', 'INT'),
-    ('order_date', 'DATE'),
-    ('customer_id', 'INT'),
-    ('valid', 'BOOL'),
-    ('paid', 'BOOL'),
-    ('origin', 'TEXT')
-]
-
 
 class OrdersToDB(CsvToDb):
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     table = 'gomus_order'
 
-    columns = COLUMNS
+    columns = [
+        ('order_id', 'INT'),
+        ('order_date', 'DATE'),
+        ('customer_id', 'INT'),
+        ('valid', 'BOOL'),
+        ('paid', 'BOOL'),
+        ('origin', 'TEXT')]
 
     primary_key = 'order_id'
 
@@ -41,16 +38,14 @@ class OrdersToDB(CsvToDb):
     def requires(self):
         return ExtractOrderData(
             foreign_keys=self.foreign_keys,
+            columns=[col[0] for col in self.columns],
             today=self.today)
 
 
 class ExtractOrderData(DataPreparationTask):
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.columns = [col[0] for col in COLUMNS]
+    columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([

@@ -75,6 +75,7 @@ class FetchBookingsHTML(luigi.Task):
     base_url = luigi.parameter.Parameter(
         description="Base URL to append bookings IDs to")
     minimal = luigi.parameter.BoolParameter(default=False)
+    columns = luigi.parameter.ListParameter(description="Column names")
 
     host = None
     database = None
@@ -88,7 +89,8 @@ class FetchBookingsHTML(luigi.Task):
 
     def requires(self):
         return ExtractGomusBookings(timespan=self.timespan,
-                                    minimal=self.minimal)
+                                    minimal=self.minimal,
+                                    columns=self.columns)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
@@ -217,10 +219,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
     def requires(self):
         yield ExtractGomusBookings(timespan=self.timespan,
-                                   minimal=self.minimal)
+                                   minimal=self.minimal,
+                                   columns=self.columns)
         yield FetchBookingsHTML(timespan=self.timespan,
                                 base_url=self.base_url + '/admin/bookings/',
-                                minimal=self.minimal)
+                                minimal=self.minimal,
+                                columns=self.columns)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
