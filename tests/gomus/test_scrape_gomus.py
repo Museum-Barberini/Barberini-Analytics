@@ -4,6 +4,8 @@ from luigi.mock import MockTarget
 from luigi.format import UTF8
 
 import pandas as pd
+import mmh3
+import sys
 
 from gomus._utils.scrape_gomus import\
     EnhanceBookingsWithScraper,\
@@ -13,6 +15,16 @@ from gomus._utils.extract_bookings import ExtractGomusBookings
 
 
 class TestEnhanceBookingsWithScraper(unittest.TestCase):
+    '''
+    This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
+    and downloads their actual HTML-files.
+    It then compares the expected hash (also in the file above)
+    with the hash of what our scraper got.
+
+    To easily add test cases, use create_test_data_for_bookings.py.'''
+
+    hash_seed = 666
+
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
@@ -55,14 +67,29 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
 
         EnhanceBookingsWithScraper().run()
 
-        expected_enhanced = test_data.filter(
+        expected_output = test_data.filter(
             ['booking_id',
-             'customer_id',
              'some_other_value',
-             'order_date',
-             'language'])
+             'expected_hash'])
 
         with output_target.open('r') as output_file:
-            actual_enhanced = pd.read_csv(output_file)
+            actual_output = pd.read_csv(output_file)
 
-        pd.testing.assert_frame_equal(expected_enhanced, actual_enhanced)
+        self.assertEqual(len(expected_output.index), len(actual_output.index))
+
+        for i in range(len(actual_output)):
+            expected_row = expected_output.iloc[i]
+            actual_row = actual_output.iloc[i]
+            self.assertEqual(
+                expected_row['some_other_value'],
+                actual_row['some_other_value'])
+            hash_str = ','.join([
+                str(actual_row['customer_id']),
+                actual_row['order_date'],
+                actual_row['language']])
+            actual_hash = mmh3.hash(hash_str, seed=self.hash_seed)
+            self.assertEqual(
+                actual_hash,
+                expected_row['expected_hash'],
+                msg=f"Scraper got wrong values:\n\
+{str(actual_row) if sys.stdin.isatty() else 'REDACTED ON NON-TTY'}")

@@ -1,2 +1,2 @@
-booking_id,customer_id,order_date,language,testcase_descr
-14165,1753917625,2020-02-21 18:06:00,Deutsch,THIS IS A GENERIC BOOKING
+booking_id,expected_hash
+14165,-94274774
