@@ -17,15 +17,16 @@ DB_CRED_FILE="/etc/secrets/database.env"
 # (Assumption: /var/db-data exists and is readable)
 if [[ ! -f "$APPLIED_FILE" ]]
 then
-    if [[ $EUID -ne 0 ]]
+    echo "WARNING: Could not find '$APPLIED_FILE'"
+    echo "         Trying to create a new one"
+    sudo touch $APPLIED_FILE
+    if [[ $? -ne 0 ]]
     then
-        echo "ERROR: Could not find '$APPLIED_FILE'"
-        echo "       Please run this script as root once to create it"
+        echo "Please provide sudo rights to create $APPLIED_FILE"
         exit 1
     fi
-
-    touch $APPLIED_FILE
-    chmod a+rwx $APPLIED_FILE
+    sudo chmod a+rwx $APPLIED_FILE
+    echo "INFO: '$APPLIED_FILE' was created"
 fi
 
 for MIGRATION_FILE in $MIGRATION_FILES
