@@ -26,9 +26,6 @@ export class Visual implements IVisual {
     
     private readonly nodeSize = 800;
     private readonly maxNodeCount = 40;
-    private readonly edgeFilterProportion = 0.025;
-    private readonly maxEdgesCount = 20;
-    private readonly minEdgesCount = 12;
     
     private target: HTMLElement;
     private container: HTMLDivElement;
@@ -215,27 +212,6 @@ export class Visual implements IVisual {
                         node.id == filter || (neighbors.has(node.id) && neighbors.get(node.id).has(filter)))
                 });
         }
-        
-        // Limit number of visible edges
-        /*let weights = [];
-        sigInst.iterEdges(edge => weights.push(edge.weight));
-        weights.sort();
-        
-        let edgeLimit = weights.length - maxEdgesCount; //Math.min(weights.length - maxEdgesCount, Math.max(minEdgesCount, weights[~~(weights.length * edgeFilterProportion)]));
-        let minWeight = weights[edgeLimit];
-        let edges = new Map();
-        sigInst
-            .iterEdges(edge => {
-                [edge.source, edge.target].forEach(node => {
-                    if (!edges.has(node))
-                        edges.set(node, []);
-                    edges.get(node).push(edge);
-                });
-                if (!edge.hidden) edge.hidden = edge.weight <= minWeight;
-            })
-            .iterNodes(node => {
-                if (!node.hidden) node.hidden = !edges.has(node.id) || !edges.get(node.id) || edges.get(node.id).hidden;
-            });*/
         
         let nodeSizes = [];
         this.sigInst.iterNodes(node => {if (!node.hidden) nodeSizes.push(node.size)});
