@@ -61,10 +61,10 @@ class GomusScraperTask(luigi.Task):
         set_db_connection_options(self)
 
     def extract_from_html(self, base_html, xpath):
-        #try:
+        # try:
         return html.tostring(base_html.xpath(
             xpath)[0], method='text', encoding="unicode")
-        #except IndexError:
+        # except IndexError:
         #    return ""
 
 
