@@ -11,7 +11,28 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 
 
+class GoogleMapsReviewsToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = 'google_maps_review'
+
+    columns = [
+        ('google_maps_review_id', 'TEXT'),
+        ('date', 'DATE'),
+        ('rating', 'INT'),
+        ('text', 'TEXT'),
+        ('text_english', 'TEXT'),
+        ('language', 'TEXT')
+    ]
+
+    primary_key = 'google_maps_review_id'
+
+    def requires(self):
+        return FetchGoogleMapsReviews(minimal=self.minimal)
+
+
 class FetchGoogleMapsReviews(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     # secret_files is a folder mounted from /etc/secrets via docker-compose
     token_cache = luigi.Parameter(
@@ -124,12 +145,15 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             print(
                 f"Fetched {len(reviews)} out of {total_reviews} reviews",
                 end='', flush=True)
-
+    
             while 'nextPageToken' in review_list:
                 """
                 TODO: optimize by requesting the latest review from DB rather
                 than fetching more pages once that one is found
                 """
+                if self.minimal:
+                    break
+
                 next_page_token = review_list['nextPageToken']
                 review_list = service.accounts().locations().reviews().list(
                     parent=location,
@@ -190,22 +214,3 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
             extracted_reviews.append(extracted)
         return pd.DataFrame(extracted_reviews)
-
-
-class GoogleMapsReviewsToDB(CsvToDb):
-
-    table = 'google_maps_review'
-
-    columns = [
-        ('google_maps_review_id', 'TEXT'),
-        ('date', 'DATE'),
-        ('rating', 'INT'),
-        ('text', 'TEXT'),
-        ('text_english', 'TEXT'),
-        ('language', 'TEXT')
-    ]
-
-    primary_key = 'google_maps_review_id'
-
-    def requires(self):
-        return FetchGoogleMapsReviews()

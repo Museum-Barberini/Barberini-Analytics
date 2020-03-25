@@ -12,7 +12,57 @@ from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
+class TweetsToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = "tweet"
+
+    columns = [
+        ("user_id", "TEXT"),
+        ("tweet_id", "TEXT"),
+        ("text", "TEXT"),
+        ("response_to", "TEXT"),
+        ("post_date", "DATE"),
+        ("is_from_barberini", "BOOL")
+    ]
+
+    primary_key = 'tweet_id'
+
+    def requires(self):
+        return ExtractTweets(minimal=self.minimal)
+
+
+class TweetPerformanceToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = "tweet_performance"
+
+    columns = [
+        ("tweet_id", "TEXT"),
+        ("likes", "INT"),
+        ("retweets", "INT"),
+        ("replies", "INT"),
+        ("timestamp", "TIMESTAMP")
+    ]
+
+    primary_key = ('tweet_id', 'timestamp')
+
+    foreign_keys = [
+        {
+            "origin_column": "tweet_id",
+            "target_table": "tweet",
+            "target_column": "tweet_id"
+        }
+    ]
+
+    def requires(self):
+        return ExtractTweetPerformance(
+            foreign_keys=self.foreign_keys,
+            minimal=self.minimal)
+
+
 class FetchTwitter(luigi.Task):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,7 +77,11 @@ class FetchTwitter(luigi.Task):
         return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
 
     def run(self):
+        if self.minimal:
+            self.min_timestamp = dt.date.today()
+            self.max_timestamp = dt.date.today() + dt.timedelta(days=1)
 
+        print("---------", self.min_timestamp, self.max_timestamp)
         tweets = ts.query_tweets(
             self.query,
             begindate=self.min_timestamp,
@@ -39,10 +93,11 @@ class FetchTwitter(luigi.Task):
 
 
 class ExtractTweets(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         yield MuseumFacts()
-        yield FetchTwitter()
+        yield FetchTwitter(minimal=self.minimal)
 
     def run(self):
         with self.input()[1].open('r') as input_file:
@@ -81,15 +136,16 @@ class ExtractTweets(DataPreparationTask):
 
 
 class ExtractTweetPerformance(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def _requires(self):
         return luigi.task.flatten([
-            TweetsToDB(),
+            TweetsToDB(minimal=self.minimal),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchTwitter()
+        return FetchTwitter(minimal=self.minimal)
 
     def run(self):
         with self.input().open('r') as input_file:
@@ -106,49 +162,3 @@ class ExtractTweetPerformance(DataPreparationTask):
     def output(self):
         return luigi.LocalTarget(
             "output/twitter/performance_tweets.csv", format=UTF8)
-
-
-class TweetsToDB(CsvToDb):
-
-    table = "tweet"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "DATE"),
-        ("is_from_barberini", "BOOL")
-    ]
-
-    primary_key = 'tweet_id'
-
-    def requires(self):
-        return ExtractTweets()
-
-
-class TweetPerformanceToDB(CsvToDb):
-
-    table = "tweet_performance"
-
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("timestamp", "TIMESTAMP")
-    ]
-
-    primary_key = ('tweet_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            "origin_column": "tweet_id",
-            "target_table": "tweet",
-            "target_column": "tweet_id"
-        }
-    ]
-
-    def requires(self):
-        return ExtractTweetPerformance(
-            foreign_keys=self.foreign_keys)
