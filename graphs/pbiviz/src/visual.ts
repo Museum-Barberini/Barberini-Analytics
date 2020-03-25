@@ -21,38 +21,32 @@ import * as d3 from "d3";
 // And see also here: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34776
 
 
-class Edge {
-    
-    constructor(node1: string, node2: string) {
-        this._nodes = [node1, node2];
-        this._nodes.sort();
-    }
-    
-    private _nodes: [string, string];
-    
-    get nodes() {
-        return new Set(this._nodes);
-    }
-    
-    public key(): Symbol {
-        return Symbol.for(JSON.stringify(this._nodes));
-    }
-}
-
 export class Visual implements IVisual {
-    
-    private target: HTMLElement;
-    private container: HTMLDivElement;
-    
-    private sigInst: any;
-    
     private stopwords: string[];
     
     private readonly nodeSize = 800;
+    private readonly maxNodeCount = 40;
+    private readonly edgeFilterProportion = 0.025;
+    private readonly maxEdgesCount = 20;
+    private readonly minEdgesCount = 12;
+    
+    private target: HTMLElement;
+    private container: HTMLDivElement;
+    private sigInst: any; // TODO: Write type definitions for our old version of sigma.js
+    
+    private readonly hoverFilters = new Set<string>();
+    private readonly pinFilters = new Set<string>();
+    // TODO: Reset filters if required in update()
     
     constructor(options: VisualConstructorOptions) {
         console.log("Visual constructor", options, new Date().toLocaleString());
         this.target = options.element;
+        
+        this.stopwords = require('csv-loader!../static/stopwords.csv').map((row: string[]) => row[0]);
+        this.stopwords.push("museumbarberini"); // TODO: Hardcoded thus ugly.
+        // TODO: It would be nicer to specify this information as a table, but unfortunately,
+        // Power BI does not yet support multiple distinct data view mappings.
+        console.log("stopwords", this.stopwords);
         
         this.container = document.createElement('div');
         this.container.className = 'sigma-expand';
@@ -79,15 +73,15 @@ export class Visual implements IVisual {
             maxRatio: 4 // max zoom factor
         };
         
-        this.stopwords = require('csv-loader!../static/stopwords.csv').map((row: string[]) => row[0]);
-        this.stopwords.push("museumbarberini"); // TODO: Hardcoded thus ugly.
-        // TODO: It would be nicer to specify this information as a table, but unfortunately,
-        // Power BI does not yet support multiple distinct data view mappings.
-        console.log("stopwords", this.stopwords);
+        this.sigInst
+	        .bind('overnodes', event => this.enterNodes(event.content))
+            .bind('outnodes', event => this.leaveNodes(event.content))
+            .bind('downnodes', event => this.clickNodes(event.content));
+        this.sigInst.activateFishEye();
         
         console.log("constructor done");
     }
-
+    
     @logExceptions()
     public update(options: VisualUpdateOptions) {
         console.log('Visual update', options, new Date().toLocaleString());
@@ -133,7 +127,7 @@ export class Visual implements IVisual {
             )
         );
         
-        let hues = categories.map((category, index) => index / categories.length * 2 * Math.PI);
+        let hues = categories.map((_category, index) => index / categories.length * 2 * Math.PI);
         
         // TODO: Ideally, we could update the graph differentially. This would require extra effort for dealing with the IDs.
         this.sigInst._core.graph.empty();
@@ -187,118 +181,103 @@ export class Visual implements IVisual {
             })
         });
         
+        this.applyAllFilters();
         this.sigInst.startForceAtlas2();
         this.sigInst.stopForceAtlas2();
         
-        
-        // BIG MUD STARTING HERE AND NEVER ENDING
-        {
-const
-    edgeFilterProportion = 0.025,
-    maxEdgesCount = 20,
-    minEdgesCount = 12,
-    maxNodesCount = 40;
-
-
-function applyFilters(sigInst, filters) {
-	if (filters.size == 0) {
-		sigInst
-			.iterEdges(edge => edge.hidden = false)
-			.iterNodes(node => node.hidden = false);
-	} else {
-		filters = Array.from(filters);
-		var neighbors = new Map();
-		sigInst
-			.iterEdges(edge => {
-				edge.hidden = false;
-				if (!neighbors.has(edge.source))
-					neighbors.set(edge.source, new Set());
-				if (!neighbors.has(edge.target))
-					neighbors.set(edge.target, new Set());
-				neighbors.get(edge.source).add(edge.target);
-				neighbors.get(edge.target).add(edge.source);
-			})
-			.iterNodes(node => {
-				node.hidden = !filters.every(filter =>
-					node.id == filter || (neighbors.has(node.id) && neighbors.get(node.id).has(filter)))
-			});
-	}
+        console.log("Update done");
+    }
     
-    // Limit number of visible edges
-	/*let weights = [];
-	sigInst.iterEdges(edge => weights.push(edge.weight));
-    weights.sort();
+    public applyAllFilters() {
+        return this.applyFilters(new Set([...this.pinFilters, ...this.hoverFilters]));
+    }
     
-    let edgeLimit = weights.length - maxEdgesCount; //Math.min(weights.length - maxEdgesCount, Math.max(minEdgesCount, weights[~~(weights.length * edgeFilterProportion)]));
-	let minWeight = weights[edgeLimit];
-	let edges = new Map();
-	sigInst
-		.iterEdges(edge => {
-			[edge.source, edge.target].forEach(node => {
-				if (!edges.has(node))
-					edges.set(node, []);
-				edges.get(node).push(edge);
-			});
-			if (!edge.hidden) edge.hidden = edge.weight <= minWeight;
-		})
-		.iterNodes(node => {
-			if (!node.hidden) node.hidden = !edges.has(node.id) || !edges.get(node.id) || edges.get(node.id).hidden;
-        });*/
-    
-    let nodeSizes = [];
-    sigInst.iterNodes(node => nodeSizes.push(node.size));
-    nodeSizes.sort();
-    let nodeLimit = nodeSizes.length - maxNodesCount;
-    let minSize = nodeSizes[nodeLimit];
-    
-    sigInst
-        .iterNodes(node => {
-            if (!node.hidden) node.hidden = node.size <= minSize;
-        })
-        .iterEdges(edge => {
-            if (!edge.hidden) edge.hidden = sigInst.getNodes(edge.source).hidden && sigInst.getNodes(edge.target).hidden;
-        })
-	
-    sigInst.draw(2,2,2);
-};
-
-let hoverFilters = new Set();
-let pinFilters = new Set();
-
-function applyAllFilters(sigInst) {
-	applyFilters(sigInst, new Set([...pinFilters, ...hoverFilters]));
-}
-
-
-this.sigInst
-	.bind('overnodes', event => {
-		event.content.forEach(hoverFilters.add, hoverFilters)
-		applyAllFilters(this.sigInst)
-	})
-	.bind('outnodes', event => {
-		event.content.forEach(hoverFilters.delete, hoverFilters);
-		applyAllFilters(this.sigInst);
-	})
-	.bind('downnodes', event => {
-		event.content.forEach(node => {
-			if (!pinFilters.has(node)) {
-                pinFilters.add(node);
-                node.forceLabel = true;
-			} else {
-                pinFilters.delete(node);
-                node.forceLabel = false;
-			}
-		});
-		applyAllFilters(this.sigInst);
-	});
-
-applyAllFilters(this.sigInst);
-
+    public applyFilters(filters: Set<string>) {
+        if (filters.size == 0) {
+            this.sigInst
+                .iterEdges(edge => edge.hidden = false)
+                .iterNodes(node => node.hidden = false);
+        } else {
+            var _filters = Array.from(filters);
+            var neighbors = new Map();
+            this.sigInst
+                .iterEdges(edge => {
+                    edge.hidden = false;
+                    if (!neighbors.has(edge.source))
+                        neighbors.set(edge.source, new Set());
+                    if (!neighbors.has(edge.target))
+                        neighbors.set(edge.target, new Set());
+                    neighbors.get(edge.source).add(edge.target);
+                    neighbors.get(edge.target).add(edge.source);
+                })
+                .iterNodes(node => {
+                    node.hidden = !_filters.every(filter =>
+                        node.id == filter || (neighbors.has(node.id) && neighbors.get(node.id).has(filter)))
+                });
         }
         
-        this.sigInst.activateFishEye().draw();
+        // Limit number of visible edges
+        /*let weights = [];
+        sigInst.iterEdges(edge => weights.push(edge.weight));
+        weights.sort();
         
-        console.log("Update done");
+        let edgeLimit = weights.length - maxEdgesCount; //Math.min(weights.length - maxEdgesCount, Math.max(minEdgesCount, weights[~~(weights.length * edgeFilterProportion)]));
+        let minWeight = weights[edgeLimit];
+        let edges = new Map();
+        sigInst
+            .iterEdges(edge => {
+                [edge.source, edge.target].forEach(node => {
+                    if (!edges.has(node))
+                        edges.set(node, []);
+                    edges.get(node).push(edge);
+                });
+                if (!edge.hidden) edge.hidden = edge.weight <= minWeight;
+            })
+            .iterNodes(node => {
+                if (!node.hidden) node.hidden = !edges.has(node.id) || !edges.get(node.id) || edges.get(node.id).hidden;
+            });*/
+        
+        let nodeSizes = [];
+        this.sigInst.iterNodes(node => {if (!node.hidden) nodeSizes.push(node.size)});
+        nodeSizes.sort();
+        let nodeLimit = nodeSizes.length - this.maxNodeCount;
+        let minSize = nodeSizes[nodeLimit];
+        
+        this.sigInst
+            .iterNodes(node => {
+                if (!node.hidden) node.hidden = node.size <= minSize;
+            })
+            .iterEdges(edge => {
+                if (!edge.hidden) edge.hidden = this.sigInst.getNodes(edge.source).hidden && this.sigInst.getNodes(edge.target).hidden;
+            })
+        
+        this.sigInst.draw(2,2,2);
+    };
+    
+    private enterNodes(nodeIds: string[]) {
+        nodeIds.forEach(this.hoverFilters.add, this.hoverFilters)
+        this.applyAllFilters()
+    }
+    
+    private leaveNodes(nodeIds: string[]) {
+        nodeIds.forEach(this.hoverFilters.delete, this.hoverFilters);
+        this.applyAllFilters();
+    }
+    
+    private clickNodes(nodes: string[]) {
+        console.log('clickNodes', nodes);
+        nodes.forEach(nodeId => {
+            if (!this.pinFilters.has(nodeId)) {
+                this.pinFilters.add(nodeId);
+            } else {
+                this.pinFilters.delete(nodeId);
+            }
+            this.sigInst.iterNodes(node => {if (node.id == nodeId) {
+                node.forceLabel = this.pinFilters.has(nodeId);
+                node.label = node.forceLabel ? node.label.toUpperCase() : node.label.toLowerCase();
+            }});
+        });
+        this.applyAllFilters();
     }
     
     private groupBy<T, K, V>(array: T[], funKey: (item: T) => K, funValue: (item: T) => V) {
@@ -345,5 +324,22 @@ applyAllFilters(this.sigInst);
     private zip<T, U, V>(first: T[], second: U[], fun: (x: T, y: U) => V): V[] {
         return first.map((x, i) => fun(x, second[i]));
     }
+}
+
+
+class Edge {
+    constructor(node1: string, node2: string) {
+        this._nodes = [node1, node2];
+        this._nodes.sort();
+    }
     
+    private _nodes: [string, string];
+    
+    get nodes() {
+        return new Set(this._nodes);
+    }
+    
+    public key(): Symbol {
+        return Symbol.for(JSON.stringify(this._nodes));
+    }
 }
