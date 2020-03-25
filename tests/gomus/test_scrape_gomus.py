@@ -94,8 +94,8 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
             # test if scraped data is correct
             hash_str = ','.join([
                 str(actual_row['customer_id']),
-                actual_row['order_date'],
-                actual_row['language']])
+                str(actual_row['order_date']),
+                str(actual_row['language'])])
             actual_hash = mmh3.hash(hash_str, seed=self.hash_seed)
             self.assertEqual(
                 actual_hash,
