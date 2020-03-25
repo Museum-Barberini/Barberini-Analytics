@@ -250,7 +250,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
                 # Language
                 row['language'] = self.extract_from_html(
-                    booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
+                    booking_details,
+                    "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
+                    "/div[1]/dl[2]/dd").strip()
 
                 try:
                     customer_details = tree_details.xpath(
