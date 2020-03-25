@@ -13,13 +13,14 @@ from set_db_connection_options import set_db_connection_options
 
 
 class FetchGtrendsValues(ExternalProgramTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     js_engine = luigi.Parameter(default='node')
     js_path = './src/google_trends/gtrends_values.js'
 
     def requires(self):
         yield MuseumFacts()
-        yield GtrendsTopics()
+        yield GtrendsTopics(minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.json')
@@ -35,22 +36,25 @@ class FetchGtrendsValues(ExternalProgramTask):
 
 
 class ConvertGtrendsValues(JsonToCsv):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        return FetchGtrendsValues()
+        return FetchGtrendsValues(minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.csv')
 
 
 class GtrendsValuesToDB(luigi.WrapperTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield GtrendsValuesClearDB()
-        yield GtrendsValuesAddToDB()
+        yield GtrendsValuesClearDB(minimal=self.minimal)
+        yield GtrendsValuesAddToDB(minimal=self.minimal)
 
 
 class GtrendsValuesAddToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'gtrends_value'
 
@@ -63,10 +67,12 @@ class GtrendsValuesAddToDB(CsvToDb):
     primary_key = 'topic', 'date'
 
     def requires(self):
-        return ConvertGtrendsValues()
+        return ConvertGtrendsValues(minimal=self.minimal)
 
 
 class GtrendsValuesClearDB(luigi.WrapperTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
@@ -79,7 +85,7 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         set_db_connection_options(self)
 
     def requires(self):
-        return GtrendsTopics()
+        return GtrendsTopics(minimal=self.minimal)
 
     def run(self):
         with self.input().open('r') as topics_file:

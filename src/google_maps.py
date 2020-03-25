@@ -145,7 +145,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             print(
                 f"Fetched {len(reviews)} out of {total_reviews} reviews",
                 end='', flush=True)
-    
+
             while 'nextPageToken' in review_list:
                 """
                 TODO: optimize by requesting the latest review from DB rather

@@ -6,6 +6,7 @@ from museum_facts import MuseumFacts
 
 
 class GtrendsTopics(luigi.Task):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         return MuseumFacts()
@@ -30,5 +31,8 @@ class GtrendsTopics(luigi.Task):
             ' '.join([museum_name, extra_topic])
             for extra_topic in extra_topics
             for museum_name in museum_names]
+        if self.minimal:
+            complex_topics = [museum_names[0],
+                              extra_topics[0]]
 
         return [museum_topic] + complex_topics
