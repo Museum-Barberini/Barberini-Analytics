@@ -187,6 +187,7 @@ class TestFetchGplayReviews(unittest.TestCase):
             requests.exceptions.HTTPError,
             FetchGplayReviews().fetch_for_language, "xyz"
         )
+
     def test_get_language_codes(self):
 
         language_codes = FetchGplayReviews().get_language_codes()
