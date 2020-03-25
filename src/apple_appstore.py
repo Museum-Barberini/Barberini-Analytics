@@ -31,10 +31,9 @@ class FetchAppstoreReviews(DataPreparationTask):
     def fetch_all(self):
         data = []
         country_codes = sorted(self.get_country_codes())
-        print()
         try:
             for index, country_code in enumerate(country_codes, start=1):
-                print(
+                logger.info(
                     f"\rFetching appstore reviews for {country_code} "
                     f"({100. * (index - 1) / len(country_codes)}%)",
                     end='',
@@ -49,7 +48,8 @@ class FetchAppstoreReviews(DataPreparationTask):
                         pass
                     else:
                         raise
-        print()
+        finally:
+            print()
         ret = pd.concat(data)
         return ret.drop_duplicates(subset=['appstore_review_id'])
 
