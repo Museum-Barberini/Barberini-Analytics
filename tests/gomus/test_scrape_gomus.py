@@ -80,9 +80,18 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         for i in range(len(actual_output)):
             expected_row = expected_output.iloc[i]
             actual_row = actual_output.iloc[i]
+
+            # test if order stayed the same
+            self.assertEqual(
+                expected_row['booking_id'],
+                actual_row['booking_id'])
+
+            # test if existing data got modified
             self.assertEqual(
                 expected_row['some_other_value'],
                 actual_row['some_other_value'])
+
+            # test if scraped data is correct
             hash_str = ','.join([
                 str(actual_row['customer_id']),
                 actual_row['order_date'],
