@@ -203,7 +203,7 @@ const
     edgeFilterProportion = 0.025,
     maxEdgesCount = 20,
     minEdgesCount = 12,
-    maxNodesCount = 20;
+    maxNodesCount = 40;
 
 
 function applyFilters(sigInst, filters) {
