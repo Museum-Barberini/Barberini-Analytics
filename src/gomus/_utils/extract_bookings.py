@@ -78,7 +78,7 @@ class ExtractGomusBookings(DataPreparationTask):
             bookings.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
-        if guide_name is np.NaN or np.isnan(guide_name):
+        if guide_name is np.NaN or pd.isnull(guide_name):
             return 0  # 0 represents empty value
 
         guides = guide_name.lower().replace(' ', '').split(',')
