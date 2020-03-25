@@ -44,7 +44,7 @@ do
     # Otherwise let it be interpreted by bash
     # (use shebang-line for scripts!)
     else
-        chmod u+x $MIGRATION_FILE
+        chmod +x $MIGRATION_FILE
         ./$MIGRATION_FILE
         EXIT_VAL=$?
     fi
