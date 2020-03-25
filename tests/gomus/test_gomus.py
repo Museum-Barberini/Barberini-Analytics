@@ -140,8 +140,8 @@ class TestReportFormats(unittest.TestCase):
     def test_gomus_formats(self, output_mock):
         output_target = MockTarget('report_out', format=UTF8)
 
-        today = dt.datetime.now().strftime("%d.%m.%Y")
-        yesterday = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%d.%m.%Y")
+        end_date = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%d.%m.%Y")
+        start_date = (dt.datetime.now() - dt.timedelta(days=2)).strftime("%d.%m.%Y")
 
         bookings_format = [
             ('"Buchung"', 'FLOAT'),
@@ -208,8 +208,8 @@ class TestReportFormats(unittest.TestCase):
         entries_0and2_sheet_format = [
             ('"ID"', 'FLOAT'),
             ('"Ticket"', 'STRING'),
-            (f'"{yesterday}"', 'STRING'),
-            (f'"{today}"', 'STRING'),
+            (f'"{start_date}"', 'STRING'),
+            (f'"{end_date}"', 'STRING'),
             ('"Gesamt"', 'STRING'),
             ('""\n', 'STRING')
         ]
@@ -272,17 +272,18 @@ class TestReportFormats(unittest.TestCase):
             ('"Gesamt"\n', 'FLOAT')
         ]
         self.check_format(output_mock,output_target,'bookings',bookings_format)
-        #self.check_format(output_mock,output_target,'orders',orders_format,'_1day')
-        #self.check_format(output_mock,output_target,'orders',orders_format)
-        #self.check_format(output_mock,output_target,'customers',customers_format)
-        self.check_format_entries(output_mock,output_target,'entries',entries_0and2_sheet_format)
-        self.check_format_entries(output_mock,output_target,'entries',entries_1_sheet_format,[1])
-        self.check_format_entries(output_mock,output_target,'entries',entries_0and2_sheet_format,[2])
-        self.check_format_entries(output_mock,output_target,'entries',entries_3_sheet_format,[3])
+        self.check_format(output_mock,output_target,'orders',orders_format,'_1day')
+        self.check_format(output_mock,output_target,'orders',orders_format)
+        self.check_format(output_mock,output_target,'customers',customers_format)
+        self.check_format_entries(output_mock,output_target,entries_0and2_sheet_format)
+        self.check_format_entries(output_mock,output_target,entries_1_sheet_format,[1])
+        self.check_format_entries(output_mock,output_target,entries_0and2_sheet_format,[2])
+        self.check_format_entries(output_mock,output_target,entries_3_sheet_format,[3])
 
     def check_format(self, output_mock, output_target, report, expected_format, 
                      suffix='_7days'):
         output_mock.return_value = iter([output_target])
+        FetchGomusReport(report=report, suffix=suffix).requires()
         FetchGomusReport(report=report, suffix=suffix).run()
         with output_target.open('r') as output_file:
             first_line = output_file.readline()
@@ -291,9 +292,10 @@ class TestReportFormats(unittest.TestCase):
             data = second_line.replace('"', '').split(',')
             self.check(expected_format, columns, data)
 
-    def check_format_entries(self, output_mock, output_target, report, expected_format, sheet=[0]):
+    def check_format_entries(self, output_mock, output_target, expected_format, sheet=[0]):
         output_mock.return_value = iter([output_target])
-        FetchGomusReport(report=report, suffix='_1day', sheet_indices=sheet).run()
+        FetchGomusReport(report='entries', suffix='_1day', sheet_indices=sheet).requires()
+        FetchGomusReport(report='entries', suffix='_1day', sheet_indices=sheet).run()
         with output_target.open('r') as output_file:
             first_line = output_file.readline()
             while '"ID"' not in first_line:
