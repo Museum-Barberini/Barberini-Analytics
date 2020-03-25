@@ -74,6 +74,7 @@ class FetchBookingsHTML(luigi.Task):
     timespan = luigi.parameter.Parameter(default='_nextYear')
     base_url = luigi.parameter.Parameter(
         description="Base URL to append bookings IDs to")
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     host = None
     database = None
@@ -86,13 +87,17 @@ class FetchBookingsHTML(luigi.Task):
         self.output_list = []
 
     def requires(self):
-        return ExtractGomusBookings(timespan=self.timespan)
+        return ExtractGomusBookings(timespan=self.timespan,
+                                    minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
 
     def run(self):
-        bookings = pd.read_csv(self.input().path)
+        if self.minimal:
+            bookings = pd.read_csv(self.input().path, nrows=5)
+        else:
+            bookings = pd.read_csv(self.input().path)
 
         db_booking_rows = []
 
@@ -200,7 +205,7 @@ class FetchOrdersHTML(luigi.Task):
 
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
-
+    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     timespan = luigi.parameter.Parameter(default='_nextYear')
 
@@ -211,19 +216,27 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        yield ExtractGomusBookings(timespan=self.timespan)
+        yield ExtractGomusBookings(timespan=self.timespan,
+                                   minimal=self.minimal)
         yield FetchBookingsHTML(timespan=self.timespan,
-                                base_url=self.base_url + '/admin/bookings/')
+                                base_url=self.base_url + '/admin/bookings/',
+                                minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
 
     def run(self):
-        bookings = pd.read_csv(self.input()[0].path)
+        if self.minimal:
+            bookings = pd.read_csv(self.input()[0].path)
+            bookings = bookings.head(5)
+        else:
+            bookings = pd.read_csv(self.input()[0].path)
+
         bookings['order_date'] = None
         bookings['language'] = ""
         bookings['customer_id'] = 0
-        enhanced_bookings = pd.DataFrame(columns=self.columns)
+        enhanced_bookings = pd.DataFrame(
+            columns=[col[0] for col in self.columns])
 
         with self.input()[1].open('r') as all_htmls:
             for i, html_path in enumerate(all_htmls):
@@ -269,10 +282,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     row['customer_id'] = 0
 
-                enhanced_bookings = enhanced_bookings.append(row)
+                # ensure proper order
+                row = row.filter([col[0] for col in self.columns])
 
-        # ensure proper order
-        enhanced_bookings = enhanced_bookings.filter(self.columns)
+                enhanced_bookings = enhanced_bookings.append(row)
 
         with self.output().open('w') as output_file:
             enhanced_bookings.to_csv(

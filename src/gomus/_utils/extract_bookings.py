@@ -15,10 +15,11 @@ class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
     timespan = luigi.parameter.Parameter(default='_nextYear')
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            CustomersToDB(minimal=self.minimal),
             super()._requires()
         ])
 
@@ -78,8 +79,9 @@ class ExtractGomusBookings(DataPreparationTask):
             bookings.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
-        if guide_name is np.NaN:
+        if guide_name is np.NaN or np.isnan(guide_name):
             return 0  # 0 represents empty value
+
         guides = guide_name.lower().replace(' ', '').split(',')
         guide = guides[0]
         return mmh3.hash(guide, self.seed, signed=True)

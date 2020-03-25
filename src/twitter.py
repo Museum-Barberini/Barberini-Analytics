@@ -81,7 +81,6 @@ class FetchTwitter(luigi.Task):
             self.min_timestamp = dt.date.today()
             self.max_timestamp = dt.date.today() + dt.timedelta(days=1)
 
-        print("---------", self.min_timestamp, self.max_timestamp)
         tweets = ts.query_tweets(
             self.query,
             begindate=self.min_timestamp,
