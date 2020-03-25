@@ -26,7 +26,7 @@ do
     if [[ "$MIGRATION_FILE_NAME" == *.sql ]]
     # Execute .sql scripts directly
     then
-        # Read in DB credentials
+        # Read in DB credentials (POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD)
         . $DB_CRED_FILE
 
         # Set default Postgres Env variables to
@@ -44,7 +44,7 @@ do
     # Otherwise let it be interpreted by bash
     # (use shebang-line for scripts!)
     else
-        chmod u+x $MIGRATION_FILE
+        chmod +x $MIGRATION_FILE
         ./$MIGRATION_FILE
         EXIT_VAL=$?
     fi
@@ -60,7 +60,7 @@ do
         # are not applied as well
         {
             echo
-            echo "WARNING: Migration failed to apply: $MIGRATION_FILE_NAME"
+            echo "ERROR: Migration failed to apply: $MIGRATION_FILE_NAME"
             echo "    Please resolve the issue manually and add"
             echo "    it to '$(basename $APPLIED_FILE)' or try again!"
         } >&2
