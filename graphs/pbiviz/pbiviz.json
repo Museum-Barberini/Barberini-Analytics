@@ -21,7 +21,6 @@
         "node_modules/jquery/dist/jquery.min.js",
         "src/js/sigma.min.js",
         "src/js/sigma.forceatlas2.js",
-        "src/js/sigma.parseGexf.js",
         "src/js/textexture.fisheye.js"
     ],
     "style": "style/visual.less",
