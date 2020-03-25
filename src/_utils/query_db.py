@@ -1,8 +1,11 @@
+import logging
 import luigi
 import psycopg2
 
 from fill_db import FillDB
 from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class QueryDB(luigi.Task):
@@ -32,7 +35,7 @@ class QueryDB(luigi.Task):
                 snapshotter.print_all()
                 cursor.close()
             except psycopg2.DatabaseError as error:
-                print(error)
+                logger.error(error)
             finally:
                 if connection is not None:
                     connection.close()

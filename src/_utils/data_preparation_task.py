@@ -1,7 +1,11 @@
+import logging
+
 import luigi
 import psycopg2
 
 from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class DataPreparationTask(luigi.Task):
@@ -44,9 +48,9 @@ class DataPreparationTask(luigi.Task):
                 difference = old_count - df[key] \
                     .count()
                 if difference > 0:
-                    print(f"INFO: Deleted {difference} out of {old_count} "
-                          f"data sets due to foreign key violation: "
-                          f"{foreign_key}")
+                    logger.warning(f"Deleted {difference} out of {old_count} "
+                                   f"data sets due to foreign key violation: "
+                                   f"{foreign_key}")
 
             return df
 

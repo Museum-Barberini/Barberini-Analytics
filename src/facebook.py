@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import logging
 import os
 
 import luigi
@@ -11,6 +12,8 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class FetchFbPosts(DataPreparationTask):
@@ -43,7 +46,7 @@ class FetchFbPosts(DataPreparationTask):
         for post in (response_content['data']):
             posts.append(post)
 
-        print("Fetching facebook posts ...")
+        logger.info("Fetching facebook posts ...")
         page_count = 0
         while ('next' in response_content['paging']):
             page_count = page_count + 1
@@ -55,7 +58,7 @@ class FetchFbPosts(DataPreparationTask):
             for post in (response_content['data']):
                 posts.append(post)
             print(f"\rFetched facebook page {page_count}", end='', flush=True)
-        print("Fetching of facebook posts completed")
+        logger.info("Fetching of facebook posts completed")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
@@ -90,7 +93,6 @@ class FetchFbPostPerformance(DataPreparationTask):
         invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
-            # print(f"[FB] Loading performance data for post {str(post_id)}")
             url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
             metrics = [
                 'post_reactions_by_type_total',
@@ -154,7 +156,8 @@ class FetchFbPostPerformance(DataPreparationTask):
             performances.append(post_perf)
 
         df = self.ensure_foreign_keys(df)
-        print(f"Skipped {invalid_count} posts")
+        if invalid_count > 0:
+            logger.warning(f"Skipped {invalid_count} posts")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
