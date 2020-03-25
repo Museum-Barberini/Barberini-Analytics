@@ -1,4 +1,3 @@
-// THIS WORKS!!!!!!!!!!!!
 "use strict";
 
 import "core-js/stable";
@@ -9,12 +8,8 @@ import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 import DataView = powerbi.DataView;
 import DataViewTable = powerbi.DataViewTable;
-import DataViewValueColumns = powerbi.DataViewValueColumns;
-import DataViewValueColumn = powerbi.DataViewValueColumn;
-import PrimitiveValue = powerbi.PrimitiveValue;
 
 import {logExceptions} from "./utils/logExceptions";
-import { readFileSync } from "fs";
 import * as math from "mathjs";
 import * as d3 from "d3";
 
@@ -172,8 +167,8 @@ export class Visual implements IVisual {
         wordsByTextByCategory.forEach(wordsByText =>
             wordsByText.forEach(words => {
                 words.forEach((word1, index1) => words.forEach((word2, index2) => {
-                    if (index1 >= index2) return /*i. e. continue*/;
-                    if (word1 == word2) return /*i. e. continue*/;
+                    if (index1 >= index2) return;
+                    if (word1 == word2) return;
                     let edge = new Edge(word1, word2).key();
                     edgeWeights.set(
                         edge,
