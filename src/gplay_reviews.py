@@ -77,10 +77,10 @@ class FetchGplayReviews(luigi.Task):
 
     def get_url(self):
 
-        # The webserver that serves the gplay api runs in a different 
-        # container.The container name is user specific: 
+        # The webserver that serves the gplay api runs in a different
+        # container.The container name is user specific:
         # [CONTAINER_USER]-gplay-api
-        # Note that the container name and the CONTAINER_USER 
+        # Note that the container name and the CONTAINER_USER
         # environment variable are set in the docker-compose.yml
         user = os.getenv('CONTAINER_USER')
         app_id = self.get_app_id()
@@ -93,9 +93,9 @@ class FetchGplayReviews(luigi.Task):
         return app_id
 
     def prepare_for_output(self, reviews):
-        """ 
-        Make sure that the review dataframe fits the format that the 
-        ToDB-Task expects. Rename and reorder columns, set data 
+        """
+        Make sure that the review dataframe fits the format that the
+        ToDB-Task expects. Rename and reorder columns, set data
         types explicitly.
         """
 

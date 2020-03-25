@@ -65,11 +65,11 @@ class TestFetchGplayReviews(unittest.TestCase):
            return_value='com.barberini.museum.barberinidigital')
     def test_fetch_actual_data_wrong_country_code(self, mock_app_id):
 
-        reviews = FetchGplayReviews().fetch_for_language('nonexisting language')
+        reviews = FetchGplayReviews().fetch_for_language('nonexisting lang')
         reviews_en = FetchGplayReviews().fetch_for_language('en')
 
-        # If the supplied language code does not exist, english reviews 
-        # are returned.This test ensures that we notice if the 
+        # If the supplied language code does not exist, english reviews
+        # are returned.This test ensures that we notice if the
         # behaviour changes.
         self.assertEqual(reviews, reviews_en)
 
@@ -132,7 +132,7 @@ class TestFetchGplayReviews(unittest.TestCase):
            side_effect=[[response_elem_1], [response_elem_2], []])
     @patch('gplay_reviews.FetchGplayReviews.get_language_codes',
            return_value=['en', 'de', 'fr'])
-    def test_fetch_all_multiple_return_values(self, mock_lang, 
+    def test_fetch_all_multiple_return_values(self, mock_lang,
                                               mock_fetch, mock_app_id):
 
         res = FetchGplayReviews().fetch_all()
@@ -151,14 +151,14 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         pd.testing.assert_frame_equal(
             res,
-            pd.DataFrame(columns=['id', 'date', 'score', 'text', 
+            pd.DataFrame(columns=['id', 'date', 'score', 'text',
                                   'title', 'thumbsUp', 'version'])
         )
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
     @patch('gplay_reviews.FetchGplayReviews.fetch_for_language',
-           side_effect=[[response_elem_1, response_elem_2, 
+           side_effect=[[response_elem_1, response_elem_2,
                          response_elem_2], [response_elem_1]])
     @patch('gplay_reviews.FetchGplayReviews.get_language_codes',
            return_value=['en', 'de'])
@@ -195,7 +195,7 @@ class TestFetchGplayReviews(unittest.TestCase):
             json.dump(
                 {'ids': {
                     'gplay': {
-                        'appId': 'com.barberini.museum.barberinidigital'}}}, 
+                        'appId': 'com.barberini.museum.barberinidigital'}}},
                 fp
             )
         output_target = MockTarget('gplay_reviews', format=UTF8)
