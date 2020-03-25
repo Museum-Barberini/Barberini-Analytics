@@ -5,11 +5,9 @@ import requests
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
-from unittest.mock import MagicMock, patch
-from io import StringIO
+from unittest.mock import patch
 
 from gplay_reviews import FetchGplayReviews
-from task_test import DatabaseTaskTest
 
 
 response_elem_1 = {
@@ -70,8 +68,9 @@ class TestFetchGplayReviews(unittest.TestCase):
         reviews = FetchGplayReviews().fetch_for_language('nonexisting language')
         reviews_en = FetchGplayReviews().fetch_for_language('en')
 
-        # If the supplied language code does not exist, english reviews are returned.
-        # This test ensures that we notice if the behaviour changes.
+        # If the supplied language code does not exist, english reviews 
+        # are returned.This test ensures that we notice if the 
+        # behaviour changes.
         self.assertEqual(reviews, reviews_en)
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
@@ -90,7 +89,7 @@ class TestFetchGplayReviews(unittest.TestCase):
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
     @patch('gplay_reviews.requests.get')
-    def test_fetch_for_language_multiple_return_values(self, mock_get, mock_app_id):
+    def test_fetch_for_lang_multi_return_values(self, mock_get, mock_app_id):
 
         mock_get.return_value.text = json.dumps(
             {'results': [response_elem_1, response_elem_2]})
@@ -105,7 +104,7 @@ class TestFetchGplayReviews(unittest.TestCase):
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
     @patch('gplay_reviews.requests.get')
-    def test_fetch_for_language_no_reviews_returned(self, mock_get, mock_app_id):
+    def test_fetch_for_lang_no_reviews_returned(self, mock_get, mock_app_id):
 
         mock_get.return_value.text = json.dumps({'results': []})
 
@@ -133,7 +132,8 @@ class TestFetchGplayReviews(unittest.TestCase):
            side_effect=[[response_elem_1], [response_elem_2], []])
     @patch('gplay_reviews.FetchGplayReviews.get_language_codes',
            return_value=['en', 'de', 'fr'])
-    def test_fetch_all_multiple_return_values(self, mock_lang, mock_fetch, mock_app_id):
+    def test_fetch_all_multiple_return_values(self, mock_lang, 
+                                              mock_fetch, mock_app_id):
 
         res = FetchGplayReviews().fetch_all()
 
@@ -145,23 +145,24 @@ class TestFetchGplayReviews(unittest.TestCase):
            return_value='com.barberini.museum.barberinidigital')
     @patch('gplay_reviews.FetchGplayReviews.fetch_for_language',
            return_value=[])
-    def test_fetch_all_language_results_are_empty(self, mock_fetch, mock_app_id):
+    def test_fetch_all_lang_results_are_empty(self, mock_fetch, mock_app_id):
 
         res = FetchGplayReviews().fetch_all()
 
         pd.testing.assert_frame_equal(
             res,
-            pd.DataFrame(
-                columns=['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version'])
+            pd.DataFrame(columns=['id', 'date', 'score', 'text', 
+                                  'title', 'thumbsUp', 'version'])
         )
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
     @patch('gplay_reviews.FetchGplayReviews.fetch_for_language',
-           side_effect=[[response_elem_1, response_elem_2, response_elem_2], [response_elem_1]])
+           side_effect=[[response_elem_1, response_elem_2, 
+                         response_elem_2], [response_elem_1]])
     @patch('gplay_reviews.FetchGplayReviews.get_language_codes',
            return_value=['en', 'de'])
-    def test_fetch_all_drops_duplicates(self, mock_lang, mock_fetch, mock_app_id):
+    def test_fetch_all_no_duplicates(self, mock_lang, mock_fetch, mock_app_id):
 
         res = FetchGplayReviews().fetch_all()
 
@@ -192,7 +193,11 @@ class TestFetchGplayReviews(unittest.TestCase):
         input_mock.return_value = input_target
         with input_target.open('w') as fp:
             json.dump(
-                {'ids': {'gplay': {'appId': 'com.barberini.museum.barberinidigital'}}}, fp)
+                {'ids': {
+                    'gplay': {
+                        'appId': 'com.barberini.museum.barberinidigital'}}}, 
+                fp
+            )
         output_target = MockTarget('gplay_reviews', format=UTF8)
         output_mock.return_value = output_target
 

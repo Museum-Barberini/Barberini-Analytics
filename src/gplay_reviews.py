@@ -16,7 +16,8 @@ class FetchGplayReviews(luigi.Task):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget('output/gplay_reviews.csv', format=luigi.format.UTF8)
+        return luigi.LocalTarget(
+            'output/gplay_reviews.csv', format=luigi.format.UTF8)
 
     def run(self):
 
@@ -76,10 +77,11 @@ class FetchGplayReviews(luigi.Task):
 
     def get_url(self):
 
-        # The webserver that serves the gplay api runs in a different container.
-        # The container name is user specific: [CONTAINER_USER]-gplay-api
-        # Note that the container name and the CONTAINER_USER environment variable
-        # are set in the docker-compose.yml
+        # The webserver that serves the gplay api runs in a different 
+        # container.The container name is user specific: 
+        # [CONTAINER_USER]-gplay-api
+        # Note that the container name and the CONTAINER_USER 
+        # environment variable are set in the docker-compose.yml
         user = os.getenv('CONTAINER_USER')
         app_id = self.get_app_id()
         return f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
@@ -91,8 +93,11 @@ class FetchGplayReviews(luigi.Task):
         return app_id
 
     def prepare_for_output(self, reviews):
-        """ Make sure that the review dataframe fits the format that the 
-        ToDB-Task expects. Rename and reorder columns, set data types explicitly."""
+        """ 
+        Make sure that the review dataframe fits the format that the 
+        ToDB-Task expects. Rename and reorder columns, set data 
+        types explicitly.
+        """
 
         reviews = reviews.rename(columns={
             'id': 'playstore_review_id',
