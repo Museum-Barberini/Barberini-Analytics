@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script reads files like 'migration_*' from its directory
-# and executes all it finds which are not yet listed in 'applied_migrations'
+# and executes all it finds which are not yet listed in 'applied_migrations.txt'
 
 # Potential ideas for commandline arguments:
 # - "reset" to drop database and apply all migrations
@@ -10,7 +10,7 @@
 MIGRATION_DIR=$(dirname "$0")
 
 MIGRATION_FILES="$MIGRATION_DIR/migration_*"
-APPLIED_FILE="$MIGRATION_DIR/applied_migrations"
+APPLIED_FILE="$MIGRATION_DIR/applied_migrations.txt"
 DB_CRED_FILE="/etc/secrets/database.env"
 
 for MIGRATION_FILE in $MIGRATION_FILES

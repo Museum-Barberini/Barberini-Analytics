@@ -1,7 +1,7 @@
 BEGIN;
 CREATE TABLE appstore_review (
     appstore_review_id TEXT,
-    TEXT TEXT,
+    text TEXT,
     rating INTEGER,
     app_version TEXT,
     vote_count INTEGER,
@@ -15,7 +15,7 @@ ALTER TABLE appstore_review
 
 CREATE TABLE fb_post (
     post_date TIMESTAMP,
-    TEXT TEXT,
+    text TEXT,
     fb_post_id TEXT
 );
 ALTER TABLE fb_post
@@ -138,7 +138,7 @@ CREATE TABLE google_maps_review (
     google_maps_review_id TEXT,
     date DATE,
     rating INTEGER,
-    TEXT TEXT,
+    text TEXT,
     TEXT_english TEXT,
     language TEXT
 );
@@ -156,7 +156,7 @@ ALTER TABLE gtrends_value
 CREATE TABLE tweet (
     user_id TEXT,
     tweet_id TEXT,
-    TEXT TEXT,
+    text TEXT,
     response_to TEXT,
     post_date DATE,
     is_from_barberini BOOLEAN
