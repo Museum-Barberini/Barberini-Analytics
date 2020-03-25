@@ -235,8 +235,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings['order_date'] = None
         bookings['language'] = ""
         bookings['customer_id'] = 0
-        enhanced_bookings = pd.DataFrame(
-            columns=[col[0] for col in self.columns])
+        enhanced_bookings = pd.DataFrame(columns=self.columns)
 
         with self.input()[1].open('r') as all_htmls:
             for i, html_path in enumerate(all_htmls):
@@ -283,7 +282,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     row['customer_id'] = 0
 
                 # ensure proper order
-                row = row.filter([col[0] for col in self.columns])
+                row = row.filter(self.columns)
 
                 enhanced_bookings = enhanced_bookings.append(row)
 
