@@ -10,8 +10,23 @@
 MIGRATION_DIR=$(dirname "$0")
 
 MIGRATION_FILES="$MIGRATION_DIR/migration_*"
-APPLIED_FILE="$MIGRATION_DIR/applied_migrations.txt"
+APPLIED_FILE="/var/db-data/applied_migrations.txt"
 DB_CRED_FILE="/etc/secrets/database.env"
+
+# Create empty 'applied_migrations.txt' if it doesn't exist
+# (Assumption: /var/db-data exists and is readable)
+if [[ ! -f "$APPLIED_FILE" ]]
+then
+    if [[ $EUID -ne 0 ]]
+    then
+        echo "ERROR: Could not find '$APPLIED_FILE'"
+        echo "       Please run this script as root once to create it"
+        exit 1
+    fi
+
+    touch $APPLIED_FILE
+    chmod a+rwx $APPLIED_FILE
+fi
 
 for MIGRATION_FILE in $MIGRATION_FILES
 do
@@ -32,9 +47,9 @@ do
         # Set default Postgres Env variables to
         # avoid having to specify passwords etc. manually
         export PGHOST="localhost"
-        export PGDATABASE=$POSTGRES_DB
-        export PGUSER=$POSTGRES_USER
-        export PGPASSWORD=$POSTGRES_PASSWORD
+        export PGDATABASE="$POSTGRES_DB"
+        export PGUSER="$POSTGRES_USER"
+        export PGPASSWORD="$POSTGRES_PASSWORD"
 
         # ON_ERROR_STOP makes psql abort when the first error is encountered
         # as well as makes it return a non-zero exit code

@@ -149,6 +149,3 @@ dmypy.json
 package-lock.json
 
 .vscode/
-
-# State of local DB is not for the git repo
-scripts/migrations/applied_migrations
