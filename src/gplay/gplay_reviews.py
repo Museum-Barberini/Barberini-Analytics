@@ -56,8 +56,14 @@ class FetchGplayReviews(DataPreparationTask):
         return pd.read_csv('src/gplay/language_codes_gplay.csv')['code'].to_list()
 
     def fetch_for_language(self, language_code):
+        """
+        Request reviews for a specific language from the webserver that 
+        serves the gplay api.
 
-        # send a request to the webserver that serves the gplay api
+        Note: If the language_code is not supported, the gplay api returns
+        english reviews.
+        """
+
         response = requests.get(
             url=self.get_url(),
             params={
