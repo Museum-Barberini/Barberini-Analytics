@@ -22,10 +22,10 @@ startup:
 	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
 		fi;\
 	fi;\
-	docker-compose -p ${USER} up --build -d luigi
+	docker-compose -p ${USER} up --build -d luigi gplay_api
 
 shutdown:
-	docker-compose -p ${USER} rm -sf luigi
+	docker-compose -p ${USER} rm -sf luigi gplay_api
 
 shutdown-db:
 	docker-compose rm -sf db

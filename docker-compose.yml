@@ -16,6 +16,7 @@ services:
             - PYTHONIOENCODING=utf-8
             - PYTHONUNBUFFERED=1
             - PYTHONPATH=./src/:./src/_utils/
+            - CONTAINER_USER=${USER}  # used to determine name of gplay_api container
         env_file:
             - /etc/secrets/keys.env
             - /etc/secrets/database.env
@@ -35,6 +36,15 @@ services:
             - /etc/secrets/database.env
         volumes:
             - /var/db-data/:/var/lib/postgresql/data/
+        networks:
+            - database_network
+
+    gplay_api:
+        # consider how the gplay api is called from gplay_reviews.py before renaming the container.
+        container_name: ${USER}-gplay-api
+        build:
+            dockerfile: Dockerfile_gplay_api
+            context: .
         networks:
             - database_network
 
