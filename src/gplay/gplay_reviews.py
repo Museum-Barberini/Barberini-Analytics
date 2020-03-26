@@ -13,6 +13,10 @@ from museum_facts import MuseumFacts
 
 class FetchGplayReviews(DataPreparationTask):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.url = None
+
     def requires(self):
         return MuseumFacts()
 
@@ -49,7 +53,7 @@ class FetchGplayReviews(DataPreparationTask):
         return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
-        return pd.read_csv('data/language_codes_gplay.csv')['code'].to_list()
+        return pd.read_csv('src/gplay/language_codes_gplay.csv')['code'].to_list()
 
     def fetch_for_language(self, language_code):
 
@@ -76,6 +80,9 @@ class FetchGplayReviews(DataPreparationTask):
 
     def get_url(self):
 
+        if self.url:
+            return self.url
+
         # The webserver that serves the gplay api runs in a different
         # container.The container name is user specific:
         # [CONTAINER_USER]-gplay-api
@@ -83,7 +90,8 @@ class FetchGplayReviews(DataPreparationTask):
         # environment variable are set in the docker-compose.yml
         user = os.getenv('CONTAINER_USER')
         app_id = self.get_app_id()
-        return f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
+        self.url = f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
+        return self.url
 
     def get_app_id(self):
         with self.input().open('r') as facts_file:
