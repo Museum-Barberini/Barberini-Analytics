@@ -18,16 +18,28 @@ class FetchTwitter(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
 
+        # Default for min_timestamp, requires the other values to be set
+        # already, so this can't be done via 'default='
+        if not self.min_timestamp:
+            self.min_timestamp = self.max_timestamp - self.timespan
+
     query = luigi.Parameter(default="museumbarberini")
-    min_timestamp = luigi.DateParameter(default=dt.date(2015, 1, 1))
+    timespan = luigi.Parameter(
+        default=60,
+        description="For how many days tweets should be "
+                    "fetched if min_timestamp is not explicitly set")
+
+    min_timestamp = luigi.DateParameter(default=None)
     max_timestamp = luigi.DateParameter(
         default=dt.date.today() + dt.timedelta(days=1))
 
     def output(self):
-        return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
+        return luigi.LocalTarget(
+            (f'output/twitter/raw_tweets_{self.min_timestamp}_to_'
+             f'{self.max_timestamp}.csv'),
+            format=UTF8)
 
     def run(self):
-
         tweets = ts.query_tweets(
             self.query,
             begindate=self.min_timestamp,
@@ -42,7 +54,7 @@ class ExtractTweets(DataPreparationTask):
 
     def requires(self):
         yield MuseumFacts()
-        yield FetchTwitter()
+        yield FetchTwitter(timespan=7)
 
     def run(self):
         with self.input()[1].open('r') as input_file:
@@ -105,7 +117,7 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            "output/twitter/performance_tweets.csv", format=UTF8)
+            "output/twitter/tweet_performance.csv", format=UTF8)
 
 
 class TweetsToDB(CsvToDb):

@@ -65,6 +65,10 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostPerformance(DataPreparationTask):
+    worker_timeout = 1800
+    timespan = luigi.Parameter(
+        default=60,
+        description="For how many days posts should be fetched")
 
     def _requires(self):
         return luigi.task.flatten([
@@ -83,6 +87,8 @@ class FetchFbPostPerformance(DataPreparationTask):
         access_token = os.environ['FB_ACCESS_TOKEN']
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        earliest_valid_date = (dt.datetime.now()
+                               - dt.timedelta(days=self.timespan))
         performances = []
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
@@ -90,6 +96,12 @@ class FetchFbPostPerformance(DataPreparationTask):
         invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
+            post_date = dt.datetime.strptime(
+                df['post_date'][index],
+                '%Y-%m-%dT%H:%M:%S+%f')
+            if post_date < earliest_valid_date:
+                continue
+
             # print(f"[FB] Loading performance data for post {str(post_id)}")
             url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
             metrics = [
