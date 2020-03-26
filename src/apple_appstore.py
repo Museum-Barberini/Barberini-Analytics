@@ -31,9 +31,10 @@ class FetchAppstoreReviews(DataPreparationTask):
     def fetch_all(self):
         data = []
         country_codes = sorted(self.get_country_codes())
+        print()
         try:
             for index, country_code in enumerate(country_codes, start=1):
-                logger.info(
+                print(
                     f"\rFetching appstore reviews for {country_code} "
                     f"({100. * (index - 1) / len(country_codes)}%)",
                     end='',

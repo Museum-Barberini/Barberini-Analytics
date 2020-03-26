@@ -149,7 +149,7 @@ def request_report(args=sys.argv[1:]):
         try:
             report_id = REPORT_IDS[args.report_type]
         except KeyError:  # should never happen because of argparse choices
-            raise NotImplementedError(
+            raise ValueError(
                 f"Report type '{args.report_type}' not supported!")
 
     base_url = 'https://barberini.gomus.de'
