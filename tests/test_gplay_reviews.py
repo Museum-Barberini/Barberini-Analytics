@@ -64,8 +64,8 @@ class TestFetchGplayReviews(unittest.TestCase):
         FetchGplayReviews().run()
 
         expected = pd.DataFrame([response_elem_1_renamed_cols])
-        with output_target.open('r') as fp:
-            actual = pd.read_csv(fp)
+        with output_target.open('r') as output_file:
+            actual = pd.read_csv(output_file)
 
         pd.testing.assert_frame_equal(expected, actual)
 
@@ -75,7 +75,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         reviews_en = FetchGplayReviews().fetch_for_language('en')
 
-        self.assertGreater(len(reviews_en), 0)
+        self.assertTrue(reviews_en)
         keys = ['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
         for review in reviews_en:
             self.assertCountEqual(keys, review.keys())
@@ -144,9 +144,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
-        self.assertIsInstance(res, list)
-        self.assertEqual(len(res), 1)
-        self.assertEqual(response_elem_1, res[0])
+        self.assertCountEqual([response_elem_1], res)
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
@@ -159,10 +157,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
-        self.assertIsInstance(res, list)
-        self.assertEqual(len(res), 2)
-        self.assertEqual(response_elem_1, res[0])
-        self.assertEqual(response_elem_2, res[1])
+        self.assertCountEqual([resposne_elem_1, response_elem_2], res)
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
@@ -173,8 +168,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
-        self.assertIsInstance(res, list)
-        self.assertEqual(len(res), 0)
+        self.assertCountEqual([], res)
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')

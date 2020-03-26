@@ -32,7 +32,7 @@ class FetchGplayReviews(luigi.Task):
     def fetch_all(self):
 
         # Different languages have different reviews. Iterate over
-        # the lanugage codes to fetch all reviews.
+        # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
 
         reviews_nested = [
@@ -45,7 +45,6 @@ class FetchGplayReviews(luigi.Task):
             columns=['id', 'date', 'score', 'text',
                      'title', 'thumbsUp', 'version']
         )
-
         return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
@@ -93,8 +92,8 @@ class FetchGplayReviews(luigi.Task):
 
     def convert_to_right_output_format(self, reviews):
         """
-        Make sure that the review dataframe fits the format that the
-        ToDB-Task expects. Rename and reorder columns, set data
+        Make sure that the review dataframe fits the format expected by
+        GooglePlaystoreReviewsToDB. Rename and reorder columns, set data
         types explicitly.
         """
 

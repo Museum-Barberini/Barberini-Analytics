@@ -6,8 +6,8 @@ from google_maps import GoogleMapsReviewsToDB
 from gplay_reviews import GooglePlaystoreReviewsToDB
 from twitter import TweetsToDB, TweetPerformanceToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
-from gomus.bookings import BookingsToDB
-from gomus.customers import CustomersToDB
+from gplay_reviews import GooglePlaystoreReviewsToDB
+from twitter import TweetsToDB, TweetPerformanceToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
 from gomus.events import EventsToDB
 from gomus.order_contains import OrderContainsToDB
