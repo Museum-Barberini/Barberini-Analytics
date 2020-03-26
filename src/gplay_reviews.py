@@ -40,7 +40,7 @@ class FetchGplayReviews(luigi.Task):
         ]
         reviews_flattened = list(chain.from_iterable(reviews_nested))
 
-        if len(reviews_flattened) > 0:
+        if reviews_flattened:
             return pd.DataFrame(reviews_flattened).drop_duplicates()
         else:
             # even if no reviews were found the output dataframe should
