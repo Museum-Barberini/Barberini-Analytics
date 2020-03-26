@@ -32,7 +32,7 @@ class FetchGplayReviews(luigi.Task):
     def fetch_all(self):
 
         # Different languages have different reviews. Iterate over
-        # the lanugage codes to fetch all reviews.
+        # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
         reviews_nested = [
             self.fetch_for_language(language_code)
