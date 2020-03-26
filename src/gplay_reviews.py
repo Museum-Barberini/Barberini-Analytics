@@ -7,10 +7,11 @@ import requests
 from itertools import chain
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
-class FetchGplayReviews(luigi.Task):
+class FetchGplayReviews(DataPreparationTask):
 
     def requires(self):
         return MuseumFacts()
