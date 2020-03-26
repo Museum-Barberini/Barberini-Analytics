@@ -8,7 +8,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from gomus._utils.extract_bookings import hash_booker_id
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from set_db_connection_options import set_db_connection_options
@@ -19,7 +19,6 @@ class EventsToDB(CsvToDb):
 
     columns = [
         ('event_id', 'INT'),
-        ('customer_id', 'INT'),
         ('booking_id', 'INT'),
         ('reservation_count', 'INT'),
         ('order_date', 'DATE'),
@@ -31,11 +30,6 @@ class EventsToDB(CsvToDb):
 
     foreign_keys = [
         {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        },
-        {
             'origin_column': 'booking_id',
             'target_table': 'gomus_booking',
             'target_column': 'booking_id'
@@ -43,10 +37,12 @@ class EventsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractEventData(columns=[col[0] for col in self.columns])
+        return ExtractEventData(
+            columns=[col[0] for col in self.columns],
+            foreign_keys=self.foreign_keys)
 
 
-class ExtractEventData(luigi.Task):
+class ExtractEventData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
@@ -63,9 +59,15 @@ class ExtractEventData(luigi.Task):
             'Lesung',
             'Vortrag']
 
+    def _requires(self):
+        return luigi.task.flatten([
+            BookingsToDB(),
+            super()._requires()
+        ])
+
     def requires(self):
         for category in self.categories:
-            yield EnsureBookingsIsRun(category)
+            yield FetchCategoryReservations(category)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
@@ -91,6 +93,8 @@ class ExtractEventData(luigi.Task):
                                                'Storniert',
                                                category)
 
+        self.events_df = self.ensure_foreign_keys(self.events_df)
+
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
 
@@ -108,14 +112,12 @@ class ExtractEventData(luigi.Task):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'E-Mail', 'Event_id', 'Plätze',
+                'Id', 'Event_id', 'Plätze',
                 'Datum', 'Status', 'Kategorie'])
 
             event_df.columns = self.columns
 
             event_df['event_id'] = event_df['event_id'].apply(int)
-            event_df['customer_id'] = event_df['customer_id'].apply(
-                hash_booker_id, args=(self.seed,))
             event_df['reservation_count'] = event_df[
                 'reservation_count'].apply(int)
             event_df['order_date'] = event_df['order_date'].apply(
@@ -127,9 +129,14 @@ class ExtractEventData(luigi.Task):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class EnsureBookingsIsRun(luigi.Task):
+class FetchCategoryReservations(luigi.Task):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
+
+    host = None
+    database = None
+    user = None
+    password = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,7 +145,6 @@ class EnsureBookingsIsRun(luigi.Task):
         self.row_list = []
 
     def run(self):
-        print(self.row_list)
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
@@ -157,16 +163,18 @@ class EnsureBookingsIsRun(luigi.Task):
             while row is not None:
                 event_id = row[0]
                 if event_id not in self.row_list:
-                    approved = yield FetchEventReservations(event_id, 0)
-                    cancelled = yield FetchEventReservations(event_id, 1)
-                    self.output_list.append(approved.path)
-                    self.output_list.append(cancelled.path)
+                    approved = FetchEventReservations(event_id, 0)
+                    yield approved
+                    cancelled = FetchEventReservations(event_id, 1)
+                    yield cancelled
+                    if approved and cancelled:
+                        self.output_list.append(approved.path)
+                        self.output_list.append(cancelled.path)
                     self.row_list.append(event_id)
                 row = cur.fetchone()
-
             # write list of all event reservation to output file
             with self.output().open('w') as all_outputs:
-                all_outputs.write('\n'.join(self.output_list))
+                all_outputs.write('\n'.join(self.output_list) + '\n')
 
         finally:
             if conn is not None:
@@ -174,17 +182,18 @@ class EnsureBookingsIsRun(luigi.Task):
 
     # save a list of paths for all single csv files
     def output(self):
-        cat = self.cleanse_umlauts(self.category)
+        cat = cleanse_umlauts(self.category)
         return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
                                  format=UTF8)
 
     def requires(self):
         yield BookingsToDB()
 
-    # this function should not have to exist, but luigi apparently
-    # can't deal with UTF-8 symbols in their target paths
-    def cleanse_umlauts(self, string):
-        return string.translate(string.maketrans({
-            'Ä': 'Ae', 'ä': 'ae',
-            'Ö': 'Oe', 'ö': 'oe',
-            'Ü': 'Ue', 'ü': 'ue'}))
+
+# this function should not have to exist, but luigi apparently
+# can't deal with UTF-8 symbols in their target paths
+def cleanse_umlauts(string):
+    return string.translate(string.maketrans({
+        'Ä': 'Ae', 'ä': 'ae',
+        'Ö': 'Oe', 'ö': 'oe',
+        'Ü': 'Ue', 'ü': 'ue'}))

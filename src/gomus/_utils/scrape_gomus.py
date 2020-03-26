@@ -12,8 +12,10 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
+from data_preparation_task import DataPreparationTask
+from gomus.customers import hash_id
 from gomus.orders import OrdersToDB
-from gomus._utils.extract_bookings import ExtractGomusBookings, hash_booker_id
+from gomus._utils.extract_bookings import ExtractGomusBookings
 from set_db_connection_options import set_db_connection_options
 
 
@@ -48,7 +50,7 @@ class FetchGomusHTML(luigi.Task):
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
-class GomusScraperTask(luigi.Task):
+class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
 
     host = None
@@ -265,7 +267,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                         'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
 
                     if re.match(r'^\S+@\S+\.\S+$', customer_mail):
-                        row['customer_id'] = hash_booker_id(customer_mail)
+                        row['customer_id'] = hash_id(customer_mail)
 
                 except IndexError:  # can't find customer mail
                     row['customer_id'] = 0
@@ -368,5 +370,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
+
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

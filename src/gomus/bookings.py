@@ -1,8 +1,7 @@
 import luigi
 
 from csv_to_db import CsvToDb
-
-from ._utils.scrape_gomus import EnhanceBookingsWithScraper
+from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 
 class BookingsToDB(CsvToDb):
@@ -36,4 +35,6 @@ class BookingsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return EnhanceBookingsWithScraper()
+        return EnhanceBookingsWithScraper(
+            columns=self.columns,
+            timespan=self.timespan)

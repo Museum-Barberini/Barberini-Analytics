@@ -7,6 +7,7 @@ import numpy as np
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 from set_db_connection_options import set_db_connection_options
 
 from gomus._utils.fetch_report import FetchGomusReport
@@ -50,7 +51,7 @@ class GomusToCustomerMappingToDB(CsvToDb):
         ('customer_id', 'INT')
     ]
 
-    primary_key = 'gomus_id'
+    primary_key = 'customer_id'
 
     foreign_keys = [
         {
@@ -66,12 +67,10 @@ class GomusToCustomerMappingToDB(CsvToDb):
             foreign_keys=self.foreign_keys, today=self.today)
 
 
-class ExtractCustomerData(luigi.Task):
+class ExtractCustomerData(DataPreparationTask):
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
-    seed = luigi.parameter.IntParameter(
-        description="Seed to use for hashing", default=666)
 
     def requires(self):
         return FetchGomusReport(report='customers', today=self.today)
@@ -85,6 +84,8 @@ class ExtractCustomerData(luigi.Task):
 
         df['Gültige E-Mail'] = df['E-Mail'].apply(isinstance, args=(str,))
 
+        # Insert Hash of E-Mail into E-Mail field,
+        # or original ID if there is none
         df['E-Mail'] = df.apply(
             lambda x: hash_id(
                 x['E-Mail'], alternative=x['Nummer']
@@ -105,6 +106,8 @@ class ExtractCustomerData(luigi.Task):
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
 
+        # Drop duplicate occurences of customers with same mail,
+        # keeping the most recent one
         df = df.drop_duplicates(subset=['customer_id'], keep='last')
 
         with self.output().open('w') as output_csv:
@@ -129,11 +132,9 @@ class ExtractCustomerData(luigi.Task):
                 post_string
 
 
-class ExtractGomusToCustomerMapping(luigi.Task):
+class ExtractGomusToCustomerMapping(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
 
     host = None
     database = None
@@ -170,10 +171,14 @@ class ExtractGomusToCustomerMapping(luigi.Task):
                 x['customer_id'], alternative=x['gomus_id']
             ), axis=1)
 
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
 
 
+# Return hash for e-mail value, or alternative (usually original gomus_id
+# or default value 0 for the dummy customer) if the e-mail is invalid
 def hash_id(email, alternative=0, seed=666):
     if not isinstance(email, str):
         return int(float(alternative))
