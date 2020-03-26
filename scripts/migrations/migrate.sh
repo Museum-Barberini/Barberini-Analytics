@@ -17,8 +17,10 @@ DB_CRED_FILE="/etc/secrets/database.env"
 # (Assumption: /var/db-data exists and is readable)
 if [[ ! -f "$APPLIED_FILE" ]]
 then
-    echo "WARNING: Could not find '$APPLIED_FILE'"
-    echo "         Trying to create a new one"
+    {
+        echo "WARNING: Could not find '$APPLIED_FILE'"
+        echo "         Trying to create a new one"
+    } >&2
     sudo touch $APPLIED_FILE
     if [[ $? -ne 0 ]]
     then
