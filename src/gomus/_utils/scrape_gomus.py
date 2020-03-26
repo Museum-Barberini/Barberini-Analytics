@@ -296,7 +296,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.txt', format=UTF8)
+            'output/gomus/scraped_order_contains.csv', format=UTF8)
 
     def run(self):
 
