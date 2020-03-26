@@ -269,6 +269,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     bookings.loc[i, 'customer_id'] = 0
 
+        bookings = self.ensure_foreign_keys(bookings)
+
         with self.output().open('w') as output_file:
             bookings.to_csv(
                 output_file,
