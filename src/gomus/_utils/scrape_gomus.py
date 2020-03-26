@@ -223,8 +223,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings.insert(1, 'customer_id', 0)  # new column at second position
         bookings.insert(len(bookings.columns), 'order_date', None)
         bookings.insert(len(bookings.columns), 'language', "")
-        enhanced_bookings = pd.DataFrame(
-            columns=list(bookings.columns))
 
         with self.input()[1].open('r') as all_htmls:
             for i, html_path in enumerate(all_htmls):
@@ -234,8 +232,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                           encoding='utf-8') as html_file:
                     res_details = html_file.read()
                 tree_details = html.fromstring(res_details)
-
-                row = bookings.iloc[[i]]
 
                 # firefox says the the xpath starts with //body/div[3]/ but we
                 # apparently need div[2] instead
@@ -248,10 +244,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 raw_order_date = self.extract_from_html(
                     booking_details,
                     'div[1]/div[2]/small/dl/dd[2]').strip()
-                row['order_date'] = dateparser.parse(raw_order_date)
+                bookings.loc[i, 'order_date'] =\
+                    dateparser.parse(raw_order_date)
 
                 # Language
-                row['language'] = self.extract_from_html(
+                bookings.loc[i, 'language'] = self.extract_from_html(
                     booking_details,
                     "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
                     "/div[1]/dl[2]/dd").strip()
@@ -267,15 +264,13 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                         'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
 
                     if re.match(r'^\S+@\S+\.\S+$', customer_mail):
-                        row['customer_id'] = hash_id(customer_mail)
+                        bookings.loc[i, 'customer_id'] = hash_id(customer_mail)
 
                 except IndexError:  # can't find customer mail
-                    row['customer_id'] = 0
-
-                enhanced_bookings = enhanced_bookings.append(row)
+                    bookings.loc[i, 'customer_id'] = 0
 
         with self.output().open('w') as output_file:
-            enhanced_bookings.to_csv(
+            bookings.to_csv(
                 output_file,
                 index=False,
                 header=True,
