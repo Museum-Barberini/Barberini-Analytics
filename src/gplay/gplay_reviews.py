@@ -46,7 +46,7 @@ class FetchGplayReviews(DataPreparationTask):
         ]
         reviews_flattened = list(chain.from_iterable(reviews_nested))
         reviews_df = pd.DataFrame(
-            reviews_flattened, 
+            reviews_flattened,
             columns=['id', 'date', 'score', 'text',
                      'title', 'thumbsUp', 'version']
         )
@@ -57,7 +57,7 @@ class FetchGplayReviews(DataPreparationTask):
 
     def fetch_for_language(self, language_code):
         """
-        Request reviews for a specific language from the webserver that 
+        Request reviews for a specific language from the webserver that
         serves the gplay api.
 
         Note: If the language_code is not supported, the gplay api returns
@@ -80,7 +80,9 @@ class FetchGplayReviews(DataPreparationTask):
         # only return the values we want to keep
         keep_values = ['id', 'date', 'score',
                        'text', 'title', 'thumbsUp', 'version']
-        reviews_reduced = [{key: r[key] for key in keep_values} for r in reviews]
+        reviews_reduced = [
+            {key: r[key] for key in keep_values} for r in reviews
+        ]
 
         return reviews_reduced
 

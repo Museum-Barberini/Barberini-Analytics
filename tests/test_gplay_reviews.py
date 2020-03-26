@@ -186,7 +186,7 @@ class TestFetchGplayReviews(unittest.TestCase):
         language_codes = FetchGplayReviews().get_language_codes()
 
         self.assertTrue(all(
-            isinstance(code, str) and len(code) <= 5 
+            isinstance(code, str) and len(code) <= 5
             for code in language_codes)
         )
         self.assertGreater(len(language_codes), 50)
