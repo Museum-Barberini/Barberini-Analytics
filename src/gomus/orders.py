@@ -69,21 +69,23 @@ class ExtractOrderData(DataPreparationTask):
     def run(self):
         with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
+        if df.empty:
+            df = pd.DataFrame(columns=['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+        else:
+            df = df.filter([
+                'Bestellnummer', 'Erstellt', 'Kundennummer',
+                'ist gültig?', 'Bezahlstatus', 'Herkunft'
+            ])
+            df.columns = self.columns
 
-        df = df.filter([
-            'Bestellnummer', 'Erstellt', 'Kundennummer',
-            'ist gültig?', 'Bezahlstatus', 'Herkunft'
-        ])
-        df.columns = self.columns
+            df['order_id'] = df['order_id'].apply(int)
+            df['order_date'] = df['order_date'].apply(self.float_to_datetime)
+            df['customer_id'] = df['customer_id'].apply(
+                self.query_customer_id).astype('Int64')
+            df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
+            df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
 
-        df['order_id'] = df['order_id'].apply(int)
-        df['order_date'] = df['order_date'].apply(self.float_to_datetime)
-        df['customer_id'] = df['customer_id'].apply(
-            self.query_customer_id).astype('Int64')
-        df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
-        df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
-
-        df = self.ensure_foreign_keys(df)
+            df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
