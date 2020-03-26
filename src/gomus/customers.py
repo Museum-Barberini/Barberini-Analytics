@@ -135,8 +135,6 @@ class ExtractCustomerData(DataPreparationTask):
 class ExtractGomusToCustomerMapping(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
-    foreign_keys = luigi.parameter.ListParameter(
-        description="The foreign keys to be asserted")
 
     host = None
     database = None
