@@ -167,8 +167,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
-        self.assertIsInstance(res, list)
-        self.assertEqual(len(res), 0)
+        self.assertCountEqual([], res)
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
