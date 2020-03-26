@@ -95,8 +95,8 @@ class FetchGplayReviews(luigi.Task):
 
     def prepare_for_output(self, reviews):
         """
-        Make sure that the review dataframe fits the format that the
-        ToDB-Task expects. Rename and reorder columns, set data
+        Make sure that the review dataframe fits the format expected by
+        GooglePlaystoreReviewsToDB. Rename and reorder columns, set data
         types explicitly.
         """
 
