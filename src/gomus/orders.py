@@ -70,7 +70,13 @@ class ExtractOrderData(DataPreparationTask):
         with next(self.input()).open('r') as input_csv:
             df = pd.read_csv(input_csv)
         if df.empty:
-            df = pd.DataFrame(columns=['order_id', 'order_date', 'customer_id', 'valid', 'paid', 'origin'])
+            df = pd.DataFrame(columns=[
+                                    'order_id',
+                                    'order_date',
+                                    'customer_id',
+                                    'valid',
+                                    'paid',
+                                    'origin'])
         else:
             df = df.filter([
                 'Bestellnummer', 'Erstellt', 'Kundennummer',
