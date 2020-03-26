@@ -1,7 +1,7 @@
 #!/bin/bash
 USER=$1-run
 LOG=/var/log/bp-logs/$1.log
-BASEDIR=$(dirname "$0")/..
+BASEDIR=$(dirname "$0")/../..
 PATH=/usr/local/bin:$PATH
 
 {
