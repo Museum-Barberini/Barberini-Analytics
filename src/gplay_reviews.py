@@ -23,7 +23,7 @@ class FetchGplayReviews(luigi.Task):
 
         print('Fetching Gplay reviews..')
         reviews = self.fetch_all()
-        reviews = self.prepare_for_output(reviews)
+        reviews = self.convert_to_right_output_format(reviews)
 
         print('Saving Gplay reviews')
         with self.output().open('w') as output_file:
@@ -34,21 +34,19 @@ class FetchGplayReviews(luigi.Task):
         # Different languages have different reviews. Iterate over
         # the lanugage codes to fetch all reviews.
         language_codes = self.get_language_codes()
+
         reviews_nested = [
             self.fetch_for_language(language_code)
             for language_code in language_codes
         ]
         reviews_flattened = list(chain.from_iterable(reviews_nested))
+        reviews_df = pd.DataFrame(
+            reviews_flattened, 
+            columns=['id', 'date', 'score', 'text',
+                     'title', 'thumbsUp', 'version']
+        )
 
-        if len(reviews_flattened) > 0:
-            return pd.DataFrame(reviews_flattened).drop_duplicates()
-        else:
-            # even if no reviews were found the output dataframe should
-            # conform to the expected format.
-            return pd.DataFrame(
-                columns=['id', 'date', 'score', 'text',
-                         'title', 'thumbsUp', 'version']
-            )
+        return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
         return pd.read_csv('data/language_codes_gplay.csv')['code'].to_list()
@@ -67,7 +65,7 @@ class FetchGplayReviews(luigi.Task):
         # task should fail if request is not successful
         response.raise_for_status()
 
-        reviews = json.loads(response.text)["results"]
+        reviews = response.json()['results']
 
         # only return the values we want to keep
         keep_values = ['id', 'date', 'score',
@@ -93,7 +91,7 @@ class FetchGplayReviews(luigi.Task):
             app_id = facts['ids']['gplay']['appId']
         return app_id
 
-    def prepare_for_output(self, reviews):
+    def convert_to_right_output_format(self, reviews):
         """
         Make sure that the review dataframe fits the format that the
         ToDB-Task expects. Rename and reorder columns, set data

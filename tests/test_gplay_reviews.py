@@ -1,7 +1,7 @@
 import json
-import unittest
 import pandas as pd
 import requests
+import unittest
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
@@ -14,14 +14,14 @@ response_elem_1 = {
     'id': '123a',
     'date': '2020-01-04T17:09:33.789Z',
     'score': 4,
-    'text': 'elem 1 text',
+    'text': 'elem 1 text üÄö',
     'title': 'elem 2 title',
     'thumbsUp': 0,
     'version': '2.10.7'
 }
 response_elem_1_renamed_cols = {
     'playstore_review_id': '123a',
-    'text': 'elem 1 text',
+    'text': 'elem 1 text üÄö',
     'rating': 4,
     'app_version': '2.10.7',
     'thumbs_up': 0,
@@ -78,7 +78,7 @@ class TestFetchGplayReviews(unittest.TestCase):
         self.assertGreater(len(reviews_en), 0)
         keys = ['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
         for review in reviews_en:
-            self.assertTrue(all(key in review for key in keys))
+            self.assertCountEqual(keys, review.keys())
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
@@ -137,10 +137,10 @@ class TestFetchGplayReviews(unittest.TestCase):
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
-    @patch('gplay_reviews.requests.get')
-    def test_fetch_for_language_one_return_value(self, mock_get, mock_app_id):
+    @patch('gplay_reviews.requests.Response.json')
+    def test_fetch_for_language_one_return_value(self, mock_json, mock_app_id):
 
-        mock_get.return_value.text = json.dumps({'results': [response_elem_1]})
+        mock_json.return_value = {'results': [response_elem_1]}
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
@@ -150,11 +150,12 @@ class TestFetchGplayReviews(unittest.TestCase):
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
-    @patch('gplay_reviews.requests.get')
-    def test_fetch_for_lang_multi_return_values(self, mock_get, mock_app_id):
+    @patch('gplay_reviews.requests.Response.json')
+    def test_fetch_for_lang_multi_return_values(self, mock_json, mock_app_id):
 
-        mock_get.return_value.text = json.dumps(
-            {'results': [response_elem_1, response_elem_2]})
+        mock_json.return_value = {
+            'results': [response_elem_1, response_elem_2]
+        }
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
@@ -165,10 +166,10 @@ class TestFetchGplayReviews(unittest.TestCase):
 
     @patch('gplay_reviews.FetchGplayReviews.get_app_id',
            return_value='com.barberini.museum.barberinidigital')
-    @patch('gplay_reviews.requests.get')
-    def test_fetch_for_lang_no_reviews_returned(self, mock_get, mock_app_id):
+    @patch('gplay_reviews.requests.Response.json')
+    def test_fetch_for_lang_no_reviews_returned(self, mock_json, mock_app_id):
 
-        mock_get.return_value.text = json.dumps({'results': []})
+        mock_json.return_value = {'results': []}
 
         res = FetchGplayReviews().fetch_for_language('xyz')
 
@@ -185,17 +186,18 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         self.assertRaises(
             requests.exceptions.HTTPError,
-            FetchGplayReviews().fetch_for_language, "xyz"
+            FetchGplayReviews().fetch_for_language, 'xyz'
         )
 
     def test_get_language_codes(self):
 
         language_codes = FetchGplayReviews().get_language_codes()
 
-        self.assertIsInstance(language_codes, list)
-        self.assertTrue(all(isinstance(code, str) and len(code)
-                            <= 5 for code in language_codes))
-        self.assertEqual(len(language_codes), 55)
+        self.assertTrue(all(
+            isinstance(code, str) and len(code) <= 5 
+            for code in language_codes)
+        )
+        self.assertGreater(len(language_codes), 50)
 
     @patch.object(FetchGplayReviews, 'input')
     def test_get_app_id(self, input_mock):
@@ -209,11 +211,11 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         self.assertEqual(app_id, 'some ID')
 
-    def test_prepare_for_output(self):
+    def test_convert_to_right_output_format(self):
 
         reviews = pd.DataFrame([response_elem_1])
 
-        actual = FetchGplayReviews().prepare_for_output(reviews)
+        actual = FetchGplayReviews().convert_to_right_output_format(reviews)
 
         expected = pd.DataFrame([response_elem_1_renamed_cols])
         pd.testing.assert_frame_equal(expected, actual)

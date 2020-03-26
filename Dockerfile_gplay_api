@@ -16,7 +16,7 @@ RUN git reset 6d0e649a1f50ef26721f911032292f87e4f1383c --hard
 
 # install node.js and npm
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt-get install -y --no-install-recommends nodejs
+RUN apt-get install -y nodejs
 RUN apt-get install -y npm
 
 # install google-play-api with npm
