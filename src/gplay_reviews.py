@@ -56,24 +56,25 @@ class FetchGplayReviews(luigi.Task):
     def fetch_for_language(self, language_code):
 
         # send a request to the webserver that serves the gplay api
-        res = requests.get(
+        response = requests.get(
             url=self.get_url(),
             params={
                 'lang': language_code,
+                # num: max number of reviews to be fetched. We want all reviews
                 'num': 1000000
             }
         )
         # task should fail if request is not successful
-        res.raise_for_status()
+        response.raise_for_status()
 
-        res = json.loads(res.text)["results"]
+        reviews = json.loads(response.text)["results"]
 
         # only return the values we want to keep
         keep_values = ['id', 'date', 'score',
                        'text', 'title', 'thumbsUp', 'version']
-        res_reduced = [{key: r[key] for key in keep_values} for r in res]
+        reviews_reduced = [{key: r[key] for key in keep_values} for r in reviews]
 
-        return res_reduced
+        return reviews_reduced
 
     def get_url(self):
 
