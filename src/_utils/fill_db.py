@@ -6,8 +6,8 @@ from google_maps import GoogleMapsReviewsToDB
 from gplay_reviews import GooglePlaystoreReviewsToDB
 from twitter import TweetsToDB, TweetPerformanceToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
-from gplay_reviews import GooglePlaystoreReviewsToDB
-from twitter import TweetsToDB, TweetPerformanceToDB
+from gomus.bookings import BookingsToDB
+from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
 from gomus.events import EventsToDB
 from gomus.order_contains import OrderContainsToDB
@@ -36,6 +36,8 @@ class FillDBDaily(luigi.WrapperTask):
         yield EventsToDB()
         yield OrderContainsToDB()
         yield OrdersToDB()
+
+        yield GomusToCustomerMappingToDB()
 
 
 class FillDBHourly(luigi.WrapperTask):
