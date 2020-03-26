@@ -27,6 +27,9 @@
 		},
 		"twitter": {
 			"userId": 788400779556159488
+		},
+		"gplay": {
+			"appId": "com.barberini.museum.barberinidigital"
 		}
 	}
 }
