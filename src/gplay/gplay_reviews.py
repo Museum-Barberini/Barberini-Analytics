@@ -53,7 +53,8 @@ class FetchGplayReviews(DataPreparationTask):
         return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
-        return pd.read_csv('src/gplay/language_codes_gplay.csv')['code'].to_list()
+        language_codes_df = pd.read_csv('src/gplay/language_codes_gplay.csv')
+        return language_codes_df['code'].to_list()
 
     def fetch_for_language(self, language_code):
         """
