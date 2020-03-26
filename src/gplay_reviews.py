@@ -102,16 +102,16 @@ class FetchGplayReviews(DataPreparationTask):
             'id': 'playstore_review_id',
             'score': 'rating',
             'version': 'app_version',
-            'thumbsUp': 'thumbs_up'
+            'thumbsUp': 'likes'
         })
         reviews = reviews[['playstore_review_id', 'text', 'rating',
-                           'app_version', 'thumbs_up', 'title', 'date']]
+                           'app_version', 'likes', 'title', 'date']]
         reviews = reviews.astype({
             'playstore_review_id': str,
             'text': str,
             'rating': int,
             'app_version': str,
-            'thumbs_up': int,
+            'likes': int,
             'title': str,
             'date': str
         })

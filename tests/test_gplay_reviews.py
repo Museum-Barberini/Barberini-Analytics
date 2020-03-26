@@ -24,7 +24,7 @@ response_elem_1_renamed_cols = {
     'text': 'elem 1 text üÄö',
     'rating': 4,
     'app_version': '2.10.7',
-    'thumbs_up': 0,
+    'likes': 0,
     'title': 'elem 2 title',
     'date': '2020-01-04T17:09:33.789Z'
 }
