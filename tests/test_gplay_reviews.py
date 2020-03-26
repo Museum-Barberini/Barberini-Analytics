@@ -64,8 +64,8 @@ class TestFetchGplayReviews(unittest.TestCase):
         FetchGplayReviews().run()
 
         expected = pd.DataFrame([response_elem_1_renamed_cols])
-        with output_target.open('r') as fp:
-            actual = pd.read_csv(fp)
+        with output_target.open('r') as output_file:
+            actual = pd.read_csv(output_file)
 
         pd.testing.assert_frame_equal(expected, actual)
 
