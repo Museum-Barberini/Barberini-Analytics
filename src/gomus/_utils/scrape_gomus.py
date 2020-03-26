@@ -370,7 +370,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
-        print(df) #debug
+
         df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
