@@ -89,7 +89,9 @@ class ExtractOrderData(DataPreparationTask):
             df['customer_id'] = df['customer_id'].apply(
                 self.query_customer_id).astype('Int64')
             df['valid'] = df['valid'].apply(self.parse_boolean, args=('Ja',))
-            df['paid'] = df['paid'].apply(self.parse_boolean, args=('bezahlt',))
+            df['paid'] = df['paid'].apply(
+                self.parse_boolean,
+                args=('bezahlt',))
 
             df = self.ensure_foreign_keys(df)
 
