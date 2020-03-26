@@ -337,6 +337,10 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
                     new_article["order_id"] = order_id
 
+                    # Workaround for orders like 478531
+                    # if td[3] has no child, we have nowhere to find the ticket
+                    if len(article.xpath('td[3][count(*)>0]')) == 0:
+                        continue
                     new_article["ticket"] = self.extract_from_html(
                         article, 'td[3]/strong').strip()
 
