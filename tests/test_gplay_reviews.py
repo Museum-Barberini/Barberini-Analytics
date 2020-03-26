@@ -75,7 +75,7 @@ class TestFetchGplayReviews(unittest.TestCase):
 
         reviews_en = FetchGplayReviews().fetch_for_language('en')
 
-        self.assertGreater(len(reviews_en), 0)
+        self.assertTrue(reviews_en)
         keys = ['id', 'date', 'score', 'text', 'title', 'thumbsUp', 'version']
         for review in reviews_en:
             self.assertTrue(all(key in review for key in keys))
