@@ -21,7 +21,8 @@ class FetchTwitter(luigi.Task):
         # Default for min_timestamp, requires the other values to be set
         # already, so this can't be done via 'default='
         if not self.min_timestamp:
-            self.min_timestamp = self.max_timestamp - self.timespan
+            self.min_timestamp = (self.max_timestamp
+                                  - dt.timedelta(days=self.timespan))
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.Parameter(
