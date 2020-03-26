@@ -79,15 +79,17 @@ class FetchGplayReviews(DataPreparationTask):
         return reviews_reduced
 
     def get_url(self):
+        """
+        The webserver that serves the gplay api runs in a different
+        container.The container name is user specific:
+            [CONTAINER_USER]-gplay-api
+        Note that the container name and the CONTAINER_USER
+        environment variable are set in the docker-compose.yml.
+        """
 
         if self.url:
             return self.url
 
-        # The webserver that serves the gplay api runs in a different
-        # container.The container name is user specific:
-        # [CONTAINER_USER]-gplay-api
-        # Note that the container name and the CONTAINER_USER
-        # environment variable are set in the docker-compose.yml
         user = os.getenv('CONTAINER_USER')
         app_id = self.get_app_id()
         self.url = f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
