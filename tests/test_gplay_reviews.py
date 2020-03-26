@@ -178,10 +178,8 @@ class TestFetchGplayReviews(unittest.TestCase):
         mock_get.return_value = requests.Response()
         mock_get.return_value.status_code = 400
 
-        self.assertRaises(
-            requests.exceptions.HTTPError,
-            FetchGplayReviews().fetch_for_language, 'xyz'
-        )
+        with self.assertRaises(requests.exceptions.HTTPError):
+            FetchGplayReviews().fetch_for_language('xyz')
 
     def test_get_language_codes(self):
 
