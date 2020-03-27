@@ -7,6 +7,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
@@ -37,7 +38,8 @@ class FetchTwitter(luigi.Task):
             df.to_csv(output_file, index=False, header=True)
 
 
-class ExtractTweets(luigi.Task):
+class ExtractTweets(DataPreparationTask):
+
     def requires(self):
         yield MuseumFacts()
         yield FetchTwitter()
@@ -78,7 +80,14 @@ class ExtractTweets(luigi.Task):
         return facts['ids']['twitter']['userId']
 
 
-class ExtractTweetPerformance(luigi.Task):
+class ExtractTweetPerformance(DataPreparationTask):
+
+    def _requires(self):
+        return luigi.task.flatten([
+            TweetsToDB(),
+            super()._requires()
+        ])
+
     def requires(self):
         return FetchTwitter()
 
@@ -88,6 +97,9 @@ class ExtractTweetPerformance(luigi.Task):
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
+
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
@@ -133,9 +145,10 @@ class TweetPerformanceToDB(CsvToDb):
         {
             "origin_column": "tweet_id",
             "target_table": "tweet",
-            "target_column": "tweeet_id"
+            "target_column": "tweet_id"
         }
     ]
 
     def requires(self):
-        return ExtractTweetPerformance()
+        return ExtractTweetPerformance(
+            foreign_keys=self.foreign_keys)
