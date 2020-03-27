@@ -1,5 +1,6 @@
 /**
- * This is the code to write the FishEye plugin :
+ * This is the code to write the FishEye plugin:
+ * CREDITS: Textexture.com. Infranodus Labs.
  */
 
 (function () {
