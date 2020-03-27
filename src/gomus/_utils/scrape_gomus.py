@@ -209,6 +209,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.columns = [col[0] for col in self.columns]
 
     def requires(self):
         yield ExtractGomusBookings(timespan=self.timespan)
