@@ -225,7 +225,6 @@ export class SigmaVisual implements IVisual {
     }
     
     private clickNodes(nodes: string[]) {
-        console.log('clickNodes', nodes);
         nodes.forEach(nodeId => {
             if (!this.pinFilters.has(nodeId)) {
                 this.pinFilters.add(nodeId);
