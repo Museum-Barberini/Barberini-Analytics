@@ -149,7 +149,7 @@ export class SigmaVisual implements IVisual {
         };
         
         this.sigma
-	        .bind('overnodes', event => this.enterNodes(event.content))
+            .bind('overnodes', event => this.enterNodes(event.content))
             .bind('outnodes', event => this.leaveNodes(event.content))
             .bind('downnodes', event => this.clickNodes(event.content));
         this.sigma.activateFishEye();
