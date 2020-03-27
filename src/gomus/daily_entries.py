@@ -29,7 +29,7 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
 
     def requires(self):
         return ExtractDailyEntryData(expected=False,
-                                     columns=self.columns,
+                                     columns=[col[0] for col in self.columns],
                                      today=self.today)
 
 
@@ -38,7 +38,7 @@ class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
 
     def requires(self):
         return ExtractDailyEntryData(expected=True,
-                                     columns=self.columns,
+                                     columns=[col[0] for col in self.columns],
                                      today=self.today)
 
 
@@ -75,7 +75,7 @@ class ExtractDailyEntryData(DataPreparationTask):
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
-            entries_df = pd.DataFrame(columns=[col[0] for col in self.columns])
+            entries_df = pd.DataFrame(columns=self.columns)
 
             for index, row in df.iterrows():
                 for i in range(24):
