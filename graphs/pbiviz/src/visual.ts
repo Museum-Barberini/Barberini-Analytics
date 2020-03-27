@@ -73,7 +73,7 @@ export class SigmaVisual implements IVisual {
         if (!((dataView = options.dataViews[0]) && (table = dataView.table))) {
             hasData = false;
             this.placeholderContent.innerHTML = "Start by adding some data";
-        } else if (!table.columns.some(column => column.roles['measure'])) {
+        } else if (!table.columns.some(column => column.roles['text'])) {
             hasData = false;
             this.placeholderContent.innerHTML = "Start by adding a measure";
         } else if (((rows = table.rows)?.length ?? 0) == 0) {

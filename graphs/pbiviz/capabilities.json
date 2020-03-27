@@ -1,12 +1,12 @@
 {
     "dataRoles": [
         {
-            "displayName": "Measure",
-            "name": "measure",
+            "displayName": "Texts",
+            "name": "text",
             "kind": "Grouping"
         },
         {
-            "displayName": "Category",
+            "displayName": "Categories",
             "name": "category",
             "kind": "Grouping"
         }
@@ -16,8 +16,21 @@
             "table": {
                 "rows": {
                     "select": [
-                        { "for": { "in": "category" } },
-                        { "for": { "in": "measure" } }
+                        {
+                            "for": {
+                                "in": "category"
+                                }
+                            },
+                        {
+                            "for": {
+                                "in": "text"
+                            },
+                            "dataReductionAlgorithm": {
+                                "top": {
+                                    "count": 30000
+                                }
+                            }                            
+                        }
                     ]
                 }
             }
