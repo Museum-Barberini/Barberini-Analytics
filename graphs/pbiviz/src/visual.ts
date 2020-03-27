@@ -13,13 +13,13 @@ import 'core-js/stable';
 import * as math from 'mathjs';
 import * as d3 from 'd3';
 
-import {logExceptions} from './utils/logExceptions';
 import './utils/arrayUtils';
-import './utils/mapUtils';
+import {histogram} from './histogram';
+import {logExceptions} from './utils/logExceptions';
 import * as mathUtils from './utils/mathUtils';
+import './utils/mapUtils';
 import * as sigmaUtils from './utils/sigmaUtils';
 import './utils/stringUtils';
-import {histogram} from './histogram';
 
 // WHY WE CANNOT IMPORT SIGMA.JS AS DEFINED IN NPM
 // The problem is that sigma is always imported as a function rather than as a module.
@@ -31,7 +31,7 @@ import {SigmaV01} from './js/sigma';
 const Sigma = sigma as any;
 
 
-export class Visual implements IVisual {
+export class SigmaVisual implements IVisual {
     private stopwords: string[];
     
     //#region CONFIGURATION
@@ -47,7 +47,7 @@ export class Visual implements IVisual {
     private readonly pinFilters = new Set<string>();
     
     constructor(options: VisualConstructorOptions) {
-        console.log("🚀 Loading Sigma Visual ...", options, new Date().toLocaleString());
+        console.log("🚀 Loading Sigma Text Graph ...", options, new Date().toLocaleString());
         
         this.stopwords = require('csv-loader!../static/stopwords.csv').map((row: string[]) => row[0]);
         this.stopwords.push("museumbarberini"); // TODO: Hardcoded thus ugly.
@@ -56,14 +56,14 @@ export class Visual implements IVisual {
         
         this.initializeComponent(options.element);
         
-        console.log("✅ Sigma Visual was sucessfully loaded!");
+        console.log("✅ Sigma Text Graph was sucessfully loaded!");
         // Power BI does not take any notice when an error occurs during execution.
         // If you don't see this message, you know that something has gone wrong ...
     }
     
     @logExceptions()
     public update(options: VisualUpdateOptions) {
-        console.log('👂 Updating Sigma Visual ...', options, new Date().toLocaleString());
+        console.log('👂 Updating Sigma Text Graph ...', options, new Date().toLocaleString());
         
         let dataView: DataView;
         let table: DataViewTable;
@@ -84,7 +84,7 @@ export class Visual implements IVisual {
         this.placeholder.style.display = hasData ? 'none' : 'flex';
         this.container.style.display = hasData ? '' : 'none';
         if (!hasData) {
-            console.log("❌ Aborting update of Sigma Visual, not enough data.");
+            console.log("❌ Aborting update of Sigma Text Graph, not enough data.");
             return;
         }
         
