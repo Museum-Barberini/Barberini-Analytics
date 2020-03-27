@@ -1,10 +1,11 @@
+import datetime as dt
 import os
 import tempfile
 import time
-import datetime as dt
 from unittest.mock import patch
 
 import luigi
+import mmh3
 
 from csv_to_db import CsvToDb
 from task_test import DatabaseTaskTest
@@ -24,13 +25,13 @@ class DummyFileWrapper(luigi.Task):
 
 class DummyWriteCsvToDb(CsvToDb):
 
-    def __init__(self, table_name):
-        super().__init__()
+    def __init__(self, table_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__class__.table = table_name
 
         # By default luigi assigns the same task_id to the objects of
         # this class.
-        # That leads to errors when updating the marker table (tablue_updates).
+        # That leads to errors when updating the marker table (table_updates).
         self.task_id = f"{self.task_id}_{str(dt.datetime.now())}"
 
     columns = [
@@ -65,7 +66,16 @@ class TestCsvToDb(DatabaseTaskTest):
 
         super().setUp()
         self.table_name = get_temp_table()
-        self.dummy = DummyWriteCsvToDb(self.table_name)
+
+        # Insert manually calculated dummy_date because otherwise,
+        # luigi may not create a new DummyWriteCsvToDb Task
+        #
+        # This should be kept in mind in case the behaviour is seen elsewhere
+        # as well
+        self.dummy = DummyWriteCsvToDb(
+            self.table_name,
+            dummy_date=mmh3.hash(self.table_name, 666))
+
         # Store mock object to make assertions about it later on
         self.mock_set_db_conn_options = mock
 
@@ -92,7 +102,7 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                ADD CONSTRAINT {self.table_name}_primkey\
                     PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (0, 1, 'a', 'b');")
@@ -112,7 +122,7 @@ class TestCsvToDb(DatabaseTaskTest):
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
             f"""
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_the_primary_key_constraint\
+                ADD CONSTRAINT {self.table_name}_primkey\
                     PRIMARY KEY (id);
             """,
             f"INSERT INTO {self.table_name} VALUES (1, 2, "

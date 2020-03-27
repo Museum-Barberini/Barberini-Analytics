@@ -3,6 +3,7 @@ import os
 import re
 import time
 
+import datetime as dt
 import dateparser
 import luigi
 import pandas as pd
@@ -11,20 +12,46 @@ import requests
 from luigi.format import UTF8
 from lxml import html
 
-from gomus.orders import ExtractOrderData
+from data_preparation_task import DataPreparationTask
+from gomus.customers import hash_id
+from gomus.orders import OrdersToDB
+from gomus._utils.extract_bookings import ExtractGomusBookings
 from set_db_connection_options import set_db_connection_options
 
-from .extract_bookings import ExtractGomusBookings
+
+class FetchGomusHTML(luigi.Task):
+    url = luigi.parameter.Parameter(description="The URL to fetch")
+
+    def output(self):
+        name = 'output/gomus/html/' + \
+            self.url. \
+            replace('http://', ''). \
+            replace('https://', ''). \
+            replace('/', '_'). \
+            replace('.', '_') + \
+            '.html'
+
+        return luigi.LocalTarget(name, format=UTF8)
+
+    # simply wait for a moment before requesting, as we don't want to
+    # overwhelm the server with our interest in classified information...
+    def run(self):
+        time.sleep(0.2)
+        response = requests.get(
+            self.url,
+            cookies=dict(
+                _session_id=os.environ['GOMUS_SESS_ID']))
+        response.raise_for_status()
+
+        with self.output().open('w') as html_out:
+            html_out.write(response.text)
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
-class GomusScraperTask(luigi.Task):
+class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
-
-    sess_id = os.environ['GOMUS_SESS_ID']
-    cookies = dict(_session_id=sess_id)
 
     host = None
     database = None
@@ -35,17 +62,6 @@ class GomusScraperTask(luigi.Task):
         super().__init__(*args, **kwargs)
         set_db_connection_options(self)
 
-    # simply wait for a moment before requesting, as we don't want to
-    # overwhelm the server with our interest in classified information...
-    def polite_get(self, url, cookies):
-        time.sleep(0.5)
-        response = requests.get(url, cookies=cookies)
-        if not response.ok:
-            print(
-                f'Error with HTTP request: Status code {response.status_code}')
-            exit(1)
-        return response
-
     def extract_from_html(self, base_html, xpath):
         try:
             return html.tostring(base_html.xpath(
@@ -54,27 +70,31 @@ class GomusScraperTask(luigi.Task):
             return ""
 
 
-class EnhanceBookingsWithScraper(GomusScraperTask):
+class FetchBookingsHTML(luigi.Task):
+    timespan = luigi.parameter.Parameter(default='_nextYear')
+    base_url = luigi.parameter.Parameter(
+        description="Base URL to append bookings IDs to")
 
-    # could take up to an hour to scrape all bookings in the next year
-    worker_timeout = 3600
-    columns = luigi.parameter.ListParameter(description="Column names")
+    host = None
+    database = None
+    user = None
+    password = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
+        self.output_list = []
 
     def requires(self):
-        return ExtractGomusBookings()
+        return ExtractGomusBookings(timespan=self.timespan)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+        return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
 
     def run(self):
         bookings = pd.read_csv(self.input().path)
-        bookings['order_date'] = None
-        bookings['language'] = ""
-        row_count = len(bookings.index)
 
         db_booking_rows = []
-
-        enhanced_bookings = pd.DataFrame(columns=self.columns)
 
         try:
             conn = psycopg2.connect(
@@ -86,16 +106,14 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
                         f" WHERE table_name=\'gomus_booking\')")
-            db_booking_rows = []
 
+            today_time = dt.datetime.today() - dt.timedelta(weeks=5)
             if cur.fetchone()[0]:
-                query = (f'SELECT booking_id FROM gomus_booking')
+                query = (f'SELECT booking_id FROM gomus_booking'
+                         f' WHERE start_datetime < \'{today_time}\'')
+
                 cur.execute(query)
                 db_booking_rows = cur.fetchall()
-
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
 
         finally:
             if conn is not None:
@@ -111,16 +129,112 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     break
 
             if not booking_in_db:
+                booking_url = self.base_url + str(booking_id)
 
-                booking_url = (self.base_url + "/admin/bookings/"
-                               + str(booking_id))
-                print(
-                    (f"requesting booking details for id: "
-                     f"{str(booking_id)} ({i+1}/{row_count})"))
-                res_details = self.polite_get(booking_url,
-                                              cookies=self.cookies)
+                html_target = yield FetchGomusHTML(booking_url)
+                self.output_list.append(html_target.path)
 
-                tree_details = html.fromstring(res_details.text)
+        with self.output().open('w') as html_files:
+            html_files.write('\n'.join(self.output_list))
+
+
+class FetchOrdersHTML(luigi.Task):
+    base_url = luigi.parameter.Parameter(
+        description="Base URL to append order IDs to")
+
+    host = None
+    database = None
+    user = None
+    password = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        set_db_connection_options(self)
+        self.output_list = []
+        self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
+
+    def requires(self):
+        return OrdersToDB()
+
+    def output(self):
+        return luigi.LocalTarget('output/gomus/orders_htmls.txt')
+
+    def get_order_ids(self):
+        try:
+            conn = psycopg2.connect(
+                host=self.host, database=self.database,
+                user=self.user, password=self.password
+            )
+            cur = conn.cursor()
+
+            cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
+                        f" WHERE table_name=\'gomus_order_contains\')")
+
+            if cur.fetchone()[0]:
+                query = (f'SELECT order_id FROM gomus_order WHERE order_id '
+                         'NOT IN (SELECT order_id FROM gomus_order_contains)')
+                cur.execute(query)
+                order_ids = cur.fetchall()
+
+            else:
+                query = (f'SELECT order_id FROM gomus_order')
+                cur.execute(query)
+                order_ids = cur.fetchall()
+
+            return order_ids
+
+        finally:
+            if conn is not None:
+                conn.close()
+
+    def run(self):
+        for i in range(len(self.order_ids)):
+
+            url = self.base_url + str(self.order_ids[i])
+
+            html_target = yield FetchGomusHTML(url)
+            self.output_list.append(html_target.path)
+
+        with self.output().open('w') as html_files:
+            html_files.write('\n'.join(self.output_list))
+
+
+class EnhanceBookingsWithScraper(GomusScraperTask):
+
+    columns = luigi.parameter.ListParameter(description="Column names")
+    timespan = luigi.parameter.Parameter(default='_nextYear')
+
+    # could take up to an hour to scrape all bookings in the next year
+    worker_timeout = 3600
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def requires(self):
+        yield ExtractGomusBookings(timespan=self.timespan)
+        yield FetchBookingsHTML(timespan=self.timespan,
+                                base_url=self.base_url + '/admin/bookings/')
+
+    def output(self):
+        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+
+    def run(self):
+        bookings = pd.read_csv(self.input()[0].path)
+        bookings['order_date'] = None
+        bookings['language'] = ""
+        bookings['customer_id'] = 0
+        enhanced_bookings = pd.DataFrame(columns=self.columns)
+
+        with self.input()[1].open('r') as all_htmls:
+            for i, html_path in enumerate(all_htmls):
+                html_path = html_path.replace('\n', '')
+                with open(html_path,
+                          'r',
+                          encoding='utf-8') as html_file:
+                    res_details = html_file.read()
+                tree_details = html.fromstring(res_details)
+
+                row = bookings.iloc[[i]]
 
                 # firefox says the the xpath starts with //body/div[3]/ but we
                 # apparently need div[2] instead
@@ -139,7 +253,26 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 row['language'] = self.extract_from_html(
                     booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
 
+                try:
+                    customer_details = tree_details.xpath(
+                        '/html/body/div[2]/div[2]/div[3]/'
+                        'div[4]/div[2]/div[2]/div[2]')[0]
+
+                    # Customer E-Mail (not necessarily same as in report)
+                    customer_mail = self.extract_from_html(
+                        customer_details,
+                        'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
+
+                    if re.match(r'^\S+@\S+\.\S+$', customer_mail):
+                        row['customer_id'] = hash_id(customer_mail)
+
+                except IndexError:  # can't find customer mail
+                    row['customer_id'] = 0
+
                 enhanced_bookings = enhanced_bookings.append(row)
+
+        # ensure proper order
+        enhanced_bookings = enhanced_bookings.filter(self.columns)
 
         with self.output().open('w') as output_file:
             enhanced_bookings.to_csv(
@@ -151,95 +284,94 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
-    worker_timeout = 2000  # seconds ≈ 30 minutes until the task will timeout
+    # 60 minutes until the task will timeout
+    # set to about 800000 for collecting historic data ≈ 7 Days
+    worker_timeout = 3600
 
-    def get_order_ids(self):
-        orders = pd.read_csv(self.input().path)
-        return orders['order_id']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def requires(self):
-        return ExtractOrderData(
-            columns=[
-                'order_id',
-                'order_date',
-                'customer_id',
-                'valid',
-                'paid',
-                'origin'])
-        # this array is kind of unnecessary, but currently
-        # required by ExtractOrderData()
-        # the design of that task requiring a column-array is also
-        # questionable, so this line may change later on
+        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.csv', format=UTF8)
+            'output/gomus/scraped_order_contains.txt', format=UTF8)
 
     def run(self):
-        order_ids = self.get_order_ids()
 
         order_details = []
 
-        for i in range(len(order_ids)):
-            url = self.base_url + "/admin/orders/" + str(order_ids[i])
-            print(
-                (f"requesting order details for id: "
-                 f"{order_ids[i]} ({i+1} out of {len(order_ids)})"))
-            res_order = self.polite_get(url, self.cookies)
-            tree_order = html.fromstring(res_order.text)
+        with self.input().open('r') as all_htmls:
+            for i, html_path in enumerate(all_htmls):
+                html_path = html_path.replace('\n', '')
+                with open(html_path,
+                          'r',
+                          encoding='utf-8') as html_file:
+                    res_order = html_file.read()
 
-            tree_details = tree_order.xpath(
-                ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/'
-                 'div/div/div[2]'))[0]
+                tree_order = html.fromstring(res_order)
 
-            # every other td contains the information of an article in the
-            # order
-            for article in tree_details.xpath(
-                    'table/tbody[1]/tr[position() mod 2 = 1]'):
+                tree_details = tree_order.xpath(
+                    ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
+                     'div/div[2]/div/div/div/div[2]'))[0]
 
-                new_article = dict()
+                # every other td contains the information of an article in the
+                # order
+                for article in tree_details.xpath(
+                        # 'table/tbody[1]/tr[position() mod 2 = 1]'):
+                        'table/tbody[1]/tr'):
 
-                # Workaround for orders like 671144
-                id_xpath = 'td[1]/div|td[1]/a/div|td[1]/a'
-                if len(article.xpath(id_xpath)) == 0:
-                    continue
+                    new_article = dict()
 
-                # excursions have a link there and sometimes no div
-                new_article["article_id"] = int(
-                    self.extract_from_html(
-                        article, id_xpath).strip())
+                    # Workaround for orders like 671144
+                    id_xpath = 'td[1]/div|td[1]/a/div|td[1]/a'
+                    if len(article.xpath(id_xpath)) == 0:
+                        continue
 
-                new_article["order_id"] = order_ids[i]
+                    # excursions have a link there and sometimes no div
+                    new_article["article_id"] = int(
+                        self.extract_from_html(
+                            article, id_xpath).strip())
 
-                new_article["ticket"] = self.extract_from_html(
-                    article, 'td[3]/strong').strip()
+                    order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
+                    new_article["order_id"] = order_id
 
-                infobox_str = html.tostring(
-                    article.xpath('td[2]/div')[0],
-                    method='text',
-                    encoding="unicode")
+                    new_article["ticket"] = self.extract_from_html(
+                        article, 'td[3]/strong').strip()
 
-                # Workaround for orders like 679577
-                raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
-                if not len(raw_date_re) == 0:
-                    raw_date = raw_date_re[0]
-                else:
-                    # we need something to mark an
-                    # invalid / nonexistent date
-                    raw_date = '1.1.1900'
-                new_article["date"] = dateparser.parse(raw_date)
+                    if new_article["ticket"] == '':
+                        continue
 
-                new_article["quantity"] = int(
-                    self.extract_from_html(article, 'td[4]'))
+                    infobox_str = html.tostring(
+                        article.xpath('td[2]/div')[0],
+                        method='text',
+                        encoding="unicode")
 
-                raw_price = self.extract_from_html(article, 'td[5]')
-                new_article["price"] = float(
-                    raw_price.replace(
-                        ",", ".").replace(
-                        "€", ""))
+                    # Workaround for orders like 679577
+                    raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
+                    if not len(raw_date_re) == 0:
+                        raw_date = raw_date_re[0]
+                    else:
+                        # we need something to mark an
+                        # invalid / nonexistent date
+                        raw_date = '1.1.1900'
+                    new_article["date"] = dateparser.parse(raw_date)
 
-                order_details.append(new_article)
+                    new_article["quantity"] = int(
+                        self.extract_from_html(article, 'td[4]'))
+
+                    raw_price = self.extract_from_html(article, 'td[5]')
+                    new_article["price"] = float(
+                        raw_price.replace(
+                            ",", ".").replace(
+                            "€", ""))
+
+                    order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
+
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
