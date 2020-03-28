@@ -1,6 +1,6 @@
 import datetime as dt
 import unittest
-from unittest.mock import call, patch, PropertyMock
+from unittest.mock import patch, PropertyMock
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
