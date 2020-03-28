@@ -12,6 +12,7 @@ from gomus.events import (cleanse_umlauts,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.fetch_report import FetchEventReservations
 from gomus.daily_entries import ExtractDailyEntryData
 from task_test import DatabaseHelper
 
@@ -358,7 +359,7 @@ class TestEventTransformation(GomusTransformationTest):
             output_target,
             'events_out.csv')
 
-    @patch('gomus.events.FetchEventReservations')
+    @patch.object(FetchEventReservations, 'output')
     @patch.object(
         FetchCategoryReservations,
         'database',
@@ -367,7 +368,7 @@ class TestEventTransformation(GomusTransformationTest):
     def test_fetch_category_reservations(self,
                                          output_mock,
                                          database_mock,
-                                         fetch_reservations_mock):
+                                         fetch_reservations_output_mock):
         self.task = FetchCategoryReservations
 
         reservations_booked_target = MockTarget(
@@ -377,9 +378,10 @@ class TestEventTransformation(GomusTransformationTest):
             'reservations_cancelled',
             format=UTF8)
 
-        fetch_reservations_mock.side_effect = [
+        fetch_reservations_output_mock.side_effect = [
             reservations_booked_target,
-            reservations_cancelled_target]
+            reservations_cancelled_target
+        ]
 
         database_mock.return_value = self.test_db_name
 
@@ -389,12 +391,9 @@ class TestEventTransformation(GomusTransformationTest):
         for _, _ in enumerate(gen):  # iterate generator to its end
             pass
 
-        # A 'call(x, y)' represents a call to a mock object with
-        # the parameters (x, y)
-        # In this case, it should be called
-        # twice with the given parameters
-        calls = [call(0, 0), call(0, 1)]
-        fetch_reservations_mock.assert_has_calls(calls)
+        self.assertEqual(
+            fetch_reservations_output_mock.call_count,
+            2)
 
         self.check_result(
             output_target,
