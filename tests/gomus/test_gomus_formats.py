@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import patch
 import datetime as dt
 import pandas as pd
@@ -13,8 +12,8 @@ from task_test import DatabaseTaskTest
 class GomusFormatTest(DatabaseTaskTest):
     def __init__(self, report, expected_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.report=report
-        self.expected_format=expected_format
+        self.report = report
+        self.expected_format = expected_format
 
     def prepare_output_target(self, output_mock):
         self.output_target = MockTarget('data_out', format=UTF8)
@@ -28,16 +27,16 @@ class GomusFormatTest(DatabaseTaskTest):
     def check_format(self, skiprows=0, skipfooter=0):
         with self.output_target.open('r') as output_file:
             df = pd.read_csv(output_file,
-                            skipfooter=skipfooter,
-                            skiprows=skiprows,
-                            engine='python')
-                            
+                             skipfooter=skipfooter,
+                             skiprows=skiprows,
+                             engine='python')
+    
             for i in range(len(self.expected_format)):
-                if df.columns[i]=='Keine Daten vorhanden':
+                if df.columns[i] == 'Keine Daten vorhanden':
                     break
                 # this checks, if the colums are named right
                 self.assertEqual(df.columns[i],
-                                    self.expected_format[i][0])
+                                 self.expected_format[i][0])
                 df.apply(lambda x: self.check_type(
                     x[self.expected_format[i][0]],
                     self.expected_format[i][1]),
@@ -48,7 +47,7 @@ class GomusFormatTest(DatabaseTaskTest):
         # we try to converte the string into the expected type and
         # catch a ValueError, if something goes wrong
         try:
-            if data=='':
+            if data == '':
                 pass
             elif expected_type == 'FLOAT':
                 float(data)
@@ -63,8 +62,8 @@ class GomusFormatTest(DatabaseTaskTest):
 class TestCustomersFormat(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'customers',
-            [("Nummer", 'FLOAT'),
+            'customers', [
+            ("Nummer", 'FLOAT'),
             ("Anrede", 'STRING'),
             ("Vorname", 'STRING'),
             ("Name", 'STRING'),
@@ -94,8 +93,8 @@ class TestCustomersFormat(GomusFormatTest):
 class TestBookingsFormat(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'bookings',
-            [("Buchung", 'FLOAT'),
+            'bookings', [
+            ("Buchung", 'FLOAT'),
             ("Datum", 'DATE'),
             ("Uhrzeit von", 'TIME'),
             ("Uhrzeit bis", 'TIME'),
@@ -128,8 +127,8 @@ class TestBookingsFormat(GomusFormatTest):
 class TestOrdersFormat(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'orders',
-            [("Bestellnummer", 'FLOAT'),
+            'orders', [
+            ("Bestellnummer", 'FLOAT'),
             ("Erstellt", 'FLOAT'),
             ("Kundennummer", 'FLOAT'),
             ("Kunde", 'STRING'),
@@ -155,13 +154,16 @@ class TestOrdersFormat(GomusFormatTest):
 
 
 class TestEntriesSheet0Format(GomusFormatTest):
+    today = dt.date.today()
+    yesterday = today - dt.timedelta(days=1)
+
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'entries',
-            [("ID", 'FLOAT'),
+            'entries', [
+            ("ID", 'FLOAT'),
             ("Ticket", 'STRING'),
-            ((dt.date.today() - dt.timedelta(days=1)).strftime("%d.%m.%Y"), 'STRING'),
-            (dt.date.today().strftime("%d.%m.%Y"), 'STRING'),
+            (self.yesterday.strftime("%d.%m.%Y"), 'STRING'),
+            (self.today.strftime("%d.%m.%Y"), 'STRING'),
             ("Gesamt", 'STRING')],
             *args, **kwargs)
 
@@ -175,8 +177,8 @@ class TestEntriesSheet0Format(GomusFormatTest):
 class TestEntriesSheet1Format(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'entries',
-            [("ID", 'FLOAT'),
+            'entries', [
+            ("ID", 'FLOAT'),
             ("Ticket", 'STRING'),
             ("0.0", 'FLOAT'),
             ("1.0", 'FLOAT'),
@@ -215,8 +217,8 @@ class TestEntriesSheet1Format(GomusFormatTest):
 class TestEntriesSheet3Format(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'entries',
-            [("ID", 'FLOAT'),
+            'entries', [
+            ("ID", 'FLOAT'),
             ("Ticket", 'STRING'),
             ("0:00", 'FLOAT'),
             ("1:00", 'FLOAT'),
@@ -255,8 +257,8 @@ class TestEntriesSheet3Format(GomusFormatTest):
 class TestEventsFormat(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            'events',
-            [("Id", 'FLOAT'),
+            'events', [
+            ("Id", 'FLOAT'),
             ("Kunde", 'STRING'),
             ("Plätze", 'FLOAT'),
             ("Preis", 'FLOAT'),
