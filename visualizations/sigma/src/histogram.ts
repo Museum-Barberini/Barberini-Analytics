@@ -5,5 +5,5 @@ export function histogram<T>(map: T[]) {
     });
     histogram.forEach((count, key) =>
         histogram.set(key, count / map.length));
-    return histogram
+    return histogram;
 }

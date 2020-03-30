@@ -5,7 +5,7 @@
         "guid": "sigmaTextGraph5307B9EDBE3B47C7A1D3DB91A80C68CA",
         "visualClassName": "SigmaVisual",
         "version": "1.0.0",
-        "description": "Visualize big text data by displaying them as an interactive, filterable graph of keywords. Built around the javascript library sigma.js.",
+        "description": "Visualize big text data by displaying it as an interactive, filterable graph of keywords. Built around the javascript library sigma.js.",
         "supportUrl": "https://gitlab.hpi.de/bp-barberini/bp-barberini/issues",
         "gitHubUrl": "https://gitlab.hpi.de/bp-barberini/bp-barberini"
     },

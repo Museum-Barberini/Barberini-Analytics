@@ -50,10 +50,11 @@ export class SigmaVisual implements IVisual {
     public constructor(options: VisualConstructorOptions) {
         console.log("🚀 Loading Sigma Text Graph ...", options, new Date().toLocaleString());
         
-        this.stopwords = require('csv-loader!../static/stopwords.csv').map((row: string[]) => row[0]);
+        this.stopwords = require('csv-loader!../static/stopwords.csv')
+            .map((row: string[]) => row[0]);
         this.stopwords.push("museumbarberini"); // TODO: Hardcoded thus ugly.
-        // TODO: It would be nicer to specify this information as an input table, but unfortunately,
-        // Power BI does not yet support multiple distinct data view mappings.
+        // TODO: It would be nicer to specify this information as an input table, but
+        // unfortunately, Power BI does not yet support multiple distinct data view mappings.
         
         this.initializeComponent(options.element);
         
@@ -92,8 +93,11 @@ export class SigmaVisual implements IVisual {
         
         sigmaUtils.clean(this.sigma);
         
-        // TODO: Ideally, we could update the graph differentially. This would require extra effort for dealing with the IDs.
-        const textsByCategory = rows.groupBy(row => String(row[1]), row => String(row[0]).toLowerCase());
+        // TODO: Ideally, we could update the graph differentially. This would require extra
+        // effort for dealing with the IDs.
+        const textsByCategory = rows.groupBy(
+            row => String(row[1]),
+            row => String(row[0]).toLowerCase());
         new GraphBuilder()
             .analyze(textsByCategory, word => !this.stopwords.includes(word))
             .generateColors()
@@ -117,7 +121,7 @@ export class SigmaVisual implements IVisual {
         this.placeholder.style.display = 'flex';
         this.placeholder.style.justifyContent = 'center';
         this.placeholder.style.alignItems = 'center';
-        const placeholderChild = document.createElement('center')
+        const placeholderChild = document.createElement('center');
         this.placeholder.appendChild(placeholderChild);
         placeholderChild.innerHTML = "<h1>¯\\_(ツ)_/¯</h1>";
         placeholderChild.appendChild(this.placeholderContent = document.createElement('p'));
@@ -146,7 +150,7 @@ export class SigmaVisual implements IVisual {
             maxNodeSize: 15,
             minEdgeSize: 0.3,
             maxEdgeSize: 1
-        }
+        };
         this.sigma.mouseProperties = {
             maxRatio: 4 // max zoom factor
         };
@@ -186,14 +190,15 @@ export class SigmaVisual implements IVisual {
                 })
                 .iterNodes(node => {
                     node.hidden = !_filters.every(filter =>
-                        node.id == filter || (neighbors.has(node.id) && neighbors.get(node.id).has(filter)))
+                        node.id == filter || (
+                            neighbors.has(node.id) && neighbors.get(node.id).has(filter)));
                 });
         }
         
         // Limit number of visible nodes: Only show the largest ones (for sake of clarity)
-        // TODO: Restore filtering by edge weight instead (see git log)! It is much more interesting!
+        // TODO: Restore filtering by edge weight instead (see log)! It's much more interesting!
         const nodeSizes = [];
-        this.sigma.iterNodes(node => {if (!node.hidden) nodeSizes.push(node.size)});
+        this.sigma.iterNodes(node => {if (!node.hidden) nodeSizes.push(node.size);});
         nodeSizes.sort((a, b) => a - b); // JS way of sorting an array of integers 🙄
         const nodeLimit = nodeSizes.length - this.maxNodeCount;
         const minSize = nodeSizes[nodeLimit];
@@ -205,17 +210,18 @@ export class SigmaVisual implements IVisual {
             .iterEdges(edge => {if (!edge.hidden)
                 edge.hidden = [edge.source, edge.target].every(node =>
                     this.sigma.getNodes(node).hidden);
-            })
+            });
         
-        console.log("Filtered nodes to:", (() => {const nodes = new Set(); this.sigma.iterNodes(n => {if (!n.hidden) nodes.add(n.label)}); return nodes;})());
+        console.log("Filtered nodes to:", (() => {const nodes = new Set(); this.sigma.iterNodes(
+            n => {if (!n.hidden) nodes.add(n.label);}); return nodes;})());
         
         if (display) this.sigma.draw();
-    };
+    }
     
     //#region EVENTHANDLING
     private enterNodes(nodeIds: string[]) {
-        nodeIds.forEach(this.hoverFilters.add, this.hoverFilters)
-        this.applyAllFilters()
+        nodeIds.forEach(this.hoverFilters.add, this.hoverFilters);
+        this.applyAllFilters();
     }
     
     private leaveNodes(nodeIds: string[]) {
@@ -258,8 +264,9 @@ class GraphBuilder {
     private categories: string[];
     private wordsByTextByCategory: Map<string, Map<string, string[]>>;
     /**
-     * The key of the following map is a Symbol which contains the JSON representation of an Edge instance.
-     * This is the best possibility I found for using custom equality for the map's key comparison.
+     * The key of the following map is a Symbol which contains the JSON representation of an Edge
+     * instance. This is the best possibility I found for using custom equality for the map's key
+     * comparison.
      */
     private edgeWeights: Map<Symbol, number>;
     private histogram: Map<string, number>;
@@ -267,7 +274,10 @@ class GraphBuilder {
     
     private hues: number[] | null;
     
-    /** Stores texts into this instance and performs graph analysis on it. Filter out words that do not match wordFilter. */
+    /**
+     * Stores texts into this instance and performs graph analysis on it. Filter out words that do
+     * not match wordFilter.
+     */
     public analyze(textsByCategory: Map<string, string[]>, wordFilter: (word: string) => boolean) {
         this.categories = Array.from(textsByCategory.keys());
         this.analyzeTexts(textsByCategory, wordFilter);
@@ -291,7 +301,7 @@ class GraphBuilder {
         const nodeIds = new Map();
         let componentId = 0;
         
-        this.histogram.forEach((count, word, _) => {
+        this.histogram.forEach((count, word) => {
             nodeIds.set(word, ++componentId);
             sigma.addNode(componentId, {
                 id: componentId,
@@ -329,8 +339,13 @@ class GraphBuilder {
         return this;
     }
     
-    /** Splits all texts from the given map into words, cleans them and filters them by wordFilter. */
-    private analyzeTexts(textsByCategory: Map<string, string[]>, wordFilter: (word: string) => boolean) {
+    /**
+     * Splits all texts from the given map into words, cleans them and filters them by wordFilter.
+     */
+    private analyzeTexts(
+        textsByCategory: Map<string, string[]>,
+        wordFilter: (word: string) => boolean)
+    {
         this.wordsByTextByCategory = textsByCategory.mapEx(texts =>
             texts.mapEx(text =>
                 text
@@ -339,18 +354,20 @@ class GraphBuilder {
                     .filter(word => word)
                     .filter(wordFilter)
                     /* Further cleansing ideas:
-                     * define custom ignore words/replacements (e. g., museumbarberini -> barberini)
+                     * define custom ignore words/replacements (museumbarberini -> barberini, ...)
                      */
-                )
-            );
+            )
+        );
         return this;
     }
     
     /** Performs frequency analysis on all words. Computes edge weights of the text graph. */
     private analyzeWords() {
-        const allWords = [...this.wordsByTextByCategory.values()].fold(wordsByText => [...wordsByText.values()].flatten());
+        const allWords = [...this.wordsByTextByCategory.values()].fold(wordsByText =>
+            [...wordsByText.values()].flatten());
         this.histogram = histogram(allWords);
-        const allWordsByCategory = this.wordsByTextByCategory.mapEx(wordsByText => [...wordsByText.values()].flatten());
+        const allWordsByCategory = this.wordsByTextByCategory.mapEx(wordsByText =>
+            [...wordsByText.values()].flatten());
         this.histogramsByCategory = allWordsByCategory.mapEx(histogram);
         
         const edgeWeights = new Map<Symbol, number>();
@@ -362,7 +379,7 @@ class GraphBuilder {
                     const edge = new UndirectedEdge(word1, word2).key();
                     edgeWeights.update(edge, 0, weight =>
                         weight + (1 / (index2 - index1))); // Weight closer words higher
-                }))
+                }));
             })
         );
         this.edgeWeights = edgeWeights;
