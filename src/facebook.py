@@ -66,6 +66,10 @@ class FetchFbPosts(DataPreparationTask):
 
 class FetchFbPostPerformance(DataPreparationTask):
 
+    # Override the default timeout of 10 minutes to allow
+    # FetchFbPostPerformance to take up to 20 minutes.
+    worker_timeout = 1200 
+
     def _requires(self):
         return luigi.task.flatten([
             FbPostsToDB(),
