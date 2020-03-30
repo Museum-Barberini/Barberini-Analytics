@@ -195,7 +195,6 @@ class FetchOrdersHTML(luigi.Task):
                 cur.execute(query)
                 order_ids = cur.fetchall()
 
-            print(query)
             return order_ids
 
         finally:
