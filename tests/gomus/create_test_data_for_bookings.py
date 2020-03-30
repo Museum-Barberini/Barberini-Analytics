@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # link to a specific booking:
 # https://barberini.gomus.de/admin/bookings/BOOKING-ID
 
