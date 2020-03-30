@@ -2,6 +2,7 @@ import json
 import luigi
 import os
 import pandas as pd
+import random
 import requests
 
 from itertools import chain
@@ -11,7 +12,29 @@ from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
+class GooglePlaystoreReviewsToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = 'gplay_review'
+
+    columns = [
+        ('playstore_review_id', 'TEXT'),
+        ('text', 'TEXT'),
+        ('rating', 'INT'),
+        ('app_version', 'TEXT'),
+        ('thumbs_up', 'INT'),
+        ('title', 'TEXT'),
+        ('date', 'TIMESTAMP')
+    ]
+
+    primary_key = 'playstore_review_id'
+
+    def requires(self):
+        return FetchGplayReviews(minimal=self.minimal)
+
+
 class FetchGplayReviews(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,6 +62,10 @@ class FetchGplayReviews(DataPreparationTask):
         # Different languages have different reviews. Iterate over
         # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
+        if self.minimal:
+            random_num = random.randint(0, len(language_codes) - 2)
+            language_codes = [language_codes[random_num],
+                              language_codes[random_num + 1]]
 
         reviews_nested = [
             self.fetch_for_language(language_code)
@@ -135,23 +162,3 @@ class FetchGplayReviews(DataPreparationTask):
             'date': str
         })
         return reviews
-
-
-class GooglePlaystoreReviewsToDB(CsvToDb):
-
-    table = 'gplay_review'
-
-    columns = [
-        ('playstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('thumbs_up', 'INT'),
-        ('title', 'TEXT'),
-        ('date', 'TIMESTAMP')
-    ]
-
-    primary_key = 'playstore_review_id'
-
-    def requires(self):
-        return FetchGplayReviews()

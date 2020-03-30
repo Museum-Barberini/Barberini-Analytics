@@ -44,6 +44,7 @@ class CustomersToDB(CsvToDb):
 
 
 class GomusToCustomerMappingToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
@@ -67,7 +68,8 @@ class GomusToCustomerMappingToDB(CsvToDb):
     def requires(self):
         return ExtractGomusToCustomerMapping(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys, today=self.today)
+            foreign_keys=self.foreign_keys, today=self.today,
+            minimal=self.minimal)
 
 
 class ExtractCustomerData(DataPreparationTask):
@@ -144,6 +146,7 @@ class ExtractCustomerData(DataPreparationTask):
 
 
 class ExtractGomusToCustomerMapping(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
@@ -158,12 +161,19 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            CustomersToDB(minimal=self.minimal),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchGomusReport(report='customers', today=self.today)
+        if self.minimal:
+            suffix = '_1day'
+        else:
+            suffix = '_7days'
+
+        return FetchGomusReport(report='customers',
+                                today=self.today,
+                                suffix=suffix)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/gomus_to_customers_mapping.csv',

@@ -12,62 +12,12 @@ from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
-class FetchGtrendsValues(ExternalProgramTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
-
-    js_engine = luigi.Parameter(default='node')
-    js_path = './src/google_trends/gtrends_values.js'
-
-    def requires(self):
-        yield MuseumFacts()
-        yield GtrendsTopics(minimal=self.minimal)
-
-    def output(self):
-        return luigi.LocalTarget('output/google_trends/values.json')
-
-    def program_args(self):
-        with self.input()[0].open('r') as facts_file:
-            facts = json.load(facts_file)
-
-        return [self.js_engine, self.js_path] \
-            + [facts['countryCode'], facts['foundingDate']] \
-            + [os.path.realpath(path) for path in [
-                self.input()[1].path, self.output().path]]
-
-
-class ConvertGtrendsValues(JsonToCsv):
-    minimal = luigi.parameter.BoolParameter(default=False)
-
-    def requires(self):
-        return FetchGtrendsValues(minimal=self.minimal)
-
-    def output(self):
-        return luigi.LocalTarget('output/google_trends/values.csv')
-
-
 class GtrendsValuesToDB(luigi.WrapperTask):
     minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         yield GtrendsValuesClearDB(minimal=self.minimal)
         yield GtrendsValuesAddToDB(minimal=self.minimal)
-
-
-class GtrendsValuesAddToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
-
-    table = 'gtrends_value'
-
-    columns = [
-        ('topic', 'TEXT'),
-        ('date', 'DATE'),
-        ('interest_value', 'INT'),
-    ]
-
-    primary_key = 'topic', 'date'
-
-    def requires(self):
-        return ConvertGtrendsValues(minimal=self.minimal)
 
 
 class GtrendsValuesClearDB(luigi.WrapperTask):
@@ -111,3 +61,53 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         finally:
             if connection is not None:
                 connection.close()
+
+
+class GtrendsValuesAddToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    table = 'gtrends_value'
+
+    columns = [
+        ('topic', 'TEXT'),
+        ('date', 'DATE'),
+        ('interest_value', 'INT'),
+    ]
+
+    primary_key = 'topic', 'date'
+
+    def requires(self):
+        return ConvertGtrendsValues(minimal=self.minimal)
+
+
+class ConvertGtrendsValues(JsonToCsv):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    def requires(self):
+        return FetchGtrendsValues(minimal=self.minimal)
+
+    def output(self):
+        return luigi.LocalTarget('output/google_trends/values.csv')
+
+
+class FetchGtrendsValues(ExternalProgramTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
+
+    js_engine = luigi.Parameter(default='node')
+    js_path = './src/google_trends/gtrends_values.js'
+
+    def requires(self):
+        yield MuseumFacts()
+        yield GtrendsTopics(minimal=self.minimal)
+
+    def output(self):
+        return luigi.LocalTarget('output/google_trends/values.json')
+
+    def program_args(self):
+        with self.input()[0].open('r') as facts_file:
+            facts = json.load(facts_file)
+
+        return [self.js_engine, self.js_path] \
+            + [facts['countryCode'], facts['foundingDate']] \
+            + [os.path.realpath(path) for path in [
+                self.input()[1].path, self.output().path]]
