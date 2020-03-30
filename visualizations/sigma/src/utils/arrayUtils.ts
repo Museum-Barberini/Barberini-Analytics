@@ -14,7 +14,8 @@ interface Array<T> {
      */
     mapEx<U>(funValue: (element: T) => U): Map<T, U>;
     
-    /** Combines this array with a second one of equal length, applying a zip function on each
+    /**
+     * Combines this array with a second one of equal length, applying a zip function on each
      * i-th tuple of array entries.
      */
     zip<U, V>(other: U[], fun: (x: T, y: U) => V): V[];
