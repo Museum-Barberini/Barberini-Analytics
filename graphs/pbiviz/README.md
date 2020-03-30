@@ -3,7 +3,29 @@ Custom Visual for Power BI
 
 ## Development
 
-For general information on how to install `pbiviz` and how to build this, read [here](https://medium.com/@jatin7gupta/getting-started-with-power-bi-custom-visuals-59ce8d850feb). To debug this visual, execute `pbiviz start` and open Power BI Online. You will also need to turn on developer mode in Power BI Online.
+For general information on how to work with custom visuals, read [here](https://medium.com/@jatin7gupta/getting-started-with-power-bi-custom-visuals-59ce8d850feb). First of all, to develop custom visuals, you will need to install the Power BI visual tools:
+
+```powershell
+npm install -g powerbi-visuals-tools
+```
+
+### Building the visual
+
+```powershell
+pbiviz package
+```
+
+### Debugging the visual
+
+1. Start the webpack server:
+
+   ```powershell
+   pbiviz start
+   ```
+
+2. Open Power BI Online on the same machine.
+3. Turn on developer mode in the web app's settings.
+4. Edit any report and add the "Custom Visual" from the visualization report.
 
 ## Known issues
 
