@@ -34,7 +34,7 @@ class GomusFormatTest(DatabaseTaskTest):
             for i in range(len(self.expected_format)):
                 if df.columns[i] == 'Keine Daten vorhanden':
                     break
-                # this checks, if the colums are named right
+                # this checks if the colums are named right
                 self.assertEqual(df.columns[i],
                                  self.expected_format[i][0])
                 df.apply(lambda x: self.check_type(
