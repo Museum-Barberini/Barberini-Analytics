@@ -1,18 +1,16 @@
+import sys
 import unittest
 from unittest.mock import patch
-from luigi.mock import MockTarget
-from luigi.format import UTF8
 
-import pandas as pd
 import mmh3
-import sys
+import pandas as pd
+from luigi.format import UTF8
+from luigi.mock import MockTarget
 
-from gomus._utils.scrape_gomus import\
-    EnhanceBookingsWithScraper,\
-    FetchBookingsHTML,\
-    FetchGomusHTML,\
-    ScrapeGomusOrderContains
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
+                                       FetchBookingsHTML, FetchGomusHTML,
+                                       ScrapeGomusOrderContains)
 
 
 class TestEnhanceBookingsWithScraper(unittest.TestCase):
