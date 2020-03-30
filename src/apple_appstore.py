@@ -125,8 +125,8 @@ class AppstoreReviewsToDB(CsvToDb):
         ('vote_count', 'INT'),
         ('vote_sum', 'INT'),
         ('title', 'TEXT'),
-        ('date', 'TIMESTAMP'),
-        ('country_code', 'TEXT')
+        ('post_timestamp', 'TIMESTAMP'),
+        ('post_timestamp', 'TEXT')
     ]
 
     primary_key = 'appstore_review_id'
