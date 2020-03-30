@@ -70,7 +70,8 @@ class ExtractEventData(DataPreparationTask):
 
     def requires(self):
         for category in self.categories:
-            yield FetchCategoryReservations(category, minimal=self.minimal)
+            yield FetchCategoryReservations(category=category,
+                                            minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
@@ -160,7 +161,7 @@ class FetchCategoryReservations(luigi.Task):
                 today = dt.date.today()
 
                 query = (f'select * from gomus_booking where '
-                         f'DATE(start_datetime) = {today}')
+                         f'DATE(start_datetime) = DATE(\'{today}\')')
             else:
                 two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
 
