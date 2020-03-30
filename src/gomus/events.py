@@ -133,7 +133,7 @@ class ExtractEventData(DataPreparationTask):
 
 
 class FetchCategoryReservations(luigi.Task):
-    minimal = luigi.paramezer.BoolParameter(default=False)
+    minimal = luigi.parameter.BoolParameter(default=False)
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
