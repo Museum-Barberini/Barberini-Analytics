@@ -160,16 +160,20 @@ class FetchFbPostPerformance(DataPreparationTask):
     def try_request_multiple_times(self, url, request_args):
         """
         Not all requests to the facebook api are successful. To allow
-        some requests to fail (mainly: to time out), request the api up 
+        some requests to fail (mainly: to time out), request the api up
         to four times.
         """
         for _ in range(3):
             try:
                 response = requests.get(url, request_args, timeout=60)
                 if response.ok:
-                   return response 
-            except:
-                pass 
+                    return response
+            except Error as e:
+                print(
+                    "An Error occured requesting the Facebook api.\n"
+                    "Trying to request the api again.\n"
+                    f"error message: {e}"
+                )
         return requests.get(url, request_args, timeout=100)
 
 
