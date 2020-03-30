@@ -43,9 +43,11 @@ class GomusFormatTest(DatabaseTaskTest):
                     axis=1)
 
     def check_type(self, data, expected_type):
-        # to check if the data in the columns has the right type,
+        # To check if the data in the columns has the right type,
         # we try to converte the string into the expected type and
-        # catch a ValueError, if something goes wrong
+        # catch a ValueError or TypeError, if something goes wrong.
+        # As we don't process data from type "STRING"/ just store
+        # it as text, we don't have to explicitly checke the type.
         try:
             if data == '':
                 pass
@@ -197,7 +199,7 @@ class TestEntriesSheet3Format(GomusFormatTest):
             'entries',
             [("ID", 'FLOAT'),
              ("Ticket", 'STRING'),
-             *[(f'{i}:00', 'FLOAT') for i in range(24)]],
+             *[(f'{i}:00', 'FLOAT') for i in range(24)],
              ("Gesamt", 'FLOAT')],
             *args, **kwargs)
 
