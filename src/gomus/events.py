@@ -15,6 +15,7 @@ from set_db_connection_options import set_db_connection_options
 
 
 class EventsToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
     table = 'gomus_event'
 
     columns = [
@@ -39,10 +40,12 @@ class EventsToDB(CsvToDb):
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            foreign_keys=self.foreign_keys,
+            minimal=self.minimal)
 
 
 class ExtractEventData(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
@@ -61,13 +64,13 @@ class ExtractEventData(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            BookingsToDB(),
+            BookingsToDB(minimal=self.minimal),
             super()._requires()
         ])
 
     def requires(self):
         for category in self.categories:
-            yield FetchCategoryReservations(category)
+            yield FetchCategoryReservations(category, minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
@@ -130,6 +133,7 @@ class ExtractEventData(DataPreparationTask):
 
 
 class FetchCategoryReservations(luigi.Task):
+    minimal = luigi.paramezer.BoolParameter(default=False)
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
@@ -152,11 +156,18 @@ class FetchCategoryReservations(luigi.Task):
             )
             cur = conn.cursor()
 
-            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+            if self.minimal:
+                today = dt.date.today()
 
-            query = (f'SELECT booking_id FROM gomus_booking WHERE category=\''
-                     f'{self.category}\''
-                     f' AND start_datetime > \'{two_weeks_ago}\'')
+                query = (f'select * from gomus_booking where '
+                         f'DATE(start_datetime) = {today}')
+            else:
+                two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+
+                query = (f'SELECT booking_id FROM gomus_booking WHERE '
+                         f'category=\'{self.category}\' '
+                         f'AND start_datetime > \'{two_weeks_ago}\'')
+
             cur.execute(query)
 
             row = cur.fetchone()
@@ -187,7 +198,7 @@ class FetchCategoryReservations(luigi.Task):
                                  format=UTF8)
 
     def requires(self):
-        yield BookingsToDB()
+        yield BookingsToDB(minimal=self.minimal)
 
 
 # this function should not have to exist, but luigi apparently
