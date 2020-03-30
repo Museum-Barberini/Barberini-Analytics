@@ -3,6 +3,7 @@ import luigi
 from apple_appstore import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
+from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from twitter import TweetsToDB, TweetPerformanceToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
 from gomus.bookings import BookingsToDB
@@ -26,6 +27,7 @@ class FillDBDaily(luigi.WrapperTask):
 
     def requires(self):
         yield AppstoreReviewsToDB(minimal=self.minimal)
+        yield GooglePlaystoreReviewsToDB()
         yield FbPostsToDB(minimal=self.minimal)
         yield GoogleMapsReviewsToDB(minimal=self.minimal)
         yield TweetsToDB(minimal=self.minimal)

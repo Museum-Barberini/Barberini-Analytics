@@ -174,13 +174,17 @@ class FetchCategoryReservations(luigi.Task):
             while row is not None:
                 event_id = row[0]
                 if event_id not in self.row_list:
-                    approved = FetchEventReservations(event_id, 0)
+                    approved = FetchEventReservations(
+                        booking_id=event_id,
+                        status=0)
                     yield approved
-                    cancelled = FetchEventReservations(event_id, 1)
+                    cancelled = FetchEventReservations(
+                        booking_id=event_id,
+                        status=1)
                     yield cancelled
                     if approved and cancelled:
-                        self.output_list.append(approved.path)
-                        self.output_list.append(cancelled.path)
+                        self.output_list.append(approved.output().path)
+                        self.output_list.append(cancelled.output().path)
                     self.row_list.append(event_id)
                 row = cur.fetchone()
             # write list of all event reservation to output file
