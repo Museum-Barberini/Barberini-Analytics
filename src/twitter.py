@@ -9,14 +9,12 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
-from set_db_connection_options import set_db_connection_options
 
 
 class FetchTwitter(luigi.Task):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
         # Default for min_timestamp, requires the other values to be set
         # already, so this can't be done via 'default='
