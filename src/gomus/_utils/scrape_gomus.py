@@ -269,7 +269,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     bookings.loc[i, 'customer_id'] = 0
 
-        bookings = self.ensure_foreign_keys(bookings)
+        bookings, invalid_values = self.ensure_foreign_keys(bookings)
+        if invalid_values:  # an E-Mail address was invalid, fetch it anew
+            pass
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -372,7 +374,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
         df = pd.DataFrame(order_details)
 
-        df = self.ensure_foreign_keys(df)
+        df, _ = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

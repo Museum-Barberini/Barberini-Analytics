@@ -72,7 +72,7 @@ class ExtractGomusBookings(DataPreparationTask):
             'status',
             'start_datetime']
 
-        bookings = self.ensure_foreign_keys(bookings)
+        bookings, _ = self.ensure_foreign_keys(bookings)
 
         with self.output().open('w') as output_file:
             bookings.to_csv(output_file, header=True, index=False)

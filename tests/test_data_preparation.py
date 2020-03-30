@@ -55,7 +55,10 @@ class TestDataPreparationTask(unittest.TestCase):
 
         # Expected behaviour: 1 is removed because it is not found in the DB
         expected_df = pd.DataFrame([[0]], columns=[test_column])
+        expected_invalid_values = pd.DataFrame([[1]], columns=[test_column])
 
-        result_df = DataPreparationTask().ensure_foreign_keys(df)
+        actual_df, actual_invalid_values = \
+            DataPreparationTask().ensure_foreign_keys(df)
 
-        self.assertTrue(expected_df.equals(result_df))
+        self.assertTrue(expected_df.equals(actual_df))
+        self.assertEqual(expected_invalid_values.equals(actual_invalid_values))
