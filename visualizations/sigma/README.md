@@ -3,7 +3,7 @@ Custom Visual for Power BI
 
 ## Development
 
-For general information on how to work with custom visuals, read [here](https://medium.com/@jatin7gupta/getting-started-with-power-bi-custom-visuals-59ce8d850feb). First of all, to develop custom visuals, you will need to install the Power BI visual tools:
+For general information on how to work with custom visuals, read [the MS Docs article about it](https://docs.microsoft.com/de-de/power-bi/developer/visuals/custom-visual-develop-tutorial). First of all, to develop custom visuals, you will need to install the Power BI visual tools:
 
 ```powershell
 npm install -g powerbi-visuals-tools
