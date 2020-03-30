@@ -46,7 +46,8 @@ export class SigmaVisual implements IVisual {
     private readonly hoverFilters = new Set<string>();
     private readonly pinFilters = new Set<string>();
     
-    constructor(options: VisualConstructorOptions) {
+    // This constructor is called from the outside
+    public constructor(options: VisualConstructorOptions) {
         console.log("🚀 Loading Sigma Text Graph ...", options, new Date().toLocaleString());
         
         this.stopwords = require('csv-loader!../static/stopwords.csv').map((row: string[]) => row[0]);
@@ -62,6 +63,7 @@ export class SigmaVisual implements IVisual {
     }
     
     @logExceptions()
+    // This method is called from the outside
     public update(options: VisualUpdateOptions) {
         console.log('👂 Updating Sigma Text Graph ...', options, new Date().toLocaleString());
         
@@ -106,8 +108,9 @@ export class SigmaVisual implements IVisual {
         console.log("✅ Sigma Visualization was successfully updated");
     }
     
+    @logExceptions()
     private initializeComponent(parent: HTMLElement) {
-        // Create placeholder (visible until valid data are passed)
+        // Create placeholder (will be displayed until valid data are passed)
         this.placeholder = document.createElement('div');
         this.placeholder.style.width = '100%';
         this.placeholder.style.height = '100%';
@@ -178,12 +181,8 @@ export class SigmaVisual implements IVisual {
             this.sigma
                 .iterEdges(edge => {
                     edge.hidden = false;
-                    if (!neighbors.has(edge.source))
-                        neighbors.set(edge.source, new Set());
-                    if (!neighbors.has(edge.target))
-                        neighbors.set(edge.target, new Set());
-                    neighbors.get(edge.source).add(edge.target);
-                    neighbors.get(edge.target).add(edge.source);
+                    neighbors.getOrSetDefault(edge.source, () => new Set()).add(edge.target);
+                    neighbors.getOrSetDefault(edge.target, () => new Set()).add(edge.source);
                 })
                 .iterNodes(node => {
                     node.hidden = !_filters.every(filter =>
@@ -195,7 +194,7 @@ export class SigmaVisual implements IVisual {
         // TODO: Restore filtering by edge weight instead (see git log)! It is much more interesting!
         const nodeSizes = [];
         this.sigma.iterNodes(node => {if (!node.hidden) nodeSizes.push(node.size)});
-        nodeSizes.sort((a, b) => a - b);
+        nodeSizes.sort((a, b) => a - b); // JS way of sorting an array of integers 🙄
         const nodeLimit = nodeSizes.length - this.maxNodeCount;
         const minSize = nodeSizes[nodeLimit];
         
@@ -243,6 +242,7 @@ export class SigmaVisual implements IVisual {
 }
 
 
+/** Provides logic for building a text graph from a set of texts. */
 class GraphBuilder {
     
     //#region CONFIGURATION
@@ -255,16 +255,19 @@ class GraphBuilder {
     ];
     //#endregion CONFIGURATION
     
-    categories: string[];
-    wordsByTextByCategory: Map<string, Map<string, string[]>>;
-    // The key of the following map is a Symbol which contains the JSON representation of an Edge instance.
-    // This is the best possibility I found for using custom equality for the map's key comparison.
-    edgeWeights: Map<Symbol, number>;
-    histogram: Map<string, number>;
-    histogramsByCategory: Map<string, Map<string, number>>;
+    private categories: string[];
+    private wordsByTextByCategory: Map<string, Map<string, string[]>>;
+    /**
+     * The key of the following map is a Symbol which contains the JSON representation of an Edge instance.
+     * This is the best possibility I found for using custom equality for the map's key comparison.
+     */
+    private edgeWeights: Map<Symbol, number>;
+    private histogram: Map<string, number>;
+    private histogramsByCategory: Map<string, Map<string, number>>;
     
-    hues: number[] | null;
+    private hues: number[] | null;
     
+    /** Stores texts into this instance and performs graph analysis on it. Filter out words that do not match wordFilter. */
     public analyze(textsByCategory: Map<string, string[]>, wordFilter: (word: string) => boolean) {
         this.categories = Array.from(textsByCategory.keys());
         this.analyzeTexts(textsByCategory, wordFilter);
@@ -272,6 +275,7 @@ class GraphBuilder {
         return this;
     }
     
+    /** Generates different hues for each text category. */
     public generateColors() {
         if (this.categories.length < 2) {
             this.hues = null;
@@ -282,13 +286,14 @@ class GraphBuilder {
         return this;
     }
     
-    public buildGraph(sigInst: SigmaV01.Sigma) {
+    /** Translates the graph into the given sigma instance. */
+    public buildGraph(sigma: SigmaV01.Sigma) {
         const nodeIds = new Map();
         let componentId = 0;
         
         this.histogram.forEach((count, word, _) => {
             nodeIds.set(word, ++componentId);
-            sigInst.addNode(componentId, {
+            sigma.addNode(componentId, {
                 id: componentId,
                 label: word,
                 
@@ -309,7 +314,7 @@ class GraphBuilder {
         
         this.edgeWeights.forEach((weight, edge) => {
             const [word1, word2] = JSON.parse((<any>edge).description);
-            sigInst.addEdge(++componentId, nodeIds.get(word1), nodeIds.get(word2), {
+            sigma.addEdge(++componentId, nodeIds.get(word1), nodeIds.get(word2), {
                 id: componentId,
                 source: nodeIds.get(word1),
                 target: nodeIds.get(word2),
@@ -323,7 +328,8 @@ class GraphBuilder {
         
         return this;
     }
-
+    
+    /** Splits all texts from the given map into words, cleans them and filters them by wordFilter. */
     private analyzeTexts(textsByCategory: Map<string, string[]>, wordFilter: (word: string) => boolean) {
         this.wordsByTextByCategory = textsByCategory.mapEx(texts =>
             texts.mapEx(text =>
@@ -332,19 +338,18 @@ class GraphBuilder {
                     .map(word => word.trimEx(/\p{P}/gu))
                     .filter(word => word)
                     .filter(wordFilter)
-                    /** further cleansing ideas:
+                    /* Further cleansing ideas:
                      * define custom ignore words/replacements (e. g., museumbarberini -> barberini)
                      */
                 )
             );
-        console.log("wordsByTextByCategory", this.wordsByTextByCategory);
         return this;
     }
     
+    /** Performs frequency analysis on all words. Computes edge weights of the text graph. */
     private analyzeWords() {
         const allWords = [...this.wordsByTextByCategory.values()].fold(wordsByText => [...wordsByText.values()].flatten());
         this.histogram = histogram(allWords);
-        console.log("histogram", this.histogram);
         const allWordsByCategory = this.wordsByTextByCategory.mapEx(wordsByText => [...wordsByText.values()].flatten());
         this.histogramsByCategory = allWordsByCategory.mapEx(histogram);
         
@@ -356,7 +361,7 @@ class GraphBuilder {
                     if (word1 == word2) return;
                     const edge = new UndirectedEdge(word1, word2).key();
                     edgeWeights.update(edge, 0, weight =>
-                        weight + (1 / (index2 - index1)));
+                        weight + (1 / (index2 - index1))); // Weight closer words higher
                 }))
             })
         );
@@ -364,6 +369,10 @@ class GraphBuilder {
         return this;
     }
     
+    /**
+     * Computes the color for a word based on the associated categories.
+     * @param count The number of occurences of the word.
+     * */
     private computeColor(word: string, count: number) {
         const saturations = this.categories.map(category =>
             this.histogramsByCategory.get(category).get(word) ?? 0);
@@ -381,6 +390,7 @@ class GraphBuilder {
 }
 
 
+/** Represents an undirected graph's edge that can be used as the key of a Map. */
 class UndirectedEdge {
     constructor(node1: string, node2: string) {
         this._nodes = [node1, node2];
