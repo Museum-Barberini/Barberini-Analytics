@@ -29,7 +29,7 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
 
     def requires(self):
         return ExtractDailyEntryData(expected=False,
-                                     columns=self.columns,
+                                     columns=[col[0] for col in self.columns],
                                      today=self.today)
 
 
@@ -38,7 +38,7 @@ class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
 
     def requires(self):
         return ExtractDailyEntryData(expected=True,
-                                     columns=self.columns,
+                                     columns=[col[0] for col in self.columns],
                                      today=self.today)
 
 
