@@ -168,7 +168,7 @@ class FetchFbPostPerformance(DataPreparationTask):
                 response = requests.get(url, request_args, timeout=60)
                 if response.ok:
                     return response
-            except Error as e:
+            except Exception as e:
                 print(
                     "An Error occured requesting the Facebook api.\n"
                     "Trying to request the api again.\n"
