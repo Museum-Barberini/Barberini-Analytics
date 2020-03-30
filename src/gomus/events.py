@@ -11,6 +11,7 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
+from gomus.customers import hash_id
 from set_db_connection_options import set_db_connection_options
 
 
@@ -21,6 +22,7 @@ class EventsToDB(CsvToDb):
     columns = [
         ('event_id', 'INT'),
         ('booking_id', 'INT'),
+        ('customer_id', 'INT'),
         ('reservation_count', 'INT'),
         ('order_date', 'DATE'),
         ('status', 'TEXT'),
@@ -34,6 +36,11 @@ class EventsToDB(CsvToDb):
             'origin_column': 'booking_id',
             'target_table': 'gomus_booking',
             'target_column': 'booking_id'
+        },
+        {
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 
@@ -89,13 +96,18 @@ class ExtractEventData(DataPreparationTask):
                     path = path.replace('\n', '')
 
                     # handle booked and cancelled events
-                    event_data = luigi.LocalTarget(path, format=UTF8)
-                    if i % 2 == 0:
-                        self.append_event_data(event_data, 'Gebucht', category)
-                    else:
-                        self.append_event_data(event_data,
-                                               'Storniert',
-                                               category)
+                    try:
+                        event_data = luigi.LocalTarget(path, format=UTF8)
+                        if i % 2 == 0:
+                            self.append_event_data(event_data,
+                                                   'Gebucht',
+                                                   category)
+                        else:
+                            self.append_event_data(event_data,
+                                                   'Storniert',
+                                                   category)
+                    except Exception:
+                        pass
 
         self.events_df = self.ensure_foreign_keys(self.events_df)
 
@@ -116,12 +128,13 @@ class ExtractEventData(DataPreparationTask):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'Event_id', 'Plätze',
+                'Id', 'Event_id', 'Kunde', 'Plätze',
                 'Datum', 'Status', 'Kategorie'])
 
             event_df.columns = self.columns
 
             event_df['event_id'] = event_df['event_id'].apply(int)
+            event_df['customer_id'] = event_df['customer_id'].apply(hash_id)
             event_df['reservation_count'] = event_df[
                 'reservation_count'].apply(int)
             event_df['order_date'] = event_df['order_date'].apply(
@@ -158,10 +171,9 @@ class FetchCategoryReservations(luigi.Task):
             cur = conn.cursor()
 
             if self.minimal:
-                today = dt.date.today()
-
-                query = (f'select * from gomus_booking where '
-                         f'DATE(start_datetime) = DATE(\'{today}\')')
+                query = (f'SELECT booking_id FROM gomus_booking WHERE '
+                         f'category=\'{self.category}\' '
+                         f'ORDER BY start_datetime DESC LIMIT 10')
             else:
                 two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
 
@@ -174,6 +186,7 @@ class FetchCategoryReservations(luigi.Task):
             row = cur.fetchone()
             while row is not None:
                 event_id = row[0]
+                print(event_id)
                 if event_id not in self.row_list:
                     approved = FetchEventReservations(
                         booking_id=event_id,
