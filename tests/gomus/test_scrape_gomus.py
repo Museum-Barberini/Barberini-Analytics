@@ -20,7 +20,8 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
     It then compares the expected hash (also in the file above)
     with the hash of what our scraper got.
 
-    To easily add test cases, use create_test_data_for_bookings.py.'''
+    To easily add test cases, use create_test_data_for_bookings.py.
+    '''
 
     hash_seed = 666
 
