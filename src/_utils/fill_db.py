@@ -27,7 +27,7 @@ class FillDBDaily(luigi.WrapperTask):
 
     def requires(self):
         yield AppstoreReviewsToDB(minimal=self.minimal)
-        yield GooglePlaystoreReviewsToDB()
+        yield GooglePlaystoreReviewsToDB(minimal=self.minimal)
         yield FbPostsToDB(minimal=self.minimal)
         yield GoogleMapsReviewsToDB(minimal=self.minimal)
         yield TweetsToDB(minimal=self.minimal)
@@ -35,13 +35,12 @@ class FillDBDaily(luigi.WrapperTask):
 
         yield BookingsToDB(minimal=self.minimal)
         yield CustomersToDB(minimal=self.minimal)
-        yield DailyEntriesToDB(minimal=self.minimal)
-        yield ExpectedDailyEntriesToDB(minimal=self.minimal)
+        yield DailyEntriesToDB()
+        yield ExpectedDailyEntriesToDB()
         yield EventsToDB(minimal=self.minimal)
+        yield GomusToCustomerMappingToDB(minimal=self.minimal)
         yield OrderContainsToDB(minimal=self.minimal)
         yield OrdersToDB(minimal=self.minimal)
-
-        yield GomusToCustomerMappingToDB(minimal=self.minimal)
 
 
 class FillDBHourly(luigi.WrapperTask):
@@ -50,4 +49,3 @@ class FillDBHourly(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDB(minimal=self.minimal)
         yield TweetPerformanceToDB(minimal=self.minimal)
-        pass
