@@ -146,6 +146,7 @@ class FetchBookingsHTML(luigi.Task):
 
 
 class FetchOrdersHTML(luigi.Task):
+    minimal = luigi.parameter.BoolParameter(default=False)
     base_url = luigi.parameter.Parameter(
         description="Base URL to append order IDs to")
 
@@ -161,7 +162,7 @@ class FetchOrdersHTML(luigi.Task):
         self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
 
     def requires(self):
-        return OrdersToDB()
+        return OrdersToDB(minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders_htmls.txt')
@@ -174,20 +175,27 @@ class FetchOrdersHTML(luigi.Task):
             )
             cur = conn.cursor()
 
+            if self.minimal:
+                limit = ' LIMIT 10'
+            else:
+                limit = ''
+
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
                         f" WHERE table_name=\'gomus_order_contains\')")
 
             if cur.fetchone()[0]:
                 query = (f'SELECT order_id FROM gomus_order WHERE order_id '
-                         'NOT IN (SELECT order_id FROM gomus_order_contains)')
+                         f'NOT IN (SELECT order_id FROM '
+                         f'gomus_order_contains){limit}')
                 cur.execute(query)
                 order_ids = cur.fetchall()
 
             else:
-                query = (f'SELECT order_id FROM gomus_order')
+                query = (f'SELECT order_id FROM gomus_order{limit}')
                 cur.execute(query)
                 order_ids = cur.fetchall()
 
+            print(query)
             return order_ids
 
         finally:
@@ -299,6 +307,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
 
     # 60 minutes until the task will timeout
     # set to about 800000 for collecting historic data ≈ 7 Days
@@ -308,7 +317,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
+        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/',
+                               minimal=self.minimal)
 
     def output(self):
         return luigi.LocalTarget(

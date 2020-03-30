@@ -13,8 +13,10 @@ from gomus.customers import GomusToCustomerMappingToDB
 
 
 class OrdersToDB(CsvToDb):
+    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
+
     table = 'gomus_order'
 
     columns = [
@@ -39,23 +41,29 @@ class OrdersToDB(CsvToDb):
         return ExtractOrderData(
             foreign_keys=self.foreign_keys,
             columns=[col[0] for col in self.columns],
-            today=self.today)
+            today=self.today,
+            minimal=self.minimal)
 
 
 class ExtractOrderData(DataPreparationTask):
+    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
-            GomusToCustomerMappingToDB(),
+            GomusToCustomerMappingToDB(minimal=self.minimal),
             super()._requires()
         ])
 
     def requires(self):
+        if self.minimal:
+            suffix = '_1day'
+        else:
+            suffix = '_7days'
         return FetchGomusReport(report='orders',
-                                suffix='_7days',
+                                suffix=suffix,
                                 today=self.today)
 
     def output(self):
