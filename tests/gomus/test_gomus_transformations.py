@@ -187,20 +187,25 @@ class TestOrderTransformation(GomusTransformationTest):
         self.assertRaises(OverflowError, self.execute_task)
 
 
+BOOKING_COLUMNS = [
+    'booking_id',
+    'customer_id',
+    'category',
+    'participants',
+    'guide_id',
+    'duration',
+    'exhibition',
+    'title',
+    'status',
+    'start_datetime'
+]
+
+
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
 class TestBookingTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
-        super().__init__([
-            'booking_id',
-            'customer_id',
-            'category',
-            'participants',
-            'guide_id',
-            'duration',
-            'exhibition',
-            'title',
-            'status',
-            'start_datetime'],
+        super().__init__(
+            BOOKING_COLUMNS,
             ExtractGomusBookings,
             *args, **kwargs)
 
@@ -303,6 +308,7 @@ class TestEventTransformation(GomusTransformationTest):
         super().__init__([
             'event_id',
             'booking_id',
+            'customer_id',
             'reservation_count',
             'order_date',
             'status',

@@ -11,6 +11,7 @@ from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
                                        FetchBookingsHTML, FetchGomusHTML,
                                        ScrapeGomusOrderContains)
+from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
 class TestEnhanceBookingsWithScraper(unittest.TestCase):
@@ -69,7 +70,7 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         output_mock.return_value = output_target
 
         # -- execute code under test --
-        EnhanceBookingsWithScraper().run()
+        EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS).run()
 
         # -- inspect results --
         expected_output = test_data.filter(

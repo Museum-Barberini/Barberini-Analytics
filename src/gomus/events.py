@@ -128,7 +128,7 @@ class ExtractEventData(DataPreparationTask):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'Event_id', 'Kunde', 'Plätze',
+                'Id', 'Event_id', 'E-Mail', 'Plätze',
                 'Datum', 'Status', 'Kategorie'])
 
             event_df.columns = self.columns
@@ -186,7 +186,6 @@ class FetchCategoryReservations(luigi.Task):
             row = cur.fetchone()
             while row is not None:
                 event_id = row[0]
-                print(event_id)
                 if event_id not in self.row_list:
                     approved = FetchEventReservations(
                         booking_id=event_id,
