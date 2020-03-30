@@ -1,9 +1,9 @@
 import csv
+import datetime as dt
 import os
 import re
 import time
 
-import datetime as dt
 import dateparser
 import luigi
 import pandas as pd
@@ -13,9 +13,9 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
+from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus.customers import hash_id
 from gomus.orders import OrdersToDB
-from gomus._utils.extract_bookings import ExtractGomusBookings
 from set_db_connection_options import set_db_connection_options
 
 
@@ -63,11 +63,11 @@ class GomusScraperTask(DataPreparationTask):
         set_db_connection_options(self)
 
     def extract_from_html(self, base_html, xpath):
-        try:
-            return html.tostring(base_html.xpath(
-                xpath)[0], method='text', encoding="unicode")
-        except IndexError:
-            return ""
+        # try:
+        return html.tostring(base_html.xpath(
+            xpath)[0], method='text', encoding="unicode")
+        # except IndexError:
+        #    return ""
 
 
 class FetchBookingsHTML(luigi.Task):
@@ -96,10 +96,11 @@ class FetchBookingsHTML(luigi.Task):
         return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
 
     def run(self):
-        if self.minimal:
-            bookings = pd.read_csv(self.input().path, nrows=5)
-        else:
-            bookings = pd.read_csv(self.input().path)
+        with self.input().open('r') as input_file:
+            bookings = pd.read_csv(input_file)
+
+            if self.minimal:
+                bookings = bookings.head(5)
 
         db_booking_rows = []
 
@@ -237,16 +238,15 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
 
     def run(self):
-        if self.minimal:
-            bookings = pd.read_csv(self.input()[0].path)
-            bookings = bookings.head(5)
-        else:
-            bookings = pd.read_csv(self.input()[0].path)
+        with self.input()[0].open('r') as input_file:
+            bookings = pd.read_csv(input_file)
 
-        bookings['order_date'] = None
-        bookings['language'] = ""
-        bookings['customer_id'] = 0
-        enhanced_bookings = pd.DataFrame(columns=self.columns)
+            if self.minimal:
+                bookings = bookings.head(5)
+
+        bookings.insert(1, 'customer_id', 0)  # new column at second position
+        bookings.insert(len(bookings.columns), 'order_date', None)
+        bookings.insert(len(bookings.columns), 'language', "")
 
         with self.input()[1].open('r') as all_htmls:
             for i, html_path in enumerate(all_htmls):
@@ -256,8 +256,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                           encoding='utf-8') as html_file:
                     res_details = html_file.read()
                 tree_details = html.fromstring(res_details)
-
-                row = bookings.iloc[[i]]
 
                 # firefox says the the xpath starts with //body/div[3]/ but we
                 # apparently need div[2] instead
@@ -270,11 +268,14 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 raw_order_date = self.extract_from_html(
                     booking_details,
                     'div[1]/div[2]/small/dl/dd[2]').strip()
-                row['order_date'] = dateparser.parse(raw_order_date)
+                bookings.loc[i, 'order_date'] =\
+                    dateparser.parse(raw_order_date)
 
                 # Language
-                row['language'] = self.extract_from_html(
-                    booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
+                bookings.loc[i, 'language'] = self.extract_from_html(
+                    booking_details,
+                    "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
+                    "/div[1]/dl[2]/dd").strip()
 
                 try:
                     customer_details = tree_details.xpath(
@@ -287,18 +288,15 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                         'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
 
                     if re.match(r'^\S+@\S+\.\S+$', customer_mail):
-                        row['customer_id'] = hash_id(customer_mail)
+                        bookings.loc[i, 'customer_id'] = hash_id(customer_mail)
 
                 except IndexError:  # can't find customer mail
-                    row['customer_id'] = 0
+                    bookings.loc[i, 'customer_id'] = 0
 
-                # ensure proper order
-                row = row.filter(self.columns)
-
-                enhanced_bookings = enhanced_bookings.append(row)
+        bookings = self.ensure_foreign_keys(bookings)
 
         with self.output().open('w') as output_file:
-            enhanced_bookings.to_csv(
+            bookings.to_csv(
                 output_file,
                 index=False,
                 header=True,
@@ -321,7 +319,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.txt', format=UTF8)
+            'output/gomus/scraped_order_contains.csv', format=UTF8)
 
     def run(self):
 
@@ -362,6 +360,10 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
                     new_article["order_id"] = order_id
 
+                    # Workaround for orders like 478531
+                    # if td[3] has no child, we have nowhere to find the ticket
+                    if len(article.xpath('td[3][count(*)>0]')) == 0:
+                        continue
                     new_article["ticket"] = self.extract_from_html(
                         article, 'td[3]/strong').strip()
 
