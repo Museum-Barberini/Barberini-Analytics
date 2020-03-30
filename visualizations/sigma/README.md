@@ -3,17 +3,23 @@ Custom Visual for Power BI
 
 ## Development
 
-For general information on how to work with custom visuals, read [the MS Docs article about it](https://docs.microsoft.com/de-de/power-bi/developer/visuals/custom-visual-develop-tutorial). First of all, to develop custom visuals, you will need to install the Power BI visual tools:
+For general information on how to work with custom visuals, read [the MS Docs article about it](https://docs.microsoft.com/de-de/power-bi/developer/visuals/custom-visual-develop-tutorial).
 
-```powershell
-npm install -g powerbi-visuals-tools
-```
+### Installation
 
-To install all dependencies for this visual, run:
+1. First of all, to develop custom visuals, you will need to install the Power BI visual tools on Windows:
 
-```powershell
-npm install
-```
+   ```powershell
+   npm install -g powerbi-visuals-tools
+   ```
+
+2. To install all dependencies for this visual, run:
+
+   ```powershell
+   npm install
+   ```
+
+3. To be able to use the visual, you need to install the certificates. [This doc](https://docs.microsoft.com/de-de/power-bi/developer/visuals/custom-visual-develop-tutorial#creating-and-installing-a-certificate) describes in detail how you can do it.
 
 ### Building the visual
 
