@@ -43,7 +43,7 @@ class GomusFormatTest(DatabaseTaskTest):
                     axis=1)
 
     def check_type(self, data, expected_type):
-        # to check, if the date in the columns has the right type,
+        # to check if the data in the columns has the right type,
         # we try to converte the string into the expected type and
         # catch a ValueError, if something goes wrong
         try:
