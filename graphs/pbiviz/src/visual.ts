@@ -166,7 +166,7 @@ export class SigmaVisual implements IVisual {
     public applyFilters(filters: Set<string>, display = true) {
         console.log("Current filters:", filters);
         
-        if (filters.size) {
+        if (!filters.size) {
             // Show the full graph
             this.sigma
                 .iterEdges(edge => edge.hidden = false)
