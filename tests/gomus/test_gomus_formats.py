@@ -47,7 +47,7 @@ class GomusFormatTest(DatabaseTaskTest):
         # we try to converte the string into the expected type and
         # catch a ValueError or TypeError, if something goes wrong.
         # As we don't process data from type "STRING"/ just store
-        # it as text, we don't have to explicitly checke the type.
+        # it as text, we don't have to explicitly check the type.
         try:
             if data == '':
                 pass
