@@ -104,10 +104,7 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'headers': {'Authorization': 'Bearer ' + access_token}
             }
 
-            for _ in range(3):
-                response = requests.get(url, request_args)
-                if response.ok:
-                    break
+            response = self.try_request_multiple_times(url, request_args)
 
             if response.status_code == 400:
                 invalid_count += 1
@@ -159,6 +156,21 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
+
+    def try_request_multiple_times(self, url, request_args):
+        """
+        Not all requests to the facebook api are successful. To allow
+        some requests to fail (mainly: to time out), request the api up 
+        to four times.
+        """
+        for _ in range(3):
+            try:
+                response = requests.get(url, request_args, timeout=60)
+                if response.ok:
+                   return response 
+            except:
+                pass 
+        return requests.get(url, request_args, timeout=100)
 
 
 class FbPostsToDB(CsvToDb):
