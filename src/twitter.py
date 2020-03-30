@@ -117,7 +117,7 @@ class TweetsToDB(CsvToDb):
         ("tweet_id", "TEXT"),
         ("text", "TEXT"),
         ("response_to", "TEXT"),
-        ("post_timestamp", "TIMESTAMP"),
+        ("post_date", "TIMESTAMP"),
         ("is_from_barberini", "BOOL")
     ]
 
