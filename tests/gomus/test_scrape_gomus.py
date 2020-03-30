@@ -35,8 +35,11 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')
-        # we generate random stuff for extracted_bookings,
-        # because the scraper doesn't need it for any calculations
+
+        # We generate random stuff for extracted_bookings,
+        # because the scraper doesn't need it for any calculations.
+        # This resembles existing booking-data
+        # that should not get manipulated by the scraper.
         test_data.insert(1, 'some_other_value', test_data.index)
 
         extracted_bookings = test_data.filter(
