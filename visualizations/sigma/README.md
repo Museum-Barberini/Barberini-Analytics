@@ -9,6 +9,12 @@ For general information on how to work with custom visuals, read [the MS Docs ar
 npm install -g powerbi-visuals-tools
 ```
 
+To install all dependencies for this visual, run:
+
+```powershell
+npm install
+```
+
 ### Building the visual
 
 ```powershell
