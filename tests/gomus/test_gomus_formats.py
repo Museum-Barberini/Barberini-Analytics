@@ -30,7 +30,7 @@ class GomusFormatTest(DatabaseTaskTest):
                              skipfooter=skipfooter,
                              skiprows=skiprows,
                              engine='python')
-    
+
             for i in range(len(self.expected_format)):
                 if df.columns[i] == 'Keine Daten vorhanden':
                     break
@@ -55,7 +55,7 @@ class GomusFormatTest(DatabaseTaskTest):
                 dt.datetime.strptime(data, '%d.%m.%Y')
             elif expected_type == 'TIME':
                 dt.datetime.strptime(data, '%H:%M')
-        except ValueError:
+        except (ValueError, TypeError):
             self.assertTrue(False, f'{data} is not from type {expected_type}')
 
 
