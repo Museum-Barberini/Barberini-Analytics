@@ -48,7 +48,7 @@ See `CONFIGURATION.md`.
 #### Open the luigi webinterface
 
 ```bash
- make docker-do do='make luigi-scheduler'
+ make docker-do do='./scripts/running/fill_db.sh'
 ```
 
 This will also start a webserver on http://localhost:8082 where you can trace all running tasks.

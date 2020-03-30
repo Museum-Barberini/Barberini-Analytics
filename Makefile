@@ -54,9 +54,6 @@ luigi-restart-scheduler:
 	killall luigid
 	make luigi-scheduler
 	
-luigi:
-	make LMODULE=query_db LTASK=QueryDB luigi-task
-
 luigi-task: luigi-scheduler
 	mkdir -p output
 	luigi --module $(LMODULE) $(LTASK)
