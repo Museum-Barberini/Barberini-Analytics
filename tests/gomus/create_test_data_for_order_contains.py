@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # link to a specific order:
 # https://barberini.gomus.de/admin/orders/ORDER-ID
 
