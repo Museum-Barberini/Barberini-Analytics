@@ -21,6 +21,7 @@ RUN $install python3.6 python3-pip python3-setuptools python3-dev python3-wheel
 RUN DEBIAN_FRONTEND=noninteractive $install libpq-dev
 
 # install python packages
+ADD ./requirements.txt
 RUN pip3 install -r requirements.txt
 
 # install node.js
