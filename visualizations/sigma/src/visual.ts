@@ -41,12 +41,12 @@ export class SigmaVisual implements IVisual {
     private placeholder: HTMLDivElement;
     private placeholderContent: HTMLElement;
     private container: HTMLDivElement;
-    private sigma: SigmaV01.Sigma; // TODO: Write type definitions for our old version of sigma.js
+    private sigma: SigmaV01.Sigma;
     
     private readonly hoverFilters = new Set<string>();
     private readonly pinFilters = new Set<string>();
     
-    // This constructor is called from the outside
+    //#region PUBLIC PROTOCOL
     public constructor(options: VisualConstructorOptions) {
         console.log("🚀 Loading Sigma Text Graph ...", options, new Date().toLocaleString());
         
@@ -64,7 +64,6 @@ export class SigmaVisual implements IVisual {
     }
     
     @logExceptions()
-    // This method is called from the outside
     public update(options: VisualUpdateOptions) {
         console.log('👂 Updating Sigma Text Graph ...', options, new Date().toLocaleString());
         
@@ -111,6 +110,7 @@ export class SigmaVisual implements IVisual {
         
         console.log("✅ Sigma Visualization was successfully updated");
     }
+    //#endregion PUBLIC PROTOCOL
     
     @logExceptions()
     private initializeComponent(parent: HTMLElement) {
