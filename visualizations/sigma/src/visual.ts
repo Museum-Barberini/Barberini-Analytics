@@ -43,7 +43,7 @@ export class SigmaVisual implements IVisual {
      * Delay in milliseconds to defer visual updates after it has been resized.
      * Performance-relevant. Set to 0 to disable deferred updates.
      * */
-    private readonly resizeDelay = 3000;
+    private readonly resizeDelay = 100;
     //#endregion CONFIGURATION
     
     private placeholder: HTMLDivElement;
@@ -61,11 +61,6 @@ export class SigmaVisual implements IVisual {
      * Dimensions of the latest viewport the visual has been rendereed for.
      * Performance-relevant. See update() method. */
     private latestViewport: IViewPort;
-    
-    private set ready(ready: boolean) {
-        this.placeholder.style.visibility = ready ? 'hidden' : 'visible';
-        this.outerContainer.style.visibility = ready ? 'visible' : 'hidden';
-    }
     
     //#region PUBLIC PROTOCOL
     public constructor(options: VisualConstructorOptions) {
@@ -88,20 +83,21 @@ export class SigmaVisual implements IVisual {
     public update(options: VisualUpdateOptions) {
         // Optimized for performance. Add a short delay before blocking the main thread while the
         // user is resizing the view.
-        if (!this.resizeDelay || (this.latestViewport?.width == options.viewport.width
-            && this.latestViewport?.height == options.viewport.height)
+        if (!this.resizeDelay || !this.latestViewport || (
+            this.latestViewport.width == options.viewport.width
+                && this.latestViewport.height == options.viewport.height)
         )
-            return this.updateAsync(options);
+            return this.updateNow(options);
         
         if (this.updateTimeout)
             window.clearTimeout(this.updateTimeout);
         var _this = this;
-        this.ready = false;
-        this.updateTimeout = window.setTimeout(() => _this.updateAsync(options), this.resizeDelay);
+        this.showPlaceholder("");
+        this.updateTimeout = window.setTimeout(() => _this.updateNow(options), this.resizeDelay);
     }
     
     @logExceptions()
-    public updateAsync(options: VisualUpdateOptions) {
+    public updateNow(options: VisualUpdateOptions) {
         console.log('👂 Updating Sigma Text Graph ...', options, new Date().toLocaleString());
         
         let dataView: DataView;
@@ -111,22 +107,22 @@ export class SigmaVisual implements IVisual {
         
         // Check data format
         if (!((dataView = options.dataViews[0]) && (table = dataView.table))) {
+            this.showPlaceholder("Start by adding some data");
             hasData = false;
-            this.placeholderContent.innerHTML = "Start by adding some data";
         } else if (!table.columns.some(column => column.roles['text'])) {
+            this.showPlaceholder("Start by adding a measure");
             hasData = false;
-            this.placeholderContent.innerHTML = "Start by adding a measure";
         } else if (((rows = table.rows)?.length ?? 0) == 0) {
+            this.showPlaceholder("The measure is empty");
             hasData = false;
-            this.placeholderContent.innerHTML = "The measure is empty";
         }
         
-        this.ready = hasData;
         if (!hasData) {
             console.log("❌ Aborting update of Sigma Text Graph, not enough data.");
             return;
         }
         
+        this.hidePlaceholder();
         sigmaUtils.clean(this.sigma);
         
         // Build graph
@@ -297,6 +293,17 @@ export class SigmaVisual implements IVisual {
         this.applyAllFilters();
     }
     //#endregion EVENTHANDLING
+    
+    private showPlaceholder(message: string) {
+        this.placeholderContent.innerHTML = message;
+        this.placeholder.style.visibility = 'visible';
+        this.outerContainer.style.visibility = 'hidden';
+    }
+    
+    private hidePlaceholder() {
+        this.placeholder.style.visibility = 'hidden';
+        this.outerContainer.style.visibility = 'visible';
+    }
 }
 
 
