@@ -40,7 +40,8 @@ export class SigmaVisual implements IVisual {
     
     private placeholder: HTMLDivElement;
     private placeholderContent: HTMLElement;
-    private container: HTMLDivElement;
+    private outerContainer: HTMLDivElement;
+    private legend: HTMLDivElement;
     private sigma: SigmaV01.Sigma;
     
     private readonly hoverFilters = new Set<string>();
@@ -72,6 +73,7 @@ export class SigmaVisual implements IVisual {
         let rows: DataViewTableRow[];
         let hasData = true;
         
+        // Check data format
         if (!((dataView = options.dataViews[0]) && (table = dataView.table))) {
             hasData = false;
             this.placeholderContent.innerHTML = "Start by adding some data";
@@ -83,8 +85,8 @@ export class SigmaVisual implements IVisual {
             this.placeholderContent.innerHTML = "The measure is empty";
         }
         
-        this.placeholder.style.display = hasData ? 'none' : 'flex';
-        this.container.style.display = hasData ? '' : 'none';
+        this.placeholder.style.visibility = hasData ? 'hidden' : 'visible';
+        this.outerContainer.style.visibility = hasData ? 'visible' : 'hidden';
         if (!hasData) {
             console.log("❌ Aborting update of Sigma Text Graph, not enough data.");
             return;
@@ -92,6 +94,7 @@ export class SigmaVisual implements IVisual {
         
         sigmaUtils.clean(this.sigma);
         
+        // Build graph
         // TODO: Ideally, we could update the graph differentially. This would require extra
         // effort for dealing with the IDs.
         const textsByCategory = rows.groupBy(
@@ -100,8 +103,10 @@ export class SigmaVisual implements IVisual {
         new GraphBuilder()
             .analyze(textsByCategory, word => !this.stopwords.includes(word))
             .generateColors()
-            .buildGraph(this.sigma);
+            .buildGraph(this.sigma)
+            .fillLegend(this.legend);
         
+        // Draw graph
         this.pinFilters.clear(); // TODO: Keep old filters as possible
         this.hoverFilters.clear();
         this.applyAllFilters(false);
@@ -114,29 +119,39 @@ export class SigmaVisual implements IVisual {
     
     @logExceptions()
     private initializeComponent(parent: HTMLElement) {
+        parent.style.position = 'relative';
+        
         // Create placeholder (will be displayed until valid data are passed)
         this.placeholder = document.createElement('div');
-        this.placeholder.style.width = '100%';
-        this.placeholder.style.height = '100%';
-        this.placeholder.style.display = 'flex';
+        this.placeholder.className = 'visual-container';
         this.placeholder.style.justifyContent = 'center';
         this.placeholder.style.alignItems = 'center';
-        const placeholderChild = document.createElement('center');
-        this.placeholder.appendChild(placeholderChild);
-        placeholderChild.innerHTML = "<h1>¯\\_(ツ)_/¯</h1>";
-        placeholderChild.appendChild(this.placeholderContent = document.createElement('p'));
         parent.appendChild(this.placeholder);
+        const placeholderChild = document.createElement('center');
+        placeholderChild.innerHTML = `<h1>${"¯\\_(ツ)_/¯"}</h1>`;
+        this.placeholderContent = document.createElement('p');
+        this.placeholder.appendChild(placeholderChild);
+        placeholderChild.appendChild(this.placeholderContent);
         
-        // Create sigma container
-        this.container = document.createElement('div');
-        this.container.className = 'sigma-expand';
-        this.container.style.width = '100%';
-        this.container.style.height = '100%';
-        this.container.style.display = ''; // hide
-        parent.appendChild(this.container);
+        // Create containers
+        this.outerContainer = document.createElement('div');
+        this.outerContainer.className = 'visual-container';
+        this.outerContainer.style.flexFlow = 'column';
+        parent.appendChild(this.outerContainer);
+        
+        this.legend = document.createElement('div');
+        this.legend.style.display = 'flex';
+        this.outerContainer.appendChild(this.legend);
+        
+        const sigmaOuterContainer = document.createElement('div');
+        this.outerContainer.appendChild(sigmaOuterContainer);
+        sigmaOuterContainer.style.flex = '1 1 auto';
+        const sigmaContainer = document.createElement('div');
+        sigmaContainer.className = 'sigma-expand';
+        sigmaOuterContainer.appendChild(sigmaContainer);
         
         // Create sigma instance
-        this.sigma = Sigma.init(this.container);
+        this.sigma = Sigma.init(sigmaContainer);
         this.sigma.drawingProperties = {
             defaultLabelColor: '#f00',
             defaultLabelSize: 24,
@@ -337,6 +352,24 @@ class GraphBuilder {
         });
         
         return this;
+    }
+    
+    public fillLegend(legend: HTMLDivElement) {
+        legend.style.display = this.hues ? 'flex' : '';
+        legend.innerHTML = ''; // remove all children
+        if (!this.hues)
+            return this;
+        this.categories?.forEach((category, index) => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.style.background = `hsl(${this.hues[index] / (2 * Math.PI) * 360}, 87%, 79%)`;
+            legendItem.innerHTML = category;
+            const tooltip = document.createElement('span');
+            tooltip.className = 'legend-tooltip';
+            tooltip.innerHTML = category;
+            legendItem.appendChild(tooltip);
+            legend.appendChild(legendItem);
+        });
     }
     
     /**

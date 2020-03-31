@@ -3,16 +3,16 @@ interface Array<T> {
     flatten<T extends U[], U>(this: T[]): T;
     
     /** Applies a fold function on each element of this array and flattens the results. */
-    fold<U>(this: T[], fun: (element: T) => U[]): U[];
+    fold<U>(this: T[], fun: (value: T) => U[]): U[];
     
     /** C'mon. You know SQL. You surely can figure out what this does. */
-    groupBy<K, V>(funKey: (element: T) => K, funValue: (element: T) => V): Map<K, V[]>;
+    groupBy<K, V>(funKey: (value: T) => K, funValue: (value: T) => V): Map<K, V[]>;
     
     /**
      * Creates a map from this array, using the elements and keys and creating the values from a
      * map function.
      */
-    mapEx<U>(funValue: (element: T) => U): Map<T, U>;
+    mapEx<U>(funValue: (value: T, index: number) => U): Map<T, U>;
     
     /**
      * Combines this array with a second one of equal length, applying a zip function on each
@@ -26,23 +26,23 @@ Array.prototype.flatten = function<T extends U[], U>(this: T[]) {
     return [].concat.apply([], this);
 };
 
-Array.prototype.fold = function<T, U>(this: T[], fun: (element: T) => U[]) {
+Array.prototype.fold = function<T, U>(this: T[], fun: (value: T) => U[]) {
     return this.map(fun).flatten();
 };
 
 Array.prototype.groupBy = function<T, K, V>(
-    this: T[], funKey: (element: T) => K,
-    funValue: (element: T) => V) {
+    this: T[], funKey: (value: T) => K,
+    funValue: (value: T) => V) {
     const map = new Map<K, V[]>();
-    this.forEach(element => {
-        let group = map.getOrSetDefault(funKey(element), () => []);
-        group.push(funValue(element));
+    this.forEach(value => {
+        let group = map.getOrSetDefault(funKey(value), () => []);
+        group.push(funValue(value));
     });
     return map;
 };
 
-Array.prototype.mapEx = function<T, U>(this: T[], funValue: (element: T) => U) {
-    return new Map(this.map(element => [element, funValue(element)]));
+Array.prototype.mapEx = function<T, U>(this: T[], funValue: (value: T, index: number) => U) {
+    return new Map(this.map((value, index) => [value, funValue(value, index)]));
 };
 
 Array.prototype.zip = function <T, U, V>(this: T[], other: U[], fun: (x: T, y: U) => V) {
