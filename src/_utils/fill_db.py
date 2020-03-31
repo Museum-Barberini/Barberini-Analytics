@@ -4,7 +4,7 @@ from apple_appstore import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
-from twitter import TweetsToDB, TweetPerformanceToDB
+from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
 from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
@@ -26,6 +26,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield GooglePlaystoreReviewsToDB()
         yield FbPostsToDB()
         yield GoogleMapsReviewsToDB()
+        yield TweetAuthorsToDB()
         yield TweetsToDB()
         yield GtrendsValuesToDB()
 
