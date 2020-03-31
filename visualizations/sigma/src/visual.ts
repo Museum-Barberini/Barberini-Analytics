@@ -2,12 +2,13 @@
 
 import './../style/visual.less';
 import powerbi from 'powerbi-visuals-api';
-import IVisual = powerbi.extensibility.visual.IVisual;
-import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
-import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import DataView = powerbi.DataView;
 import DataViewTable = powerbi.DataViewTable;
 import DataViewTableRow = powerbi.DataViewTableRow;
+import IViewPort = powerbi.IViewport;
+import IVisual = powerbi.extensibility.visual.IVisual;
+import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
+import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 
 import 'core-js/stable';
 import * as math from 'mathjs';
@@ -35,7 +36,14 @@ export class SigmaVisual implements IVisual {
     private stopwords: string[];
     
     //#region CONFIGURATION
+    /** Maximum number of nodes shown at a time. */
     private readonly maxNodeCount = 40;
+    
+    /**
+     * Delay in milliseconds to defer visual updates after it has been resized.
+     * Performance-relevant. Set to 0 to disable deferred updates.
+     * */
+    private readonly resizeDelay = 3000;
     //#endregion CONFIGURATION
     
     private placeholder: HTMLDivElement;
@@ -46,6 +54,18 @@ export class SigmaVisual implements IVisual {
     
     private readonly hoverFilters = new Set<string>();
     private readonly pinFilters = new Set<string>();
+    
+    /** Timeout id of the update task. Performance-relevant. See update() method. */
+    private updateTimeout: number;
+    /**
+     * Dimensions of the latest viewport the visual has been rendereed for.
+     * Performance-relevant. See update() method. */
+    private latestViewport: IViewPort;
+    
+    private set ready(ready: boolean) {
+        this.placeholder.style.visibility = ready ? 'hidden' : 'visible';
+        this.outerContainer.style.visibility = ready ? 'visible' : 'hidden';
+    }
     
     //#region PUBLIC PROTOCOL
     public constructor(options: VisualConstructorOptions) {
@@ -66,6 +86,22 @@ export class SigmaVisual implements IVisual {
     
     @logExceptions()
     public update(options: VisualUpdateOptions) {
+        // Optimized for performance. Add a short delay before blocking the main thread while the
+        // user is resizing the view.
+        if (!this.resizeDelay || (this.latestViewport?.width == options.viewport.width
+            && this.latestViewport?.height == options.viewport.height)
+        )
+            return this.updateAsync(options);
+        
+        if (this.updateTimeout)
+            window.clearTimeout(this.updateTimeout);
+        var _this = this;
+        this.ready = false;
+        this.updateTimeout = window.setTimeout(() => _this.updateAsync(options), this.resizeDelay);
+    }
+    
+    @logExceptions()
+    public updateAsync(options: VisualUpdateOptions) {
         console.log('👂 Updating Sigma Text Graph ...', options, new Date().toLocaleString());
         
         let dataView: DataView;
@@ -85,8 +121,7 @@ export class SigmaVisual implements IVisual {
             this.placeholderContent.innerHTML = "The measure is empty";
         }
         
-        this.placeholder.style.visibility = hasData ? 'hidden' : 'visible';
-        this.outerContainer.style.visibility = hasData ? 'visible' : 'hidden';
+        this.ready = hasData;
         if (!hasData) {
             console.log("❌ Aborting update of Sigma Text Graph, not enough data.");
             return;
@@ -112,6 +147,8 @@ export class SigmaVisual implements IVisual {
         this.applyAllFilters(false);
         this.sigma.startForceAtlas2();
         this.sigma.stopForceAtlas2(); // Disable this line to keep nodes dancing until hovered
+        
+        this.latestViewport = options.viewport;
         
         console.log("✅ Sigma Visualization was successfully updated");
     }
