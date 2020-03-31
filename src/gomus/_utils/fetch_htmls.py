@@ -145,26 +145,19 @@ class FetchOrdersHTML(luigi.Task):
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
-
-            if self.minimal:
-                limit = ' LIMIT 10'
-            else:
-                limit = ''
+            query_limit = 'LIMIT 10' if self.minimal else ''
 
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
                         f" WHERE table_name=\'gomus_order_contains\')")
-
             if cur.fetchone()[0]:
                 query = (f'SELECT order_id FROM gomus_order WHERE order_id '
                          f'NOT IN (SELECT order_id FROM '
-                         f'gomus_order_contains){limit}')
+                         f'gomus_order_contains) {query_limit}')
                 cur.execute(query)
                 order_ids = cur.fetchall()
 
             else:
-                query = (f'SELECT order_id FROM gomus_order{limit}')
-                cur.execute(query)
-                order_ids = cur.fetchall()
+                query = (f'SELECT order_id FROM gomus_order {query_limit}')
 
             return order_ids
 

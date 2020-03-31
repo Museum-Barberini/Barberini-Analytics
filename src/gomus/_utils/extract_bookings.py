@@ -78,9 +78,10 @@ class ExtractGomusBookings(DataPreparationTask):
             bookings.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
-        if guide_name is np.NaN or pd.isnull(guide_name):
+        if pd.isnull(guide_name):
             return 0  # 0 represents empty value
 
+        print(guide_name)
         guides = guide_name.lower().replace(' ', '').split(',')
         guide = guides[0]
         return mmh3.hash(guide, self.seed, signed=True)
