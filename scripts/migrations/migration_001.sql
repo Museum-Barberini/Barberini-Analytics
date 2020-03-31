@@ -9,4 +9,7 @@ BEGIN;
 	user_name TEXT NOT NULL
     );
 
+    -- we want to re-fetch all the tweets because we can now handle emojis
+    TRUNCATE tweet;
+
 COMMIT;
