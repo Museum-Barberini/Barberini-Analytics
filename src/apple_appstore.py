@@ -56,6 +56,7 @@ class FetchAppstoreReviews(DataPreparationTask):
         if self.minimal:
             random_num = random.randint(0, len(country_codes) - 2)
             country_codes = country_codes[random_num:random_num + 2]
+            country_codes.append('CA')
 
         print()
         try:
