@@ -151,9 +151,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 TODO: optimize by requesting the latest review from DB rather
                 than fetching more pages once that one is found
                 """
-                if self.minimal:
-                    break
-
                 next_page_token = review_list['nextPageToken']
                 review_list = service.accounts().locations().reviews().list(
                     parent=location,
@@ -163,6 +160,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 print(
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
+
+                if self.minimal:
+                    review_list.pop('nextPageToken')
         finally:
             print()
         return reviews
