@@ -2,14 +2,15 @@
 case $1 in
     daily)
         TASK=FillDBDaily
-	OTHER_CONTAINER=hourly-run-luigi
+        OTHER_CONTAINER=hourly-run-luigi
         ;;
     hourly)
         TASK=FillDBHourly
-	OTHER_CONTAINER=daily-run-luigi
+        OTHER_CONTAINER=daily-run-luigi
         ;;
     *)
         TASK=FillDB
+        OTHER_CONTAINER=ly-run-luigi  # matches both hourly and daily run
         ;;
 esac
 
