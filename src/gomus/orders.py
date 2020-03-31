@@ -58,7 +58,7 @@ class ExtractOrderData(DataPreparationTask):
         ])
 
     def requires(self):
-        if self.minimal:
+        suffix = '_1day' if self.minimal else '_7days'
             suffix = '_1day'
         else:
             suffix = '_7days'
