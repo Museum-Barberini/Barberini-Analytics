@@ -50,13 +50,13 @@ luigi-scheduler:
 	luigid --background
 	$$(: Waiting for scheduler ...) bash -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
-luigi:
-	./scripts/running/fill_db.sh
-
 luigi-restart-scheduler:
 	killall luigid
 	make luigi-scheduler
 	
+luigi:
+	./scripts/running/fill_db.sh
+
 luigi-task: luigi-scheduler
 	mkdir -p output
 	luigi --module $(LMODULE) $(LTASK)
