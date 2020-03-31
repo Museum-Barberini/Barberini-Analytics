@@ -6,7 +6,7 @@ build:
 
 minimal:
   script:
-    - make luigi-minimal
+    - luigi --module fill_db FillDB --minimal
 
 test:
   script:
