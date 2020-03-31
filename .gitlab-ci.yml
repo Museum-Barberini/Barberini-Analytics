@@ -4,6 +4,10 @@ build:
   script:
     - docker build -t test .
 
+minimal:
+  script:
+    - make luigi-minimal
+
 test:
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
