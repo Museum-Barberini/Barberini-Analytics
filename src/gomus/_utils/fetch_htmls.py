@@ -145,6 +145,8 @@ class FetchOrdersHTML(luigi.Task):
                 user=self.user, password=self.password
             )
             cur = conn.cursor()
+            order_ids = []
+
             query_limit = 'LIMIT 10' if self.minimal else ''
 
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
