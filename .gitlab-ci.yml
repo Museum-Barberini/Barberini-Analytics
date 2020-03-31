@@ -1,11 +1,6 @@
 image: docker:latest
 
-build:
-  script:
-    - docker build -t test .
-
-minimal:
-  before_script:
+before_script:
   - apt-get -qq update && apt-get -qq install -y python
   - apt-get -qq update
   - apt-get -qq install -y python python-virtualenv python-pip
@@ -13,6 +8,12 @@ minimal:
   - . venv/bin/activate
   - python -V
   - pip install luigi
+
+build:
+  script:
+    - docker build -t test .
+
+minimal:
   script:
     - luigi --module fill_db FillDB --minimal
 
