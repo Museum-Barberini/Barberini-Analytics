@@ -17,7 +17,7 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
    ```bash
    git clone https://gitlab.hpi.de/bp-barberini/bp-barberini.git
    cd bp-barberini
-   chmod +x scripts/**.sh
+   chmod -R +x *
    ```
    
    - For best convenience, clone it into `/root/bp-barberini`.
