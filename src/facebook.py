@@ -171,6 +171,7 @@ class FetchFbPostPerformance(DataPreparationTask):
             try:
                 response = requests.get(url, request_args, timeout=60)
                 if response.ok:
+                    # If response is not okay, we usually get a 400 status code
                     return response
             except Exception as e:
                 print(
