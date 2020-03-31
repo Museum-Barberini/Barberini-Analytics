@@ -85,7 +85,7 @@ coverage: luigi-clean
 
 # opens a psql shell inside the database container
 db-psql:
-	docker exec -it db psql -U postgres
+	docker exec -it db psql -U postgres -d barberini
 
 # runs a command for the database in the container
 # example: sudo make db-do do='\\d'
