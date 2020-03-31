@@ -55,7 +55,7 @@ luigi-restart-scheduler:
 	make luigi-scheduler
 	
 luigi:
-	make LMODULE=query_db LTASK=QueryDB luigi-task
+	./scripts/running/fill_db.sh
 
 luigi-task: luigi-scheduler
 	mkdir -p output
