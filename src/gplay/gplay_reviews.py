@@ -64,8 +64,7 @@ class FetchGplayReviews(DataPreparationTask):
         language_codes = self.get_language_codes()
         if self.minimal:
             random_num = random.randint(0, len(language_codes) - 2)
-            language_codes = [language_codes[random_num],
-                              language_codes[random_num + 1]]
+            language_codes = language_codes[random_num:random_num + 2]
 
         reviews_nested = [
             self.fetch_for_language(language_code)
