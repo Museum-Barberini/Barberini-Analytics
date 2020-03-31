@@ -156,40 +156,20 @@ class TweetPerformanceToDB(CsvToDb):
 
 class LoadTweetAuthors(DataPreparationTask):
 
-    def _requires(self):
-        return luigi.task.flatten([
-            TweetsToDB(),
-            super()._requires()
-        ])
-
-    def run(self):
-        tweet_authors = pd.read_csv("data/tweet_authors.csv")
-        tweet_authors = self.ensure_foreign_keys(tweet_authors)
-        with self.output().open('w') as output_file:
-            tweet_authors.to_csv(output_file, index=False)
-
     def output(self):
-        return luigi.LocalTarget("output/twitter/tweet_authors.csv", format=UTF8)
+        return luigi.LocalTarget("data/tweet_authors.csv", format=UTF8)
 
 
 class TweetAuthorsToDB(CsvToDb):
 
     table = "tweet_author"
-    
+ 
     columns = [
         ("user_id", "TEXT"),
         ("user_name", "TEXT")
     ]
 
     primary_key = "user_id"
-
-    foreign_keys = [
-        {
-            "origin_column": "user_id",
-            "target_table": "tweet",
-            "target_column": "user_id"
-        }
-    ]
 
     def requires(self):
         return LoadTweetAuthors(foreign_keys=self.foreign_keys)
