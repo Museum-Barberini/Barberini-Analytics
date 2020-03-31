@@ -36,11 +36,11 @@ class BookingsToDB(CsvToDb):
     ]
 
     def requires(self):
+        timespan = self.timespan
         if self.minimal:
-            self.timespan = '_7days'
-
+            timespan = '_7days'
         return EnhanceBookingsWithScraper(
             columns=[col[0] for col in self.columns],
             foreign_keys=self.foreign_keys,
-            timespan=self.timespan,
+            timespan=timespan,
             minimal=self.minimal)
