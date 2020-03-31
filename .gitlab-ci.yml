@@ -1,21 +1,16 @@
 image: docker:latest
 
-before_script:
-  - apt-get -qq update && apt-get -qq install -y python
-  - apt-get -qq update
-  - apt-get -qq install -y python python-virtualenv python-pip
-  - virtualenv venv
-  - . venv/bin/activate
-  - python -V
-  - pip install luigi
-
 build:
   script:
     - docker build -t test .
 
 minimal:
   script:
-    - luigi --module fill_db FillDB --minimal
+    - container=$(docker ps -f name=gitlab-runner-luigi -q)
+    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
+    - make startup
+    - docker exec gitlab-runner-luigi make luigi-minimal 
+    - make shutdown
 
 test:
   script:
