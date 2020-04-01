@@ -78,9 +78,8 @@ do
         # are not applied as well
         {
             echo
-            echo "ERROR: Migration failed to apply: $MIGRATION_FILE_NAME"
-            echo "    Please resolve the issue manually and add"
-            echo "    it to '$(basename $APPLIED_FILE)' or try again!"
+            echo "ERROR: Migration failed to apply: '$MIGRATION_FILE_NAME'"
+            echo "    Please fix the migration script and try it again!"
         } >&2
         exit $EXIT_VAL
     fi
