@@ -1,5 +1,9 @@
+### Project specific stuff ###
 db_config.yaml
 volumes/
+
+# Luigi output files
+output/
 
 # SECURITY!1
 *secret*
@@ -12,15 +16,14 @@ id_*
 *.env
 *.pbix
 
+
+### Compilation/cache stuff ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
-
-# Distribution / packaging
+## Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -41,10 +44,6 @@ share/python-wheels/
 *.egg
 MANIFEST
 node_modules/
-
-# Luigi output files
-#  (assuming we follow the convention to place all outputs in the output folder)
-output/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -70,26 +69,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
 # PyBuilder
 target/
 
@@ -110,12 +89,6 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
-
 # Environments
 .env
 .venv
@@ -124,16 +97,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
 
 # mypy
 .mypy_cache/
@@ -146,6 +109,14 @@ dmypy.json
 *.Rproj*
 .Rproj.user
 
+# node.js
 package-lock.json
 
+# pbiviz
+.tmp/
+webpack.statistics.dev.html
+webpack.statistics.prod.html
+
+
+### Editors ###
 .vscode/

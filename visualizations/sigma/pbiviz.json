@@ -1,0 +1,30 @@
+{
+    "visual": {
+        "name": "sigmaTextGraph",
+        "displayName": "Sigma Text Graph",
+        "guid": "sigmaTextGraph5307B9EDBE3B47C7A1D3DB91A80C68CA",
+        "visualClassName": "SigmaVisual",
+        "version": "1.0.0",
+        "description": "Visualize big text data by displaying it as an interactive, filterable graph of keywords. Built around the javascript library sigma.js.",
+        "supportUrl": "https://gitlab.hpi.de/bp-barberini/bp-barberini/issues",
+        "gitHubUrl": "https://gitlab.hpi.de/bp-barberini/bp-barberini"
+    },
+    "apiVersion": "2.6.0",
+    "author": {
+        "name": "Christoph Thiede",
+        "email": "christoph.thiede@student.hpi.de"
+    },
+    "assets": {
+        "icon": "assets/icon.png"
+    },
+    "externalJS": [
+        "node_modules/jquery/dist/jquery.min.js",
+        "src/js/sigma.min.js",
+        "src/js/sigma.forceatlas2.js",
+        "src/js/textexture.fisheye.js"
+    ],
+    "style": "style/visual.less",
+    "capabilities": "capabilities.json",
+    "dependencies": null,
+    "stringResources": []
+}
