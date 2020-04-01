@@ -1,0 +1,39 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Texts",
+            "name": "text",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Categories",
+            "name": "category",
+            "kind": "Grouping"
+        }
+    ],
+    "dataViewMappings": [
+        {
+            "table": {
+                "rows": {
+                    "select": [
+                        {
+                            "for": {
+                                "in": "category"
+                                }
+                            },
+                        {
+                            "for": {
+                                "in": "text"
+                            },
+                            "dataReductionAlgorithm": {
+                                "top": {
+                                    "count": 30000
+                                }
+                            }                            
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
