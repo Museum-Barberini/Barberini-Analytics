@@ -225,10 +225,9 @@ def try_request_multiple_times(url, **kwargs):
     for _ in range(3):
         try:
             response = requests.get(url, timeout=60, **kwargs)
-            if response.ok:
-                # If response is not okay, we usually get a 400 status code
-                return response
-        except Exception as e:
+            response.raise_for_status()
+            return response
+        except requests.RequestException as e:
             print(
                 "An Error occured requesting the Facebook api.\n"
                 "Trying to request the api again.\n"
