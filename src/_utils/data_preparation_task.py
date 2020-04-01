@@ -23,7 +23,8 @@ class DataPreparationTask(luigi.Task):
         set_db_connection_options(self)
 
     def ensure_foreign_keys(self, df):
-
+        if df.empty:
+            return df
         try:
             conn = psycopg2.connect(
                 host=self.host, database=self.database,
