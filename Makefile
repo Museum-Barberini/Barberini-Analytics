@@ -57,17 +57,17 @@ luigi-restart-scheduler:
 luigi:
 	./scripts/running/fill_db.sh
 
-luigi-task: luigi-scheduler
-	mkdir -p output
+luigi-task: luigi-scheduler output-folder
 	luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
 	rm -rf output
 
-luigi-minimal:
-	make luigi-scheduler
-	mkdir -p output
+luigi-minimal: luigi-scheduler luigi-clean output-folder
 	luigi --module fill_db FillDB --minimal
+
+output-folder:
+	mkdir -p output
 
 # --- Testing ---
 
@@ -94,9 +94,10 @@ db-psql:
 
 # runs a command for the database in the container
 # example: sudo make db-do do='\\d'
-db = barberini # default database for db-do
+db=barberini
+# default database for db-do
 db-do:
-	docker exec -it db psql -U postgres -a $(db) -c $(do)
+	docker exec -it db psql -U postgres -a "$(db)" -c "$(do)"
 
 db-backup:
 	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
