@@ -26,4 +26,5 @@ class OrderContainsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ScrapeGomusOrderContains()
+        return ScrapeGomusOrderContains(
+            foreign_keys=self.foreign_keys)

@@ -1,0 +1,49 @@
+[
+    {
+        "reviewId": "id_of_review_without_text",
+        "reviewer": {
+            "profilePhotoUrl": "https://de.web.img2.acsta.net/newsv7/20/03/20/16/41/3243273.jpg",
+            "displayName": "Baby Yoda"
+        },
+        "starRating": "FIVE",
+        "createTime": "2020-01-01T15:00:00.000Z",
+        "updateTime": "2020-01-01T15:00:00.000Z",
+        "name": "wedontcareabouttheresourcename"
+    },
+    {
+        "reviewId": "id_of_english_review",
+        "reviewer": {
+            "profilePhotoUrl": "https://thisispersonalinformationsowemaynotusethat.anyway",
+            "displayName": "Dont buy that url please"
+        },
+        "starRating": "THREE",
+        "comment": "The pictures are not animated",
+        "createTime": "2020-01-02T16:00:00.000Z",
+        "updateTime": "2020-01-02T16:00:00.000Z",
+        "name": "wedontcareabouttheresourcename"
+    },
+    {
+        "reviewId": "id_of_german_review",
+        "reviewer": {
+            "profilePhotoUrl": "https://thisispersonalinformationsowemaynotusethat.anyway",
+            "displayName": "Dont buy that url please"
+        },
+        "starRating": "ONE",
+        "comment": "Die wollten mein schönes Gemälde nicht ausstellen! \n\n(Translated by Google)\nThey didn't want to display my beautiful painting!",
+        "createTime": "2020-01-03T17:00:00.000Z",
+        "updateTime": "2020-01-03T17:00:00.000Z",
+        "name": "thesetestfilesarewhereweshouldputourfunnyeastereggs"
+    },
+    {
+        "reviewId": "id_of_other_review",
+        "reviewer": {
+            "profilePhotoUrl": "https://thisispersonalinformationsowemaynotusethat.anyway",
+            "displayName": "Dont buy that url please"
+        },
+        "starRating": "FOUR",
+        "comment": "(Translated by Google) I don't speak Russian. \n\n(Original) Я не говорю по русски.",
+        "createTime": "2020-01-04T18:00:00.000Z",
+        "updateTime": "2020-01-04T18:00:00.000Z",
+        "name": "wedontcareabouttheresourcename"
+    }
+]
