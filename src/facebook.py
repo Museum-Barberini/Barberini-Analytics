@@ -156,7 +156,7 @@ class FetchFbPostPerformance(DataPreparationTask):
             performances.append(post_perf)
 
         df = self.ensure_foreign_keys(df)
-        if invalid_count > 0:
+        if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
 
         with self.output().open('w') as output_file:
