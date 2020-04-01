@@ -13,6 +13,27 @@ from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
 
 
+def try_request_multiple_times(url, **kwargs):
+    """
+    Not all requests to the facebook api are successful. To allow
+    some requests to fail (mainly: to time out), request the api up
+    to four times.
+    """
+    for _ in range(3):
+        try:
+            response = requests.get(url, timeout=60, **kwargs)
+            if response.ok:
+                # If response is not okay, we usually get a 400 status code
+                return response
+        except Exception as e:
+            print(
+                "An Error occured requesting the Facebook api.\n"
+                "Trying to request the api again.\n"
+                f"error message: {e}"
+            )
+    return requests.get(url, request_args, timeout=100)
+
+
 class FetchFbPosts(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
@@ -36,7 +57,7 @@ class FetchFbPosts(DataPreparationTask):
         url = f'https://graph.facebook.com/v6.0/{page_id}/feed'
         headers = {'Authorization': 'Bearer ' + access_token}
 
-        response = requests.get(url, headers=headers)
+        response = try_request_multiple_times(url, headers=headers)
         response.raise_for_status()
 
         response_content = response.json()
@@ -48,7 +69,7 @@ class FetchFbPosts(DataPreparationTask):
         while ('next' in response_content['paging']):
             page_count = page_count + 1
             url = response_content['paging']['next']
-            response = requests.get(url, headers=headers)
+            response = try_request_multiple_times(url, headers=headers)
             response.raise_for_status()
 
             response_content = response.json()
@@ -108,7 +129,7 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'headers': {'Authorization': 'Bearer ' + access_token}
             }
 
-            response = self.try_request_multiple_times(url, request_args)
+            response = try_request_multiple_times(url, **request_args)
 
             if response.status_code == 400:
                 invalid_count += 1
@@ -160,26 +181,6 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
-
-    def try_request_multiple_times(self, url, request_args):
-        """
-        Not all requests to the facebook api are successful. To allow
-        some requests to fail (mainly: to time out), request the api up
-        to four times.
-        """
-        for _ in range(3):
-            try:
-                response = requests.get(url, request_args, timeout=60)
-                if response.ok:
-                    # If response is not okay, we usually get a 400 status code
-                    return response
-            except Exception as e:
-                print(
-                    "An Error occured requesting the Facebook api.\n"
-                    "Trying to request the api again.\n"
-                    f"error message: {e}"
-                )
-        return requests.get(url, request_args, timeout=100)
 
 
 class FbPostsToDB(CsvToDb):
