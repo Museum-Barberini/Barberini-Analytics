@@ -1,3 +1,4 @@
+import unittest
 from unittest.mock import patch
 import datetime as dt
 import pandas as pd
@@ -86,6 +87,9 @@ class TestCustomersFormat(GomusFormatTest):
             *args, **kwargs)
 
     @patch.object(FetchGomusReport, 'output')
+    @unittest.skip(
+        "Takes too long time for the primary test stage."
+        "Needs to be run once a day only, see #108. Workaround.")
     def test_customers_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report()
