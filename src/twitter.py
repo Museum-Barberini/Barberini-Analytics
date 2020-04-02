@@ -172,4 +172,4 @@ class TweetAuthorsToDB(CsvToDb):
     primary_key = "user_id"
 
     def requires(self):
-        return LoadTweetAuthors(foreign_keys=self.foreign_keys)
+        return LoadTweetAuthors()
