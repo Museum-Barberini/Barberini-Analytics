@@ -10,7 +10,7 @@ from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
 from gomus.events import EventsToDB
-from gomus.order_contains import OrderContainsToDB
+# from gomus.order_contains import OrderContainsToDB
 from gomus.orders import OrdersToDB
 
 
@@ -34,7 +34,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
         yield EventsToDB()
-        yield OrderContainsToDB()
+        # yield OrderContainsToDB()
         yield OrdersToDB()
 
         yield GomusToCustomerMappingToDB()
