@@ -68,7 +68,7 @@ luigi-minimal:
 	make luigi-scheduler
 	mkdir -p output
 	# the environment variable has to be set to true 
-	MINIMAL=True
+	MINIMAL=1
 
 # --- Testing ---
 
