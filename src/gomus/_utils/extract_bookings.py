@@ -15,12 +15,11 @@ class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
     timespan = luigi.parameter.Parameter(default='_nextYear')
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(minimal=self.minimal),
+            CustomersToDB(),
             super()._requires()
         ])
 

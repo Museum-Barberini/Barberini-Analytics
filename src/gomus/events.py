@@ -2,6 +2,7 @@ import csv
 
 import datetime as dt
 import luigi
+import os
 import pandas as pd
 import psycopg2
 from luigi.format import UTF8
@@ -16,7 +17,7 @@ from set_db_connection_options import set_db_connection_options
 
 
 class EventsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
+
     table = 'gomus_event'
 
     columns = [
@@ -47,12 +48,10 @@ class EventsToDB(CsvToDb):
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys,
-            minimal=self.minimal)
+            foreign_keys=self.foreign_keys)
 
 
 class ExtractEventData(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
@@ -71,14 +70,13 @@ class ExtractEventData(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            BookingsToDB(minimal=self.minimal),
+            BookingsToDB(),
             super()._requires()
         ])
 
     def requires(self):
         for category in self.categories:
-            yield FetchCategoryReservations(category=category,
-                                            minimal=self.minimal)
+            yield FetchCategoryReservations(category=category)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
@@ -107,7 +105,7 @@ class ExtractEventData(DataPreparationTask):
                                                    'Storniert',
                                                    category)
                     except Exception:
-                        pass
+                        print(path)
 
         self.events_df = self.ensure_foreign_keys(self.events_df)
 
@@ -147,7 +145,6 @@ class ExtractEventData(DataPreparationTask):
 
 
 class FetchCategoryReservations(luigi.Task):
-    minimal = luigi.parameter.BoolParameter(default=False)
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
@@ -170,7 +167,7 @@ class FetchCategoryReservations(luigi.Task):
             )
             cur = conn.cursor()
 
-            if self.minimal:
+            if os.environ['MINIMAL']:
                 query = (f'SELECT booking_id FROM gomus_booking WHERE '
                          f'category=\'{self.category}\' '
                          f'ORDER BY start_datetime DESC LIMIT 10')
@@ -215,7 +212,7 @@ class FetchCategoryReservations(luigi.Task):
                                  format=UTF8)
 
     def requires(self):
-        yield BookingsToDB(minimal=self.minimal)
+        yield BookingsToDB()
 
 
 # this function should not have to exist, but luigi apparently

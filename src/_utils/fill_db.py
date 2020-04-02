@@ -31,14 +31,14 @@ class FillDBDaily(luigi.WrapperTask):
         yield TweetsToDB()
         yield GtrendsValuesToDB()
 
-        yield BookingsToDB(minimal=self.minimal)
-        yield CustomersToDB(minimal=self.minimal)
+        yield BookingsToDB()
+        yield CustomersToDB()
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
-        yield EventsToDB(minimal=self.minimal)
-        yield GomusToCustomerMappingToDB(minimal=self.minimal)
-        # yield OrderContainsToDB(minimal=self.minimal)
-        yield OrdersToDB(minimal=self.minimal)
+        yield EventsToDB()
+        yield GomusToCustomerMappingToDB()
+        # yield OrderContainsToDB()
+        yield OrdersToDB()
 
 
 class FillDBHourly(luigi.WrapperTask):

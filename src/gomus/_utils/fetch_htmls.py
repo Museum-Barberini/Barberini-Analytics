@@ -44,7 +44,6 @@ class FetchBookingsHTML(luigi.Task):
     timespan = luigi.parameter.Parameter(default='_nextYear')
     base_url = luigi.parameter.Parameter(
         description="Base URL to append bookings IDs to")
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
 
     host = None
@@ -59,7 +58,6 @@ class FetchBookingsHTML(luigi.Task):
 
     def requires(self):
         return ExtractGomusBookings(timespan=self.timespan,
-                                    minimal=self.minimal,
                                     columns=self.columns)
 
     def output(self):
@@ -69,7 +67,7 @@ class FetchBookingsHTML(luigi.Task):
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if self.minimal:
+            if os.environ['MINIMAL']:
                 bookings = bookings.head(5)
 
         db_booking_rows = []
@@ -117,7 +115,6 @@ class FetchBookingsHTML(luigi.Task):
 
 
 class FetchOrdersHTML(luigi.Task):
-    minimal = luigi.parameter.BoolParameter(default=False)
     base_url = luigi.parameter.Parameter(
         description="Base URL to append order IDs to")
 
@@ -133,7 +130,7 @@ class FetchOrdersHTML(luigi.Task):
         self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
 
     def requires(self):
-        return OrdersToDB(minimal=self.minimal)
+        return OrdersToDB()
 
     def output(self):
         return luigi.LocalTarget('output/gomus/orders_htmls.txt')
@@ -147,7 +144,7 @@ class FetchOrdersHTML(luigi.Task):
             cur = conn.cursor()
             order_ids = []
 
-            query_limit = 'LIMIT 10' if self.minimal else ''
+            query_limit = 'LIMIT 10' if os.environ['MINIMAL'] else ''
 
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
                         f" WHERE table_name=\'gomus_order_contains\')")

@@ -3,6 +3,7 @@ import re
 
 import dateparser
 import luigi
+import os
 import pandas as pd
 from luigi.format import UTF8
 from lxml import html
@@ -38,7 +39,6 @@ class GomusScraperTask(DataPreparationTask):
 
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     timespan = luigi.parameter.Parameter(default='_nextYear')
 
@@ -50,11 +50,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
     def requires(self):
         yield ExtractGomusBookings(timespan=self.timespan,
-                                   minimal=self.minimal,
                                    columns=self.columns)
         yield FetchBookingsHTML(timespan=self.timespan,
                                 base_url=self.base_url + '/admin/bookings/',
-                                minimal=self.minimal,
                                 columns=self.columns)
 
     def output(self):
@@ -64,7 +62,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if self.minimal:
+            if os.environ['MINIMAL']:
                 bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position
@@ -127,7 +125,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     # 60 minutes until the task will timeout
     # set to about 800000 for collecting historic data ≈ 7 Days
@@ -137,8 +134,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/',
-                               minimal=self.minimal)
+        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
 
     def output(self):
         return luigi.LocalTarget(

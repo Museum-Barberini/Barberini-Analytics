@@ -2,6 +2,7 @@
 import datetime as dt
 import luigi
 import mmh3
+import os
 import pandas as pd
 import numpy as np
 from luigi.format import UTF8
@@ -14,7 +15,6 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
@@ -39,12 +39,10 @@ class CustomersToDB(CsvToDb):
     def requires(self):
         return ExtractCustomerData(
             columns=[col[0] for col in self.columns],
-            today=self.today,
-            minimal=self.minimal)
+            today=self.today)
 
 
 class GomusToCustomerMappingToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
@@ -68,18 +66,16 @@ class GomusToCustomerMappingToDB(CsvToDb):
     def requires(self):
         return ExtractGomusToCustomerMapping(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys, today=self.today,
-            minimal=self.minimal)
+            foreign_keys=self.foreign_keys, today=self.today)
 
 
 class ExtractCustomerData(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        suffix = '_1day' if self.minimal else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] else '_7days'
 
         return FetchGomusReport(report='customers',
                                 today=self.today,
@@ -143,7 +139,6 @@ class ExtractCustomerData(DataPreparationTask):
 
 
 class ExtractGomusToCustomerMapping(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
@@ -158,12 +153,12 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(minimal=self.minimal),
+            CustomersToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        suffix = '_1day' if self.minimal else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] else '_7days'
 
         return FetchGomusReport(report='customers',
                                 today=self.today,

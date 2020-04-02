@@ -1,11 +1,8 @@
-import luigi
-
 from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
 
 
 class OrderContainsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'gomus_order_contains'
 
@@ -30,5 +27,4 @@ class OrderContainsToDB(CsvToDb):
 
     def requires(self):
         return ScrapeGomusOrderContains(
-            foreign_keys=self.foreign_keys,
-            minimal=self.minimal)
+            foreign_keys=self.foreign_keys)

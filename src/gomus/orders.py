@@ -1,6 +1,7 @@
 import datetime as dt
 import luigi
 import numpy as np
+import os
 import pandas as pd
 import psycopg2
 from luigi.format import UTF8
@@ -13,7 +14,6 @@ from gomus.customers import GomusToCustomerMappingToDB
 
 
 class OrdersToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
 
@@ -41,24 +41,22 @@ class OrdersToDB(CsvToDb):
         return ExtractOrderData(
             foreign_keys=self.foreign_keys,
             columns=[col[0] for col in self.columns],
-            today=self.today,
-            minimal=self.minimal)
+            today=self.today)
 
 
 class ExtractOrderData(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
-            GomusToCustomerMappingToDB(minimal=self.minimal),
+            GomusToCustomerMappingToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        suffix = '_1day' if self.minimal else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] else '_7days'
         return FetchGomusReport(report='orders',
                                 suffix=suffix,
                                 today=self.today)
