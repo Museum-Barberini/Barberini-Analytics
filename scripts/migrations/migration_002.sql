@@ -20,4 +20,14 @@ ALTER TABLE gomus_event
 ALTER TABLE gomus_event
     ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id);
 
+DROP TABLE tweet_author;
+
+CREATE TABLE tweet_author (
+    user_id TEXT, 
+    user_name TEXT
+);
+
+ALTER TABLE tweet_author
+    ADD CONSTRAINT tweet_author_primkey PRIMARY KEY (user_id);
+
 COMMIT;

@@ -5,12 +5,9 @@ BEGIN;
     ALTER TABLE gplay_review RENAME COLUMN date TO post_date;
 
     CREATE TABLE tweet_author (
-        user_id TEXT, 
-	    user_name TEXT NOT NULL
+        user_id TEXT PRIMARY KEY, 
+	user_name TEXT NOT NULL
     );
-
-    ALTER TABLE tweet_author
-        ADD CONSTRAINT tweet_author_primkey PRIMARY KEY (user_id);
 
     -- we want to re-fetch all the tweets because we can now handle emojis
     TRUNCATE tweet;
@@ -18,3 +15,4 @@ BEGIN;
     ALTER TABLE tweet ALTER COLUMN post_date TYPE TIMESTAMP;
 
 COMMIT;
+
