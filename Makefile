@@ -68,8 +68,7 @@ luigi-minimal:
 	make luigi-scheduler
 	mkdir -p output
 	# the environment variable has to be set to true 
-	MINIMAL=True \
-		&& luigi --module _utils.fill_db FillDB
+	MINIMAL=True && make luigi
 
 # --- Testing ---
 
