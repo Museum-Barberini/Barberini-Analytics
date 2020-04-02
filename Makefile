@@ -67,7 +67,8 @@ luigi-clean:
 luigi-minimal:
 	make luigi-scheduler
 	mkdir -p output
-	luigi --module fill_db FillDB --minimal
+	# the environment variable has to be set to true 
+	MINIMAL=True
 
 # --- Testing ---
 

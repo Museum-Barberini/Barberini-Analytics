@@ -151,6 +151,7 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
 
+        print('!!!!!!!!!!!!!!!!!!!!!!', os.environ['MINIMAL'])
         if os.environ['MINIMAL']:
             df = df.head(5)
 
