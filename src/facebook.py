@@ -17,7 +17,6 @@ logger = logging.getLogger('luigi-interface')
 
 
 class FbPostsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'fb_post'
 
@@ -30,11 +29,10 @@ class FbPostsToDB(CsvToDb):
     primary_key = 'fb_post_id'
 
     def requires(self):
-        return FetchFbPosts(minimal=self.minimal)
+        return FetchFbPosts()
 
 
 class FbPostPerformanceToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'fb_post_performance'
 
@@ -68,13 +66,10 @@ class FbPostPerformanceToDB(CsvToDb):
         ]
 
     def requires(self):
-        return FetchFbPostPerformance(
-            foreign_keys=self.foreign_keys,
-            minimal=self.minimal)
+        return FetchFbPostPerformance(foreign_keys=self.foreign_keys)
 
 
 class FetchFbPosts(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -117,7 +112,7 @@ class FetchFbPosts(DataPreparationTask):
                 posts.append(post)
             print(f"\rFetched facebook page {page_count}", end='', flush=True)
 
-            if self.minimal:
+            if os.environ['MINIMAL']:
                 response_content.pop('next')
 
         logger.info("Fetching of facebook posts completed")
@@ -130,7 +125,6 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostPerformance(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     # Override the default timeout of 10 minutes to allow
     # FetchFbPostPerformance to take up to 20 minutes.
@@ -138,12 +132,12 @@ class FetchFbPostPerformance(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            FbPostsToDB(minimal=self.minimal),
+            FbPostsToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchFbPosts(minimal=self.minimal)
+        return FetchFbPosts()
 
     def output(self):
         return luigi.LocalTarget(
@@ -157,7 +151,7 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
 
-        if self.minimal:
+        if os.environ['MINIMAL']:
             df = df.head(5)
 
         invalid_count = 0

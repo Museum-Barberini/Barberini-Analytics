@@ -5,6 +5,7 @@ import sys
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
+import os
 import pandas as pd
 from oauth2client.file import Storage
 
@@ -15,7 +16,6 @@ logger = logging.getLogger('luigi-interface')
 
 
 class GoogleMapsReviewsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'google_maps_review'
 
@@ -31,11 +31,10 @@ class GoogleMapsReviewsToDB(CsvToDb):
     primary_key = 'google_maps_review_id'
 
     def requires(self):
-        return FetchGoogleMapsReviews(minimal=self.minimal)
+        return FetchGoogleMapsReviews()
 
 
 class FetchGoogleMapsReviews(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     # secret_files is a folder mounted from /etc/secrets via docker-compose
     token_cache = luigi.Parameter(
@@ -165,7 +164,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
 
-                if self.minimal:
+                if os.environ['MINIMAL']:
                     review_list.pop('nextPageToken')
         finally:
             print()

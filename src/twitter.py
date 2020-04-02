@@ -2,6 +2,7 @@ import datetime as dt
 import json
 
 import luigi
+import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
@@ -13,7 +14,6 @@ from set_db_connection_options import set_db_connection_options
 
 
 class TweetsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = "tweet"
 
@@ -29,11 +29,10 @@ class TweetsToDB(CsvToDb):
     primary_key = 'tweet_id'
 
     def requires(self):
-        return ExtractTweets(minimal=self.minimal)
+        return ExtractTweets()
 
 
 class TweetPerformanceToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = "tweet_performance"
 
@@ -56,17 +55,14 @@ class TweetPerformanceToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractTweetPerformance(
-            foreign_keys=self.foreign_keys,
-            minimal=self.minimal)
+        return ExtractTweetPerformance(foreign_keys=self.foreign_keys)
 
 
 class ExtractTweets(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         yield MuseumFacts()
-        yield FetchTwitter(minimal=self.minimal)
+        yield FetchTwitter()
 
     def run(self):
         with self.input()[1].open('r') as input_file:
@@ -105,16 +101,15 @@ class ExtractTweets(DataPreparationTask):
 
 
 class ExtractTweetPerformance(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def _requires(self):
         return luigi.task.flatten([
-            TweetsToDB(minimal=self.minimal),
+            TweetsToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        return FetchTwitter(minimal=self.minimal)
+        return FetchTwitter()
 
     def run(self):
         with self.input().open('r') as input_file:
@@ -134,7 +129,6 @@ class ExtractTweetPerformance(DataPreparationTask):
 
 
 class FetchTwitter(luigi.Task):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -149,7 +143,7 @@ class FetchTwitter(luigi.Task):
         return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
 
     def run(self):
-        if self.minimal:
+        if os.environ['MINIMAL']:
             self.min_timestamp = dt.date.today()
             self.max_timestamp = dt.date.today() + dt.timedelta(days=1)
 

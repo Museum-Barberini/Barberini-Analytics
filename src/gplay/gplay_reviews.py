@@ -13,7 +13,6 @@ from museum_facts import MuseumFacts
 
 
 class GooglePlaystoreReviewsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'gplay_review'
 
@@ -30,11 +29,10 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
     primary_key = 'playstore_review_id'
 
     def requires(self):
-        return FetchGplayReviews(minimal=self.minimal)
+        return FetchGplayReviews()
 
 
 class FetchGplayReviews(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,7 +60,7 @@ class FetchGplayReviews(DataPreparationTask):
         # Different languages have different reviews. Iterate over
         # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
-        if self.minimal:
+        if os.environ['MINIMAL']:
             random_num = random.randint(0, len(language_codes) - 2)
             language_codes = language_codes[random_num:random_num + 2]
 

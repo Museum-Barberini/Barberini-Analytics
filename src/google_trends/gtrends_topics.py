@@ -1,12 +1,12 @@
 import json
 import luigi
+import os
 import random
 
 from museum_facts import MuseumFacts
 
 
 class GtrendsTopics(luigi.Task):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         return MuseumFacts()
@@ -31,7 +31,7 @@ class GtrendsTopics(luigi.Task):
             ' '.join([museum_name, extra_topic])
             for extra_topic in extra_topics
             for museum_name in museum_names]
-        if self.minimal:
+        if os.environ['MINIMAL']:
             random_museum_name = random.randint(0, len(museum_names) - 1)
             random_topic = random.randint(0, len(extra_topics) - 1)
 

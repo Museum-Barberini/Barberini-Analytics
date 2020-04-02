@@ -16,15 +16,13 @@ logger = logging.getLogger('luigi-interface')
 
 
 class GtrendsValuesToDB(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield GtrendsValuesClearDB(minimal=self.minimal)
-        yield GtrendsValuesAddToDB(minimal=self.minimal)
+        yield GtrendsValuesClearDB()
+        yield GtrendsValuesAddToDB()
 
 
 class GtrendsValuesClearDB(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
@@ -38,7 +36,7 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         set_db_connection_options(self)
 
     def requires(self):
-        return GtrendsTopics(minimal=self.minimal)
+        return GtrendsTopics()
 
     def run(self):
         with self.input().open('r') as topics_file:
@@ -67,7 +65,6 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
 
 
 class GtrendsValuesAddToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'gtrends_value'
 
@@ -80,28 +77,26 @@ class GtrendsValuesAddToDB(CsvToDb):
     primary_key = 'topic', 'date'
 
     def requires(self):
-        return ConvertGtrendsValues(minimal=self.minimal)
+        return ConvertGtrendsValues()
 
 
 class ConvertGtrendsValues(JsonToCsv):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        return FetchGtrendsValues(minimal=self.minimal)
+        return FetchGtrendsValues()
 
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.csv')
 
 
 class FetchGtrendsValues(ExternalProgramTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     js_engine = luigi.Parameter(default='node')
     js_path = './src/google_trends/gtrends_values.js'
 
     def requires(self):
         yield MuseumFacts()
-        yield GtrendsTopics(minimal=self.minimal)
+        yield GtrendsTopics()
 
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.json')

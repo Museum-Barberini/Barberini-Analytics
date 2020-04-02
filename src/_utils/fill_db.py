@@ -15,23 +15,21 @@ from gomus.orders import OrdersToDB
 
 
 class FillDB(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield FillDBDaily(minimal=self.minimal)
-        yield FillDBHourly(minimal=self.minimal)
+        yield FillDBDaily()
+        yield FillDBHourly()
 
 
 class FillDBDaily(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield AppstoreReviewsToDB(minimal=self.minimal)
-        yield GooglePlaystoreReviewsToDB(minimal=self.minimal)
-        yield FbPostsToDB(minimal=self.minimal)
-        yield GoogleMapsReviewsToDB(minimal=self.minimal)
-        yield TweetsToDB(minimal=self.minimal)
-        yield GtrendsValuesToDB(minimal=self.minimal)
+        yield AppstoreReviewsToDB()
+        yield GooglePlaystoreReviewsToDB()
+        yield FbPostsToDB()
+        yield GoogleMapsReviewsToDB()
+        yield TweetsToDB()
+        yield GtrendsValuesToDB()
 
         yield BookingsToDB(minimal=self.minimal)
         yield CustomersToDB(minimal=self.minimal)
@@ -44,7 +42,6 @@ class FillDBDaily(luigi.WrapperTask):
 
 
 class FillDBHourly(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         yield FbPostPerformanceToDB(minimal=self.minimal)
