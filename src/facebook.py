@@ -111,18 +111,15 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             # print(f"[FB] Loading performance data for post {str(post_id)}")
             url = (f'https://graph.facebook.com/v6.0/{post_id}/insights'
-                   f'?access_token={access_token}')
-            metrics = [
-                'post_reactions_by_type_total',
-                'post_activity_by_action_type',
-                'post_clicks_by_type',
-                'post_negative_feedback',
-                'post_impressions_paid'
-            ]
-            request_args = {
-                'params': {'metric': ','.join(metrics)}#,
-                #'headers': {'Authorization': 'Bearer ' + access_token}
-            }
+                   f'?access_token={access_token}'
+                   f'&metric='
+                   f'post_reactions_by_type_total,'
+                   f'post_activity_by_action_type,'
+                   f'post_clicks_by_type,'
+                   f'post_negative_feedback,'
+                   f'post_impressions_paid')
+            # add headers and such here
+            request_args = {}
 
             response = try_request_multiple_times(url, **request_args)
 
