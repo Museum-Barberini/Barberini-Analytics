@@ -148,7 +148,7 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
         ('app_version', 'TEXT'),
         ('thumbs_up', 'INT'),
         ('title', 'TEXT'),
-        ('date', 'TIMESTAMP')
+        ('post_date', 'TIMESTAMP')
     ]
 
     primary_key = 'playstore_review_id'

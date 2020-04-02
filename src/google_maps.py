@@ -202,7 +202,7 @@ class GoogleMapsReviewsToDB(CsvToDb):
 
     columns = [
         ('google_maps_review_id', 'TEXT'),
-        ('date', 'DATE'),
+        ('post_date', 'DATE'),
         ('rating', 'INT'),
         ('text', 'TEXT'),
         ('text_english', 'TEXT'),

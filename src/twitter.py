@@ -117,7 +117,7 @@ class TweetsToDB(CsvToDb):
         ("tweet_id", "TEXT"),
         ("text", "TEXT"),
         ("response_to", "TEXT"),
-        ("post_date", "DATE"),
+        ("post_date", "TIMESTAMP"),
         ("is_from_barberini", "BOOL")
     ]
 
@@ -152,3 +152,24 @@ class TweetPerformanceToDB(CsvToDb):
     def requires(self):
         return ExtractTweetPerformance(
             foreign_keys=self.foreign_keys)
+
+
+class LoadTweetAuthors(DataPreparationTask):
+
+    def output(self):
+        return luigi.LocalTarget("data/tweet_authors.csv", format=UTF8)
+
+
+class TweetAuthorsToDB(CsvToDb):
+
+    table = "tweet_author"
+
+    columns = [
+        ("user_id", "TEXT"),
+        ("user_name", "TEXT")
+    ]
+
+    primary_key = "user_id"
+
+    def requires(self):
+        return LoadTweetAuthors()

@@ -128,7 +128,7 @@ class AppstoreReviewsToDB(CsvToDb):
         ('vote_count', 'INT'),
         ('vote_sum', 'INT'),
         ('title', 'TEXT'),
-        ('date', 'TIMESTAMP'),
+        ('post_date', 'TIMESTAMP'),
         ('country_code', 'TEXT')
     ]
 
