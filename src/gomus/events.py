@@ -94,18 +94,15 @@ class ExtractEventData(DataPreparationTask):
                     path = path.replace('\n', '')
 
                     # handle booked and cancelled events
-                    try:
-                        event_data = luigi.LocalTarget(path, format=UTF8)
-                        if i % 2 == 0:
-                            self.append_event_data(event_data,
-                                                   'Gebucht',
-                                                   category)
-                        else:
-                            self.append_event_data(event_data,
-                                                   'Storniert',
-                                                   category)
-                    except Exception:
-                        print(path)
+                    event_data = luigi.LocalTarget(path, format=UTF8)
+                    if i % 2 == 0:
+                        self.append_event_data(event_data,
+                                               'Gebucht',
+                                               category)
+                    else:
+                        self.append_event_data(event_data,
+                                               'Storniert',
+                                               category)
 
         self.events_df = self.ensure_foreign_keys(self.events_df)
 
@@ -170,7 +167,7 @@ class FetchCategoryReservations(luigi.Task):
             if os.environ['MINIMAL'] == 'True':
                 query = (f'SELECT booking_id FROM gomus_booking WHERE '
                          f'category=\'{self.category}\' '
-                         f'ORDER BY start_datetime DESC LIMIT 10')
+                         f'ORDER BY start_datetime DESC LIMIT 2')
             else:
                 two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
 

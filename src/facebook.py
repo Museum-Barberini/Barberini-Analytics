@@ -113,7 +113,7 @@ class FetchFbPosts(DataPreparationTask):
             print(f"\rFetched facebook page {page_count}", end='', flush=True)
 
             if os.environ['MINIMAL'] == 'True':
-                response_content.pop('next')
+                response_content['paging'].pop('next')
 
         logger.info("Fetching of facebook posts completed")
 
@@ -151,7 +151,6 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
 
-        print('!!!!!!!!!!!!!!!!!!!!!!', os.environ['MINIMAL'])
         if os.environ['MINIMAL'] == 'True':
             df = df.head(5)
 
