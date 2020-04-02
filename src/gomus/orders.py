@@ -25,7 +25,8 @@ class OrdersToDB(CsvToDb):
         ('customer_id', 'INT'),
         ('valid', 'BOOL'),
         ('paid', 'BOOL'),
-        ('origin', 'TEXT')]
+        ('origin', 'TEXT')
+    ]
 
     primary_key = 'order_id'
 
