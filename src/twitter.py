@@ -163,7 +163,7 @@ class LoadTweetAuthors(DataPreparationTask):
 class TweetAuthorsToDB(CsvToDb):
 
     table = "tweet_author"
- 
+
     columns = [
         ("user_id", "TEXT"),
         ("user_name", "TEXT")
