@@ -2,10 +2,13 @@
 import argparse
 import csv
 import datetime as dt
+import logging
 import sys
 
 import requests
 import xlrd
+
+logger = logging.getLogger('luigi-interface')
 
 # This dict maps 'report_types' to 'REPORT_IDS'
 # Data sheets that don't require a report to be generated or
@@ -113,8 +116,8 @@ def direct_download_url(base_url, report, timespan):
         # timespan is valid
         end_time = end_time.strftime("%Y-%m-%d")
         start_time = start_time.strftime("%Y-%m-%d")
-        print(
-            f"Requesting report for timespan from {start_time} to {end_time}")
+        logger.info(f"Requesting report for timespan "
+                    f"from {start_time} to {end_time}")
         return base_return + f'?end_at={end_time}&start_at={start_time}'
 
     return base_return
@@ -122,14 +125,12 @@ def direct_download_url(base_url, report, timespan):
 
 def get_request(url, sess_id):
     cookies = dict(_session_id=sess_id)
-    res = requests.get(url, cookies=cookies)
-    if not res.status_code == 200:
-        print(f"Error with HTTP request: Status code {res.status_code}")
-        exit(1)
-    else:
-        print("HTTP request successful")
+    response = requests.get(url, cookies=cookies)
+    response.raise_for_status()
+    if response.ok:
+        logger.info("HTTP request successful")
 
-    return res.content
+    return response.content
 
 
 def csv_from_excel(xlsx_content, target_csv, sheet_index):
@@ -148,28 +149,28 @@ def request_report(args=sys.argv[1:]):
         try:
             report_id = REPORT_IDS[args.report_type]
         except KeyError:  # should never happen because of argparse choices
-            print(f"Error: Report type '{args.report_type}' not supported!")
-            exit(1)
+            raise ValueError(
+                f"Report type '{args.report_type}' not supported!")
 
     base_url = 'https://barberini.gomus.de'
     report_parts = REPORT_IDS_INV[report_id].split("_")
 
-    print(f"Working with report '{report_parts[0]}.xlsx'")
+    logger.info(f"Working with report '{report_parts[0]}.xlsx'")
 
     # Work with the kind of report that is generated and maintained
     if report_id > 0:
         base_url += f'/admin/reports/{report_id}'
 
         if args.action == 'refresh':
-            print("Refreshing report")
+            logger.info("Refreshing report")
             url = base_url + '/refresh'
 
         elif args.action == 'fetch':
-            print("Fetching report")
+            logger.info("Fetching report")
             url = base_url + '.xlsx'
 
     else:  # Work with the kind of report that is requested directly
-        print("Directly downloading report")
+        logger.info("Directly downloading report")
         if len(report_parts) < 2:
             timespan = ''
         else:
@@ -186,11 +187,16 @@ def request_report(args=sys.argv[1:]):
                 filename = REPORT_IDS_INV[report_id] + '.csv'
             with open(filename, 'w', encoding='utf-8') as csv_file:
                 csv_from_excel(res_content, csv_file, args.sheet_index)
-            print(f'Saved report to file "{filename}"')
+            logger.info(f'Saved report to file "{filename}"')
         else:
-            print("Running as Luigi task, returning response content")
+            logger.info("Running as Luigi task, returning response content")
             return res_content
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s: %(message)s'
+    )
     request_report()

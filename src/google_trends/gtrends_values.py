@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import luigi
@@ -10,6 +11,8 @@ from google_trends.gtrends_topics import GtrendsTopics
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class FetchGtrendsValues(ExternalProgramTask):
@@ -94,7 +97,7 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
                 })'''
-            print('Executing query: ' + query)
+            logger.info('Executing query: ' + query)
             connection.cursor().execute(query)
             connection.commit()
 
