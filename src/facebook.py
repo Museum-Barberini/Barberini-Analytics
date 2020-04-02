@@ -118,13 +118,13 @@ class FetchFbPostPerformance(DataPreparationTask):
                    f'post_clicks_by_type,'
                    f'post_negative_feedback,'
                    f'post_impressions_paid')
-            # add headers and such here
             request_args = {}
+            # add headers and such here
 
             response = try_request_multiple_times(url, **request_args)
 
+            print(response.status_code)#debug
             if response.status_code == 400:
-                print(response.text)
                 invalid_count += 1
                 continue
 

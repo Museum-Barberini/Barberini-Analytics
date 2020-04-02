@@ -38,7 +38,7 @@ class ExtractTweets(DataPreparationTask):
 
     def requires(self):
         yield MuseumFacts()
-        yield FetchTwitter(timespan=7)
+        yield FetchTwitter()
 
     def run(self):
         with self.input()[1].open('r') as input_file:
