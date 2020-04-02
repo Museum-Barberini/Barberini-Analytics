@@ -12,7 +12,7 @@ ARG install='apt-get install -y --no-install-recommends'
 #RUN apt-get install -y --fix-missing --no-install-recommends apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
 # Todo: This would be great to fix the apt warnings, but unfortunately, it raises http://security.ubuntu.com/ubuntu 404 Not Found ...
 RUN $install --fix-missing build-essential vim curl gnupg iproute2
-RUN $install nano psmisc
+RUN $install nano psmisc git
 
 # install python
 RUN $install python3.6 python3-pip python3-setuptools python3-dev python3-wheel

@@ -21,14 +21,22 @@ class TextFetchTwitter(DatabaseTaskTest):
             'text',
             'parent_tweet_id',
             'timestamp']
-        timespan_start = dt.date(2020, 2, 6)
-        timespan_end = dt.date(2020, 2, 7)
-        # in this timespan our team account had
-        # sent one tweet with #MuseumBarberini
-        task = FetchTwitter(
-            min_timestamp=timespan_start,
-            max_timestamp=timespan_end)
-        task.run()
+
+        class MockDate(dt.date):
+            @classmethod
+            def today(cls):
+                # on this day or team's account had sent a related tweet
+                return cls(2020, 2, 6)
+
+        tmp_date = dt.date
+
+        # Ensure dt.date is reset in any case
+        try:
+            dt.date = MockDate
+            FetchTwitter(timespan=dt.timedelta(days=1)).run()
+
+        finally:
+            dt.date = tmp_date
 
         with output_target.open('r') as output_file:
             output_df = pd.read_csv(output_file)

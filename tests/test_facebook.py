@@ -148,7 +148,8 @@ class TestFacebookPostPerformance(unittest.TestCase):
         # Ensure dt.datetime is reset in any case
         try:
             dt.datetime = MockDatetime
-            facebook.FetchFbPostPerformance().run()
+            facebook.FetchFbPostPerformance(
+                timespan=dt.timedelta(days=100000)).run()
 
         finally:
             dt.datetime = tmp_datetime
