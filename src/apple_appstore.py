@@ -1,4 +1,5 @@
 import json
+import logging
 
 import luigi
 import pandas as pd
@@ -10,6 +11,8 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
+
+logger = logging.getLogger('luigi-interface')
 
 
 class AppstoreReviewsToDB(CsvToDb):
@@ -46,7 +49,7 @@ class FetchAppstoreReviews(DataPreparationTask):
 
     def run(self):
         reviews = self.fetch_all()
-        print("storing results")
+        logger.info("storing results")
         with self.output().open('w') as output_file:
             reviews.to_csv(output_file, index=False, header=True)
 
