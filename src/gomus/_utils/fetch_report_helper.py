@@ -15,7 +15,7 @@ logger = logging.getLogger('luigi-interface')
 # refreshed have ids <= 0
 # key format: 'type_timespan' (e.g. 'customers_7days')
 REPORT_IDS = {
-    'customers_7days': 1285,
+    'customers_7days': 1379,
     'orders_7days': 1188,
     'orders_1day': 1246,
     'entries_1day': 1262,
