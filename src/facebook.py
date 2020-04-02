@@ -236,4 +236,4 @@ def try_request_multiple_times(url, **kwargs):
                 "Trying to request the api again.\n"
                 f"error message: {e}"
             )
-    return requests.get(url, request_args, timeout=100)
+    return requests.get(url, timeout=100, **kwargs)
