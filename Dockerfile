@@ -25,7 +25,7 @@ RUN pip3 install google-api-python-client
 RUN pip3 install coverage
 
 # install twitterscraper from our fork
-RUN pip3 install -e git+https://github.com/twollnik/twitterscraper.git#egg=twitterscraper
+RUN pip3 install git+https://github.com/twollnik/twitterscraper.git#egg=twitterscraper
 
 # install psycopg2 (incl. system dependencies)
 RUN DEBIAN_FRONTEND=noninteractive $install libpq-dev
