@@ -5,6 +5,7 @@ import sys
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
+import os
 import pandas as pd
 from oauth2client.file import Storage
 
@@ -12,6 +13,25 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 
 logger = logging.getLogger('luigi-interface')
+
+
+class GoogleMapsReviewsToDB(CsvToDb):
+
+    table = 'google_maps_review'
+
+    columns = [
+        ('google_maps_review_id', 'TEXT'),
+        ('date', 'DATE'),
+        ('rating', 'INT'),
+        ('text', 'TEXT'),
+        ('text_english', 'TEXT'),
+        ('language', 'TEXT')
+    ]
+
+    primary_key = 'google_maps_review_id'
+
+    def requires(self):
+        return FetchGoogleMapsReviews()
 
 
 class FetchGoogleMapsReviews(DataPreparationTask):
@@ -143,6 +163,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 print(
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
+
+                if os.environ['MINIMAL'] == 'True':
+                    review_list.pop('nextPageToken')
         finally:
             print()
         return reviews
@@ -194,22 +217,3 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
             extracted_reviews.append(extracted)
         return pd.DataFrame(extracted_reviews)
-
-
-class GoogleMapsReviewsToDB(CsvToDb):
-
-    table = 'google_maps_review'
-
-    columns = [
-        ('google_maps_review_id', 'TEXT'),
-        ('post_date', 'DATE'),
-        ('rating', 'INT'),
-        ('text', 'TEXT'),
-        ('text_english', 'TEXT'),
-        ('language', 'TEXT')
-    ]
-
-    primary_key = 'google_maps_review_id'
-
-    def requires(self):
-        return FetchGoogleMapsReviews()

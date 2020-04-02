@@ -2,6 +2,7 @@ import csv
 
 import datetime as dt
 import luigi
+import os
 import pandas as pd
 import psycopg2
 from luigi.format import UTF8
@@ -11,15 +12,18 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
+from gomus.customers import hash_id
 from set_db_connection_options import set_db_connection_options
 
 
 class EventsToDB(CsvToDb):
+
     table = 'gomus_event'
 
     columns = [
         ('event_id', 'INT'),
         ('booking_id', 'INT'),
+        ('customer_id', 'INT'),
         ('reservation_count', 'INT'),
         ('order_date', 'DATE'),
         ('status', 'TEXT'),
@@ -33,6 +37,11 @@ class EventsToDB(CsvToDb):
             'origin_column': 'booking_id',
             'target_table': 'gomus_booking',
             'target_column': 'booking_id'
+        },
+        {
+            'origin_column': 'customer_id',
+            'target_table': 'gomus_customer',
+            'target_column': 'customer_id'
         }
     ]
 
@@ -67,7 +76,7 @@ class ExtractEventData(DataPreparationTask):
 
     def requires(self):
         for category in self.categories:
-            yield FetchCategoryReservations(category)
+            yield FetchCategoryReservations(category=category)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
@@ -87,7 +96,9 @@ class ExtractEventData(DataPreparationTask):
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
                     if i % 2 == 0:
-                        self.append_event_data(event_data, 'Gebucht', category)
+                        self.append_event_data(event_data,
+                                               'Gebucht',
+                                               category)
                     else:
                         self.append_event_data(event_data,
                                                'Storniert',
@@ -112,12 +123,13 @@ class ExtractEventData(DataPreparationTask):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'Event_id', 'Plätze',
+                'Id', 'Event_id', 'E-Mail', 'Plätze',
                 'Datum', 'Status', 'Kategorie'])
 
             event_df.columns = self.columns
 
             event_df['event_id'] = event_df['event_id'].apply(int)
+            event_df['customer_id'] = event_df['customer_id'].apply(hash_id)
             event_df['reservation_count'] = event_df[
                 'reservation_count'].apply(int)
             event_df['order_date'] = event_df['order_date'].apply(
@@ -152,11 +164,17 @@ class FetchCategoryReservations(luigi.Task):
             )
             cur = conn.cursor()
 
-            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+            if os.environ['MINIMAL'] == 'True':
+                query = (f'SELECT booking_id FROM gomus_booking WHERE '
+                         f'category=\'{self.category}\' '
+                         f'ORDER BY start_datetime DESC LIMIT 2')
+            else:
+                two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
 
-            query = (f'SELECT booking_id FROM gomus_booking WHERE category=\''
-                     f'{self.category}\''
-                     f' AND start_datetime > \'{two_weeks_ago}\'')
+                query = (f'SELECT booking_id FROM gomus_booking WHERE '
+                         f'category=\'{self.category}\' '
+                         f'AND start_datetime > \'{two_weeks_ago}\'')
+
             cur.execute(query)
 
             row = cur.fetchone()

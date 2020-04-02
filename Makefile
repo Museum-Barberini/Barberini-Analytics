@@ -64,6 +64,10 @@ luigi-task: luigi-scheduler
 luigi-clean:
 	rm -rf output
 
+luigi-minimal:
+	# the environment variable has to be set to true 
+	MINIMAL=True && make luigi
+
 # --- Testing ---
 
 test: luigi-clean

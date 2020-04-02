@@ -15,6 +15,7 @@ class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
     timespan = luigi.parameter.Parameter(default='_nextYear')
+    columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
@@ -61,16 +62,14 @@ class ExtractGomusBookings(DataPreparationTask):
                                     'Titel',
                                     'Status',
                                     'Startzeit'])
-        bookings.columns = [
-            'booking_id',
-            'category',
-            'participants',
-            'guide_id',
-            'duration',
-            'exhibition',
-            'title',
-            'status',
-            'start_datetime']
+
+        # the scraped columns are removed
+        columns_reduced = list(self.columns)
+
+        columns_reduced = [col for col in columns_reduced if col
+                           not in ('customer_id', 'order_date', 'language')]
+
+        bookings.columns = tuple(columns_reduced)
 
         bookings = self.ensure_foreign_keys(bookings)
 
@@ -78,8 +77,9 @@ class ExtractGomusBookings(DataPreparationTask):
             bookings.to_csv(output_file, header=True, index=False)
 
     def hash_guide(self, guide_name):
-        if guide_name is np.NaN:
+        if pd.isnull(guide_name):
             return 0  # 0 represents empty value
+
         guides = guide_name.lower().replace(' ', '').split(',')
         guide = guides[0]
         return mmh3.hash(guide, self.seed, signed=True)

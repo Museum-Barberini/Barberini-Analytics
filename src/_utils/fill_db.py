@@ -15,12 +15,14 @@ from gomus.orders import OrdersToDB
 
 
 class FillDB(luigi.WrapperTask):
+
     def requires(self):
         yield FillDBDaily()
         yield FillDBHourly()
 
 
 class FillDBDaily(luigi.WrapperTask):
+
     def requires(self):
         yield AppstoreReviewsToDB()
         yield GooglePlaystoreReviewsToDB()
@@ -35,13 +37,13 @@ class FillDBDaily(luigi.WrapperTask):
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
         yield EventsToDB()
+        yield GomusToCustomerMappingToDB()
         # yield OrderContainsToDB()
         yield OrdersToDB()
 
-        yield GomusToCustomerMappingToDB()
-
 
 class FillDBHourly(luigi.WrapperTask):
+
     def requires(self):
         yield FbPostPerformanceToDB()
         yield TweetPerformanceToDB()

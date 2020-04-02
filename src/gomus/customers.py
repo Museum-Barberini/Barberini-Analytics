@@ -2,6 +2,7 @@
 import datetime as dt
 import luigi
 import mmh3
+import os
 import pandas as pd
 import numpy as np
 from luigi.format import UTF8
@@ -37,7 +38,8 @@ class CustomersToDB(CsvToDb):
 
     def requires(self):
         return ExtractCustomerData(
-            columns=[col[0] for col in self.columns], today=self.today)
+            columns=[col[0] for col in self.columns],
+            today=self.today)
 
 
 class GomusToCustomerMappingToDB(CsvToDb):
@@ -73,7 +75,11 @@ class ExtractCustomerData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return FetchGomusReport(report='customers', today=self.today)
+        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
+
+        return FetchGomusReport(report='customers',
+                                today=self.today,
+                                suffix=suffix)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
@@ -152,7 +158,11 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
         ])
 
     def requires(self):
-        return FetchGomusReport(report='customers', today=self.today)
+        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
+
+        return FetchGomusReport(report='customers',
+                                today=self.today,
+                                suffix=suffix)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/gomus_to_customers_mapping.csv',

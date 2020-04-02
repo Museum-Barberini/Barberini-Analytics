@@ -15,37 +15,6 @@ from set_db_connection_options import set_db_connection_options
 logger = logging.getLogger('luigi-interface')
 
 
-class FetchGtrendsValues(ExternalProgramTask):
-
-    js_engine = luigi.Parameter(default='node')
-    js_path = './src/google_trends/gtrends_values.js'
-
-    def requires(self):
-        yield MuseumFacts()
-        yield GtrendsTopics()
-
-    def output(self):
-        return luigi.LocalTarget('output/google_trends/values.json')
-
-    def program_args(self):
-        with self.input()[0].open('r') as facts_file:
-            facts = json.load(facts_file)
-
-        return [self.js_engine, self.js_path] \
-            + [facts['countryCode'], facts['foundingDate']] \
-            + [os.path.realpath(path) for path in [
-                self.input()[1].path, self.output().path]]
-
-
-class ConvertGtrendsValues(JsonToCsv):
-
-    def requires(self):
-        return FetchGtrendsValues()
-
-    def output(self):
-        return luigi.LocalTarget('output/google_trends/values.csv')
-
-
 class GtrendsValuesToDB(luigi.WrapperTask):
 
     def requires(self):
@@ -53,23 +22,8 @@ class GtrendsValuesToDB(luigi.WrapperTask):
         yield GtrendsValuesAddToDB()
 
 
-class GtrendsValuesAddToDB(CsvToDb):
-
-    table = 'gtrends_value'
-
-    columns = [
-        ('topic', 'TEXT'),
-        ('date', 'DATE'),
-        ('interest_value', 'INT'),
-    ]
-
-    primary_key = 'topic', 'date'
-
-    def requires(self):
-        return ConvertGtrendsValues()
-
-
 class GtrendsValuesClearDB(luigi.WrapperTask):
+
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
@@ -108,3 +62,50 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         finally:
             if connection is not None:
                 connection.close()
+
+
+class GtrendsValuesAddToDB(CsvToDb):
+
+    table = 'gtrends_value'
+
+    columns = [
+        ('topic', 'TEXT'),
+        ('date', 'DATE'),
+        ('interest_value', 'INT'),
+    ]
+
+    primary_key = 'topic', 'date'
+
+    def requires(self):
+        return ConvertGtrendsValues()
+
+
+class ConvertGtrendsValues(JsonToCsv):
+
+    def requires(self):
+        return FetchGtrendsValues()
+
+    def output(self):
+        return luigi.LocalTarget('output/google_trends/values.csv')
+
+
+class FetchGtrendsValues(ExternalProgramTask):
+
+    js_engine = luigi.Parameter(default='node')
+    js_path = './src/google_trends/gtrends_values.js'
+
+    def requires(self):
+        yield MuseumFacts()
+        yield GtrendsTopics()
+
+    def output(self):
+        return luigi.LocalTarget('output/google_trends/values.json')
+
+    def program_args(self):
+        with self.input()[0].open('r') as facts_file:
+            facts = json.load(facts_file)
+
+        return [self.js_engine, self.js_path] \
+            + [facts['countryCode'], facts['foundingDate']] \
+            + [os.path.realpath(path) for path in [
+                self.input()[1].path, self.output().path]]

@@ -2,6 +2,7 @@ import datetime as dt
 import json
 
 import luigi
+import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
@@ -11,27 +12,64 @@ from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
-class FetchTwitter(luigi.Task):
+class TweetsToDB(CsvToDb):
 
-    query = luigi.Parameter(default="museumbarberini")
-    timespan = luigi.parameter.TimeDeltaParameter(
-        default=dt.timedelta(days=60),
-        description="For how many days tweets should be fetched")
+    table = "tweet"
 
-    def output(self):
-        return luigi.LocalTarget(
-            (f'output/twitter/raw_tweets.csv'),
-            format=UTF8)
+    columns = [
+        ("user_id", "TEXT"),
+        ("tweet_id", "TEXT"),
+        ("text", "TEXT"),
+        ("response_to", "TEXT"),
+        ("post_date", "DATE"),
+        ("is_from_barberini", "BOOL")
+    ]
 
-    def run(self):
-        tweets = ts.query_tweets(
-            self.query,
-            begindate=dt.date.today() - self.timespan,
-            enddate=dt.date.today() + dt.timedelta(days=1))
-        df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
-        df = df.drop_duplicates(subset=["tweet_id"])
-        with self.output().open('w') as output_file:
-            df.to_csv(output_file, index=False, header=True)
+    primary_key = 'tweet_id'
+
+    def requires(self):
+        return ExtractTweets()
+
+
+class TweetPerformanceToDB(CsvToDb):
+
+    table = "tweet_performance"
+
+    columns = [
+        ("tweet_id", "TEXT"),
+        ("likes", "INT"),
+        ("retweets", "INT"),
+        ("replies", "INT"),
+        ("timestamp", "TIMESTAMP")
+    ]
+
+    primary_key = ('tweet_id', 'timestamp')
+
+    foreign_keys = [
+        {
+            "origin_column": "tweet_id",
+            "target_table": "tweet",
+            "target_column": "tweet_id"
+        }
+    ]
+
+    def requires(self):
+        return ExtractTweetPerformance(foreign_keys=self.foreign_keys)
+
+
+class TweetAuthorsToDB(CsvToDb):
+
+    table = "tweet_author"
+
+    columns = [
+        ("user_id", "TEXT"),
+        ("user_name", "TEXT")
+    ]
+
+    primary_key = "user_id"
+
+    def requires(self):
+        return LoadTweetAuthors()
 
 
 class ExtractTweets(DataPreparationTask):
@@ -104,68 +142,35 @@ class ExtractTweetPerformance(DataPreparationTask):
             "output/twitter/tweet_performance.csv", format=UTF8)
 
 
-class TweetsToDB(CsvToDb):
+class FetchTwitter(luigi.Task):
 
-    table = "tweet"
+    query = luigi.Parameter(default="museumbarberini")
+    timespan = luigi.parameter.TimeDeltaParameter(
+        default=dt.timedelta(days=60),
+        description="For how many days tweets should be fetched")
 
-    columns = [
-        ("user_id", "TEXT"),
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "TIMESTAMP"),
-        ("is_from_barberini", "BOOL")
-    ]
+    def output(self):
+        return luigi.LocalTarget(
+            (f'output/twitter/raw_tweets.csv'),
+            format=UTF8)
 
-    primary_key = 'tweet_id'
+    def run(self):
+        timespan = self.timespan
+        if os.environ['MINIMAL'] == 'True':
+            timespan = dt.timedelta(days=0)
 
-    def requires(self):
-        return ExtractTweets()
+        tweets = ts.query_tweets(
+            self.query,
+            begindate=dt.date.today() - timespan,
+            enddate=dt.date.today() + dt.timedelta(days=1))
 
-
-class TweetPerformanceToDB(CsvToDb):
-
-    table = "tweet_performance"
-
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("timestamp", "TIMESTAMP")
-    ]
-
-    primary_key = ('tweet_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            "origin_column": "tweet_id",
-            "target_table": "tweet",
-            "target_column": "tweet_id"
-        }
-    ]
-
-    def requires(self):
-        return ExtractTweetPerformance(
-            foreign_keys=self.foreign_keys)
+        df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+        df = df.drop_duplicates(subset=["tweet_id"])
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
 
 
 class LoadTweetAuthors(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget("data/tweet_authors.csv", format=UTF8)
-
-
-class TweetAuthorsToDB(CsvToDb):
-
-    table = "tweet_author"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("user_name", "TEXT")
-    ]
-
-    primary_key = "user_id"
-
-    def requires(self):
-        return LoadTweetAuthors()
