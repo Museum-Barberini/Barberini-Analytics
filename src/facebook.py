@@ -68,10 +68,9 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostPerformance(DataPreparationTask):
-    worker_timeout = 1800
-    timespan = luigi.Parameter(
-        default=60,
-        description="For how many days posts should be fetched")
+    timespan = luigi.parameter.TimeDeltaParameter(
+        default=dt.timedelta(days=60),
+        description="For how much time posts should be fetched")
 
     # Override the default timeout of 10 minutes to allow
     # FetchFbPostPerformance to take up to 20 minutes.
@@ -95,7 +94,7 @@ class FetchFbPostPerformance(DataPreparationTask):
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         earliest_valid_date = (dt.datetime.now()
-                               - dt.timedelta(days=self.timespan))
+                               - self.timespan)
         performances = []
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)

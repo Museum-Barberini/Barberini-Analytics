@@ -33,7 +33,7 @@ class TextFetchTwitter(DatabaseTaskTest):
         # Ensure dt.date is reset in any case
         try:
             dt.date = MockDate
-            FetchTwitter(timespan=1).run()
+            FetchTwitter(timespan=dt.timedelta(days=1)).run()
 
         finally:
             dt.date = tmp_date

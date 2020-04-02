@@ -14,8 +14,8 @@ from museum_facts import MuseumFacts
 class FetchTwitter(luigi.Task):
 
     query = luigi.Parameter(default="museumbarberini")
-    timespan = luigi.Parameter(
-        default=60,
+    timespan = luigi.parameter.TimeDeltaParameter(
+        default=dt.timedelta(days=60),
         description="For how many days tweets should be fetched")
 
     def output(self):
@@ -26,7 +26,7 @@ class FetchTwitter(luigi.Task):
     def run(self):
         tweets = ts.query_tweets(
             self.query,
-            begindate=dt.date.today() - dt.timedelta(days=self.timespan),
+            begindate=dt.date.today() - self.timespan,
             enddate=dt.date.today() + dt.timedelta(days=1))
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
