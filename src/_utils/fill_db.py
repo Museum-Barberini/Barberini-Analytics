@@ -34,7 +34,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
         yield EventsToDB()
-        yield OrderContainsToDB()
+        # yield OrderContainsToDB()
         yield OrdersToDB()
 
         yield GomusToCustomerMappingToDB()
