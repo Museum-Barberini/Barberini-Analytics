@@ -9,29 +9,25 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
-from set_db_connection_options import set_db_connection_options
 
 
 class FetchTwitter(luigi.Task):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
-
     query = luigi.Parameter(default="museumbarberini")
-    min_timestamp = luigi.DateParameter(default=dt.date(2015, 1, 1))
-    max_timestamp = luigi.DateParameter(
-        default=dt.date.today() + dt.timedelta(days=1))
+    timespan = luigi.parameter.TimeDeltaParameter(
+        default=dt.timedelta(days=60),
+        description="For how many days tweets should be fetched")
 
     def output(self):
-        return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
+        return luigi.LocalTarget(
+            (f'output/twitter/raw_tweets.csv'),
+            format=UTF8)
 
     def run(self):
-
         tweets = ts.query_tweets(
             self.query,
-            begindate=self.min_timestamp,
-            enddate=self.max_timestamp)
+            begindate=dt.date.today() - self.timespan,
+            enddate=dt.date.today() + dt.timedelta(days=1))
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
         with self.output().open('w') as output_file:
@@ -105,7 +101,7 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            "output/twitter/performance_tweets.csv", format=UTF8)
+            "output/twitter/tweet_performance.csv", format=UTF8)
 
 
 class TweetsToDB(CsvToDb):
