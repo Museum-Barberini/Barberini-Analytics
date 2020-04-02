@@ -3,12 +3,11 @@
     "version": "1.0.0",
     "description": "Awesome Barberini Tool",
     "dependencies": {
-        "google-trends-api": "latest",
-        "deasync": "latest"
+        "deasync": "latest",
+        "google-trends-api": "latest"
     },
     "devDependencies": {},
     "repository": "https://gitlab.hpi.de/bp-barberini/bp-barberini",
     "author": "BP2019FN1@HPI",
     "license": "UNLICENSED"
-  }
-  
+}

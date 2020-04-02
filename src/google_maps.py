@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 
 import googleapiclient.discovery
@@ -9,6 +10,8 @@ from oauth2client.file import Storage
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+
+logger = logging.getLogger('luigi-interface')
 
 
 class FetchGoogleMapsReviews(DataPreparationTask):
@@ -40,15 +43,15 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             'output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
 
     def run(self) -> None:
-        print("loading credentials...")
+        logger.info("loading credentials...")
         credentials = self.load_credentials()
-        print("creating service...")
+        logger.info("creating service...")
         service = self.load_service(credentials)
-        print("fetching reviews...")
+        logger.info("fetching reviews...")
         raw_reviews = self.fetch_raw_reviews(service)
-        print("extracting reviews...")
+        logger.info("extracting reviews...")
         reviews_df = self.extract_reviews(raw_reviews)
-        print("success! writing...")
+        logger.info("success! writing...")
 
         with self.output().open('w') as output_file:
             reviews_df.to_csv(output_file, index=False)
@@ -76,7 +79,8 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 self.scopes,
                 secret['redirect_uris'][0])
             authorize_url = flow.step1_get_authorize_url()
-            print("Go to the following link in your browser: " + authorize_url)
+            logger.warning("Go to the following link in your browser: "
+                           f"{authorize_url}")
             code = input("Enter verification code: ").strip()
             credentials = flow.step2_exchange(code)
             storage.put(credentials)

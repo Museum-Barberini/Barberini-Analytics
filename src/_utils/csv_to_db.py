@@ -1,10 +1,13 @@
 import datetime as dt
+import logging
 
 import luigi
 import psycopg2
 from luigi.contrib.postgres import CopyToTable
 
 from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class CsvToDb(CopyToTable):
@@ -80,7 +83,7 @@ class CsvToDb(CopyToTable):
 
     def create_table(self, connection):
         super().create_table(connection)
-        print("INFO: Create table " + self.table)
+        logger.info("Create table " + self.table)
         self.create_primary_key(connection)
         self.create_foreign_key(connection)
 
