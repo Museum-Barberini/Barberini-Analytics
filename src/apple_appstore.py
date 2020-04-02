@@ -55,7 +55,7 @@ class FetchAppstoreReviews(DataPreparationTask):
     def fetch_all(self):
         data = []
         country_codes = sorted(self.get_country_codes())
-        if os.environ['MINIMAL']:
+        if os.environ['MINIMAL'] == 'True':
             random_num = random.randint(0, len(country_codes) - 2)
 
             country_codes = country_codes[random_num:random_num + 2]

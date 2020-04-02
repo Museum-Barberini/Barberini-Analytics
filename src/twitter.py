@@ -143,7 +143,7 @@ class FetchTwitter(luigi.Task):
         return luigi.LocalTarget("output/twitter/raw_tweets.csv", format=UTF8)
 
     def run(self):
-        if os.environ['MINIMAL']:
+        if os.environ['MINIMAL'] == 'True':
             self.min_timestamp = dt.date.today()
             self.max_timestamp = dt.date.today() + dt.timedelta(days=1)
 

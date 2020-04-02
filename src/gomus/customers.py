@@ -75,7 +75,7 @@ class ExtractCustomerData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        suffix = '_1day' if os.environ['MINIMAL'] else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
 
         return FetchGomusReport(report='customers',
                                 today=self.today,
@@ -158,7 +158,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
         ])
 
     def requires(self):
-        suffix = '_1day' if os.environ['MINIMAL'] else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
 
         return FetchGomusReport(report='customers',
                                 today=self.today,

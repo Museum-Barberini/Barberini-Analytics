@@ -56,7 +56,7 @@ class ExtractOrderData(DataPreparationTask):
         ])
 
     def requires(self):
-        suffix = '_1day' if os.environ['MINIMAL'] else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
         return FetchGomusReport(report='orders',
                                 suffix=suffix,
                                 today=self.today)

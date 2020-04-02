@@ -167,7 +167,7 @@ class FetchCategoryReservations(luigi.Task):
             )
             cur = conn.cursor()
 
-            if os.environ['MINIMAL']:
+            if os.environ['MINIMAL'] == 'True':
                 query = (f'SELECT booking_id FROM gomus_booking WHERE '
                          f'category=\'{self.category}\' '
                          f'ORDER BY start_datetime DESC LIMIT 10')

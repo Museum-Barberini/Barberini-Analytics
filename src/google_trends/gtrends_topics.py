@@ -31,7 +31,7 @@ class GtrendsTopics(luigi.Task):
             ' '.join([museum_name, extra_topic])
             for extra_topic in extra_topics
             for museum_name in museum_names]
-        if os.environ['MINIMAL']:
+        if os.environ['MINIMAL'] == 'True':
             random_museum_name = random.randint(0, len(museum_names) - 1)
             random_topic = random.randint(0, len(extra_topics) - 1)
 

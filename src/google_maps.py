@@ -164,7 +164,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
 
-                if os.environ['MINIMAL']:
+                if os.environ['MINIMAL'] == 'True':
                     review_list.pop('nextPageToken')
         finally:
             print()

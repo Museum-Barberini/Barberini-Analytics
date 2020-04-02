@@ -62,7 +62,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL']:
+            if os.environ['MINIMAL'] == 'True':
                 bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position

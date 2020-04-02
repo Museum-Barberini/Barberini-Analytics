@@ -67,7 +67,7 @@ class FetchBookingsHTML(luigi.Task):
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL']:
+            if os.environ['MINIMAL'] == 'True':
                 bookings = bookings.head(5)
 
         db_booking_rows = []
@@ -144,7 +144,7 @@ class FetchOrdersHTML(luigi.Task):
             cur = conn.cursor()
             order_ids = []
 
-            query_limit = 'LIMIT 10' if os.environ['MINIMAL'] else ''
+            query_limit = 'LIMIT 10' if os.environ['MINIMAL'] == 'True' else ''
 
             cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
                         f" WHERE table_name=\'gomus_order_contains\')")
