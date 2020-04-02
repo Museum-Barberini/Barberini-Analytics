@@ -65,8 +65,6 @@ luigi-clean:
 	rm -rf output
 
 luigi-minimal:
-	make luigi-scheduler
-	mkdir -p output
 	# the environment variable has to be set to true 
 	MINIMAL=True && make luigi
 
