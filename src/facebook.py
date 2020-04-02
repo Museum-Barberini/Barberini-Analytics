@@ -110,7 +110,8 @@ class FetchFbPostPerformance(DataPreparationTask):
                 continue
 
             # print(f"[FB] Loading performance data for post {str(post_id)}")
-            url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
+            url = (f'https://graph.facebook.com/v6.0/{post_id}/insights'
+                   f'?access_token={access_token}')
             metrics = [
                 'post_reactions_by_type_total',
                 'post_activity_by_action_type',
@@ -119,13 +120,14 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'post_impressions_paid'
             ]
             request_args = {
-                'params': {'metric': ','.join(metrics)},
-                'headers': {'Authorization': 'Bearer ' + access_token}
+                'params': {'metric': ','.join(metrics)}#,
+                #'headers': {'Authorization': 'Bearer ' + access_token}
             }
 
             response = self.try_request_multiple_times(url, request_args)
 
             if response.status_code == 400:
+                print(response.text)
                 invalid_count += 1
                 continue
 

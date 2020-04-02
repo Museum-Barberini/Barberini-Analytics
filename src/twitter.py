@@ -13,36 +13,21 @@ from museum_facts import MuseumFacts
 
 class FetchTwitter(luigi.Task):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Default for min_timestamp, requires the other values to be set
-        # already, so this can't be done via 'default='
-        if not self.min_timestamp:
-            self.min_timestamp = (self.max_timestamp
-                                  - dt.timedelta(days=self.timespan))
-
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.Parameter(
         default=60,
-        description="For how many days tweets should be "
-                    "fetched if min_timestamp is not explicitly set")
-
-    min_timestamp = luigi.DateParameter(default=None)
-    max_timestamp = luigi.DateParameter(
-        default=dt.date.today() + dt.timedelta(days=1))
+        description="For how many days tweets should be fetched")
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/twitter/raw_tweets_{self.min_timestamp}_to_'
-             f'{self.max_timestamp}.csv'),
+            (f'output/twitter/raw_tweets.csv'),
             format=UTF8)
 
     def run(self):
         tweets = ts.query_tweets(
             self.query,
-            begindate=self.min_timestamp,
-            enddate=self.max_timestamp)
+            begindate=dt.date.today() - dt.timedelta(days=self.timespan),
+            enddate=dt.date.today() + dt.timedelta(days=1))
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
         with self.output().open('w') as output_file:
