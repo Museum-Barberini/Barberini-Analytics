@@ -17,19 +17,12 @@ RUN $install nano psmisc git
 # install python
 RUN $install python3.6 python3-pip python3-setuptools python3-dev python3-wheel
 
-# install python packages
-RUN pip3 install wheel luigi
-RUN pip3 install pandas requests pyyaml xlrd bs4 mmh3 dateparser oauth2client xmltodict numpy jstyleson
-
-RUN pip3 install google-api-python-client
-RUN pip3 install coverage
-
-# install twitterscraper from our fork
-RUN pip3 install git+https://github.com/twollnik/twitterscraper.git#egg=twitterscraper
-
 # install psycopg2 (incl. system dependencies)
 RUN DEBIAN_FRONTEND=noninteractive $install libpq-dev
-RUN pip3 install psycopg2
+
+# install python packages
+COPY requirements.txt /app
+RUN pip3 install -r requirements.txt
 
 # install node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
