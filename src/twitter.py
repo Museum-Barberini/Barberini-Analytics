@@ -157,12 +157,13 @@ class FetchTwitter(luigi.Task):
     def run(self):
         timespan = self.timespan
         if os.environ['MINIMAL'] == 'True':
-            timespan = dt.timedelta(days=1)
+            timespan = dt.timedelta(days=0)
 
         tweets = ts.query_tweets(
             self.query,
             begindate=dt.date.today() - timespan,
             enddate=dt.date.today() + dt.timedelta(days=1))
+
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
         with self.output().open('w') as output_file:
