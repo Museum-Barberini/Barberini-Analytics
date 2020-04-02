@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import logging
 import os
 
 import luigi
@@ -11,6 +12,8 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class FetchFbPosts(DataPreparationTask):
@@ -43,7 +46,7 @@ class FetchFbPosts(DataPreparationTask):
         for post in (response_content['data']):
             posts.append(post)
 
-        print("Fetching facebook posts ...")
+        logger.info("Fetching facebook posts ...")
         page_count = 0
         while ('next' in response_content['paging']):
             page_count = page_count + 1
@@ -55,7 +58,7 @@ class FetchFbPosts(DataPreparationTask):
             for post in (response_content['data']):
                 posts.append(post)
             print(f"\rFetched facebook page {page_count}", end='', flush=True)
-        print("Fetching of facebook posts completed")
+        logger.info("Fetching of facebook posts completed")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
@@ -65,6 +68,10 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostPerformance(DataPreparationTask):
+
+    # Override the default timeout of 10 minutes to allow
+    # FetchFbPostPerformance to take up to 20 minutes.
+    worker_timeout = 1200
 
     def _requires(self):
         return luigi.task.flatten([
@@ -90,7 +97,6 @@ class FetchFbPostPerformance(DataPreparationTask):
         invalid_count = 0
         for index in df.index:
             post_id = df['fb_post_id'][index]
-            # print(f"[FB] Loading performance data for post {str(post_id)}")
             url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
             metrics = [
                 'post_reactions_by_type_total',
@@ -104,10 +110,7 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'headers': {'Authorization': 'Bearer ' + access_token}
             }
 
-            for _ in range(3):
-                response = requests.get(url, request_args)
-                if response.ok:
-                    break
+            response = self.try_request_multiple_times(url, request_args)
 
             if response.status_code == 400:
                 invalid_count += 1
@@ -154,11 +157,32 @@ class FetchFbPostPerformance(DataPreparationTask):
             performances.append(post_perf)
 
         df = self.ensure_foreign_keys(df)
-        print(f"Skipped {invalid_count} posts")
+        if invalid_count:
+            logger.warning(f"Skipped {invalid_count} posts")
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
+
+    def try_request_multiple_times(self, url, request_args):
+        """
+        Not all requests to the facebook api are successful. To allow
+        some requests to fail (mainly: to time out), request the api up
+        to four times.
+        """
+        for _ in range(3):
+            try:
+                response = requests.get(url, request_args, timeout=60)
+                if response.ok:
+                    # If response is not okay, we usually get a 400 status code
+                    return response
+            except Exception as e:
+                print(
+                    "An Error occured requesting the Facebook api.\n"
+                    "Trying to request the api again.\n"
+                    f"error message: {e}"
+                )
+        return requests.get(url, request_args, timeout=100)
 
 
 class FbPostsToDB(CsvToDb):
