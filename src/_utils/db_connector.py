@@ -46,8 +46,8 @@ class DbConnector:
     @classmethod
     def exists(cls, query: str) -> bool:
         """
-        Check if the given query returns any results. True,
-        if the query returns results, False otherwise.
+        Check if the given query returns any results. Return
+        True if the query returns results, otherwise False.
         Note that the given query should not end on a semicolon.
         """
         return cls._execute_query(
