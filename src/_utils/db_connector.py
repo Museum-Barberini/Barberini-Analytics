@@ -48,7 +48,7 @@ class DbConnector:
         """
         Check if the given query returns any results. Return
         True if the query returns results, otherwise False.
-        Note that the given query should not end on a semicolon.
+        Note that the given query should absolutely not end on a semicolon.
         """
         return cls._execute_query(
             query=f'SELECT EXISTS({query})',
