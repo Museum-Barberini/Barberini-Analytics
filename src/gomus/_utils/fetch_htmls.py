@@ -65,10 +65,10 @@ class FetchBookingsHTML(luigi.Task):
 
         db_booking_rows = []
 
-        bookings_table_exists = DbConnector.exists(
-            'SELECT * FROM information_schema.tables '
-            'WHERE table_name=\'gomus_booking\''
-        )
+        bookings_table_exists = DbConnector.exists('''
+            SELECT * FROM information_schema.tables
+            WHERE table_name='gomus_booking'
+        ''')
 
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
         if bookings_table_exists:
