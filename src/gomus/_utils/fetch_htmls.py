@@ -131,7 +131,9 @@ class FetchOrdersHTML(luigi.Task):
             ''')
 
         else:
-            query = (f'SELECT order_id FROM gomus_order {query_limit}')
+            order_ids = DbConnector.query(
+                f'SELECT order_id FROM gomus_order {query_limit}'
+            )
 
         return order_ids
 

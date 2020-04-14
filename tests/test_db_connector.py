@@ -14,9 +14,9 @@ class TestDbConnector(DatabaseTaskTest):
         with self.db.connection as conn:
             with conn.cursor() as cur:
                 cur.execute(f'CREATE TABLE {self.temp_table}'
-                             '(col1 INT, col2 INT)')
+                            '(col1 INT, col2 INT)')
                 cur.execute(f'INSERT INTO {self.temp_table} '
-                             'VALUES (1,2),(3,4)')
+                            'VALUES (1,2),(3,4)')
 
     def tearDown(self):
         self.db.connection.set_isolation_level(0)
