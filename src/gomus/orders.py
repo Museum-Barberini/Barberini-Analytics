@@ -107,9 +107,10 @@ class ExtractOrderData(DataPreparationTask):
         else:
             org_id = int(float(customer_string))
 
-        query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
-                 f'WHERE gomus_id = {org_id}')
-        customer_row = DbConnector.query(query, only_first=True)
+        customer_row = DbConnector.query(
+            f'SELECT customer_id FROM gomus_to_customer_mapping '
+            f'WHERE gomus_id = {org_id}',
+            only_first=True)
 
         customer_id = customer_row[0] if customer_row else np.nan
 
