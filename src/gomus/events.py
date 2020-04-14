@@ -152,9 +152,11 @@ class FetchCategoryReservations(luigi.Task):
     def run(self):
 
         if os.environ['MINIMAL'] == 'True':
-            query = (f'SELECT booking_id FROM gomus_booking WHERE '
-                     f'category=\'{self.category}\' '
-                     f'ORDER BY start_datetime DESC LIMIT 2')
+            query = f'''
+                SELECT booking_id FROM gomus_booking
+                WHERE category='{self.category}'
+                ORDER BY start_datetime DESC LIMIT 2
+            '''
         else:
             two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
             query = (f'SELECT booking_id FROM gomus_booking WHERE '
