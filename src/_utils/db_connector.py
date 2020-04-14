@@ -64,9 +64,9 @@ class DbConnector:
         )
         try:
             with conn:
-                with conn.cursor() as curs:
+                with conn.cursor() as cur:
                     logger.debug(f'Executing query: {query}')
-                    curs.execute(query)
-                    return result_function(curs)
+                    cur.execute(query)
+                    return result_function(cur)
         finally:
             conn.close()
