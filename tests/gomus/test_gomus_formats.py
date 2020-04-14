@@ -88,7 +88,8 @@ class TestCustomersFormat(GomusFormatTest):
             *args, **kwargs)
 
     @patch.object(FetchGomusReport, 'output')
-    @unittest.skipUnless(os.getenv('FULL_TEST')=='True', 'long running test')
+    @unittest.skipUnless(
+        os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_customers_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report()

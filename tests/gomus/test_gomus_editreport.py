@@ -14,7 +14,8 @@ from gomus._utils.fetch_report_helper import REPORT_IDS
 
 class TestGomusEditReport(unittest.TestCase):
     @patch.object(FetchGomusReport, 'output')
-    @unittest.skipUnless(os.getenv('FULL_TEST')=='True', 'long running test')
+    @unittest.skipUnless(
+        os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_edit_gomus_report_customers(self, output_mock):
         """
         This test edits the customer_7days report twice using different
