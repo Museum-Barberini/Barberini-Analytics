@@ -113,8 +113,7 @@ class EditGomusReport(luigi.Task):
                      f'{only_unique_visitors}'))
 
         else:
-            print("Not implemented report type")
-            raise NotImplementedError
+            raise NotImplementedError("Unimplemented report type")
 
         self.add_to_body(f'report[inform_user]={INFORM_USER}')
 

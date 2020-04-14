@@ -1,6 +1,7 @@
 import json
-
 import luigi
+import os
+import random
 
 from museum_facts import MuseumFacts
 
@@ -30,5 +31,11 @@ class GtrendsTopics(luigi.Task):
             ' '.join([museum_name, extra_topic])
             for extra_topic in extra_topics
             for museum_name in museum_names]
+        if os.environ['MINIMAL'] == 'True':
+            random_museum_name = random.randint(0, len(museum_names) - 1)
+            random_topic = random.randint(0, len(extra_topics) - 1)
+
+            complex_topics = [museum_names[random_museum_name],
+                              extra_topics[random_topic]]
 
         return [museum_topic] + complex_topics

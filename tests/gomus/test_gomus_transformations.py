@@ -7,13 +7,13 @@ from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
+from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_report import FetchEventReservations
-from gomus.daily_entries import ExtractDailyEntryData
 from task_test import DatabaseHelper
 
 
@@ -187,20 +187,25 @@ class TestOrderTransformation(GomusTransformationTest):
         self.assertRaises(OverflowError, self.execute_task)
 
 
+BOOKING_COLUMNS = [
+    'booking_id',
+    'customer_id',
+    'category',
+    'participants',
+    'guide_id',
+    'duration',
+    'exhibition',
+    'title',
+    'status',
+    'start_datetime'
+]
+
+
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
 class TestBookingTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
-        super().__init__([
-            'booking_id',
-            'customer_id',
-            'category',
-            'participants',
-            'guide_id',
-            'duration',
-            'exhibition',
-            'title',
-            'status',
-            'start_datetime'],
+        super().__init__(
+            BOOKING_COLUMNS,
             ExtractGomusBookings,
             *args, **kwargs)
 
@@ -303,6 +308,7 @@ class TestEventTransformation(GomusTransformationTest):
         super().__init__([
             'event_id',
             'booking_id',
+            'customer_id',
             'reservation_count',
             'order_date',
             'status',
