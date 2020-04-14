@@ -4,6 +4,7 @@ volumes/
 
 # Luigi output files
 output/
+output*/
 
 # SECURITY!1
 *secret*
