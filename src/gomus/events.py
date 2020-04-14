@@ -163,7 +163,7 @@ class FetchCategoryReservations(luigi.Task):
 
         booking_ids = DbConnector.query(query)
 
-        for row in booking_ids: 
+        for row in booking_ids:
             event_id = row[0]
             if event_id not in self.row_list:
                 approved = FetchEventReservations(

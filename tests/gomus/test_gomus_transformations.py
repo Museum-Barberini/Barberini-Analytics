@@ -1,6 +1,6 @@
 import datetime as dt
 import unittest
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
@@ -169,7 +169,6 @@ class TestOrderTransformation(GomusTransformationTest):
             input_mock,
             output_mock,
             'orders_in.csv')
-
 
         self.execute_task()
 

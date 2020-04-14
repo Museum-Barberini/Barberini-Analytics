@@ -1,8 +1,6 @@
 import datetime as dt
-import os
 import tempfile
 import time
-from unittest.mock import patch
 
 import luigi
 import mmh3

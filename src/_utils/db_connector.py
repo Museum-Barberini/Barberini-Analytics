@@ -2,22 +2,22 @@ import logging
 import os
 import psycopg2
 
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 
 logger = logging.getLogger('luigi-interface')
 
 
 class DbConnector:
 
-    host     = os.environ['POSTGRES_HOST']
+    host = os.environ['POSTGRES_HOST']
     database = os.environ['POSTGRES_DB']
-    user     = os.environ['POSTGRES_USER']
+    user = os.environ['POSTGRES_USER']
     password = os.environ['POSTGRES_PASSWORD']
 
     @classmethod
     def query(cls, query: str, only_first: bool = False) -> List[Tuple]:
         """
-        Execute a query and return a list of results. 
+        Execute a query and return a list of results.
         If only_first is set to True, only return the
         first result as a tuple.
         """
@@ -28,14 +28,14 @@ class DbConnector:
             return cursor.fetchall()
 
         return cls._execute_query(
-            query=query, 
+            query=query,
             result_function=result_function
         )
 
     @classmethod
     def execute(cls, query: str) -> None:
         """
-        Execute a query. Use this function when you don't 
+        Execute a query. Use this function when you don't
         care about the result of the query, e.g. for DELETE.
         """
         cls._execute_query(
@@ -54,10 +54,10 @@ class DbConnector:
             query=f'SELECT EXISTS({query})',
             result_function=lambda curs: curs.fetchone()[0] is True
         )
-    
+
     @classmethod
     def _execute_query(cls, query: str, result_function: Callable):
-        
+
         conn = psycopg2.connect(
             host=cls.host, database=cls.database,
             user=cls.user, password=cls.password

@@ -37,9 +37,9 @@ class CsvToDb(CopyToTable):
         default=dt.datetime.timestamp(dt.datetime.now()))
 
     # Set db connection parameters using env vars
-    host     = os.environ['POSTGRES_HOST']
+    host = os.environ['POSTGRES_HOST']
     database = os.environ['POSTGRES_DB']
-    user     = os.environ['POSTGRES_USER']
+    user = os.environ['POSTGRES_USER']
     password = os.environ['POSTGRES_PASSWORD']
 
     # override the default column separator (tab)

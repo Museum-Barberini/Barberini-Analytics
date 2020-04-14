@@ -21,7 +21,7 @@ class DataPreparationTask(luigi.Task):
 
             query = (f"SELECT {foreign_key['target_column']} "
                      f"FROM {foreign_key['target_table']}")
-            results = DbConnector.query(query) 
+            results = DbConnector.query(query)
 
             foreign_values = [row[0] for row in results]
 

@@ -74,7 +74,7 @@ class FetchBookingsHTML(luigi.Task):
         if bookings_table_exists:
             query = (f'SELECT booking_id FROM gomus_booking'
                      f' WHERE start_datetime < \'{today_time}\'')
-            db_booking_rows = DbConnector.query(query) 
+            db_booking_rows = DbConnector.query(query)
 
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']

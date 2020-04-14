@@ -1,8 +1,9 @@
 import json
 import logging
-import os
-
 import luigi
+import os
+import psycopg2
+
 from luigi.contrib.external_program import ExternalProgramTask
 
 from csv_to_db import CsvToDb
