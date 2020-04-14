@@ -22,10 +22,10 @@ startup:
 	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
 		fi;\
 	fi;\
-	docker-compose -p ${USER} up --build -d luigi
+	docker-compose -p ${USER} up --build -d luigi gplay_api
 
 shutdown:
-	docker-compose -p ${USER} rm -sf luigi
+	docker-compose -p ${USER} rm -sf luigi gplay_api
 
 shutdown-db:
 	docker-compose rm -sf db
@@ -47,15 +47,15 @@ docker-clean-cache:
 # --- Control luigi ---
 
 luigi-scheduler:
-	luigid --background &
-	sleep 3 # workaround until scheduler has started
+	luigid --background
+	$$(: Waiting for scheduler ...) bash -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
 luigi-restart-scheduler:
 	killall luigid
 	make luigi-scheduler
 	
 luigi:
-	make LMODULE=query_db LTASK=QueryDB luigi-task
+	./scripts/running/fill_db.sh
 
 luigi-task: luigi-scheduler
 	mkdir -p output
@@ -63,6 +63,10 @@ luigi-task: luigi-scheduler
 
 luigi-clean:
 	rm -rf output
+
+luigi-minimal:
+	# the environment variable has to be set to true 
+	MINIMAL=True && make luigi
 
 # --- Testing ---
 
@@ -85,7 +89,7 @@ coverage: luigi-clean
 
 # opens a psql shell inside the database container
 db-psql:
-	docker exec -it db psql -U postgres
+	docker exec -it db psql -U postgres -d barberini
 
 # runs a command for the database in the container
 # example: sudo make db-do do='\\d'

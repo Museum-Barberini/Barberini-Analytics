@@ -1,16 +1,40 @@
 import json
+import logging
 import sys
 
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
+import os
 import pandas as pd
 from oauth2client.file import Storage
 
 from csv_to_db import CsvToDb
+from data_preparation_task import DataPreparationTask
+
+logger = logging.getLogger('luigi-interface')
 
 
-class FetchGoogleMapsReviews(luigi.Task):
+class GoogleMapsReviewsToDB(CsvToDb):
+
+    table = 'google_maps_review'
+
+    columns = [
+        ('google_maps_review_id', 'TEXT'),
+        ('post_date', 'DATE'),
+        ('rating', 'INT'),
+        ('text', 'TEXT'),
+        ('text_english', 'TEXT'),
+        ('language', 'TEXT')
+    ]
+
+    primary_key = 'google_maps_review_id'
+
+    def requires(self):
+        return FetchGoogleMapsReviews()
+
+
+class FetchGoogleMapsReviews(DataPreparationTask):
 
     # secret_files is a folder mounted from /etc/secrets via docker-compose
     token_cache = luigi.Parameter(
@@ -39,15 +63,15 @@ class FetchGoogleMapsReviews(luigi.Task):
             'output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
 
     def run(self) -> None:
-        print("loading credentials...")
+        logger.info("loading credentials...")
         credentials = self.load_credentials()
-        print("creating service...")
+        logger.info("creating service...")
         service = self.load_service(credentials)
-        print("fetching reviews...")
+        logger.info("fetching reviews...")
         raw_reviews = self.fetch_raw_reviews(service)
-        print("extracting reviews...")
+        logger.info("extracting reviews...")
         reviews_df = self.extract_reviews(raw_reviews)
-        print("success! writing...")
+        logger.info("success! writing...")
 
         with self.output().open('w') as output_file:
             reviews_df.to_csv(output_file, index=False)
@@ -75,7 +99,8 @@ class FetchGoogleMapsReviews(luigi.Task):
                 self.scopes,
                 secret['redirect_uris'][0])
             authorize_url = flow.step1_get_authorize_url()
-            print("Go to the following link in your browser: " + authorize_url)
+            logger.warning("Go to the following link in your browser: "
+                           f"{authorize_url}")
             code = input("Enter verification code: ").strip()
             credentials = flow.step2_exchange(code)
             storage.put(credentials)
@@ -138,6 +163,9 @@ class FetchGoogleMapsReviews(luigi.Task):
                 print(
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
+
+                if os.environ['MINIMAL'] == 'True':
+                    review_list.pop('nextPageToken')
         finally:
             print()
         return reviews
@@ -149,36 +177,43 @@ class FetchGoogleMapsReviews(luigi.Task):
             extracted['google_maps_review_id'] = raw['reviewId']
             extracted['date'] = raw['createTime']
             extracted['rating'] = self.stars_dict[raw['starRating']]
-            extracted['text_german'] = None
             extracted['text'] = None
+            extracted['text_english'] = None
+            extracted['language'] = None
 
             raw_comment = raw.get('comment', None)
             if (raw_comment):
-                # making google consistent with itself
-                raw_comment.replace(
-                    "\n\n(Original)\n",
-                    "\n\n(Translated by Google)\n")
-                comment_pieces = raw_comment.split(
-                    "\n\n(Translated by Google)\n")
-                extracted['text_german'] = comment_pieces[0].strip()
-                extracted['text'] = comment_pieces[-1].strip()
+                # this assumes possibly unintended behavior of Google's API
+                # see for details:
+                # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
+                # We want to keep both original and english translation)
+
+                # english reviews are as is; (Original) may be part of the text
+                if ("(Translated by Google)" not in raw_comment):
+                    extracted['text'] = raw_comment
+                    extracted['text_english'] = raw_comment
+                    extracted['language'] = "english"
+
+                # german reviews have this format:
+                #   [german review]\n\n
+                #   (Translated by Google)\n[english translation]
+                elif ("(Original)" not in raw_comment and
+                        "(Translated by Google)" in raw_comment):
+                    parts = raw_comment.split("(Translated by Google)")
+                    extracted['text'] = parts[0].strip()
+                    extracted['text_english'] = parts[1].strip()
+                    extracted['language'] = "german"
+
+                # other reviews have this format:
+                #   (Translated by Google)[english translation]\n\n
+                #   (Original)\n[original review]
+                else:
+                    extracted['text'] = raw_comment.split(
+                        "(Original)")[1].strip()
+                    extracted['text_english'] = raw_comment.split(
+                        "(Original)")[0].split(
+                        "(Translated by Google)")[1].strip()
+                    extracted['language'] = "other"
+
             extracted_reviews.append(extracted)
         return pd.DataFrame(extracted_reviews)
-
-
-class GoogleMapsReviewsToDB(CsvToDb):
-
-    table = 'google_maps_review'
-
-    columns = [
-        ('google_maps_review_id', 'TEXT'),
-        ('date', 'DATE'),
-        ('rating', 'INT'),
-        ('text_german', 'TEXT'),
-        ('text', 'TEXT')
-    ]
-
-    primary_key = 'google_maps_review_id'
-
-    def requires(self):
-        return FetchGoogleMapsReviews()

@@ -1,0 +1,4 @@
+# Awesome barberini crontab file. See setup_cron.sh for installing this.
+*/5 * * * * /root/bp-barberini/scripts/running/pull_repo.sh
+0 3 * * * /root/bp-barberini/scripts/running/cron.sh daily
+0 * * * * /root/bp-barberini/scripts/running/cron.sh hourly
