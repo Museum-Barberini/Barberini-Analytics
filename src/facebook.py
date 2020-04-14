@@ -3,13 +3,13 @@ import json
 import logging
 import os
 
-import requests
 import luigi
 import pandas as pd
+import requests
+from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from luigi.format import UTF8
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
