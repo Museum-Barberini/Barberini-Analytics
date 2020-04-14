@@ -1,61 +1,59 @@
-import loggin
+import logging
 import os
 import psycopg2
 
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 logger = logging.getLogger('luigi-interface')
 
 
 class DbConnector:
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.host     = os.environ['POSTGRES_HOST']
-        self.database = os.environ['POSTGRES_DB']
-        self.user     = os.environ['POSTGRES_USER']
-        self.password = os.environ['POSTGRES_PASSWORD']
+    host     = os.environ['POSTGRES_HOST']
+    database = os.environ['POSTGRES_DB']
+    user     = os.environ['POSTGRES_USER']
+    password = os.environ['POSTGRES_PASSWORD']
 
-    def query(self, query) -> List[Tuple]:
+    @classmethod
+    def query(cls, query) -> List[Tuple]:
         """
         Execute a query and return a list of results. 
         """
-        self._execute_query(
+        return cls._execute_query(
             query=query, 
             result_function=lambda curs: curs.fetchall()
         )
 
-    def execute(self, query) -> None:
+    @classmethod
+    def execute(cls, query) -> None:
         """
         Execute a query. Use this function when you don't 
         care about the result of the query, e.g. for DELETE.
         """
-        try:
-            self._execute_query(
-                query=query,
-                result_function=lambda curs: None
-            )
-        except psycopg2.errors.UndefinedTable:
-            # table does not exist
-            logger.warning(
-                'You are trying to perfom an operation on a table '
-                'that does not exist. The query you tried to execute: '
-                f'{query}'
-            )
+        cls._execute_query(
+            query=query,
+            result_function=lambda curs: None
+        )
 
-    def exists(self, query) -> bool:
+    @classmethod
+    def exists(cls, query) -> bool:
         """
         Check if the given query returns any results. True,
         if the query returns results, False otherwise.
+        Note that the given query should not end on a semicolon.
         """
-        self._execute_query(
+        return cls._execute_query(
             query=f'SELECT EXISTS({query})',
             result_function=lambda curs: curs.fetchone()[0] is True
         )
     
-    def _execute_query(self, query: str, result_function: Callable):
+    @classmethod
+    def _execute_query(cls, query: str, result_function: Callable):
         
-        conn = self._open_connection()
+        conn = psycopg2.connect(
+            host=cls.host, database=cls.database,
+            user=cls.user, password=cls.password
+        )
         try:
             with conn:
                 with conn.cursor() as curs:
@@ -64,10 +62,3 @@ class DbConnector:
                     return result_function(curs)
         finally:
             conn.close()
-
-    def _open_connection(self):
-
-        return psycopg2.connect(
-            host=self.host, database=self.database,
-            user=self.user, password=self.password
-        )
