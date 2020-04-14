@@ -42,7 +42,8 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
-                })'''
+                })
+            ''')
 
         except psycopg2.errors.UndefinedTable:
             # Table does not exist
