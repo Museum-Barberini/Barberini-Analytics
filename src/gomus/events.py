@@ -93,6 +93,8 @@ class ExtractEventData(DataPreparationTask):
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
 
+                    if path == '':
+                        continue
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
                     if i % 2 == 0:
