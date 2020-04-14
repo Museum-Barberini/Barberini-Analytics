@@ -31,7 +31,7 @@ class DataPreparationTask(luigi.Task):
             df = df[df[key].isin(foreign_values)]
 
             difference = old_count - df[key].count()
-            if difference > 0:
+            if difference:
                 logger.warning(f"Deleted {difference} out of {old_count} "
                                f"data sets due to foreign key violation: "
                                f"{foreign_key}")
