@@ -38,12 +38,11 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            query = f'''
+            DbConnector.execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
                 })'''
-            DbConnector.execute(query)
 
         except psycopg2.errors.UndefinedTable:
             # Table does not exist
