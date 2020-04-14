@@ -12,10 +12,10 @@ class TestDbConnector(DatabaseTaskTest):
         # give each test a temporary table to work with
         self.temp_table = f'tmp_{time.time()}'.replace('.', '')
         with self.db.connection as conn:
-            with conn.cursor() as curs:
-                curs.execute(f'CREATE TABLE {self.temp_table}'
+            with conn.cursor() as cur:
+                cur.execute(f'CREATE TABLE {self.temp_table}'
                              '(col1 INT, col2 INT);')
-                curs.execute(f'INSERT INTO {self.temp_table} '
+                cur.execute(f'INSERT INTO {self.temp_table} '
                              'VALUES (1,2),(3,4);')
 
     def tearDown(self):
