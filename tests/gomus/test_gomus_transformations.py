@@ -365,6 +365,20 @@ class TestEventTransformation(GomusTransformationTest):
             output_target,
             'events_out.csv')
 
+    @patch.object(ExtractEventData, 'output')
+    @patch.object(ExtractEventData, 'input')
+    def test_empty_events(self, input_mock, output_mock):
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'events_empty_in.csv')
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'events_empty_out.csv')
+
     @patch.object(FetchEventReservations, 'output')
     @patch.object(
         FetchCategoryReservations,
