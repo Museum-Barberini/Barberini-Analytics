@@ -40,7 +40,7 @@ class DbConnector:
         """
         cls._execute_query(
             query=query,
-            result_function=lambda curs: None
+            result_function=lambda cur: None
         )
 
     @classmethod
@@ -52,7 +52,7 @@ class DbConnector:
         """
         return cls._execute_query(
             query=f'SELECT EXISTS({query})',
-            result_function=lambda curs: curs.fetchone()[0] is True
+            result_function=lambda cur: cur.fetchone()[0] is True
         )
 
     @classmethod
