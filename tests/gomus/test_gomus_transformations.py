@@ -24,7 +24,6 @@ class GomusTransformationTest(unittest.TestCase):
         self.task = task
 
         self.test_data_path = 'tests/test_data/gomus/'
-        self.test_db_name = 'barberini_test'
 
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
@@ -160,20 +159,17 @@ class TestOrderTransformation(GomusTransformationTest):
         )
         self.db_helper.tearDown()
 
-    @patch.object(ExtractOrderData, 'database', new_callable=PropertyMock)
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
     def test_order_transformation(self,
                                   input_mock,
-                                  output_mock,
-                                  database_mock):
+                                  output_mock):
 
         output_target = self.prepare_mock_targets(
             input_mock,
             output_mock,
             'orders_in.csv')
 
-        database_mock.return_value = self.test_db_name
 
         self.execute_task()
 
@@ -366,14 +362,9 @@ class TestEventTransformation(GomusTransformationTest):
             'events_out.csv')
 
     @patch.object(FetchEventReservations, 'output')
-    @patch.object(
-        FetchCategoryReservations,
-        'database',
-        new_callable=PropertyMock)
     @patch.object(FetchCategoryReservations, 'output')
     def test_fetch_category_reservations(self,
                                          output_mock,
-                                         database_mock,
                                          fetch_reservations_output_mock):
         self.task = FetchCategoryReservations
 
@@ -388,8 +379,6 @@ class TestEventTransformation(GomusTransformationTest):
             reservations_booked_target,
             reservations_cancelled_target
         ]
-
-        database_mock.return_value = self.test_db_name
 
         output_target = self.prepare_output_target(output_mock)
 

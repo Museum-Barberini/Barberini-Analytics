@@ -3,11 +3,11 @@ import luigi
 import numpy as np
 import os
 import pandas as pd
-import psycopg2
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
+from db_connector import DbConnector
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
@@ -106,28 +106,18 @@ class ExtractOrderData(DataPreparationTask):
             # if the customer_string is NaN, we set the customer_id to 0
         else:
             org_id = int(float(customer_string))
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
 
-            cur = conn.cursor()
-            query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
-                     f'WHERE gomus_id = {org_id}')
-            cur.execute(query)
+        query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
+                 f'WHERE gomus_id = {org_id}')
+        customer_row = DbConnector.query(query, only_first=True)
 
-            customer_row = cur.fetchone()
-            if customer_row is not None:
-                customer_id = customer_row[0]
-            else:
-                customer_id = np.nan
-                # if we can't find the customer_id, but it isn't NaN,
-                # we set the customer_id to NaN
+        if customer_row is not None:
+            customer_id = customer_row[0]
+        else:
+            customer_id = np.nan
+            # if we can't find the customer_id, but it isn't NaN,
+            # we set the customer_id to NaN
 
-        finally:
-            if conn is not None:
-                conn.close()
         return customer_id
 
     def parse_boolean(self, string, bool_string):

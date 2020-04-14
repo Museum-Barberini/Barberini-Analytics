@@ -9,7 +9,6 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from set_db_connection_options import set_db_connection_options
 
 from gomus._utils.fetch_report import FetchGomusReport
 
