@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 import datetime as dt
+import os
 import pandas as pd
 
 from luigi.format import UTF8
@@ -87,9 +88,8 @@ class TestCustomersFormat(GomusFormatTest):
             *args, **kwargs)
 
     @patch.object(FetchGomusReport, 'output')
-    @unittest.skip(
-        "Takes too long time for the primary test stage."
-        "Needs to be run once a day only, see #108. Workaround.")
+    @unittest.skipUnless(
+        os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_customers_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report()
