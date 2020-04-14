@@ -142,15 +142,6 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
-
     def _requires(self):
         return luigi.task.flatten([
             CustomersToDB(),
