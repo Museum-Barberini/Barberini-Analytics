@@ -33,9 +33,9 @@ class TestDbConnector(DatabaseTaskTest):
         DbConnector.execute(f'DELETE FROM {self.temp_table} WHERE col1=1;')
 
         with self.db.connection as conn:
-            with conn.cursor() as curs:
-                curs.execute(f'SELECT * from {self.temp_table};')
-                table_content = curs.fetchall()
+            with conn.cursor() as cur:
+                cur.execute(f'SELECT * from {self.temp_table};')
+                table_content = cur.fetchall()
 
         self.assertEqual(table_content, [(3, 4)])
 
