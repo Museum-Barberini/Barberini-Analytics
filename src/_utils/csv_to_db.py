@@ -1,11 +1,10 @@
 import datetime as dt
 import logging
+import os
 
 import luigi
 import psycopg2
 from luigi.contrib.postgres import CopyToTable
-
-from set_db_connection_options import set_db_connection_options
 
 logger = logging.getLogger('luigi-interface')
 
@@ -37,19 +36,17 @@ class CsvToDb(CopyToTable):
     dummy_date = luigi.FloatParameter(
         default=dt.datetime.timestamp(dt.datetime.now()))
 
-    # These attributes are set in __init__. They need to be defined
-    # here because they are abstract methods in CopyToTable.
-    host = None
-    database = None
-    user = None
-    password = None
+    # Set db connection parameters using env vars
+    host = os.environ['POSTGRES_HOST']
+    database = os.environ['POSTGRES_DB']
+    user = os.environ['POSTGRES_USER']
+    password = os.environ['POSTGRES_PASSWORD']
 
     # override the default column separator (tab)
     column_separator = ','
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
         if self.schema_only:
             self.requires = lambda: []
         self.seed = 666
