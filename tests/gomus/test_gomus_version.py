@@ -5,7 +5,7 @@ import unittest
 import requests
 
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
-EXPECTED_VERSION_TAG = 'v4.1.2.2 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.3 – Premium Edition'
 
 
 class TestGomusVersion(unittest.TestCase):
