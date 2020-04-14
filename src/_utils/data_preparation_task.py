@@ -19,9 +19,10 @@ class DataPreparationTask(luigi.Task):
             key = foreign_key['origin_column']
             old_count = df[key].count()
 
-            query = (f"SELECT {foreign_key['target_column']} "
-                     f"FROM {foreign_key['target_table']}")
-            results = DbConnector.query(query)
+            results = DbConnector.query(f'''
+                SELECT {foreign_key['target_column']}
+                FROM {foreign_key['target_table']}
+            ''')
 
             foreign_values = [row[0] for row in results]
 
@@ -29,9 +30,8 @@ class DataPreparationTask(luigi.Task):
             # match any value from the referenced table
             df = df[df[key].isin(foreign_values)]
 
-            difference = old_count - df[key] \
-                .count()
-            if difference > 0:
+            difference = old_count - df[key].count()
+            if difference:
                 logger.warning(f"Deleted {difference} out of {old_count} "
                                f"data sets due to foreign key violation: "
                                f"{foreign_key}")
