@@ -122,10 +122,13 @@ class FetchOrdersHTML(luigi.Task):
             'WHERE table_name=\'gomus_order_contains\''
         )
         if order_contains_table_exists:
-            query = (f'SELECT order_id FROM gomus_order WHERE order_id '
-                     f'NOT IN (SELECT order_id FROM '
-                     f'gomus_order_contains) {query_limit}')
-            order_ids = DbConnector.query(query)
+            order_ids = DbConnector.query(f'''
+                SELECT order_id FROM gomus_order
+                WHERE order_id NOT IN (
+                    SELECT order_id FROM gomus_order_contains
+                )
+                {query_limit}
+            ''')
 
         else:
             query = (f'SELECT order_id FROM gomus_order {query_limit}')
