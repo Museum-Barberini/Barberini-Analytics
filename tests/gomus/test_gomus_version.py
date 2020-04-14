@@ -5,7 +5,7 @@ import unittest
 import requests
 
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
-EXPECTED_VERSION_TAG = 'v4.1.2.2 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.3 – Premium Edition'
 
 
 class TestGomusVersion(unittest.TestCase):
@@ -19,8 +19,8 @@ class TestGomusVersion(unittest.TestCase):
 
     def test_gomus_version(self):
         if GOMUS_SESS_ID == '':
-            print("Please make sure a valid Gomus session ID is provided")
-            exit(1)
+            raise ValueError(
+                "Please make sure a valid Gomus session ID is provided")
 
         response = requests.get(
             'https://barberini.gomus.de/',

@@ -1,5 +1,7 @@
+import unittest
 from unittest.mock import patch
 import datetime as dt
+import os
 import pandas as pd
 
 from luigi.format import UTF8
@@ -86,6 +88,8 @@ class TestCustomersFormat(GomusFormatTest):
             *args, **kwargs)
 
     @patch.object(FetchGomusReport, 'output')
+    @unittest.skipUnless(
+        os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_customers_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report()
@@ -105,17 +109,17 @@ class TestBookingsFormat(GomusFormatTest):
              ("Raum", 'STRING'),
              ("Treffpunkt", 'STRING'),
              ("Angebotskategorie", 'STRING'),
-             ("Titel", 'STRING'),
+             ("Angebot/Termin", 'STRING'),
              ("Teilnehmerzahl", 'FLOAT'),
              ("Guide", 'STRING'),
              ("Kunde", 'STRING'),
              ("E-Mail", 'STRING'),
              ("Institution", 'STRING'),
-             ("Notiz", 'STRING'),
+             ("Notiz (aus Kundendatensatz)", 'STRING'),
              ("Führungsentgelt / Summe Endkundenpreis ohne Storno", 'STRING'),
              ("Honorar", 'STRING'),
              ("Zahlungsart", 'STRING'),
-             ("Kommentar", 'STRING'),
+             ("Kommentar (Interner Hinweis)", 'STRING'),
              ("Status", 'STRING')],
             *args, **kwargs)
 

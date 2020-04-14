@@ -9,7 +9,7 @@ test:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - make startup
-    - docker exec gitlab-runner-luigi make test  
+    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-luigi make test  
     - make shutdown
 
 lint:
@@ -22,7 +22,7 @@ coverage:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - make startup
-    - docker exec gitlab-runner-luigi make coverage  
+    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-luigi make coverage  
     - make shutdown
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:

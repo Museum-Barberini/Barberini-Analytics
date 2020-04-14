@@ -1,19 +1,19 @@
 import datetime as dt
 import unittest
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
+from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_report import FetchEventReservations
-from gomus.daily_entries import ExtractDailyEntryData
 from task_test import DatabaseHelper
 
 
@@ -24,7 +24,6 @@ class GomusTransformationTest(unittest.TestCase):
         self.task = task
 
         self.test_data_path = 'tests/test_data/gomus/'
-        self.test_db_name = 'barberini_test'
 
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
@@ -160,20 +159,16 @@ class TestOrderTransformation(GomusTransformationTest):
         )
         self.db_helper.tearDown()
 
-    @patch.object(ExtractOrderData, 'database', new_callable=PropertyMock)
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
     def test_order_transformation(self,
                                   input_mock,
-                                  output_mock,
-                                  database_mock):
+                                  output_mock):
 
         output_target = self.prepare_mock_targets(
             input_mock,
             output_mock,
             'orders_in.csv')
-
-        database_mock.return_value = self.test_db_name
 
         self.execute_task()
 
@@ -187,20 +182,25 @@ class TestOrderTransformation(GomusTransformationTest):
         self.assertRaises(OverflowError, self.execute_task)
 
 
+BOOKING_COLUMNS = [
+    'booking_id',
+    'customer_id',
+    'category',
+    'participants',
+    'guide_id',
+    'duration',
+    'exhibition',
+    'title',
+    'status',
+    'start_datetime'
+]
+
+
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
 class TestBookingTransformation(GomusTransformationTest):
     def __init__(self, *args, **kwargs):
-        super().__init__([
-            'booking_id',
-            'customer_id',
-            'category',
-            'participants',
-            'guide_id',
-            'duration',
-            'exhibition',
-            'title',
-            'status',
-            'start_datetime'],
+        super().__init__(
+            BOOKING_COLUMNS,
             ExtractGomusBookings,
             *args, **kwargs)
 
@@ -303,6 +303,7 @@ class TestEventTransformation(GomusTransformationTest):
         super().__init__([
             'event_id',
             'booking_id',
+            'customer_id',
             'reservation_count',
             'order_date',
             'status',
@@ -359,15 +360,24 @@ class TestEventTransformation(GomusTransformationTest):
             output_target,
             'events_out.csv')
 
+    @patch.object(ExtractEventData, 'output')
+    @patch.object(ExtractEventData, 'input')
+    def test_empty_events(self, input_mock, output_mock):
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'events_empty_in.csv')
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'events_empty_out.csv')
+
     @patch.object(FetchEventReservations, 'output')
-    @patch.object(
-        FetchCategoryReservations,
-        'database',
-        new_callable=PropertyMock)
     @patch.object(FetchCategoryReservations, 'output')
     def test_fetch_category_reservations(self,
                                          output_mock,
-                                         database_mock,
                                          fetch_reservations_output_mock):
         self.task = FetchCategoryReservations
 
@@ -382,8 +392,6 @@ class TestEventTransformation(GomusTransformationTest):
             reservations_booked_target,
             reservations_cancelled_target
         ]
-
-        database_mock.return_value = self.test_db_name
 
         output_target = self.prepare_output_target(output_mock)
 
