@@ -118,6 +118,6 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
             self.assertEqual(
-                output.split('\n')[i][0:11],
-                extracted_performance.split('\n')[i][0:11])
+                output.split('\n')[i][0:-14],
+                extracted_performance.split('\n')[i][0:-14])
             # cutting away the timestamp
