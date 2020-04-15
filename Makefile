@@ -84,7 +84,9 @@ test-full:
 	FULL_TEST=True make test
 
 coverage: luigi-clean
-	POSTGRES_DB=barberini_test && shopt -s globstar && PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m coverage run --source ./src -m unittest -v --failfast --catch tests/**/test*.py -v
+	POSTGRES_DB=barberini_test \
+		&& shopt -s globstar \
+		&& PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m coverage run --source ./src -m unittest -v --failfast --catch tests/**/test*.py -v
 	# print coverage results to screen. Parsed by gitlab CI regex to determine MR code coverage.
 	python3 -m coverage report
 	# generate html report. Is stored as artefact in gitlab CI job (stage: coverage)
