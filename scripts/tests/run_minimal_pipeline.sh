@@ -2,9 +2,9 @@
 # Set up a fresh database and perform a minimal pipeline run on it. Fail if any errors occur.
 set -e
 
-set -a
-source /etc/secrets/database.env
-set +a
+#set -a
+#source /etc/secrets/database.env
+#set +a
 
 export POSTGRES_DB='barberini_test'
 TEMP_DIR="$(mktemp -d minimal_pipeline_XXX)"
