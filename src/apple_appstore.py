@@ -1,6 +1,8 @@
 import json
+import logging
 
 import luigi
+import os
 import pandas as pd
 import random
 import requests
@@ -11,9 +13,10 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
+logger = logging.getLogger('luigi-interface')
+
 
 class AppstoreReviewsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'appstore_review'
 
@@ -25,18 +28,17 @@ class AppstoreReviewsToDB(CsvToDb):
         ('vote_count', 'INT'),
         ('vote_sum', 'INT'),
         ('title', 'TEXT'),
-        ('date', 'TIMESTAMP'),
+        ('post_date', 'TIMESTAMP'),
         ('country_code', 'TEXT')
     ]
 
     primary_key = 'appstore_review_id'
 
     def requires(self):
-        return FetchAppstoreReviews(minimal=self.minimal)
+        return FetchAppstoreReviews()
 
 
 class FetchAppstoreReviews(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
         return MuseumFacts()
@@ -46,15 +48,16 @@ class FetchAppstoreReviews(DataPreparationTask):
 
     def run(self):
         reviews = self.fetch_all()
-        print("storing results")
+        logger.info("storing results")
         with self.output().open('w') as output_file:
             reviews.to_csv(output_file, index=False, header=True)
 
     def fetch_all(self):
         data = []
         country_codes = sorted(self.get_country_codes())
-        if self.minimal:
+        if os.environ['MINIMAL'] == 'True':
             random_num = random.randint(0, len(country_codes) - 2)
+
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 

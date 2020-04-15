@@ -1,24 +1,27 @@
 import json
+import logging
 import sys
 
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
+import os
 import pandas as pd
 from oauth2client.file import Storage
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 
+logger = logging.getLogger('luigi-interface')
+
 
 class GoogleMapsReviewsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'google_maps_review'
 
     columns = [
         ('google_maps_review_id', 'TEXT'),
-        ('date', 'DATE'),
+        ('post_date', 'DATE'),
         ('rating', 'INT'),
         ('text', 'TEXT'),
         ('text_english', 'TEXT'),
@@ -28,11 +31,10 @@ class GoogleMapsReviewsToDB(CsvToDb):
     primary_key = 'google_maps_review_id'
 
     def requires(self):
-        return FetchGoogleMapsReviews(minimal=self.minimal)
+        return FetchGoogleMapsReviews()
 
 
 class FetchGoogleMapsReviews(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     # secret_files is a folder mounted from /etc/secrets via docker-compose
     token_cache = luigi.Parameter(
@@ -61,15 +63,15 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             'output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
 
     def run(self) -> None:
-        print("loading credentials...")
+        logger.info("loading credentials...")
         credentials = self.load_credentials()
-        print("creating service...")
+        logger.info("creating service...")
         service = self.load_service(credentials)
-        print("fetching reviews...")
+        logger.info("fetching reviews...")
         raw_reviews = self.fetch_raw_reviews(service)
-        print("extracting reviews...")
+        logger.info("extracting reviews...")
         reviews_df = self.extract_reviews(raw_reviews)
-        print("success! writing...")
+        logger.info("success! writing...")
 
         with self.output().open('w') as output_file:
             reviews_df.to_csv(output_file, index=False)
@@ -97,7 +99,8 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 self.scopes,
                 secret['redirect_uris'][0])
             authorize_url = flow.step1_get_authorize_url()
-            print("Go to the following link in your browser: " + authorize_url)
+            logger.warning("Go to the following link in your browser: "
+                           f"{authorize_url}")
             code = input("Enter verification code: ").strip()
             credentials = flow.step2_exchange(code)
             storage.put(credentials)
@@ -161,7 +164,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
 
-                if self.minimal:
+                if os.environ['MINIMAL'] == 'True':
                     review_list.pop('nextPageToken')
         finally:
             print()

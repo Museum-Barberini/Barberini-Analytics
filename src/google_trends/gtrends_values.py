@@ -1,27 +1,28 @@
 import json
-import os
-
+import logging
 import luigi
+import os
 import psycopg2
+
 from luigi.contrib.external_program import ExternalProgramTask
 
 from csv_to_db import CsvToDb
+from db_connector import DbConnector
 from google_trends.gtrends_topics import GtrendsTopics
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
-from set_db_connection_options import set_db_connection_options
+
+logger = logging.getLogger('luigi-interface')
 
 
 class GtrendsValuesToDB(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield GtrendsValuesClearDB(minimal=self.minimal)
-        yield GtrendsValuesAddToDB(minimal=self.minimal)
+        yield GtrendsValuesClearDB()
+        yield GtrendsValuesAddToDB()
 
 
 class GtrendsValuesClearDB(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
@@ -30,41 +31,26 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
 
     table = 'gtrends_value'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
-
     def requires(self):
-        return GtrendsTopics(minimal=self.minimal)
+        return GtrendsTopics()
 
     def run(self):
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            connection = psycopg2.connect(
-                    host=self.host, database=self.database,
-                    user=self.user, password=self.password
-                )
-            query = f'''
+            DbConnector.execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
-                })'''
-            print('Executing query: ' + query)
-            connection.cursor().execute(query)
-            connection.commit()
+                })
+            ''')
 
         except psycopg2.errors.UndefinedTable:
             # Table does not exist
             pass
 
-        finally:
-            if connection is not None:
-                connection.close()
-
 
 class GtrendsValuesAddToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     table = 'gtrends_value'
 
@@ -77,28 +63,26 @@ class GtrendsValuesAddToDB(CsvToDb):
     primary_key = 'topic', 'date'
 
     def requires(self):
-        return ConvertGtrendsValues(minimal=self.minimal)
+        return ConvertGtrendsValues()
 
 
 class ConvertGtrendsValues(JsonToCsv):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        return FetchGtrendsValues(minimal=self.minimal)
+        return FetchGtrendsValues()
 
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.csv')
 
 
 class FetchGtrendsValues(ExternalProgramTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     js_engine = luigi.Parameter(default='node')
     js_path = './src/google_trends/gtrends_values.js'
 
     def requires(self):
         yield MuseumFacts()
-        yield GtrendsTopics(minimal=self.minimal)
+        yield GtrendsTopics()
 
     def output(self):
         return luigi.LocalTarget('output/google_trends/values.json')

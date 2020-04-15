@@ -4,48 +4,46 @@ from apple_appstore import AppstoreReviewsToDB
 from facebook import FbPostsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
-from twitter import TweetsToDB, TweetPerformanceToDB
+from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
 from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
 from gomus.events import EventsToDB
-from gomus.order_contains import OrderContainsToDB
+# from gomus.order_contains import OrderContainsToDB
 from gomus.orders import OrdersToDB
 
 
 class FillDB(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield FillDBDaily(minimal=self.minimal)
-        yield FillDBHourly(minimal=self.minimal)
+        yield FillDBDaily()
+        yield FillDBHourly()
 
 
 class FillDBDaily(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield AppstoreReviewsToDB(minimal=self.minimal)
-        yield GooglePlaystoreReviewsToDB(minimal=self.minimal)
-        yield FbPostsToDB(minimal=self.minimal)
-        yield GoogleMapsReviewsToDB(minimal=self.minimal)
-        yield TweetsToDB(minimal=self.minimal)
-        yield GtrendsValuesToDB(minimal=self.minimal)
+        yield AppstoreReviewsToDB()
+        yield GooglePlaystoreReviewsToDB()
+        yield FbPostsToDB()
+        yield GoogleMapsReviewsToDB()
+        yield TweetAuthorsToDB()
+        yield TweetsToDB()
+        yield GtrendsValuesToDB()
 
-        yield BookingsToDB(minimal=self.minimal)
-        yield CustomersToDB(minimal=self.minimal)
+        yield BookingsToDB()
+        yield CustomersToDB()
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
-        yield EventsToDB(minimal=self.minimal)
-        yield GomusToCustomerMappingToDB(minimal=self.minimal)
-        yield OrderContainsToDB(minimal=self.minimal)
-        yield OrdersToDB(minimal=self.minimal)
+        yield EventsToDB()
+        yield GomusToCustomerMappingToDB()
+        # yield OrderContainsToDB()
+        yield OrdersToDB()
 
 
 class FillDBHourly(luigi.WrapperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     def requires(self):
-        yield FbPostPerformanceToDB(minimal=self.minimal)
-        yield TweetPerformanceToDB(minimal=self.minimal)
+        yield FbPostPerformanceToDB()
+        yield TweetPerformanceToDB()

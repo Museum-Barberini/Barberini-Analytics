@@ -15,12 +15,11 @@ class ExtractGomusBookings(DataPreparationTask):
     seed = luigi.parameter.IntParameter(
         description="Seed to use for hashing", default=666)
     timespan = luigi.parameter.Parameter(default='_nextYear')
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(minimal=self.minimal),
+            CustomersToDB(),
             super()._requires()
         ])
 
@@ -60,7 +59,7 @@ class ExtractGomusBookings(DataPreparationTask):
                                     'Guide',
                                     'Dauer',
                                     'Ausstellung',
-                                    'Titel',
+                                    'Angebot/Termin',
                                     'Status',
                                     'Startzeit'])
 
@@ -81,7 +80,6 @@ class ExtractGomusBookings(DataPreparationTask):
         if pd.isnull(guide_name):
             return 0  # 0 represents empty value
 
-        print(guide_name)
         guides = guide_name.lower().replace(' ', '').split(',')
         guide = guides[0]
         return mmh3.hash(guide, self.seed, signed=True)

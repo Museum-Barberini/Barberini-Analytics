@@ -1,11 +1,11 @@
 import luigi
+import os
 
 from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 
 class BookingsToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     timespan = luigi.parameter.Parameter(default='_nextYear')
     table = 'gomus_booking'
@@ -37,10 +37,9 @@ class BookingsToDB(CsvToDb):
 
     def requires(self):
         timespan = self.timespan
-        if self.minimal:
+        if os.environ['MINIMAL'] == 'True':
             timespan = '_7days'
         return EnhanceBookingsWithScraper(
             columns=[col[0] for col in self.columns],
             foreign_keys=self.foreign_keys,
-            timespan=timespan,
-            minimal=self.minimal)
+            timespan=timespan)

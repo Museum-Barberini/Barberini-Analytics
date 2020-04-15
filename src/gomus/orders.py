@@ -1,19 +1,19 @@
 import datetime as dt
 import luigi
 import numpy as np
+import os
 import pandas as pd
-import psycopg2
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
+from db_connector import DbConnector
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
 
 
 class OrdersToDB(CsvToDb):
-    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
 
@@ -25,7 +25,8 @@ class OrdersToDB(CsvToDb):
         ('customer_id', 'INT'),
         ('valid', 'BOOL'),
         ('paid', 'BOOL'),
-        ('origin', 'TEXT')]
+        ('origin', 'TEXT')
+    ]
 
     primary_key = 'order_id'
 
@@ -41,24 +42,22 @@ class OrdersToDB(CsvToDb):
         return ExtractOrderData(
             foreign_keys=self.foreign_keys,
             columns=[col[0] for col in self.columns],
-            today=self.today,
-            minimal=self.minimal)
+            today=self.today)
 
 
 class ExtractOrderData(DataPreparationTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def _requires(self):
         return luigi.task.flatten([
-            GomusToCustomerMappingToDB(minimal=self.minimal),
+            GomusToCustomerMappingToDB(),
             super()._requires()
         ])
 
     def requires(self):
-        suffix = '_1day' if self.minimal else '_7days'
+        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
         return FetchGomusReport(report='orders',
                                 suffix=suffix,
                                 today=self.today)
@@ -107,28 +106,14 @@ class ExtractOrderData(DataPreparationTask):
             # if the customer_string is NaN, we set the customer_id to 0
         else:
             org_id = int(float(customer_string))
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
 
-            cur = conn.cursor()
-            query = (f'SELECT customer_id FROM gomus_to_customer_mapping '
-                     f'WHERE gomus_id = {org_id}')
-            cur.execute(query)
+        customer_row = DbConnector.query(
+            f'SELECT customer_id FROM gomus_to_customer_mapping '
+            f'WHERE gomus_id = {org_id}',
+            only_first=True)
 
-            customer_row = cur.fetchone()
-            if customer_row is not None:
-                customer_id = customer_row[0]
-            else:
-                customer_id = np.nan
-                # if we can't find the customer_id, but it isn't NaN,
-                # we set the customer_id to NaN
+        customer_id = customer_row[0] if customer_row else np.nan
 
-        finally:
-            if conn is not None:
-                conn.close()
         return customer_id
 
     def parse_boolean(self, string, bool_string):

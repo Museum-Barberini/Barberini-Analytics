@@ -1,21 +1,18 @@
 BEGIN;
-DROP TABLE gomus_event;
-CREATE TABLE gomus_event (
-    event_id INTEGER,
-    booking_id INTEGER,
-    customer_id INTEGER,
-    reservation_count INTEGER,
-    order_date DATE,
-    status TEXT,
-    category TEXT
-);
-ALTER TABLE gomus_event
-    ADD CONSTRAINT gomus_event_primkey PRIMARY KEY (event_id);
 
-ALTER TABLE gomus_event
-    ADD CONSTRAINT booking_id_fkey FOREIGN KEY (booking_id) REFERENCES gomus_booking (booking_id);
+    ALTER TABLE appstore_review RENAME COLUMN date TO post_date;
+    ALTER TABLE google_maps_review RENAME COLUMN date TO post_date;
+    ALTER TABLE gplay_review RENAME COLUMN date TO post_date;
 
-ALTER TABLE gomus_event
-    ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id);
+    CREATE TABLE tweet_author (
+        user_id TEXT PRIMARY KEY, 
+	user_name TEXT NOT NULL
+    );
+
+    -- we want to re-fetch all the tweets because we can now handle emojis
+    TRUNCATE tweet;
+
+    ALTER TABLE tweet ALTER COLUMN post_date TYPE TIMESTAMP;
 
 COMMIT;
+

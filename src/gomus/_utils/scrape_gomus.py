@@ -3,6 +3,7 @@ import re
 
 import dateparser
 import luigi
+import os
 import pandas as pd
 from luigi.format import UTF8
 from lxml import html
@@ -11,7 +12,6 @@ from data_preparation_task import DataPreparationTask
 from gomus.customers import hash_id
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchOrdersHTML
-from set_db_connection_options import set_db_connection_options
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
@@ -19,15 +19,6 @@ from set_db_connection_options import set_db_connection_options
 # gomus)
 class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def extract_from_html(self, base_html, xpath):
         # try:
@@ -38,7 +29,6 @@ class GomusScraperTask(DataPreparationTask):
 
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
     columns = luigi.parameter.ListParameter(description="Column names")
     timespan = luigi.parameter.Parameter(default='_nextYear')
 
@@ -50,11 +40,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
     def requires(self):
         yield ExtractGomusBookings(timespan=self.timespan,
-                                   minimal=self.minimal,
                                    columns=self.columns)
         yield FetchBookingsHTML(timespan=self.timespan,
                                 base_url=self.base_url + '/admin/bookings/',
-                                minimal=self.minimal,
                                 columns=self.columns)
 
     def output(self):
@@ -64,7 +52,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if self.minimal:
+            if os.environ['MINIMAL'] == 'True':
                 bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position
@@ -127,7 +115,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):
-    minimal = luigi.parameter.BoolParameter(default=False)
 
     # 60 minutes until the task will timeout
     # set to about 800000 for collecting historic data ≈ 7 Days
@@ -137,8 +124,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/',
-                               minimal=self.minimal)
+        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
 
     def output(self):
         return luigi.LocalTarget(
