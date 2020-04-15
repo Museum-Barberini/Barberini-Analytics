@@ -69,7 +69,7 @@ class TestExtractTweets(DatabaseTaskTest):
                 encoding='utf-8') as data_out:
             extracted_tweets = data_out.read()
 
-        user_id = '42'
+        user_id = '1234567890123456789'
 
         self.install_mock_target(
             raw_tweets_mock,
@@ -118,6 +118,6 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
             self.assertEqual(
-                output.split('\n')[i][0:-14],
-                extracted_performance.split('\n')[i][0:-14])
+                output.split('\n')[i][0:-20],
+                extracted_performance.split('\n')[i][0:-20])
             # cutting away the timestamp
