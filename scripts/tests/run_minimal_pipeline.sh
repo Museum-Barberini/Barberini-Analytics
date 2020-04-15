@@ -11,8 +11,8 @@ TEMP_DIR="$(mktemp -d minimal_pipeline_XXX)"
 export APPLIED_FILE="$TEMP_DIR/applied_migrations.txt"
 touch $APPLIED_FILE
 
-set +e
 {
+    set +e
     docker exec -i db psql -U postgres -a postgres -c "DROP DATABASE IF EXISTS $POSTGRES_DB;"
     docker exec -i db psql -U postgres -a postgres -c "CREATE DATABASE $POSTGRES_DB;"
 
