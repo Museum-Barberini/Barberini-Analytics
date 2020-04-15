@@ -13,8 +13,6 @@ class TestDataPreparationTask(unittest.TestCase):
         self.db_helper = DatabaseHelper()
         self.created_tables = []
 
-        self.test_db_name = 'barberini_test'
-
     def setUp(self):
         self.db_helper.setUp()
 
@@ -28,12 +26,7 @@ class TestDataPreparationTask(unittest.TestCase):
         DataPreparationTask,
         'foreign_keys',
         new_callable=PropertyMock)
-    @patch.object(
-        DataPreparationTask,
-        'database',
-        new_callable=PropertyMock)
-    def test_ensure_foreign_keys(self, database_mock, fkeys_mock):
-        database_mock.return_value = self.test_db_name
+    def test_ensure_foreign_keys(self, fkeys_mock):
         test_table = 'test_table'
         test_column = 'test_column'
 

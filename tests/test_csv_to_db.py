@@ -1,8 +1,6 @@
 import datetime as dt
-import os
 import tempfile
 import time
-from unittest.mock import patch
 
 import luigi
 import mmh3
@@ -42,11 +40,6 @@ class DummyWriteCsvToDb(CsvToDb):
     ]
     primary_key = "id"
 
-    host = os.environ['POSTGRES_HOST']
-    database = "barberini_test"
-    user = os.environ['POSTGRES_USER']
-    password = os.environ['POSTGRES_PASSWORD']
-
     table = None  # value set in __init__
 
     def requires(self):
@@ -61,8 +54,7 @@ def get_temp_table():
 
 class TestCsvToDb(DatabaseTaskTest):
 
-    @patch("csv_to_db.set_db_connection_options")
-    def setUp(self, mock):
+    def setUp(self):
 
         super().setUp()
         self.table_name = get_temp_table()
@@ -75,9 +67,6 @@ class TestCsvToDb(DatabaseTaskTest):
         self.dummy = DummyWriteCsvToDb(
             self.table_name,
             dummy_date=mmh3.hash(self.table_name, 666))
-
-        # Store mock object to make assertions about it later on
-        self.mock_set_db_conn_options = mock
 
     def tearDown(self):
 
@@ -93,7 +82,6 @@ class TestCsvToDb(DatabaseTaskTest):
         self.dummy.run()
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, expected_data)
-        self.mock_set_db_conn_options.assert_called_once()
 
     def test_adding_data_to_database_existing_table(self):
 
@@ -113,7 +101,6 @@ class TestCsvToDb(DatabaseTaskTest):
         # ----- Inspect result ------
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, [(0, 1, "a", "b"), *expected_data])
-        self.mock_set_db_conn_options.assert_called_once()
 
     def test_no_duplicates_are_inserted(self):
 
@@ -135,4 +122,3 @@ class TestCsvToDb(DatabaseTaskTest):
         # ----- Inspect result ------
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, expected_data)
-        self.mock_set_db_conn_options.assert_called_once()

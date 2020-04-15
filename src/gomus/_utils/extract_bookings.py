@@ -59,7 +59,7 @@ class ExtractGomusBookings(DataPreparationTask):
                                     'Guide',
                                     'Dauer',
                                     'Ausstellung',
-                                    'Titel',
+                                    'Angebot/Termin',
                                     'Status',
                                     'Startzeit'])
 

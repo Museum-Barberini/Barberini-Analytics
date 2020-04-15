@@ -4,16 +4,15 @@ import datetime as dt
 import luigi
 import os
 import pandas as pd
-import psycopg2
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+from db_connector import DbConnector
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from gomus.customers import hash_id
-from set_db_connection_options import set_db_connection_options
 
 
 class EventsToDB(CsvToDb):
@@ -93,6 +92,8 @@ class ExtractEventData(DataPreparationTask):
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
 
+                    if path == '':
+                        continue
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
                     if i % 2 == 0:
@@ -145,62 +146,45 @@ class FetchCategoryReservations(luigi.Task):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
-    host = None
-    database = None
-    user = None
-    password = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
         self.output_list = []
         self.row_list = []
 
     def run(self):
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
-            cur = conn.cursor()
 
-            if os.environ['MINIMAL'] == 'True':
-                query = (f'SELECT booking_id FROM gomus_booking WHERE '
-                         f'category=\'{self.category}\' '
-                         f'ORDER BY start_datetime DESC LIMIT 2')
-            else:
-                two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+        if os.environ['MINIMAL'] == 'True':
+            query = f'''
+                SELECT booking_id FROM gomus_booking
+                WHERE category='{self.category}'
+                ORDER BY start_datetime DESC LIMIT 2
+            '''
+        else:
+            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+            query = (f'SELECT booking_id FROM gomus_booking WHERE '
+                     f'category=\'{self.category}\' '
+                     f'AND start_datetime > \'{two_weeks_ago}\'')
 
-                query = (f'SELECT booking_id FROM gomus_booking WHERE '
-                         f'category=\'{self.category}\' '
-                         f'AND start_datetime > \'{two_weeks_ago}\'')
+        booking_ids = DbConnector.query(query)
 
-            cur.execute(query)
-
-            row = cur.fetchone()
-            while row is not None:
-                event_id = row[0]
-                if event_id not in self.row_list:
-                    approved = FetchEventReservations(
-                        booking_id=event_id,
-                        status=0)
-                    yield approved
-                    cancelled = FetchEventReservations(
-                        booking_id=event_id,
-                        status=1)
-                    yield cancelled
-                    if approved and cancelled:
-                        self.output_list.append(approved.output().path)
-                        self.output_list.append(cancelled.output().path)
-                    self.row_list.append(event_id)
-                row = cur.fetchone()
-            # write list of all event reservation to output file
-            with self.output().open('w') as all_outputs:
-                all_outputs.write('\n'.join(self.output_list) + '\n')
-
-        finally:
-            if conn is not None:
-                conn.close()
+        for row in booking_ids:
+            event_id = row[0]
+            if event_id not in self.row_list:
+                approved = FetchEventReservations(
+                    booking_id=event_id,
+                    status=0)
+                yield approved
+                cancelled = FetchEventReservations(
+                    booking_id=event_id,
+                    status=1)
+                yield cancelled
+                if approved and cancelled:
+                    self.output_list.append(approved.output().path)
+                    self.output_list.append(cancelled.output().path)
+                self.row_list.append(event_id)
+        # write list of all event reservation to output file
+        with self.output().open('w') as all_outputs:
+            all_outputs.write('\n'.join(self.output_list) + '\n')
 
     # save a list of paths for all single csv files
     def output(self):

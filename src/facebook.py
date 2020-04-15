@@ -11,7 +11,6 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
-from set_db_connection_options import set_db_connection_options
 
 logger = logging.getLogger('luigi-interface')
 
@@ -70,10 +69,6 @@ class FbPostPerformanceToDB(CsvToDb):
 
 
 class FetchFbPosts(DataPreparationTask):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def requires(self):
         return MuseumFacts()

@@ -14,24 +14,15 @@ from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
 from gomus.customers import hash_id
-from set_db_connection_options import set_db_connection_options
 
 logger = logging.getLogger('luigi-interface')
+
 
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
 class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def extract_from_html(self, base_html, xpath):
         # try:

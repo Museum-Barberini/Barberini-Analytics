@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 import datetime as dt
+import os
 import pandas as pd
 
 from luigi.format import UTF8
@@ -13,9 +14,8 @@ from gomus._utils.fetch_report_helper import REPORT_IDS
 
 class TestGomusEditReport(unittest.TestCase):
     @patch.object(FetchGomusReport, 'output')
-    @unittest.skip(
-        "Takes too long time for the primary test stage."
-        "Needs to be run once a day only, see #108. Workaround.")
+    @unittest.skipUnless(
+        os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_edit_gomus_report_customers(self, output_mock):
         """
         This test edits the customer_7days report twice using different
