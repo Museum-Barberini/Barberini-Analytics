@@ -47,4 +47,4 @@ class DataPreparationTask(luigi.Task):
                 else:
                     print("Values not printed for privacy reasons")
 
-        return df
+        return filtered_df, invalid_values
