@@ -52,9 +52,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        yield ExtractGomusBookings(timespan=self.timespan,
+        yield ExtractGomusBookings(timespan='_nextWeek',
                                    columns=self.columns)
-        yield FetchBookingsHTML(timespan=self.timespan,
+        yield FetchBookingsHTML(timespan='_nextWeek',
                                 base_url=self.base_url + '/admin/bookings/',
                                 columns=self.columns)
 
@@ -118,9 +118,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     bookings.loc[i, 'customer_id'] = 0
 
         bookings, invalid_values = self.ensure_foreign_keys(bookings)
-        if invalid_values:  # fetch invalid E-Mail addresses anew
+        if not invalid_values.empty:  # fetch invalid E-Mail addresses anew
             for booking_id in invalid_values['booking_id']:
-                self.scrape_new_mail(booking_id)
+                for _ in self.scrape_new_mail(booking_id):
+                    pass
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -142,7 +143,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             booking_details = booking_html.xpath(
                     '//body/div[2]/div[2]/div[3]'
                     '/div[4]/div[2]/div[1]/div[3]')[0]
-            print(booking_details)
+            print(booking_details.text_content())
 
         customer_task = FetchGomusHTML(
             url=f'{base_url}/customers/{gomus_id}')
