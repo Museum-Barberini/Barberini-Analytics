@@ -12,6 +12,15 @@ test:
     - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-luigi make test
     - make shutdown
 
+pipeline:
+  script:
+    - ./scripts/tests/run_minimal_pipeline.sh
+
+lint:
+  script:
+    - python3 -m pip install flake8 --user
+    - python3 -m flake8 -v --show-source .
+
 coverage:
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
@@ -23,16 +32,3 @@ coverage:
   artifacts:
     paths: 
       - htmlcov
-
-pipeline:
-  script:
-    - container=$(docker ps -f name=gitlab-runner-luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
-    - make startup
-    - docker exec gitlab-runner-luigi ./scripts/tests/run_minimal_pipeline.sh
-    - make shutdown
-
-lint:
-  script:
-    - python3 -m pip install flake8 --user
-    - python3 -m flake8 -v --show-source .
