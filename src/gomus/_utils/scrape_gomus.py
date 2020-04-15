@@ -1,19 +1,22 @@
 import csv
+import os
 import re
+import logging
 
 import dateparser
 import luigi
-import os
 import pandas as pd
 from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
-from gomus.customers import hash_id
 from gomus._utils.extract_bookings import ExtractGomusBookings
-from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchOrdersHTML
+from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
+                                      FetchOrdersHTML)
+from gomus.customers import hash_id
 from set_db_connection_options import set_db_connection_options
 
+logger = logging.getLogger('luigi-interface')
 
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
@@ -115,8 +118,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     bookings.loc[i, 'customer_id'] = 0
 
         bookings, invalid_values = self.ensure_foreign_keys(bookings)
-        if invalid_values:  # an E-Mail address was invalid, fetch it anew
-            pass
+        if invalid_values:  # fetch invalid E-Mail addresses anew
+            for booking_id in invalid_values['booking_id']:
+                self.scrape_new_mail(booking_id)
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -125,6 +129,30 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 header=True,
                 quoting=csv.QUOTE_NONNUMERIC)
 
+    def scrape_new_mail(self, booking_id):
+        logger.info(f"Fetching new mail for booking {booking_id}")
+        # First step: Get customer of booking (cannot use customer_id,
+        # since it has been derived from the wrong e-mail address)
+        base_url = 'https://barberini.gomus.de/admin'
+        booking_task = FetchGomusHTML(
+            url=f'{base_url}/bookings/{booking_id}')
+        yield booking_task
+        with booking_task.output().open('r') as booking_html:
+            booking_html = html.fromstring(booking_html.read())
+            booking_details = booking_html.xpath(
+                    '//body/div[2]/div[2]/div[3]'
+                    '/div[4]/div[2]/div[1]/div[3]')[0]
+            print(booking_details)
+
+        customer_task = FetchGomusHTML(
+            url=f'{base_url}/customers/{gomus_id}')
+        yield customer_task
+        with customer_task.output().open('r') as customer_html:
+            # TODO: find e-mail entry
+            pass
+
+        # TODO: update gomus_to_customer_mapping to point gomus_id to new
+        # customer_id
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
