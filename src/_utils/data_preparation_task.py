@@ -1,5 +1,6 @@
-import sys
 import logging
+import sys
+
 import luigi
 
 from db_connector import DbConnector
@@ -40,8 +41,8 @@ class DataPreparationTask(luigi.Task):
                 # for potential handling
                 invalid_values = df[~df[key].isin(foreign_values)]
                 logger.warning(f"Deleted {difference} out of {old_count} "
-                                f"data sets due to foreign key violation: "
-                                f"{foreign_key}")
+                               f"data sets due to foreign key violation: "
+                               f"{foreign_key}")
                 if sys.stdin.isatty():
                     print(f"Following values were invalid:\n{invalid_values}")
                 else:
