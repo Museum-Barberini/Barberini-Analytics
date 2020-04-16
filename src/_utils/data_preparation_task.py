@@ -42,8 +42,8 @@ class DataPreparationTask(luigi.Task):
                 logger.warning(f"Deleted {difference} out of {old_count} "
                                 f"data sets due to foreign key violation: "
                                 f"{foreign_key}")
-                if sys.stdout.isatty():
-                    print(invalid_values)
+                if sys.stdin.isatty():
+                    print(f"Following values were invalid:\n{invalid_values}")
                 else:
                     print("Values not printed for privacy reasons")
 
