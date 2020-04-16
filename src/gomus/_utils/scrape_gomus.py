@@ -109,13 +109,13 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     bookings.loc[i, 'customer_id'] = 0
 
-        bookings, invalid_values = self.ensure_foreign_keys(bookings)
-        if invalid_values is not None and not invalid_values.empty:
+        bookings, invalid_bookings = self.ensure_foreign_keys(bookings)
+        if invalid_bookings is not None and not invalid_bookings.empty:
             # fetch invalid E-Mail addresses anew
-            for booking_id in invalid_values['booking_id']:
+            for booking_id in invalid_bookings['booking_id']:
 
                 # Delegate dynamic dependencies in sub-method
-                new_mail = self.fetch_new_mail(booking_id)
+                new_mail = self.fetch_updated_mail(booking_id)
                 for yielded_task in new_mail:
                     yield yielded_task
 
@@ -127,7 +127,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 quoting=csv.QUOTE_NONNUMERIC)
 
     @staticmethod
-    def fetch_new_mail(booking_id):
+    def fetch_updated_mail(booking_id):
         # This would be cleaner to put into an extra function,
         # but dynamic dependencies only work when yielded from 'run()'
         logger.info(f"Fetching new mail for booking {booking_id}")

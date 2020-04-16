@@ -27,7 +27,7 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
 
     hash_seed = 666
 
-    @patch.object(EnhanceBookingsWithScraper, 'fetch_new_mail')
+    @patch.object(EnhanceBookingsWithScraper, 'fetch_updated_mail')
     @patch.object(EnhanceBookingsWithScraper, 'ensure_foreign_keys')
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
@@ -74,7 +74,7 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         output_target = MockTarget('enhanced_bookings_out', format=UTF8)
         output_mock.return_value = output_target
 
-        # Also test that fetch_new_mail would be called for non-empty
+        # Also test that fetch_updated_mail would be called for non-empty
         # invalid_values (actual functionality tested elsewhere)
         invalid_values = pd.DataFrame([0], columns=['booking_id'])
         foreign_key_mock.side_effect = lambda x: (x, invalid_values)
@@ -157,8 +157,8 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
                                       f'VALUES ({gomus_id}, '
                                       f'{fake_customer_id})')
 
-            # Run fetch_new_mail
-            fetch_mail = EnhanceBookingsWithScraper.fetch_new_mail(booking_id)
+            # Run fetch_updated_mail
+            fetch_mail = EnhanceBookingsWithScraper.fetch_updated_mail(booking_id)
             for html_task in fetch_mail:
                 html_task.run()
 

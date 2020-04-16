@@ -43,6 +43,10 @@ class DataPreparationTask(luigi.Task):
                 logger.warning(f"Deleted {difference} out of {old_count} "
                                f"data sets due to foreign key violation: "
                                f"{foreign_key}")
+
+                # Only print discarded values if running from a TTY
+                # to prevent potentially sensitive data to be exposed
+                # (e.g. by the CI runner)
                 if sys.stdin.isatty():
                     print(f"Following values were invalid:\n{invalid_values}")
                 else:
