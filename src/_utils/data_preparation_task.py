@@ -36,7 +36,7 @@ class DataPreparationTask(luigi.Task):
             filtered_df = df[df[key].isin(foreign_values)]
 
             difference = old_count - filtered_df[key].count()
-            if difference > 0:
+            if difference:
                 # Find out which values were discarded
                 # for potential handling
                 invalid_values = df[~df[key].isin(foreign_values)]
