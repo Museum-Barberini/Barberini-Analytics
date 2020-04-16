@@ -27,13 +27,17 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
 
     hash_seed = 666
 
+    @patch.object(EnhanceBookingsWithScraper, 'fetch_new_mail')
+    @patch.object(EnhanceBookingsWithScraper, 'ensure_foreign_keys')
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
     def test_scrape_bookings(self,
                              output_mock,
                              all_htmls_mock,
-                             input_mock):
+                             input_mock,
+                             foreign_key_mock,
+                             new_mail_mock):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')
@@ -70,10 +74,19 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         output_target = MockTarget('enhanced_bookings_out', format=UTF8)
         output_mock.return_value = output_target
 
+        # Also test that fetch_new_mail would be called for non-empty
+        # invalid_values (actual functionality tested elsewhere)
+        invalid_values = pd.DataFrame([0], columns=['booking_id'])
+        foreign_key_mock.side_effect = lambda x: (x, invalid_values)
+
+        new_mail_mock.return_value = iter([
+            FetchGomusHTML(url='test1'),
+            FetchGomusHTML(url='test2')])
+
         # -- execute code under test --
         run = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS).run()
-        for _ in run:
-            pass
+        for yielded_task in run:
+            self.assertIsInstance(yielded_task, FetchGomusHTML)
 
         # -- inspect results --
         expected_output = test_data.filter(
