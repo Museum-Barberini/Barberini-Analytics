@@ -158,7 +158,8 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
                                       f'{fake_customer_id})')
 
             # Run fetch_updated_mail
-            fetch_mail = EnhanceBookingsWithScraper.fetch_updated_mail(booking_id)
+            fetch_mail = EnhanceBookingsWithScraper \
+                .fetch_updated_mail(booking_id)
             for html_task in fetch_mail:
                 html_task.run()
 
