@@ -3,7 +3,6 @@ import re
 
 import dateparser
 import luigi
-import os
 import pandas as pd
 from luigi.format import UTF8
 from lxml import html
@@ -52,7 +51,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL'] == 'True':
+            if self.minimal_mode:
                 bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position

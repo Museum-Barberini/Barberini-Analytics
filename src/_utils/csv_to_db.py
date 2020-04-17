@@ -8,6 +8,8 @@ from luigi.contrib.postgres import CopyToTable
 
 logger = logging.getLogger('luigi-interface')
 
+minimal_mode = os.environ['MINIMAL'] == 'True'
+
 
 class CsvToDb(CopyToTable):
     """
@@ -30,6 +32,11 @@ class CsvToDb(CopyToTable):
         default=False,
         description=("If True, the table will be only created "
                      "but not actually filled with the input data."))
+
+    minimal_mode = luigi.parameter.BoolParameter(
+        default=minimal_mode,
+        description="If True, only a minimal amount of data will be prepared"
+                    "in order to test the pipeline for structural problems")
 
     # Don't delete this! This parameter assures that every (sub)instance of me
     # is treated as an individual and will be re-run.

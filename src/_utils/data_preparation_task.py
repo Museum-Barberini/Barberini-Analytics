@@ -1,12 +1,21 @@
 import logging
 import luigi
+import os
 
 from db_connector import DbConnector
 
 logger = logging.getLogger('luigi-interface')
 
+minimal_mode = os.environ['MINIMAL'] == 'True'
+
 
 class DataPreparationTask(luigi.Task):
+
+    minimal_mode = luigi.parameter.BoolParameter(
+        default=minimal_mode,
+        description="If True, only a minimal amount of data will be prepared"
+                    "in order to test the pipeline for structural problems")
+
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted",
         default=[])

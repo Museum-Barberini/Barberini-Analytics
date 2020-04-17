@@ -1,12 +1,14 @@
 import json
 import luigi
-import os
 import random
 
+import pandas as pd
+
+from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
-class GtrendsTopics(luigi.Task):
+class GtrendsTopics(DataPreparationTask):
 
     def requires(self):
         return MuseumFacts()
@@ -15,9 +17,13 @@ class GtrendsTopics(luigi.Task):
         return luigi.LocalTarget('output/google_trends/topics.json')
 
     def run(self):
-        topics = self.collect_topics()
+        topics = pd.DataFrame(self.collect_topics())
+
+        # not necessary but good style
+        topics = self.ensure_foreign_keys(topics)
+
         with self.output().open('w') as output_file:
-            json.dump(topics, output_file)
+            json.dump(list(topics[0]), output_file)
 
     def collect_topics(self):
         with self.input().open('r') as facts_file:
@@ -31,7 +37,8 @@ class GtrendsTopics(luigi.Task):
             ' '.join([museum_name, extra_topic])
             for extra_topic in extra_topics
             for museum_name in museum_names]
-        if os.environ['MINIMAL'] == 'True':
+
+        if self.minimal_mode:
             random_museum_name = random.randint(0, len(museum_names) - 1)
             random_topic = random.randint(0, len(extra_topics) - 1)
 
