@@ -6,7 +6,7 @@ from db_connector import DbConnector
 
 logger = logging.getLogger('luigi-interface')
 
-minimal_mode = os.environ['MINIMAL'] == 'True'
+minimal_mode = os.getenv('MINIMAL') == 'True'
 
 
 class DataPreparationTask(luigi.Task):
