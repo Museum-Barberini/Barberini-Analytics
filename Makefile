@@ -72,8 +72,7 @@ output-folder:
 
 # --- Testing ---
 
-test: luigi-clean
-	mkdir -p output
+test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via ** 
 	POSTGRES_DB=barberini_test \
 		&& shopt -s globstar \
@@ -84,6 +83,7 @@ test-full:
 	FULL_TEST=True make test
 
 coverage: luigi-clean
+	# globstar needed to recursively find all .py-files via ** 
 	POSTGRES_DB=barberini_test \
 		&& shopt -s globstar \
 		&& PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m coverage run --source ./src -m unittest -v --failfast --catch tests/**/test*.py -v
