@@ -45,6 +45,7 @@ do
     then
         # ON_ERROR_STOP makes psql abort when the first error is encountered
         # as well as makes it return a non-zero exit code
+        echo $POSTGRES_USER  # DEBUG
         cat "$MIGRATION_FILE" | docker exec -i db \
             psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1
         EXIT_VAL=$?
