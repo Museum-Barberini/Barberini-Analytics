@@ -21,8 +21,10 @@ startup:
 		else\
 	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
 		fi;\
-	fi;\
-	docker-compose -p ${USER} up --build -d luigi gplay_api
+	fi
+	# Generate custom hostname for better error logs
+	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
+		docker-compose -p ${USER} up --build -d luigi gplay_api
 
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi gplay_api
