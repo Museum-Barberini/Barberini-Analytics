@@ -4,11 +4,11 @@
 version: "3.7"
 
 services:
-	db:
-		# -c provides the postgres instance inside the container
-		# with configuration options, equal to setting them in
-		# a 'postgresql.conf' file
-		command: >
-			-c ssl=on
-			-c ssl_cert_file=/var/lib/postgresql/data/server.crt
-			-c ssl_key_file=/var/lib/postgresql/data/server.key
+    db:
+        # -c provides the postgres instance inside the container
+        # with configuration options, equal to setting them in
+        # a 'postgresql.conf' file
+        command: >
+            -c ssl=on
+            -c ssl_cert_file=/var/lib/postgresql/data/server.crt
+            -c ssl_key_file=/var/lib/postgresql/data/server.key
