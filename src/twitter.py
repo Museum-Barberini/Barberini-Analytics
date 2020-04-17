@@ -2,7 +2,6 @@ import datetime as dt
 import json
 
 import luigi
-import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8

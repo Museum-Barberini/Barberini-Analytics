@@ -2,7 +2,6 @@ import json
 import logging
 
 import luigi
-import os
 import pandas as pd
 import random
 import requests

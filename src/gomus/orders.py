@@ -1,7 +1,6 @@
 import datetime as dt
 import luigi
 import numpy as np
-import os
 import pandas as pd
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
