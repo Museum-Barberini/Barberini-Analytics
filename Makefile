@@ -66,7 +66,7 @@ luigi-clean:
 
 luigi-minimal:
 	# the environment variable has to be set to true 
-	MINIMAL=True && make luigi
+	MINIMAL=True make luigi
 
 # --- Testing ---
 
