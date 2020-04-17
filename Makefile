@@ -50,7 +50,7 @@ docker-clean-cache:
 
 luigi-scheduler:
 	luigid --background
-	$$(: Waiting for scheduler ...) bash -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
+	`# Waiting for scheduler ...` bash -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
 luigi-restart-scheduler:
 	killall luigid
