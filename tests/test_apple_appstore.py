@@ -247,7 +247,8 @@ class TestAppstoreReviewsToDB(DatabaseTaskTest):
         self.task = AppstoreReviewsToDB()
         self.run_task(self.task)
 
-        result = self.db.request('SELECT title, text FROM appstore_review')
+        result = self.db_connector.query(
+            'SELECT title, text FROM appstore_review')
         self.assertListEqual(
             [(umlaut_title, umlaut_text)],
             result,
