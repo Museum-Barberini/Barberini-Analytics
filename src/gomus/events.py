@@ -29,9 +29,9 @@ class EventsToDB(CsvToDb):
         ('category', 'TEXT')
     ]
 
-    primary_key = 'event_id'
+    OLD_primary_key = 'event_id'
 
-    foreign_keys = [
+    OLD_foreign_keys = [
         {
             'origin_column': 'booking_id',
             'target_table': 'gomus_booking',
@@ -47,7 +47,7 @@ class EventsToDB(CsvToDb):
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            table=self.table)
 
 
 class ExtractEventData(DataPreparationTask):
@@ -59,13 +59,13 @@ class ExtractEventData(DataPreparationTask):
         super().__init__(*args, **kwargs)
         self.events_df = None
         self.categories = [
-            'Öffentliche Führung',
-            'Event',
-            'Gespräch',
-            'Kinder-Workshop',
-            'Konzert',
-            'Lesung',
-            'Vortrag']
+            "Öffentliche Führung",
+            "Event",
+            "Gespräch",
+            "Kinder-Workshop",
+            "Konzert",
+            "Lesung",
+            "Vortrag"]
 
     def _requires(self):
         return luigi.task.flatten([
@@ -97,13 +97,11 @@ class ExtractEventData(DataPreparationTask):
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
                     if i % 2 == 0:
-                        self.append_event_data(event_data,
-                                               'Gebucht',
-                                               category)
+                        self.append_event_data(
+                            event_data, "Gebucht", category)
                     else:
-                        self.append_event_data(event_data,
-                                               'Storniert',
-                                               category)
+                        self.append_event_data(
+                            event_data, "Storniert", category)
 
         self.events_df = self.ensure_foreign_keys(self.events_df)
 
@@ -124,8 +122,8 @@ class ExtractEventData(DataPreparationTask):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'Event_id', 'E-Mail', 'Plätze',
-                'Datum', 'Status', 'Kategorie'])
+                "Id", "Event_id", "E-Mail", "Plätze",
+                "Datum", "Status", "Kategorie"])
 
             event_df.columns = self.columns
 

@@ -25,7 +25,7 @@ class FbPostsToDB(CsvToDb):
         ('fb_post_id', 'TEXT')
     ]
 
-    primary_key = 'fb_post_id'
+    OLD_primary_key = 'fb_post_id'
 
     def requires(self):
         return FetchFbPosts()
@@ -54,18 +54,18 @@ class FbPostPerformanceToDB(CsvToDb):
         ('paid_impressions', 'INT')
     ]
 
-    primary_key = ('fb_post_id', 'time_stamp')
+    OLD_primary_key = ('fb_post_id', 'time_stamp')
 
-    foreign_keys = [
-            {
-                'origin_column': 'fb_post_id',
-                'target_table': 'fb_post',
-                'target_column': 'fb_post_id'
-            }
-        ]
+    OLD_foreign_keys = [
+        {
+            'origin_column': 'fb_post_id',
+            'target_table': 'fb_post',
+            'target_column': 'fb_post_id'
+        }
+    ]
 
     def requires(self):
-        return FetchFbPostPerformance(foreign_keys=self.foreign_keys)
+        return FetchFbPostPerformance(table=self.table)
 
 
 class FetchFbPosts(DataPreparationTask):

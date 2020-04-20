@@ -12,9 +12,8 @@ logger = logging.getLogger('luigi-interface')
 class CsvToDb(CopyToTable):
     """
     Copies a depended csv file into the a central database.
-    Subclasses have to override columns, primary_key and requires().
-    NOTE that you will need to drop or manually alter an existing table if
-    you change its schema.
+    Subclasses have to override columns and requires().
+    Don't forget to write a migration script if you change the table schema.
     """
 
     @property
@@ -81,29 +80,6 @@ class CsvToDb(CopyToTable):
     def create_table(self, connection):
         super().create_table(connection)
         logger.info("Create table " + self.table)
-        self.create_primary_key(connection)
-        self.create_foreign_key(connection)
-
-    def create_primary_key(self, connection):
-        connection.cursor().execute(
-            self.load_sql_script(
-                'set_primary_key',
-                self.table,
-                self.tuple_like_string(self.primary_key)
-            )
-        )
-
-    def create_foreign_key(self, connection):
-        for key in self.foreign_keys:
-            connection.cursor().execute(
-                self.load_sql_script(
-                    'set_foreign_key',
-                    self.table,
-                    key['origin_column'],
-                    key['target_table'],
-                    key['target_column']
-                )
-            )
 
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:

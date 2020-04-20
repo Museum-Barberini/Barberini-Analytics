@@ -21,7 +21,7 @@ class AbstractDailyEntriesToDB(CsvToDb):
         ('count', 'INT'),
     ]
 
-    primary_key = ('id', 'datetime')
+    OLD_primary_key = ('id', 'datetime')
 
 
 class DailyEntriesToDB(AbstractDailyEntriesToDB):

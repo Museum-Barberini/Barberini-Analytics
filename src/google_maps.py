@@ -28,7 +28,7 @@ class GoogleMapsReviewsToDB(CsvToDb):
         ('language', 'TEXT')
     ]
 
-    primary_key = 'google_maps_review_id'
+    OLD_primary_key = 'google_maps_review_id'
 
     def requires(self):
         return FetchGoogleMapsReviews()

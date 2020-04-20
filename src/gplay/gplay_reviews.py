@@ -26,7 +26,7 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
         ('post_date', 'TIMESTAMP')
     ]
 
-    primary_key = 'playstore_review_id'
+    OLD_primary_key = 'playstore_review_id'
 
     def requires(self):
         return FetchGplayReviews()

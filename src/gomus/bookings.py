@@ -25,9 +25,9 @@ class BookingsToDB(CsvToDb):
         ('language', 'TEXT')
     ]
 
-    primary_key = 'booking_id'
+    OLD_primary_key = 'booking_id'
 
-    foreign_keys = [
+    OLD_foreign_keys = [
         {
             'origin_column': 'customer_id',
             'target_table': 'gomus_customer',
@@ -41,5 +41,5 @@ class BookingsToDB(CsvToDb):
             timespan = '_7days'
         return EnhanceBookingsWithScraper(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys,
+            table=self.table,
             timespan=timespan)

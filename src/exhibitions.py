@@ -18,7 +18,7 @@ class ExhibitionToDB(CsvToDb):
         ('end_date', 'DATE')
     ]
 
-    primary_key = ('title', 'start_date')
+    OLD_primary_key = ('title', 'start_date')
 
     def requires(self):
         return FetchExhibitions()

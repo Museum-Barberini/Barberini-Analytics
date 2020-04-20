@@ -14,7 +14,7 @@ from museum_facts import MuseumFacts
 
 class TweetsToDB(CsvToDb):
 
-    table = "tweet"
+    table = 'tweet'
 
     columns = [
         ("user_id", "TEXT"),
@@ -25,7 +25,7 @@ class TweetsToDB(CsvToDb):
         ("is_from_barberini", "BOOL")
     ]
 
-    primary_key = 'tweet_id'
+    OLD_primary_key = 'tweet_id'
 
     def requires(self):
         return ExtractTweets()
@@ -33,7 +33,7 @@ class TweetsToDB(CsvToDb):
 
 class TweetPerformanceToDB(CsvToDb):
 
-    table = "tweet_performance"
+    table = 'tweet_performance'
 
     columns = [
         ("tweet_id", "TEXT"),
@@ -43,9 +43,9 @@ class TweetPerformanceToDB(CsvToDb):
         ("timestamp", "TIMESTAMP")
     ]
 
-    primary_key = ('tweet_id', 'timestamp')
+    OLD_primary_key = ('tweet_id', 'timestamp')
 
-    foreign_keys = [
+    OLD_foreign_keys = [
         {
             "origin_column": "tweet_id",
             "target_table": "tweet",
@@ -54,19 +54,19 @@ class TweetPerformanceToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ExtractTweetPerformance(foreign_keys=self.foreign_keys)
+        return ExtractTweetPerformance(table=self.table)
 
 
 class TweetAuthorsToDB(CsvToDb):
 
-    table = "tweet_author"
+    table = 'tweet_author'
 
     columns = [
         ("user_id", "TEXT"),
         ("user_name", "TEXT")
     ]
 
-    primary_key = "user_id"
+    OLD_primary_key = "user_id"
 
     def requires(self):
         return LoadTweetAuthors()
