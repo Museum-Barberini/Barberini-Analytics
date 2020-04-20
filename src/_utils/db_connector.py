@@ -21,10 +21,10 @@ class DbConnector:
         Execute a query. Use this function when you don't
         care about the result of the query, e.g. for DELETE.
         """
-        self._execute_queries(
+        list(self._execute_queries(
             queries=queries,
             result_function=lambda cur: None
-        )
+        ))
 
     def exists(self, query: str) -> bool:
         """
@@ -32,10 +32,9 @@ class DbConnector:
         True if the query returns results, otherwise False.
         Note that the given query should absolutely not end on a semicolon.
         """
-        return self._execute_query(
+        return bool(self.query(
             query=f'SELECT EXISTS({query})',
-            result_function=lambda cur: bool(cur.fetchone()[0])
-        )
+            only_first=True)[0])
 
     def query(self, query: str, only_first: bool = False) -> List[Tuple]:
         """
@@ -64,6 +63,9 @@ class DbConnector:
                 queries: List[str],
                 result_function: Callable
             ) -> None:
+        """
+        Note that this is a generator function!
+        """
         conn = psycopg2.connect(
             host=self.host,
             database=self.database,
@@ -78,9 +80,12 @@ class DbConnector:
                         cur.execute(query)
                         yield result_function(cur)
         finally:
-            conn.close()
+            conn.commit()
 
     def _execute_query(self, query: str, result_function: Callable) -> None:
+        """
+        Note that this is a generator function!
+        """
         return self._execute_queries([query], result_function)
 
 
