@@ -146,9 +146,9 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             output.split('\n')[0],
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
-            self.assertEqual(  # cutting away the timestamps
-                output.split('\n')[i][0:-20],
-                extracted_performance.split('\n')[i][0:-20])
+            self.assertEqual(   # cutting away the timestamp
+                output.split('\n')[i].split(';')[:-1],
+                extracted_performance.split('\n')[i].split(';')[:-1])
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')

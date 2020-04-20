@@ -91,9 +91,9 @@ class ExtractTweets(DataPreparationTask):
                     input_file, keep_default_na=False)
                 # parent_tweet_id can be empty,
                 # which pandas would turn into NaN by default
+            df = df.filter(required_raw_columns)
         except pd.errors.EmptyDataError:
             df = pd.DataFrame(columns=required_raw_columns)
-        df = df.filter(required_raw_columns)
         df.columns = [
             'user_id',
             'tweet_id',
@@ -130,9 +130,9 @@ class ExtractTweetPerformance(DataPreparationTask):
         try:
             with self.input().open('r') as input_file:
                 df = pd.read_csv(input_file)
+            df = df.filter(required_raw_columns)
         except pd.errors.EmptyDataError:
             df = pd.DataFrame(columns=required_raw_columns)
-        df = df.filter(required_raw_columns)
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
 
