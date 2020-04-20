@@ -3,7 +3,6 @@ import logging
 import os
 
 import luigi
-import psycopg2
 from luigi.contrib.postgres import CopyToTable
 
 logger = logging.getLogger('luigi-interface')
@@ -16,24 +15,17 @@ class CsvToDb(CopyToTable):
     Don't forget to write a migration script if you change the table schema.
     """
 
-    @property
-    def primary_key(self):
-        raise NotImplementedError
+    schema_only = luigi.BoolParameter(default=False, description=(
+            "If True, the table will be only created but not actually filled"
+            "with the input data."))
 
-    @property
-    def foreign_keys(self):
-        # Default: no foreign key definitions
-        return []
-
-    schema_only = luigi.BoolParameter(
-        default=False,
-        description=("If True, the table will be only created "
-                     "but not actually filled with the input data."))
-
-    # Don't delete this! This parameter assures that every (sub)instance of me
-    # is treated as an individual and will be re-run.
+    """
+    Don't delete this! This parameter assures that every (sub)instance of me
+    is treated as an individual and will be re-run.
+    """
     dummy_date = luigi.FloatParameter(
-        default=dt.datetime.timestamp(dt.datetime.now()))
+        default=dt.datetime.timestamp(dt.datetime.now()),
+        visibility=luigi.parameter.ParameterVisibility.PRIVATE)
 
     # Set db connection parameters using env vars
     host = os.environ['POSTGRES_HOST']
@@ -52,11 +44,6 @@ class CsvToDb(CopyToTable):
 
         self.sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
-    def init_copy(self, connection):
-        if not self.check_existence(connection):
-            raise UndefinedTableError()
-        super().init_copy(connection)
-
     def copy(self, cursor, file):
         if self.schema_only:
             return
@@ -71,26 +58,6 @@ class CsvToDb(CopyToTable):
         next(rows)
         return rows
 
-    def check_existence(self, connection):
-        cursor = connection.cursor()
-        cursor.execute(self.load_sql_script('check_existence', self.table))
-        existence_boolean = cursor.fetchone()[0]
-        return existence_boolean
-
-    def create_table(self, connection):
-        super().create_table(connection)
-        logger.info("Create table " + self.table)
-
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:
             return sql_file.read().format(*args)
-
-    def tuple_like_string(self, value):
-        string = value
-        if isinstance(value, tuple):
-            string = ','.join(value)
-        return f'({string})'
-
-
-class UndefinedTableError(psycopg2.ProgrammingError):
-    pgcode = psycopg2.errorcodes.UNDEFINED_TABLE
