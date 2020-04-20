@@ -25,8 +25,6 @@ class TweetsToDB(CsvToDb):
         ("is_from_barberini", "BOOL")
     ]
 
-    OLD_primary_key = 'tweet_id'
-
     def requires(self):
         return ExtractTweets()
 
@@ -43,16 +41,6 @@ class TweetPerformanceToDB(CsvToDb):
         ("timestamp", "TIMESTAMP")
     ]
 
-    OLD_primary_key = ('tweet_id', 'timestamp')
-
-    OLD_foreign_keys = [
-        {
-            "origin_column": "tweet_id",
-            "target_table": "tweet",
-            "target_column": "tweet_id"
-        }
-    ]
-
     def requires(self):
         return ExtractTweetPerformance(table=self.table)
 
@@ -65,8 +53,6 @@ class TweetAuthorsToDB(CsvToDb):
         ("user_id", "TEXT"),
         ("user_name", "TEXT")
     ]
-
-    OLD_primary_key = "user_id"
 
     def requires(self):
         return LoadTweetAuthors()

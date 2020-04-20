@@ -15,16 +15,6 @@ class OrderContainsToDB(CsvToDb):
         ('price', 'FLOAT'),
     ]
 
-    OLD_primary_key = 'article_id'
-
-    OLD_foreign_keys = [
-        {
-            'origin_column': 'order_id',
-            'target_table': 'gomus_order',
-            'target_column': 'order_id'
-        }
-    ]
-
     def requires(self):
         return ScrapeGomusOrderContains(
             table=self.table)

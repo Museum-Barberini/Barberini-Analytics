@@ -29,21 +29,6 @@ class EventsToDB(CsvToDb):
         ('category', 'TEXT')
     ]
 
-    OLD_primary_key = 'event_id'
-
-    OLD_foreign_keys = [
-        {
-            'origin_column': 'booking_id',
-            'target_table': 'gomus_booking',
-            'target_column': 'booking_id'
-        },
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
-    ]
-
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],

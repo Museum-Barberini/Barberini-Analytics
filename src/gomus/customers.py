@@ -33,8 +33,6 @@ class CustomersToDB(CsvToDb):
         ('valid_mail', 'BOOL')
     ]
 
-    OLD_primary_key = 'customer_id'
-
     def requires(self):
         return ExtractCustomerData(
             columns=[col[0] for col in self.columns],
@@ -50,16 +48,6 @@ class GomusToCustomerMappingToDB(CsvToDb):
     columns = [
         ('gomus_id', 'INT'),
         ('customer_id', 'INT')
-    ]
-
-    OLD_primary_key = 'customer_id'
-
-    OLD_foreign_keys = [
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
     ]
 
     def requires(self):

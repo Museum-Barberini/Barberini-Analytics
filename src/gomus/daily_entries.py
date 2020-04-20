@@ -21,8 +21,6 @@ class AbstractDailyEntriesToDB(CsvToDb):
         ('count', 'INT'),
     ]
 
-    OLD_primary_key = ('id', 'datetime')
-
 
 class DailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_daily_entry'

@@ -38,7 +38,6 @@ class DummyWriteCsvToDb(CsvToDb):
         ("B", "TEXT"),
         ("C", "TEXT")
     ]
-    OLD_primary_key = "id"
 
     table = None  # value set in __init__
 

@@ -28,16 +28,6 @@ class OrdersToDB(CsvToDb):
         ('origin', 'TEXT')
     ]
 
-    OLD_primary_key = 'order_id'
-
-    OLD_foreign_keys = [
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
-    ]
-
     def requires(self):
         return ExtractOrderData(
             table=self.table,

@@ -32,8 +32,6 @@ class AppstoreReviewsToDB(CsvToDb):
         ('country_code', 'TEXT')
     ]
 
-    OLD_primary_key = 'appstore_review_id'
-
     def requires(self):
         return FetchAppstoreReviews()
 

@@ -60,8 +60,6 @@ class GtrendsValuesAddToDB(CsvToDb):
         ('interest_value', 'INT'),
     ]
 
-    OLD_primary_key = 'topic', 'date'
-
     def requires(self):
         return ConvertGtrendsValues()
 

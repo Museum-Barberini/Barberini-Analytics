@@ -25,16 +25,6 @@ class BookingsToDB(CsvToDb):
         ('language', 'TEXT')
     ]
 
-    OLD_primary_key = 'booking_id'
-
-    OLD_foreign_keys = [
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
-    ]
-
     def requires(self):
         timespan = self.timespan
         if os.environ['MINIMAL'] == 'True':
