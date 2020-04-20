@@ -69,7 +69,7 @@ class TestExtractTweets(DatabaseTaskTest):
                 encoding='utf-8') as data_out:
             extracted_tweets = data_out.read()
 
-        user_id = '10000000'
+        user_id = 10000000
 
         self.install_mock_target(
             raw_tweets_mock,

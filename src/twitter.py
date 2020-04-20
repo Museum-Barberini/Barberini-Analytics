@@ -79,21 +79,21 @@ class ExtractTweets(DataPreparationTask):
         yield FetchTwitter()
 
     def run(self):
-        with self.input()[1].open('r') as input_file:
-            df = pd.read_csv(
-                input_file,
-                dtype={
-                    'user_id': str,
-                    'tweet_id': str,
-                    'parent_tweet_id': str
-                    })
-        # pandas would by default store them as int64 or float64
-        df = df.filter([
+        required_raw_columns = [
             'user_id',
             'tweet_id',
             'text',
             'parent_tweet_id',
-            'timestamp'])
+            'timestamp']
+        try:
+            with self.input()[1].open('r') as input_file:
+                df = pd.read_csv(
+                    input_file, keep_default_na=False)
+                # parent_tweet_id can be empty,
+                # which pandas would turn into NaN by default
+        except pd.errors.EmptyDataError:
+            df = pd.DataFrame(columns=required_raw_columns)
+        df = df.filter(required_raw_columns)
         df.columns = [
             'user_id',
             'tweet_id',
@@ -126,9 +126,13 @@ class ExtractTweetPerformance(DataPreparationTask):
         return FetchTwitter()
 
     def run(self):
-        with self.input().open('r') as input_file:
-            df = pd.read_csv(input_file)
-        df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
+        required_raw_columns = ['tweet_id', 'likes', 'retweets', 'replies']
+        try:
+            with self.input().open('r') as input_file:
+                df = pd.read_csv(input_file)
+        except pd.errors.EmptyDataError:
+            df = pd.DataFrame(columns=required_raw_columns)
+        df = df.filter(required_raw_columns)
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
 
