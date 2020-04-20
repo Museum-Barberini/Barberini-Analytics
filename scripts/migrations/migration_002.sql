@@ -1,3 +1,5 @@
+-- Post-hoc declarations of existing tables (!102: Minimal pipeline run)
+
 BEGIN;
 
     DROP TABLE gomus_event;

@@ -1,3 +1,5 @@
+-- Create unions of social media tables (!121)
+
 BEGIN;
 
     CREATE VIEW post AS (
