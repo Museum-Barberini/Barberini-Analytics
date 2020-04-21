@@ -132,7 +132,7 @@ class ExtractTweetPerformance(DataPreparationTask):
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
 
-        df = self.ensure_foreign_keys(df)
+        df, _ = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
