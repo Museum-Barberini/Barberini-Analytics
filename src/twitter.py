@@ -79,15 +79,12 @@ class ExtractTweets(DataPreparationTask):
         yield FetchTwitter()
 
     def run(self):
+
         with self.input()[1].open('r') as input_file:
             df = pd.read_csv(
-                input_file,
-                dtype={
-                    'user_id': str,
-                    'tweet_id': str,
-                    'parent_tweet_id': str
-                    })
-        # pandas would by default store them as int64 or float64
+                input_file, keep_default_na=False)
+            # parent_tweet_id can be empty,
+            # which pandas would turn into NaN by default
         df = df.filter([
             'user_id',
             'tweet_id',
@@ -163,8 +160,18 @@ class FetchTwitter(luigi.Task):
             self.query,
             begindate=dt.date.today() - timespan,
             enddate=dt.date.today() + dt.timedelta(days=1))
-
-        df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+        if tweets:
+            df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+        else:  # no tweets returned, ensure schema
+            df = pd.DataFrame(columns=[
+                'user_id',
+                'tweet_id',
+                'text',
+                'parent_tweet_id',
+                'timestamp',
+                'likes',
+                'retweets',
+                'replies'])
         df = df.drop_duplicates(subset=["tweet_id"])
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
