@@ -112,10 +112,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         bookings, invalid_bookings = self.ensure_foreign_keys(bookings)
         if invalid_bookings is not None and not invalid_bookings.empty:
             # fetch invalid E-Mail addresses anew
-            for booking_id in invalid_bookings['booking_id']:
+            for invalid_booking_id in invalid_bookings['booking_id']:
 
                 # Delegate dynamic dependencies in sub-method
-                new_mail = self.fetch_updated_mail(booking_id)
+                new_mail = self.fetch_updated_mail(invalid_booking_id)
                 for yielded_task in new_mail:
                     yield yielded_task
 
