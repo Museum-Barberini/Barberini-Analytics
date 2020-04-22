@@ -8,7 +8,7 @@ from luigi.contrib.postgres import CopyToTable
 
 logger = logging.getLogger('luigi-interface')
 
-minimal_mode = os.getenv('MINIMAL') == 'True'
+from data_preparation_task import minimal_mode
 
 
 class CsvToDb(CopyToTable):
