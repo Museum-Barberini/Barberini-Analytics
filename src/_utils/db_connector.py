@@ -18,7 +18,7 @@ class DbConnector:
 
     def execute(self, *queries: List[str]) -> None:
         """
-        Execute a query. Use this function when you don't
+        Execute one or multiple queries. Use this function when you don't
         care about the result of the query, e.g. for DELETE.
         """
         list(self._execute_queries(
