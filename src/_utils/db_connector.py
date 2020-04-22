@@ -2,12 +2,14 @@ import logging
 import os
 import psycopg2
 
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, TypeVar
 
 logger = logging.getLogger('luigi-interface')
 
 
 class DbConnector:
+
+    T = TypeVar('T')
 
     def __init__(self, host, user, database, password):
         super().__init__()
@@ -16,12 +18,13 @@ class DbConnector:
         self.database = database
         self.password = password
 
-    def execute(self, *queries: List[str]) -> None:
+    def execute(self, *queries: List[str]) -> List[Tuple]:
         """
-        Execute one or multiple queries. Use this function when you don't
-        care about the result of the query, e.g. for DELETE.
+        Execute one or multiple queries as one atomic operation and returns
+        the results of all queries. If any query fails, all will be reverted
+        and an error will be raised.
         """
-        list(self._execute_queries(
+        return list(self._execute_queries(
             queries=queries,
             result_function=lambda cur: None
         ))
@@ -59,13 +62,14 @@ class DbConnector:
         return result
 
     def _execute_queries(
-            self,
-            queries: List[str],
-            result_function: Callable
-        ) -> None:
+                self,
+                queries: List[str],
+                result_function: Callable[psycopg2.cursor, T]
+            ) -> List[T]:
         """
-        Executes all passed queries as one atomic operation.
-        If any query fails, all will be reverted and an error will be raised.
+        Executes all passed queries as one atomic operation and yields the
+        results of each query. If any query fails, all will be reverted and an
+        error will be raised.
         Note that this is a generator function so the operation will be only
         commited once the generator has been enumerated.
         """
@@ -87,7 +91,9 @@ class DbConnector:
 
     def _execute_query(self, query: str, result_function: Callable) -> None:
         """
-        Note that this is a generator function!
+        Executes the passed query and returns the results.
+        Note that this is a generator function so the operation will be only
+        commited once the generator has been enumerated.
         """
         return self._execute_queries([query], result_function)
 
