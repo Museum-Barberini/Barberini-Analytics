@@ -7,8 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
-from data_preparation_task import minimal_mode
+from data_preparation_task import DataPreparationTask, minimal_mode
 from db_connector import DbConnector
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
