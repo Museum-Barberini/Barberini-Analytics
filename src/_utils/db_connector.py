@@ -59,12 +59,15 @@ class DbConnector:
         return result
 
     def _execute_queries(
-                self,
-                queries: List[str],
-                result_function: Callable
-            ) -> None:
+            self,
+            queries: List[str],
+            result_function: Callable
+        ) -> None:
         """
-        Note that this is a generator function!
+        Executes all passed queries as one atomic operation.
+        If any query fails, all will be reverted and an error will be raised.
+        Note that this is a generator function so the operation will be only
+        commited once the generator has been enumerated.
         """
         conn = psycopg2.connect(
             host=self.host,
