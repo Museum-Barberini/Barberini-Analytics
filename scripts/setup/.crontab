@@ -2,3 +2,7 @@
 */5 * * * * /root/bp-barberini/scripts/running/pull_repo.sh
 0 3 * * * /root/bp-barberini/scripts/running/cron.sh daily
 0 * * * * /root/bp-barberini/scripts/running/cron.sh hourly
+
+0 0 1 * * /root/bp-barberini/scripts/running/backup_db.sh monthly
+0 0 * * 0 /root/bp-barberini/scripts/running/backup_db.sh weekly
+0 0 * * * /root/bp-barberini/scripts/running/backup_db.sh daily
