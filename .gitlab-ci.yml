@@ -1,10 +1,14 @@
 image: docker:latest
 
 build:
+  tags:
+    - barberini
   script:
     - docker build -t test .
 
 test:
+  tags:
+    - barberini
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
@@ -13,11 +17,15 @@ test:
     - make shutdown
 
 lint:
+  tags:
+    - barberini
   script:
     - python3 -m pip install flake8 --user
     - python3 -m flake8 -v --show-source .
 
 coverage:
+  tags:
+    - barberini
   script:
     - container=$(docker ps -f name=gitlab-runner-luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
@@ -28,4 +36,3 @@ coverage:
   artifacts:
     paths: 
       - htmlcov
-

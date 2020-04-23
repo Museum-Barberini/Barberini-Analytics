@@ -1,8 +1,8 @@
 import logging
 import os
-import psycopg2
-
 from typing import Callable, List, Tuple
+
+import psycopg2
 
 logger = logging.getLogger('luigi-interface')
 
