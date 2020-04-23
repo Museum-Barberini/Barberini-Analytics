@@ -229,7 +229,6 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                         self.extract_from_html(
                             article, id_xpath).strip())
 
-                    # /html/body/div[3]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div/div/div[2]/table/tbody[1]/tr[1]/td[1]/a/i
                     new_article["article_type"] = str(
                         article.xpath(
                             'td[1]/div/i/@title|td[1]/a/div/'
