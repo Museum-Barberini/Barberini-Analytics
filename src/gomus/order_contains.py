@@ -8,6 +8,7 @@ class OrderContainsToDB(CsvToDb):
 
     columns = [
         ('article_id', 'INT'),
+        ('article_type', 'TEXT'),
         ('order_id', 'INT'),
         ('ticket', 'TEXT'),
         ('date', 'DATE'),
@@ -16,5 +17,4 @@ class OrderContainsToDB(CsvToDb):
     ]
 
     def requires(self):
-        return ScrapeGomusOrderContains(
-            table=self.table)
+        return ScrapeGomusOrderContains(table=self.table)

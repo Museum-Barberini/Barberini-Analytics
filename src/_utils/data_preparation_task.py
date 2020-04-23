@@ -1,4 +1,6 @@
 import logging
+import sys
+
 import luigi
 
 from db_connector import DbConnector
@@ -12,30 +14,44 @@ class DataPreparationTask(luigi.Task):
         default=None)
 
     def ensure_foreign_keys(self, df):
+        invalid_values = None
+
         if df.empty:
-            return df
+            return df, invalid_values
 
         for foreign_key in self.foreign_keys().items():
             column, (foreign_table, foreign_column) = foreign_key
-            old_count = df[column].count()
+            original_count = df[column].count()
 
             foreign_values = [value for [value] in DbConnector.query(f'''
-                SELECT {foreign_column}
-                FROM {foreign_table}
-            ''')]
+                    SELECT {foreign_column}
+                    FROM {foreign_table}
+                ''')]
 
-            # Remove all rows from the df where the value does not
-            # match any value from the referenced table
-            df = df[df[column].isin(foreign_values)]
+            # Remove all rows from the df where the value does not match any
+            # value from the referenced table
+            filtered_df = df[df[foreign_key].isin(foreign_values)]
 
-            difference = old_count - df[column].count()
-            if difference:
+            invalid_values = df[~df[foreign_key].isin(foreign_values)]
+            if invalid_values:
+                # Find out which values were discarded for potential handling
                 logger.warning(
-                    f"Skipped {difference} out of {old_count} "
-                    f"data sets due to foreign key violation: "
-                    f"{foreign_key}")
+                    f"Skipped {invalid_values.count()} out of "
+                    f"{original_count} data sets due to foreign key "
+                    f" violation: {foreign_key}")
 
-        return df
+                # Only print discarded values if running from a TTY to prevent
+                # potentially sensitive data to be exposed (e.g. by the CI
+                # runner)
+                print(
+                    f"Following values were invalid:\n{invalid_values}"
+                    if sys.stdin.isatty()
+                    else
+                    "Values not printed for privacy reasons")
+
+        # TODO: Refactor this. invalid_values is not stable when there are
+        # multiple foreign keys.
+        return filtered_df, invalid_values
 
     def foreign_keys(self):
         if not self.table:
