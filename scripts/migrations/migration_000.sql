@@ -169,7 +169,8 @@ BEGIN;
         ADD CONSTRAINT order_id_fkey FOREIGN KEY (order_id) REFERENCES gomus_order (order_id);
     -- Added post hoc as part of extraction of foreign keys from the code
     ALTER TABLE gomus_to_customer_mapping
-        ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id);
+        ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id)
+        ON UPDATE CASCADE;
 
 
     CREATE TABLE google_maps_review (
