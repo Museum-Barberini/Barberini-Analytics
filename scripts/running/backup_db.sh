@@ -12,10 +12,11 @@ case $1 in
         INTERVAL='daily'
         ;;
     *)
+        echo "Please specify monthly, weekly or daily"
         exit 1
         ;;
 esac
 BASE_NAME="db_dump_$INTERVAL"
 
-rm "$BACKUP_DIR/$BASE_NAME*"
+rm "$BACKUP_DIR/$BASE_NAME"*
 docker exec db pg_dump -U postgres barberini > "$BACKUP_DIR/$BASE_NAME-`date +%Y-%m-%d`.sql"
