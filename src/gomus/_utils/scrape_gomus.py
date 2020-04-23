@@ -208,8 +208,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 tree_order = html.fromstring(res_order)
 
                 tree_details = tree_order.xpath(
-                    ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
-                     'div/div[2]/div/div/div/div[2]'))[0]
+                     '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
+                     'div/div[2]/div/div/div/div[2]')[0]
 
                 # every other td contains the information of an article in the
                 # order
@@ -229,8 +229,14 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                         self.extract_from_html(
                             article, id_xpath).strip())
 
+                    new_article['article_type'] = str(
+                        article.xpath(
+                            'td[1]/div/i/@title|td[1]/a/div/'
+                            'i/@title|td[1]/a/i/@title'
+                        )[0])
+
                     order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
-                    new_article["order_id"] = order_id
+                    new_article['order_id'] = order_id
 
                     # Workaround for orders like 478531
                     # if td[3] has no child, we have nowhere to find the ticket

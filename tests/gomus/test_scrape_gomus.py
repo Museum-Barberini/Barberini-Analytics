@@ -222,13 +222,14 @@ class TestScrapeOrderContains(unittest.TestCase):
                 actual_row['order_id'])
 
             # test if scraped data is correct
-            hash_str = ','.join([
+            hash_string = ','.join([
                 str(actual_row['article_id']),
+                str(actual_row['article_type']),
                 str(actual_row['ticket']),
                 str(actual_row['date']),
                 str(actual_row['quantity']),
                 str(actual_row['price'])])
-            actual_hash = mmh3.hash(hash_str, seed=self.hash_seed)
+            actual_hash = mmh3.hash(hash_string, seed=self.hash_seed)
             self.assertEqual(
                 actual_hash,
                 expected_row['expected_hash'],
