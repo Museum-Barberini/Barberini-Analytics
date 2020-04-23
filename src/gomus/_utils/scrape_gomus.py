@@ -229,14 +229,14 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                         self.extract_from_html(
                             article, id_xpath).strip())
 
-                    new_article["article_type"] = str(
+                    new_article['article_type'] = str(
                         article.xpath(
                             'td[1]/div/i/@title|td[1]/a/div/'
                             'i/@title|td[1]/a/i/@title'
                         )[0])
 
                     order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
-                    new_article["order_id"] = order_id
+                    new_article['order_id'] = order_id
 
                     # Workaround for orders like 478531
                     # if td[3] has no child, we have nowhere to find the ticket
