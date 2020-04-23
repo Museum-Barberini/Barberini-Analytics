@@ -1,8 +1,8 @@
 import csv
-
 import datetime as dt
-import luigi
 import os
+
+import luigi
 import pandas as pd
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
@@ -105,7 +105,7 @@ class ExtractEventData(DataPreparationTask):
                                                'Storniert',
                                                category)
 
-        self.events_df = self.ensure_foreign_keys(self.events_df)
+        self.events_df, _ = self.ensure_foreign_keys(self.events_df)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)

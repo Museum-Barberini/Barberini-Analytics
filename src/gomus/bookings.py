@@ -1,5 +1,6 @@
-import luigi
 import os
+
+import luigi
 
 from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
