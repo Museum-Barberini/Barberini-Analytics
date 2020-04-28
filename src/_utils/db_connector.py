@@ -64,7 +64,7 @@ class DbConnector:
     def _execute_queries(
                 self,
                 queries: List[str],
-                result_function: Callable[psycopg2.cursor, T]
+                result_function: Callable[psycopg2.extensions.cursor, T]
             ) -> List[T]:
         """
         Executes all passed queries as one atomic operation and yields the
