@@ -156,7 +156,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
 
             # Insert test values
             self.db_connector.execute(
-                'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
+                f'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
                 f'''INSERT INTO gomus_to_customer_mapping VALUES (
                         {gomus_id}, {fake_customer_id})
                     ''')

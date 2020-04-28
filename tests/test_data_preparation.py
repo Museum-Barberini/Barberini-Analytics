@@ -53,5 +53,6 @@ class TestDataPreparationTask(DatabaseTaskTest):
         actual_df, actual_invalid_values = \
             DataPreparationTask().ensure_foreign_keys(df)
 
-        self.assertEqual(expected_df, actual_df)
-        self.assertEqual(expected_invalid_values, actual_invalid_values)
+        pd.testing.assert_frame_equal(expected_df, actual_df)
+        pd.testing.assert_frame_equal(
+            expected_invalid_values, actual_invalid_values)
