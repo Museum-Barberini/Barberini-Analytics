@@ -14,6 +14,9 @@ from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
 
+API_VER = 'v6.0'
+API_BASE = f'https://graph.facebook.com/{API_VER}'
+
 
 class FbPostsToDB(CsvToDb):
 
@@ -84,10 +87,9 @@ class FetchFbPosts(DataPreparationTask):
 
         posts = []
 
-        url = f'https://graph.facebook.com/v6.0/{page_id}/feed'
-        headers = {'Authorization': 'Bearer ' + access_token}
+        url = f'{API_BASE}/{page_id}/feed'
 
-        response = try_request_multiple_times(url, headers=headers)
+        response = try_request_multiple_times(url)
         response.raise_for_status()
 
         response_content = response.json()
@@ -99,7 +101,7 @@ class FetchFbPosts(DataPreparationTask):
         while ('next' in response_content['paging']):
             page_count = page_count + 1
             url = response_content['paging']['next']
-            response = try_request_multiple_times(url, headers=headers)
+            response = try_request_multiple_times(url)
             response.raise_for_status()
 
             response_content = response.json()
@@ -164,7 +166,7 @@ class FetchFbPostPerformance(DataPreparationTask):
                 continue
 
             # print(f"[FB] Loading performance data for post {str(post_id)}")
-            url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
+            url = f'{API_BASE}/{post_id}/insights'
             metrics = [
                 'post_reactions_by_type_total',
                 'post_activity_by_action_type',
@@ -238,9 +240,20 @@ def try_request_multiple_times(url, **kwargs):
     some requests to fail (mainly: to time out), request the api up
     to four times.
     """
+    headers = kwargs.pop('headers', None)
+    if not headers:
+        access_token = os.getenv('FB_ACCESS_TOKEN')
+        if not access_token:
+            raise EnvironmentError("FB Access token is not set")
+        headers = {'Authorization': 'Bearer ' + access_token}
+
     for _ in range(3):
         try:
-            response = requests.get(url, timeout=60, **kwargs)
+            response = requests.get(
+                url,
+                timeout=60,
+                headers=headers,
+                **kwargs)
             response.raise_for_status()
             return response
         except requests.RequestException as e:

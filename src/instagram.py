@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import logging
 import os
@@ -8,7 +9,7 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from facebook import try_request_multiple_times
+from facebook import API_BASE, try_request_multiple_times
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
@@ -39,10 +40,15 @@ class IgPostPerformanceToDB(CsvToDb):
     table = 'ig_post_performance'
 
     columns = [
-        ()
+        ('ig_post_id', 'TEXT'),
+        ('timestamp', 'TIMESTAMP'),
+        ('impressions', 'INT'),
+        ('reach', 'INT'),
+        ('saved', 'INT'),
+        ('video_views', 'INT')
     ]
 
-    primary_key = ('ig_post_id', 'time_stamp')
+    primary_key = ('ig_post_id', 'timestamp')
 
     foreign_keys = [
         {
@@ -51,6 +57,11 @@ class IgPostPerformanceToDB(CsvToDb):
             'target_column': 'ig_post_id'
         }
     ]
+
+    def requires(self):
+        return FetchIgPostPerformance(
+            foreign_keys=self.foreign_keys,
+            columns=[col[0] for col in self.columns])
 
 
 class IgProfileToDB(CsvToDb):
@@ -87,7 +98,6 @@ class FetchIgPosts(DataPreparationTask):
 
         all_media = []
 
-        api_ver = 'v6.0'
         fields = [
             'id',
             'caption',
@@ -100,11 +110,10 @@ class FetchIgPosts(DataPreparationTask):
         fields = ','.join(fields)
         limit = 100  # use limit=100 to keep amount of requests small
 
-        media_url = (f'https://graph.facebook.com/{api_ver}/{page_id}/'
-                     f'media?fields={fields}&limit={limit}')
-        headers = {'Authorization': 'Bearer ' + access_token}
+        media_url = (f'{API_BASE}/{page_id}/media'
+                     f'?fields={fields}&limit={limit}')
 
-        res = try_request_multiple_times(media_url, headers=headers)
+        res = try_request_multiple_times(media_url)
         res_json = res.json()
 
         current_count = len(res_json['data'])
@@ -114,7 +123,7 @@ class FetchIgPosts(DataPreparationTask):
         logger.info("Fetching Instagram posts ...")
         while 'next' in res_json['paging']:
             next_url = res_json['paging']['next']
-            res = try_request_multiple_times(next_url, headers=headers)
+            res = try_request_multiple_times(next_url)
             res_json = res.json()
 
             current_count += len(res_json['data'])
@@ -138,16 +147,79 @@ class FetchIgPosts(DataPreparationTask):
 
 
 class FetchIgPostPerformance(DataPreparationTask):
+    columns = luigi.parameter.ListParameter(description="Column names")
+
+    def _requires(self):
+        return luigi.task.flatten([
+            IgPostsToDB(),
+            super()._requires()
+        ])
+
     def requires(self):
-        return MuseumFacts()
+        return FetchIgPosts()
 
     def output(self):
         return luigi.LocalTarget(
-            'output/instagram/ig_media_performance.csv',
+            'output/instagram/ig_post_performance.csv',
             format=UTF8)
 
     def run(self):
-        raise NotImplementedError
+        with self.input().open('r') as input_file:
+            post_df = pd.read_csv(input_file)
+
+        generic_metrics = [
+            'impressions',
+            'reach',
+            'saved'
+        ]
+
+        performance_df = pd.DataFrame(columns=self.columns)
+
+        for i, row in post_df.iterrows():
+            metrics = ','.join(generic_metrics)
+
+            # Fetch only insights for less than 2 months old posts
+            post_time = dt.datetime.strptime(
+                row['timestamp'],
+                '%Y-%m-%dT%H:%M:%S+%f')
+            if post_time.date() < dt.date.today() - dt.timedelta(days=60):
+                break
+
+            print(
+                f"\rFetched instagram post from {post_time}",
+                end='',
+                flush=True)
+
+            if row['media_type'] == 'VIDEO':
+                metrics += ',video_views'  # causes error if used on non-video
+
+            url = f'{API_BASE}/{row["id"]}/insights?metric={metrics}'
+
+            res = try_request_multiple_times(url)
+            res_data = res.json()['data']
+
+            impressions = res_data[0]['values'][0]['value']
+            reach = res_data[1]['values'][0]['value']
+            saved = res_data[2]['values'][0]['value']
+
+            if row['media_type'] == 'VIDEO':
+                video_views = res_data[3]['values'][0]['value']
+            else:
+                video_views = 0  # for non-video media/posts
+
+            performance_df.loc[i] = [
+                row['id'],
+                post_time,
+                impressions,
+                reach,
+                saved,
+                video_views
+            ]
+
+        performance_df, _ = self.ensure_foreign_keys(performance_df)
+
+        with self.output().open('w') as output_file:
+            performance_df.to_csv(output_file, index=False, header=True)
 
 
 class FetchIgProfile(DataPreparationTask):

@@ -13,4 +13,20 @@ CREATE TABLE ig_post (
 ALTER TABLE ig_post
     ADD CONSTRAINT ig_post_primkey PRIMARY KEY (ig_post_id);
 
+CREATE TABLE ig_post_performance (
+    ig_post_id TEXT,
+    timestamp TIMESTAMP,
+    impressions INT,
+    reach INT,
+    saved INT,
+    video_views INT
+);
+
+ALTER TABLE ig_post_performance
+    ADD CONSTRAINT ig_post_performance_primkey PRIMARY KEY (ig_post_id, timestamp);
+
+ALTER TABLE ig_post_performance
+    ADD CONSTRAINT ig_post_id_fkey FOREIGN KEY (ig_post_id) REFERENCES ig_post (ig_post_id)
+    ON UPDATE CASCADE;
+
 COMMIT;
