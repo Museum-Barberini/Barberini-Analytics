@@ -51,16 +51,6 @@ class TestDbConnector(DatabaseTaskTest):
         res = self.connector.query(f'SELECT * FROM {self.temp_table}')
         self.assertEqual(res, [(1, 2), (3, 4)])
 
-    def test_query_multiple(self):
-
-        res = self.connector.query(
-            f'SELECT * FROM {self.temp_table}',
-            f'SELECT COUNT(*) from {self.temp_table}')
-        self.assertCountEqual(res, [
-            [(1, 2), (3, 4)],
-            [(2,)]
-        ])
-
     def test_execute(self):
 
         self.connector.execute(f'''
