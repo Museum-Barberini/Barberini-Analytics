@@ -83,7 +83,8 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
             FetchGomusHTML(url='test2')])
 
         # -- execute code under test --
-        run = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS).run()
+        self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+        run = self.task.run()
         for yielded_task in run:
             self.assertIsInstance(yielded_task, FetchGomusHTML)
 
@@ -162,8 +163,8 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
                     ''')
 
             # Run fetch_updated_mail
-            fetch_mail = EnhanceBookingsWithScraper() \
-                .fetch_updated_mail(booking_id)
+            self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+            fetch_mail = self.task().fetch_updated_mail(booking_id)
             for html_task in fetch_mail:
                 html_task.run()
 
