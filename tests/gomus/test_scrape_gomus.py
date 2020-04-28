@@ -169,7 +169,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
 
             # Check DB values
             new_id = self.db_connector.query(
-                '''
+                f'''
                     SELECT customer_id
                     FROM gomus_to_customer_mapping
                     WHERE gomus_id = {gomus_id}
