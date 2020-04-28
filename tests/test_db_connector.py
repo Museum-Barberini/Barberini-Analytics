@@ -21,6 +21,7 @@ class TestDbConnector(DatabaseTaskTest):
     def tearDown(self):
         self.db.connection.set_isolation_level(0)
         self.db.commit(f'DROP TABLE {self.temp_table}')
+        self.connection.close()
         super().tearDown()
 
     def test_query(self):
