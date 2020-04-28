@@ -51,6 +51,16 @@ class TestDbConnector(DatabaseTaskTest):
         res = self.connector.query(f'SELECT * FROM {self.temp_table}')
         self.assertEqual(res, [(1, 2), (3, 4)])
 
+    def test_query_multiple(self):
+
+        res = self.connector.query(
+            f'SELECT * FROM {self.temp_table}',
+            f'SELECT COUNT(*) from {self.temp_table}')
+        self.assertCountEqual(res, [
+            [(1, 2), (3, 4)],
+            [(2,)]
+        ])
+
     def test_execute(self):
 
         self.connector.execute(f'''
@@ -64,6 +74,25 @@ class TestDbConnector(DatabaseTaskTest):
                 table_content = cur.fetchall()
 
         self.assertEqual(table_content, [(3, 4)])
+
+    def test_execute_multiple(self):
+
+        self.connector.execute(
+            f'''
+                DELETE FROM {self.temp_table}
+                WHERE col1 = 1
+            ''',
+            f'''
+                DELETE FROM {self.temp_table}
+                WHERE col1 = 3
+            ''')
+
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'SELECT * FROM {self.temp_table}')
+                table_content = cur.fetchall()
+
+        self.assertFalse(table_content)  # empty
 
     def test_exists_case_not_empty(self):
 
