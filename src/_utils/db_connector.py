@@ -87,7 +87,7 @@ class DbConnector:
                         cur.execute(query)
                         yield result_function(cur)
         finally:
-            conn.commit()
+            conn.close()
 
     def _execute_query(self, query: str, result_function: Callable) -> None:
         """
