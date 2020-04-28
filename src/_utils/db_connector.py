@@ -4,8 +4,6 @@ import psycopg2
 
 from typing import Callable, List, Tuple, TypeVar
 
-import psycopg2
-
 logger = logging.getLogger('luigi-interface')
 
 
