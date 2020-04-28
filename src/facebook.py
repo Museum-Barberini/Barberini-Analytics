@@ -244,7 +244,7 @@ def try_request_multiple_times(url, **kwargs):
             response.raise_for_status()
             return response
         except requests.RequestException as e:
-            print(
+            logger.error(
                 "An Error occured requesting the Facebook api.\n"
                 "Trying to request the api again.\n"
                 f"error message: {e}"
