@@ -1,5 +1,4 @@
 import sys
-import unittest
 from unittest.mock import patch
 
 import mmh3
@@ -11,10 +10,11 @@ from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchGomusHTML
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
                                        ScrapeGomusOrderContains)
+from task_test import DatabaseTaskTest
 from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
-class TestEnhanceBookingsWithScraper(unittest.TestCase):
+class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
     '''
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
@@ -184,7 +184,7 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
                 'DROP TABLE gomus_customer')
 
 
-class TestScrapeOrderContains(unittest.TestCase):
+class TestScrapeOrderContains(DatabaseTaskTest):
 
     hash_seed = 666
 

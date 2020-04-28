@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -22,7 +21,7 @@ XML_FRAME = '''<?xml version="1.0" encoding="utf-8"?>
 XML_EMPTY_FRAME = XML_FRAME % ''
 
 
-class TestFetchAppleReviews(unittest.TestCase):
+class TestFetchAppleReviews(DatabaseTaskTest):
 
     def setUp(self):
         super().setUp()
