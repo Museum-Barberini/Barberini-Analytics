@@ -25,7 +25,7 @@ class TextFetchTwitter(DatabaseTaskTest):
         class MockDate(dt.date):
             @classmethod
             def today(cls):
-                # on this day or team's account had sent a related tweet
+                # on this day our team's account had sent a related tweet
                 return cls(2020, 2, 6)
 
         tmp_date = dt.date
@@ -69,12 +69,41 @@ class TestExtractTweets(DatabaseTaskTest):
                 encoding='utf-8') as data_out:
             extracted_tweets = data_out.read()
 
-        user_id = '42'
+        user_id = 10000000
 
         self.install_mock_target(
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))
         user_id_mock.return_value = user_id
+
+        task = ExtractTweets()
+        task.run()
+
+        with output_target.open('r') as output_file:
+            output = output_file.read()
+        self.assertEqual(output, extracted_tweets)
+
+    @patch.object(FetchTwitter, 'output')
+    @patch.object(ExtractTweets, 'output')
+    def test_extract_empty_tweets(self, output_mock, raw_tweets_mock):
+        output_target = MockTarget('extracted_out', format=UTF8)
+        output_mock.return_value = output_target
+
+        with open(
+                'tests/test_data/twitter/empty_raw_tweets.csv',
+                'r',
+                encoding='utf-8') as data_in:
+            raw_tweets = data_in.read()
+
+        with open(
+                'tests/test_data/twitter/empty_extracted_tweets.csv',
+                'r',
+                encoding='utf-8') as data_out:
+            extracted_tweets = data_out.read()
+
+        self.install_mock_target(
+            raw_tweets_mock,
+            lambda file: file.write(raw_tweets))
 
         task = ExtractTweets()
         task.run()
@@ -117,7 +146,35 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             output.split('\n')[0],
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
-            self.assertEqual(
-                output.split('\n')[i][0:11],
-                extracted_performance.split('\n')[i][0:11])
-            # cutting away the timestamp
+            self.assertEqual(   # cutting away the timestamp
+                output.split('\n')[i].split(';')[:-1],
+                extracted_performance.split('\n')[i].split(';')[:-1])
+
+    @patch.object(FetchTwitter, 'output')
+    @patch.object(ExtractTweetPerformance, 'output')
+    def test_empty_tweet_performance(self, output_mock, raw_tweets_mock):
+        output_target = MockTarget('perform_extracted_out', format=UTF8)
+        output_mock.return_value = output_target
+
+        with open(
+                'tests/test_data/twitter/empty_raw_tweets.csv',
+                'r',
+                encoding='utf-8') as data_in:
+            raw_tweets = data_in.read()
+
+        with open(
+                'tests/test_data/twitter/empty_tweet_performance.csv',
+                'r',
+                encoding='utf-8') as data_out:
+            extracted_performance = data_out.read()
+
+        self.install_mock_target(
+            raw_tweets_mock,
+            lambda file: file.write(raw_tweets))
+
+        task = ExtractTweetPerformance()
+        task.run()
+
+        with output_target.open('r') as output_file:
+            output = output_file.read()
+        self.assertEqual(output, extracted_performance)

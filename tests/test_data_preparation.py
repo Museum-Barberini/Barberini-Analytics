@@ -14,7 +14,6 @@ class TestDataPreparationTask(DatabaseTaskTest):
     def tearDown(self):
         for table in self.created_tables:
             self.db_connector.execute(f'DROP TABLE {table}')
-        self.created_tables = []
         super().tearDown()
 
     @patch.object(
@@ -41,9 +40,18 @@ class TestDataPreparationTask(DatabaseTaskTest):
 
         df = pd.DataFrame([[0], [1]], columns=[test_column])
 
-        # Expected behavior: 1 is removed because it is not found in the DB
-        expected_df = pd.DataFrame([[0]], columns=[test_column])
+        # Expected behaviour: 1 is removed because it is not found in the DB
+        expected_df = pd.DataFrame(
+            [[0]],
+            columns=[test_column],
+            index=[0])
+        expected_invalid_values = pd.DataFrame(
+            [[1]],
+            columns=[test_column],
+            index=[1])
 
-        result_df = DataPreparationTask().ensure_foreign_keys(df)
+        actual_df, actual_invalid_values = \
+            DataPreparationTask().ensure_foreign_keys(df)
 
-        self.assertTrue(expected_df.equals(result_df))
+        self.assertEqual(expected_df, actual_df)
+        self.assertEqual(expected_invalid_values, actual_invalid_values)
