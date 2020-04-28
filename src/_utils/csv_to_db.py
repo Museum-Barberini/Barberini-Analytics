@@ -1,10 +1,12 @@
 import datetime as dt
+import logging
+import os
 
 import luigi
 import psycopg2
 from luigi.contrib.postgres import CopyToTable
 
-from set_db_connection_options import set_db_connection_options
+logger = logging.getLogger('luigi-interface')
 
 
 class CsvToDb(CopyToTable):
@@ -19,8 +21,11 @@ class CsvToDb(CopyToTable):
     def primary_key(self):
         raise NotImplementedError
 
-    sql_file_path_pattern = luigi.Parameter(
-        default='src/_utils/sql_scripts/{0}.sql')
+    @property
+    def foreign_keys(self):
+        # Default: no foreign key definitions
+        return []
+
     schema_only = luigi.BoolParameter(
         default=False,
         description=("If True, the table will be only created "
@@ -31,22 +36,22 @@ class CsvToDb(CopyToTable):
     dummy_date = luigi.FloatParameter(
         default=dt.datetime.timestamp(dt.datetime.now()))
 
-    # These attributes are set in __init__. They need to be defined
-    # here because they are abstract methods in CopyToTable.
-    host = None
-    database = None
-    user = None
-    password = None
+    # Set db connection parameters using env vars
+    host = os.environ['POSTGRES_HOST']
+    database = os.environ['POSTGRES_DB']
+    user = os.environ['POSTGRES_USER']
+    password = os.environ['POSTGRES_PASSWORD']
 
     # override the default column separator (tab)
     column_separator = ','
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
         if self.schema_only:
             self.requires = lambda: []
         self.seed = 666
+
+        self.sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
     def init_copy(self, connection):
         if not self.check_existence(connection):
@@ -75,8 +80,9 @@ class CsvToDb(CopyToTable):
 
     def create_table(self, connection):
         super().create_table(connection)
-        print("INFO: Create table " + self.table)
+        logger.info("Create table " + self.table)
         self.create_primary_key(connection)
+        self.create_foreign_key(connection)
 
     def create_primary_key(self, connection):
         connection.cursor().execute(
@@ -86,6 +92,18 @@ class CsvToDb(CopyToTable):
                 self.tuple_like_string(self.primary_key)
             )
         )
+
+    def create_foreign_key(self, connection):
+        for key in self.foreign_keys:
+            connection.cursor().execute(
+                self.load_sql_script(
+                    'set_foreign_key',
+                    self.table,
+                    key['origin_column'],
+                    key['target_table'],
+                    key['target_column']
+                )
+            )
 
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:

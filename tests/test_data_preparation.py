@@ -1,0 +1,59 @@
+import unittest
+from unittest.mock import patch, PropertyMock
+
+import pandas as pd
+
+from data_preparation_task import DataPreparationTask
+from db_connector import DbConnector
+
+
+class TestDataPreparationTask(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.created_tables = []
+
+    def tearDown(self):
+        for table in self.created_tables:
+            DbConnector.execute(query=f'DROP TABLE {table}')
+        self.created_tables = []
+
+    @patch.object(
+        DataPreparationTask,
+        'foreign_keys',
+        new_callable=PropertyMock)
+    def test_ensure_foreign_keys(self, fkeys_mock):
+        test_table = 'test_table'
+        test_column = 'test_column'
+
+        DbConnector.execute(
+            query=f'CREATE TABLE {test_table} ({test_column} INT)')
+        DbConnector.execute(
+            query=f'INSERT INTO {test_table} VALUES (0)')
+
+        self.created_tables.append(test_table)
+
+        fkeys_mock.return_value = [
+            {
+                'origin_column': f'{test_column}',
+                'target_table': f'{test_table}',
+                'target_column': f'{test_column}'
+            }
+        ]
+
+        df = pd.DataFrame([[0], [1]], columns=[test_column])
+
+        # Expected behaviour: 1 is removed because it is not found in the DB
+        expected_df = pd.DataFrame(
+            [[0]],
+            columns=[test_column],
+            index=[0])
+        expected_invalid_values = pd.DataFrame(
+            [[1]],
+            columns=[test_column],
+            index=[1])
+
+        actual_df, actual_invalid_values = \
+            DataPreparationTask().ensure_foreign_keys(df)
+
+        self.assertTrue(expected_df.equals(actual_df))
+        self.assertTrue(expected_invalid_values.equals(actual_invalid_values))
