@@ -78,8 +78,6 @@ class TestCsvToDb(DatabaseTaskTest):
             dummy_date=mmh3.hash(self.table_name, 666))
 
     def tearDown(self):
-        # TODO: Do we need this? Tests do pass without it.
-        #self.db_connector.connection.set_isolation_level(0)
         self.db_connector.execute(f'DROP TABLE {self.table_name};')
 
         super().tearDown()
