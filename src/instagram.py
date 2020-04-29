@@ -65,17 +65,35 @@ class IgPostPerformanceToDB(CsvToDb):
             columns=[col[0] for col in self.columns])
 
 
-class IgProfileToDB(CsvToDb):
-    table = 'ig_profile_metrics'
+class IgAudienceOriginToDB(CsvToDb):
+    table = 'ig_audience_origin'
 
     columns = [
-        ()
+        ('city', 'TEXT'),
+        ('amount', 'INT')
     ]
 
-    primary_key = 'timestamp'
+    primary_key = 'city'
 
     def requires(self):
-        return FetchIgProfile()
+        return FetchIgAudienceOrigin(
+            columns=[col[0] for col in self.columns])
+
+
+class IgAudienceGenderAgeToDB(CsvToDb):
+    table = 'ig_audience_gender_age'
+
+    columns = [
+        ('gender', 'TEXT'),
+        ('age', 'TEXT'),
+        ('amount', 'INT')
+    ]
+
+    primary_key = ('gender', 'age')
+
+    def requires(self):
+        return FetchIgAudienceGenderAge(
+            columns=[col[0] for col in self.columns])
 
 # =============== DataPreparation Tasks ===============
 
@@ -227,14 +245,80 @@ class FetchIgPostPerformance(DataPreparationTask):
             performance_df.to_csv(output_file, index=False, header=True)
 
 
-class FetchIgProfile(DataPreparationTask):
+class FetchIgAudienceOrigin(DataPreparationTask):
+    columns = luigi.parameter.ListParameter(description="Column names")
+
     def requires(self):
         return MuseumFacts()
 
     def output(self):
         return luigi.LocalTarget(
-            'output/instagram/ig_profile.csv',
+            'output/instagram/ig_audience_origin.csv',
             format=UTF8)
 
     def run(self):
-        raise NotImplementedError
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+        page_id = facts['ids']['instagram']['pageId']
+
+        df = pd.DataFrame(columns=self.columns)
+        values = get_profile_metric(page_id, 'audience_city')
+        i = 0
+
+        for city, amount in values.items():
+            df.loc[i] = [
+                city,
+                amount
+            ]
+            i += 1
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+
+class FetchIgAudienceGenderAge(DataPreparationTask):
+    columns = luigi.parameter.ListParameter(description="Column names")
+
+    def requires(self):
+        return MuseumFacts()
+
+    def output(self):
+        return luigi.LocalTarget(
+            'output/instagram/ig_audience_gender_age.csv',
+            format=UTF8)
+
+    def run(self):
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+        page_id = facts['ids']['instagram']['pageId']
+
+        df = pd.DataFrame(columns=self.columns)
+        values = get_profile_metric(page_id, 'audience_gender_age')
+        i = 0
+
+        for gender_age, amount in values.items():
+            gender, age = gender_age.split('.')
+            df.loc[i] = [
+                gender,
+                age,
+                amount
+            ]
+            i += 1
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+# =============== Utilities ===============
+
+
+def get_profile_metric(page_id, metric, period='lifetime'):
+    url = f'{API_BASE}/{page_id}/insights?metric={metric}&period={period}'
+    res = try_request_multiple_times(url)
+    return res.json()['data'][0]['values'][0]['value']
+
+
+class IgToDBWrapper(luigi.WrapperTask):
+    def requires(self):
+        yield IgPostsToDB()
+        yield IgAudienceGenderAgeToDB()
+        yield IgAudienceOriginToDB()
