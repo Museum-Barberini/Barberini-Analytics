@@ -185,17 +185,11 @@ class FetchIgPostPerformance(DataPreparationTask):
             post_time = dt.datetime.strptime(
                 row['timestamp'],
                 '%Y-%m-%dT%H:%M:%S+%f')
-            today = dt.date.today()
-            two_years_ago = dt.date(
-                year=today.year - 2,
-                month=today.month,
-                day=today.day)
-            # dirty, does not always work, good enough for using once
-            if post_time.date() < two_years_ago:
+            if post_time.date() < dt.date.today() - dt.timedelta(days=60):
                 break
 
             print(
-                f"\rFetched instagram post from {post_time}",
+                f"\rFetched insight for instagram post from {post_time}",
                 end='',
                 flush=True)
 
