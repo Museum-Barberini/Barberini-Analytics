@@ -17,6 +17,7 @@ from gomus._utils.fetch_report import FetchEventReservations
 from task_test import DatabaseHelper
 
 
+# TODO: Don't reinvent the wheel, inherit from DatabaseTaskTest!
 class GomusTransformationTest(unittest.TestCase):
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -146,6 +147,7 @@ class TestOrderTransformation(GomusTransformationTest):
 
     # Provide mock customer IDs to be found by querying
     def setUp(self):
+        super().setUp()
         self.db_helper.setUp()
         self.db_helper.commit(
             ('CREATE TABLE gomus_to_customer_mapping '
@@ -154,10 +156,13 @@ class TestOrderTransformation(GomusTransformationTest):
         )
 
     def tearDown(self):
-        self.db_helper.commit(
-            'DROP TABLE gomus_to_customer_mapping'
-        )
-        self.db_helper.tearDown()
+        try:
+            self.db_helper.commit(
+                'DROP TABLE gomus_to_customer_mapping'
+            )
+        finally:
+            self.db_helper.tearDown()
+            super().tearDown()
 
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')

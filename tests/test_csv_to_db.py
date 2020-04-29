@@ -69,12 +69,11 @@ class TestCsvToDb(DatabaseTaskTest):
 
     def tearDown(self):
 
-        self.db.connection.set_isolation_level(0)
-        self.db.commit(f"DROP TABLE {self.table_name};")
-        # Make absolutely sure that each test gets fresh params
-        self.table_name = None
-        self.dummy = None
-        super().tearDown()
+        try:
+            self.db.connection.set_isolation_level(0)
+            self.db.commit(f"DROP TABLE {self.table_name};")
+        finally:
+            super().tearDown()
 
     def test_adding_data_to_database_new_table(self):
 

@@ -87,10 +87,12 @@ class DatabaseTaskTest(unittest.TestCase):
         self.dirty_file_paths = []
 
     def tearDown(self):
-        self.db.tearDown()
-        for file in self.dirty_file_paths:
-            os.remove(file)
-        super().tearDown()
+        try:
+            self.db.tearDown()
+            for file in self.dirty_file_paths:
+                os.remove(file)
+        finally:
+            super().tearDown()
 
     def isolate(self, task):
         task.complete = True

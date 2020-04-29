@@ -15,9 +15,11 @@ class TestDataPreparationTask(DatabaseTaskTest):
     created_tables = []
 
     def tearDown(self):
-        for table in self.created_tables:
-            DbConnector.execute(query=f'DROP TABLE {table}')
-        self.created_tables = []
+        try:
+            for table in self.created_tables:
+                DbConnector.execute(query=f'DROP TABLE {table}')
+        finally:
+            super().tearDown()
 
     @patch.object(DataPreparationTask, 'table', new_callable=PropertyMock)
     def test_ensure_foreign_keys(self, table_name_mock):
