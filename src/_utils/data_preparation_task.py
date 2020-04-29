@@ -23,6 +23,9 @@ class DataPreparationTask(luigi.Task):
                         [pd.DataFrame, Tuple[str, str], pd.DataFrame], None
                     ] = None
             ) -> pd.DataFrame:
+        """
+        Note that this currently only works with lower case identifiers.
+        """
         if not invalid_values_handler:
             def log_invalid_values(
                     invalid_values, foreign_key, original_values):
@@ -54,7 +57,7 @@ class DataPreparationTask(luigi.Task):
             # value from the referenced table
             filtered_df = df[df[column].isin(foreign_values)]
             invalid_values = df[~df[column].isin(foreign_values)]
-            if invalid_values:
+            if not invalid_values.empty:
                 invalid_values_handler(invalid_values, foreign_key, df)
 
             return filtered_df
