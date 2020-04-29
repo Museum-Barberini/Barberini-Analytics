@@ -210,10 +210,10 @@ class FetchFbPostPerformance(DataPreparationTask):
                 response_content['data'][4]['values'][0]['value']
 
             performances.append(post_perf)
-
-        df, _ = self.ensure_foreign_keys(df)
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
+
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([perf for perf in performances])

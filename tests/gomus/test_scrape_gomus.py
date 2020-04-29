@@ -77,7 +77,10 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         # Also test that fetch_updated_mail would be called for non-empty
         # invalid_values (actual functionality tested elsewhere)
         invalid_values = pd.DataFrame([0], columns=['booking_id'])
-        foreign_key_mock.side_effect = lambda x: (x, invalid_values)
+        def mocked_foreign_key(x, y):
+            y(invalid_values, None, None)
+            return x  # TODO: Change DB instead?
+        foreign_key_mock.side_effect = mocked_foreign_key
 
         new_mail_mock.return_value = iter([
             FetchGomusHTML(url='test1'),

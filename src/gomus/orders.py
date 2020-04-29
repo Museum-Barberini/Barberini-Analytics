@@ -82,7 +82,7 @@ class ExtractOrderData(DataPreparationTask):
                 self.parse_boolean,
                 args=("bezahlt",))
 
-            df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)

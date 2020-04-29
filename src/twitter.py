@@ -111,11 +111,11 @@ class ExtractTweetPerformance(DataPreparationTask):
     def run(self):
         with self.input().open('r') as input_file:
             df = pd.read_csv(input_file)
+
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
-
-        df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

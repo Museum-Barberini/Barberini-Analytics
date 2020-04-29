@@ -78,7 +78,6 @@ class TestCsvToDb(DatabaseTaskTest):
 
     def test_adding_data_to_database_new_table(self):
 
-        import pdb; pdb.set_trace()  # TODO: db not closed here???
         self.dummy.run()
         actual_data = self.db.request(f"select * from {self.table_name};")
         self.assertEqual(actual_data, expected_data)
@@ -104,7 +103,6 @@ class TestCsvToDb(DatabaseTaskTest):
 
     def test_no_duplicates_are_inserted(self):
 
-        import pdb; pdb.set_trace()  # TODO: db already in use???
         # ----- Set up database -----
         self.db.commit(
             f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",

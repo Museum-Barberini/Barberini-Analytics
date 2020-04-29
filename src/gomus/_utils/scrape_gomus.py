@@ -109,15 +109,22 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     bookings.loc[i, 'customer_id'] = 0
 
-        bookings, invalid_bookings = self.ensure_foreign_keys(bookings)
-        if invalid_bookings is not None and not invalid_bookings.empty:
-            # fetch invalid E-Mail addresses anew
-            for invalid_booking_id in invalid_bookings['booking_id']:
+        all_invalid_bookings = None
 
-                # Delegate dynamic dependencies in sub-method
-                new_mail = self.fetch_updated_mail(invalid_booking_id)
-                for yielded_task in new_mail:
-                    yield yielded_task
+        def handle_invalid_bookings(invalid_bookings, _, __):
+            nonlocal all_invalid_bookings
+            if all_invalid_bookings is None:
+                all_invalid_bookings = invalid_bookings.copy()
+            else:
+                all_invalid_bookings.append(invalid_bookings)
+
+        bookings = self.ensure_foreign_keys(bookings, handle_invalid_bookings)
+        # fetch invalid E-Mail addresses anew
+        for invalid_booking_id in all_invalid_bookings['booking_id']:
+            # Delegate dynamic dependencies in sub-method
+            new_mail = self.fetch_updated_mail(invalid_booking_id)
+            for yielded_task in new_mail:
+                yield yielded_task
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -275,8 +282,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
-
-        df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

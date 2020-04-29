@@ -1,5 +1,8 @@
 import logging
+import pandas as pd
 import sys
+from functools import reduce
+from typing import Callable, Dict, Tuple
 
 import luigi
 
@@ -13,15 +16,34 @@ class DataPreparationTask(luigi.Task):
         description="The name of the table the data should be prepared for",
         default=None)
 
-    def ensure_foreign_keys(self, df):
-        invalid_values = None
+    def ensure_foreign_keys(
+                self,
+                df: pd.DataFrame,
+                invalid_values_handler: Callable[
+                        [pd.DataFrame, Tuple[str, str], pd.DataFrame], None
+                    ] = None
+            ) -> pd.DataFrame:
+        if not invalid_values_handler:
+            def log_invalid_values(
+                    invalid_values, foreign_key, original_values):
+                column, _ = foreign_key
+                original_count = df[column].count()
+                logger.warning(
+                    f"Skipped {invalid_values.count()} out of "
+                    f"{original_count} data sets due to foreign key "
+                    f" violation: {foreign_key}")
+                print(
+                    f"Following values were invalid:\n{invalid_values}"
+                    if sys.stdin.isatty()
+                    else
+                    "Values not printed for privacy reasons")
+            return self.ensure_foreign_keys(df, log_invalid_values)
 
         if df.empty:
-            return df, invalid_values
+            return df  # optimization
 
-        for foreign_key in self.foreign_keys().items():
+        def filter_invalid_values(df, foreign_key):
             column, (foreign_table, foreign_column) = foreign_key
-            original_count = df[column].count()
 
             foreign_values = [value for [value] in DbConnector.query(f'''
                     SELECT {foreign_column}
@@ -30,30 +52,16 @@ class DataPreparationTask(luigi.Task):
 
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
-            filtered_df = df[df[foreign_key].isin(foreign_values)]
-
-            invalid_values = df[~df[foreign_key].isin(foreign_values)]
+            filtered_df = df[df[column].isin(foreign_values)]
+            invalid_values = df[~df[column].isin(foreign_values)]
             if invalid_values:
-                # Find out which values were discarded for potential handling
-                logger.warning(
-                    f"Skipped {invalid_values.count()} out of "
-                    f"{original_count} data sets due to foreign key "
-                    f" violation: {foreign_key}")
+                invalid_values_handler(invalid_values, foreign_key, df)
 
-                # Only print discarded values if running from a TTY to prevent
-                # potentially sensitive data to be exposed (e.g. by the CI
-                # runner)
-                print(
-                    f"Following values were invalid:\n{invalid_values}"
-                    if sys.stdin.isatty()
-                    else
-                    "Values not printed for privacy reasons")
+            return filtered_df
 
-        # TODO: Refactor this. invalid_values is not stable when there are
-        # multiple foreign keys.
-        return filtered_df, invalid_values
+        return reduce(filter_invalid_values, self.foreign_keys().items(), df)
 
-    def foreign_keys(self):
+    def foreign_keys(self) -> Dict[str, Tuple[str, str]]:
         if not self.table:
             return {}
 
