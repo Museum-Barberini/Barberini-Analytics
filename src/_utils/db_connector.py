@@ -6,10 +6,10 @@ from typing import Callable, List, Tuple, TypeVar
 
 logger = logging.getLogger('luigi-interface')
 
+T = TypeVar('T')
+
 
 class DbConnector:
-
-    T = TypeVar('T')
 
     def __init__(self, host, user, database, password):
         super().__init__()
