@@ -71,7 +71,7 @@ class TestCsvToDb(DatabaseTaskTest):
 
         try:
             self.db.connection.set_isolation_level(0)
-            self.db.commit(f"DROP TABLE {self.table_name};")
+            self.db.commit(f"DROP TABLE IF EXISTS {self.table_name};")
         finally:
             super().tearDown()
 
