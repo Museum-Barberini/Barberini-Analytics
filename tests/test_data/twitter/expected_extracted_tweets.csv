@@ -1,4 +1,4 @@
 user_id,tweet_id,text,response_to,post_date,is_from_barberini
-42,1337,Welcome to the exhibition!,,2020-01-01 23:59:59,True
-43,9999,I am so excited!,1337,2020-01-02 00:00:00,False
-44,8888,Im Müseüms-cäfe hätte ich ein köstliches Grießklößchensüppchenschälchen,,2020-01-03 14:00:00,False
+10000000,1234567890123456789,Welcome to the exhibition!,,2020-01-01 23:59:59,True
+20000000,111111111111111111,I am so excited!,1234567890123456789,2020-01-02 00:00:00,False
+30000000,2222222222222222222,Im Müseüms-cäfe hätte ich ein köstliches Grießklößchensüppchenschälchen,,2020-01-03 14:00:00,False
