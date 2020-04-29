@@ -3,7 +3,7 @@ BEGIN;
 CREATE TABLE ig_post (
     ig_post_id TEXT,
     caption TEXT,
-    timestamp TIMESTAMP,
+    post_time TIMESTAMP,
     media_type TEXT,
     like_count INT,
     comments_count INT,
@@ -18,6 +18,7 @@ CREATE TABLE ig_post_performance (
     timestamp TIMESTAMP,
     impressions INT,
     reach INT,
+    engagement INT,
     saved INT,
     video_views INT
 );

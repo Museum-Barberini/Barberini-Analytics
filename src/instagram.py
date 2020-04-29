@@ -23,7 +23,7 @@ class IgPostsToDB(CsvToDb):
     columns = [
         ('ig_post_id', 'TEXT'),
         ('caption', 'TEXT'),
-        ('timestamp', 'TIMESTAMP'),
+        ('post_time', 'TIMESTAMP'),
         ('media_type', 'TEXT'),
         ('like_count', 'INT'),
         ('comments_count', 'INT'),
@@ -44,6 +44,7 @@ class IgPostPerformanceToDB(CsvToDb):
         ('timestamp', 'TIMESTAMP'),
         ('impressions', 'INT'),
         ('reach', 'INT'),
+        ('engagement', 'INT'),
         ('saved', 'INT'),
         ('video_views', 'INT')
     ]
@@ -170,11 +171,13 @@ class FetchIgPostPerformance(DataPreparationTask):
         generic_metrics = [
             'impressions',
             'reach',
+            'engagement',
             'saved'
         ]
 
         performance_df = pd.DataFrame(columns=self.columns)
 
+        fetch_time = dt.datetime.now()
         for i, row in post_df.iterrows():
             metrics = ','.join(generic_metrics)
 
@@ -182,7 +185,13 @@ class FetchIgPostPerformance(DataPreparationTask):
             post_time = dt.datetime.strptime(
                 row['timestamp'],
                 '%Y-%m-%dT%H:%M:%S+%f')
-            if post_time.date() < dt.date.today() - dt.timedelta(days=60):
+            today = dt.date.today()
+            two_years_ago = dt.date(
+                year=today.year - 2,
+                month=today.month,
+                day=today.day)
+            # dirty, does not always work, good enough for using once
+            if post_time.date() < two_years_ago:
                 break
 
             print(
@@ -200,18 +209,20 @@ class FetchIgPostPerformance(DataPreparationTask):
 
             impressions = res_data[0]['values'][0]['value']
             reach = res_data[1]['values'][0]['value']
-            saved = res_data[2]['values'][0]['value']
+            engagement = res_data[2]['values'][0]['value']
+            saved = res_data[3]['values'][0]['value']
 
             if row['media_type'] == 'VIDEO':
-                video_views = res_data[3]['values'][0]['value']
+                video_views = res_data[4]['values'][0]['value']
             else:
-                video_views = 0  # for non-video media/posts
+                video_views = 0  # for non-video posts
 
             performance_df.loc[i] = [
                 row['id'],
-                post_time,
+                fetch_time,
                 impressions,
                 reach,
+                engagement,
                 saved,
                 video_views
             ]
