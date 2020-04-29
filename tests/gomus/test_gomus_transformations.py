@@ -8,9 +8,8 @@ from luigi.parameter import UnknownParameterException
 
 from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
-from gomus.events import (cleanse_umlauts,
-                          ExtractEventData,
-                          FetchCategoryReservations)
+from gomus.events import \
+    cleanse_umlauts, ExtractEventData, FetchCategoryReservations
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_report import FetchEventReservations
