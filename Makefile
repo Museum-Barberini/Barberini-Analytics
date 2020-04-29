@@ -73,12 +73,16 @@ luigi-minimal:
 
 # --- Testing ---
 
-test: luigi-clean
+test:
+	make test-some some=tests/**/test*.py
+
+# example: make test-some some=tests/test_twitter.py
+test-some: luigi-clean
 	mkdir -p output
-	# globstar needed to recursively find all .py-files via ** 
+	# globstar needed to recursively find all .py-files via **
 	POSTGRES_DB=barberini_test \
 		&& shopt -s globstar \
-		&& PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m unittest tests/**/test*.py -v \
+		&& PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m unittest $(some) -v \
 		&& make luigi-clean
 
 test-full:
