@@ -146,16 +146,13 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             output.split('\n')[0],
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
-            self.assertEqual(   # cutting away the timestamp
+            self.assertEqual(  # cutting away the timestamp
                 output.split('\n')[i].split(';')[:-1],
                 extracted_performance.split('\n')[i].split(';')[:-1])
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')
     def test_empty_tweet_performance(self, output_mock, raw_tweets_mock):
-        import pdb; print(pdb)  # LATEST TODO: Why does this not happen???
-        import traceback; traceback.print_stack()
-        import pdb; pdb.set_trace()  # TODO: db already in use???
         output_target = MockTarget('perform_extracted_out', format=UTF8)
         output_mock.return_value = output_target
 
