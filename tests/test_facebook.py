@@ -8,11 +8,12 @@ from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
 
 import facebook
+from task_test import DatabaseTaskTest
 
 FB_TEST_DATA = 'tests/test_data/facebook'
 
 
-class TestFacebookPost(unittest.TestCase):
+class TestFacebookPost(DatabaseTaskTest):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
