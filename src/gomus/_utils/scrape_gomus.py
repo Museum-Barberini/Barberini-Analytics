@@ -14,7 +14,7 @@ from db_connector import DbConnector
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
-from gomus.customers import hash_id
+from gomus.customers import GomusToCustomerMappingToDB, hash_id
 
 logger = logging.getLogger('luigi-interface')
 
@@ -44,11 +44,15 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        yield ExtractGomusBookings(timespan=self.timespan,
-                                   columns=self.columns)
-        yield FetchBookingsHTML(timespan=self.timespan,
-                                base_url=self.base_url + '/admin/bookings/',
-                                columns=self.columns)
+        yield ExtractGomusBookings(
+            timespan=self.timespan,
+            columns=self.columns)
+        yield FetchBookingsHTML(
+            timespan=self.timespan,
+            base_url=f'{self.base_url}/admin/bookings/',
+            columns=self.columns)
+        # table required for fetch_updated_mail()
+        yield GomusToCustomerMappingToDB()
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
@@ -167,10 +171,15 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         # Update customer ID in gomus_customer
         # and gomus_to_customer_mapping
         customer_id = hash_id(customer_email)
-        old_customer_id = DbConnector.query(
+        old_customer = DbConnector.query(
             query=f'SELECT customer_id FROM gomus_to_customer_mapping '
                   f'WHERE gomus_id = {gomus_id}',
-            only_first=True)[0]
+            only_first=True)
+        if not old_customer:
+            logger.warn(("Cannot update email address of customer which is"
+                         " not in database.\nSkipping ..."))
+            return
+        old_customer_id = old_customer[0]
 
         logger.info(f"Replacing old customer ID {old_customer_id} "
                     f"with new customer ID {customer_id}")
