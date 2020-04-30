@@ -38,6 +38,8 @@ class AppstoreReviewsToDB(CsvToDb):
 
 class FetchAppstoreReviews(DataPreparationTask):
 
+    table = 'appstore_review'
+
     def requires(self):
         return MuseumFacts()
 

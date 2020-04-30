@@ -58,6 +58,7 @@ class GomusToCustomerMappingToDB(CsvToDb):
 
 
 class ExtractCustomerData(DataPreparationTask):
+    table = 'gomus_customer'
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
