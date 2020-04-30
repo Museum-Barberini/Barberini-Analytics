@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 import os
-import unittest
 
 import requests
 
+from task_test import DatabaseTaskTest
+
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
-EXPECTED_VERSION_TAG = 'v4.1.2.2 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.3 – Premium Edition'
 
 
-class TestGomusVersion(unittest.TestCase):
+class TestGomusVersion(DatabaseTaskTest):
+    def test_session_id_is_valid(self):
+        # test if GOMUS_SESS_ID env variable contains a valid session id
+        response = requests.get(
+            'https://barberini.gomus.de/',
+            cookies={'_session_id': os.environ['GOMUS_SESS_ID']},
+            allow_redirects=False)
+        self.assertEqual(response.status_code, 200)
+
     def test_gomus_version(self):
         if GOMUS_SESS_ID == '':
-            print("Please make sure a valid Gomus session ID is provided")
-            exit(1)
+            raise ValueError(
+                "Please make sure a valid Gomus session ID is provided")
 
         response = requests.get(
             'https://barberini.gomus.de/',
@@ -25,5 +34,4 @@ class TestGomusVersion(unittest.TestCase):
         # if this line no. changes, that also means that adjustments to Gomus
         # have been made
         version_tag = response.text.splitlines()[762]
-
         self.assertEqual(version_tag, EXPECTED_VERSION_TAG)

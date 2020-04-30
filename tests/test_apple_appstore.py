@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -22,7 +21,7 @@ XML_FRAME = '''<?xml version="1.0" encoding="utf-8"?>
 XML_EMPTY_FRAME = XML_FRAME % ''
 
 
-class TestFetchAppleReviews(unittest.TestCase):
+class TestFetchAppleReviews(DatabaseTaskTest):
 
     def setUp(self):
         super().setUp()
@@ -247,7 +246,8 @@ class TestAppstoreReviewsToDB(DatabaseTaskTest):
         self.task = AppstoreReviewsToDB()
         self.run_task(self.task)
 
-        result = self.db.request('SELECT title, text FROM appstore_review')
+        result = self.db_connector.query(
+            'SELECT title, text FROM appstore_review')
         self.assertListEqual(
             [(umlaut_title, umlaut_text)],
             result,

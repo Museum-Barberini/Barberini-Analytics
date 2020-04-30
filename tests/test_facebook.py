@@ -8,9 +8,10 @@ from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
 
 import facebook
+from task_test import DatabaseTaskTest
 
 
-class TestFacebookPost(unittest.TestCase):
+class TestFacebookPost(DatabaseTaskTest):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -148,7 +149,8 @@ class TestFacebookPostPerformance(unittest.TestCase):
         # Ensure dt.datetime is reset in any case
         try:
             dt.datetime = MockDatetime
-            facebook.FetchFbPostPerformance().run()
+            facebook.FetchFbPostPerformance(
+                timespan=dt.timedelta(days=100000)).run()
 
         finally:
             dt.datetime = tmp_datetime
