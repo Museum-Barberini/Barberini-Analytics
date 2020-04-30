@@ -167,6 +167,9 @@ class FetchIgPosts(DataPreparationTask):
 
 class FetchIgPostPerformance(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
+    timespan = luigi.parameter.TimeDeltaParameter(
+        default=dt.timedelta(days=60),
+        description="For how much time posts should be fetched")
 
     def _requires(self):
         return luigi.task.flatten([
@@ -203,7 +206,8 @@ class FetchIgPostPerformance(DataPreparationTask):
             post_time = dt.datetime.strptime(
                 row['timestamp'],
                 '%Y-%m-%dT%H:%M:%S+%f')
-            if post_time.date() < dt.date.today() - dt.timedelta(days=60):
+            if post_time.date() < \
+               dt.datetime.now().date() - self.timespan:
                 break
 
             print(

@@ -144,7 +144,7 @@ class FetchFbPostPerformance(DataPreparationTask):
             'output/facebook/fb_post_performances.csv', format=UTF8)
 
     def run(self):
-        access_token = os.environ['FB_ACCESS_TOKEN']
+        access_token = os.getenv('FB_ACCESS_TOKEN')
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         earliest_valid_date = (dt.datetime.now()
@@ -225,12 +225,13 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             performances.append(post_perf)
 
-        df, _ = self.ensure_foreign_keys(df)
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
 
+        df = pd.DataFrame([perf for perf in performances])
+        df, _ = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
-            df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
 
 

@@ -9,6 +9,8 @@ from requests.exceptions import HTTPError
 
 import facebook
 
+FB_TEST_DATA = 'tests/test_data/facebook'
+
 
 class TestFacebookPost(unittest.TestCase):
 
@@ -24,12 +26,12 @@ class TestFacebookPost(unittest.TestCase):
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
-        with open('tests/test_data/facebook/post_actual.json',
+        with open(f'{FB_TEST_DATA}/post_actual.json',
                   'r',
                   encoding='utf-8') as data_in:
             input_data = data_in.read()
 
-        with open('tests/test_data/facebook/post_expected.csv',
+        with open(f'{FB_TEST_DATA}/post_expected.csv',
                   'r',
                   encoding='utf-8') as data_out:
             expected_data = data_out.read()
@@ -56,11 +58,11 @@ class TestFacebookPost(unittest.TestCase):
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
-        with open('tests/test_data/facebook/post_next.json', 'r') \
+        with open(f'{FB_TEST_DATA}/post_next.json', 'r') \
                 as next_data_in:
             next_data = next_data_in.read()
 
-        with open('tests/test_data/facebook/post_previous.json', 'r') \
+        with open(f'{FB_TEST_DATA}/post_previous.json', 'r') \
                 as previous_data_in:
             previous_data = previous_data_in.read()
 
@@ -122,12 +124,12 @@ class TestFacebookPostPerformance(unittest.TestCase):
         output_mock.return_value = output_target
 
         with input_target.open('w') as posts_target:
-            with open('tests/test_data/facebook/post_expected.csv',
+            with open(f'{FB_TEST_DATA}/post_expected.csv',
                       'r',
                       encoding='utf-8') as posts_input:
                 posts_target.write(posts_input.read())
 
-        with open('tests/test_data/facebook/post_insights_actual.json',
+        with open(f'{FB_TEST_DATA}/post_insights_actual.json',
                   'r',
                   encoding='utf-8') as json_in:
             input_insights = json_in.read()
@@ -154,7 +156,7 @@ class TestFacebookPostPerformance(unittest.TestCase):
         finally:
             dt.datetime = tmp_datetime
 
-        with open('tests/test_data/facebook/post_insights_expected.csv',
+        with open(f'{FB_TEST_DATA}/post_insights_expected.csv',
                   'r',
                   encoding='utf-8') as csv_out:
             expected_insights = csv_out.read()
@@ -175,12 +177,12 @@ class TestFacebookPostPerformance(unittest.TestCase):
         output_mock.return_value = output_target
 
         with input_target.open('w') as posts_target:
-            with open('tests/test_data/facebook/post_expected.csv',
+            with open(f'{FB_TEST_DATA}/post_expected.csv',
                       'r',
                       encoding='utf-8') as posts_input:
                 posts_target.write(posts_input.read())
 
-        with open('tests/test_data/facebook/post_insights_edgecases.json',
+        with open(f'{FB_TEST_DATA}/post_insights_edgecases.json',
                   'r',
                   encoding='utf-8') as json_in:
             edge_insights = json_in.read()
