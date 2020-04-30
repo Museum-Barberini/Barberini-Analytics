@@ -80,7 +80,6 @@ class FetchFbPosts(DataPreparationTask):
         return luigi.LocalTarget('output/facebook/fb_posts.csv', format=UTF8)
 
     def run(self):
-        access_token = os.environ['FB_ACCESS_TOKEN']
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
         page_id = facts['ids']['facebook']['pageId']
