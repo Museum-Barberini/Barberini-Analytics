@@ -143,6 +143,8 @@ BEGIN;
 
     CREATE TABLE gomus_order_contains (
         article_id INTEGER,
+        -- Added post hoc as part of extraction of db declarations from the code
+        article_type TEXT,
         order_id INTEGER,
         ticket TEXT,
         date DATE,
@@ -193,8 +195,8 @@ BEGIN;
         app_version TEXT,
         thumbs_up INT,
         title TEXT,
-        post_date TIMESTAMP
-    ]
+        date TIMESTAMP
+    );
     ALTER TABLE gplay_review
         ADD CONSTRAINT gplay_review_primkey PRIMARY KEY (playstore_review_id);
 

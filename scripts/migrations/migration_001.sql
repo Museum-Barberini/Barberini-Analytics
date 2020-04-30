@@ -12,7 +12,7 @@ BEGIN;
     );
 
     -- we want to re-fetch all the tweets because we can now handle emojis
-    TRUNCATE tweet;
+    TRUNCATE tweet, tweet_performance RESTART IDENTITY;
 
     ALTER TABLE tweet ALTER COLUMN post_date TYPE TIMESTAMP;
 
