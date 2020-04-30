@@ -3,7 +3,7 @@ import sys
 
 import luigi
 
-from db_connector import DbConnector
+from db_connector import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
@@ -24,10 +24,10 @@ class DataPreparationTask(luigi.Task):
             key = foreign_key['origin_column']
             old_count = df[key].count()
 
-            results = DbConnector.query(
-                f"SELECT {foreign_key['target_column']} "
-                f"FROM {foreign_key['target_table']}"
-            )
+            results = db_connector.query(f'''
+                SELECT {foreign_key['target_column']}
+                FROM {foreign_key['target_table']}
+            ''')
 
             foreign_values = [row[0] for row in results]
 
