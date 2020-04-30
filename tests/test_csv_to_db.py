@@ -20,44 +20,6 @@ with open(tmp_csv_file.name, 'w') as f:
     f.write(expected_data_csv)
 
 
-class DummyFileWrapper(luigi.Task):
-    def output(self):
-        return luigi.LocalTarget(tmp_csv_file.name)
-
-
-class DummyWriteCsvToDb(CsvToDb):
-
-    def __init__(self, table_name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__class__.table = table_name
-
-        # By default luigi assigns the same task_id to the objects of
-        # this class.
-        # That leads to errors when updating the marker table (table_updates).
-        self.task_id = f"{self.task_id}_{str(dt.datetime.now())}"
-        time.sleep(1e-6)  # to guarantee uniqueness of dt string above
-
-    columns = [
-        ('id', 'INT'),
-        ('A', 'INT'),
-        ('B', 'TEXT'),
-        ('C', 'TEXT')
-    ]
-
-    table = None  # value set in __init__
-
-    def requires(self):
-        return DummyFileWrapper()
-
-
-def get_temp_table():
-    tmp = f'tmp_{time.time()}'.replace('.', '')
-    time.sleep(1e-6)  # to guarantee uniqueness of tmp name
-    return tmp
-
-
-# -------- TESTS START HERE -------
-
 class TestCsvToDb(DatabaseTaskTest):
 
     def setUp(self):
@@ -145,3 +107,39 @@ class TestCsvToDb(DatabaseTaskTest):
         actual_data = self.db_connector.query(
             f'SELECT * FROM {self.table_name};')
         self.assertEqual(actual_data, expected_data)
+
+
+class DummyFileWrapper(luigi.Task):
+    def output(self):
+        return luigi.LocalTarget(tmp_csv_file.name)
+
+
+class DummyWriteCsvToDb(CsvToDb):
+
+    def __init__(self, table_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__class__.table = table_name
+
+        # By default luigi assigns the same task_id to the objects of
+        # this class.
+        # That leads to errors when updating the marker table (table_updates).
+        self.task_id = f"{self.task_id}_{str(dt.datetime.now())}"
+        time.sleep(1e-6)  # to guarantee uniqueness of dt string above
+
+    columns = [
+        ('id', 'INT'),
+        ('A', 'INT'),
+        ('B', 'TEXT'),
+        ('C', 'TEXT')
+    ]
+
+    table = None  # value set in __init__
+
+    def requires(self):
+        return DummyFileWrapper()
+
+
+def get_temp_table():
+    tmp = f'tmp_{time.time()}'.replace('.', '')
+    time.sleep(1e-6)  # to guarantee uniqueness of tmp name
+    return tmp

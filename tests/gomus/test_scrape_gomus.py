@@ -139,6 +139,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
         try:
             # Set up tables. This is unnecessary when the test DB's
             # schema automatically equals that of the actual DB
+            # TODO: Create relations via framework (#146)
             self.db_connector.execute(
                 '''CREATE TABLE gomus_customer (
                     customer_id INTEGER

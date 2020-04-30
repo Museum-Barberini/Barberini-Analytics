@@ -144,6 +144,7 @@ class TestOrderTransformation(GomusTransformationTest):
     # Provide mock customer IDs to be found by querying
     def setUp(self):
         super().setUp()
+        # TODO: Create relations via framework (#146)
         self.db_connector.execute(
             '''CREATE TABLE gomus_to_customer_mapping (
                 gomus_id INTEGER,

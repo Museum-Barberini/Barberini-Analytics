@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import re
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -194,9 +195,6 @@ class TestFacebookPostPerformance(unittest.TestCase):
 
         # The current edge case test data should cause the interpretation to
         # fail at a very specific point (processing "react_anger")
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaisesRegex(ValueError, re.escape(
+                'invalid literal for int() with base 10: \'4.4\'')):
             facebook.FetchFbPostPerformance().run()
-
-        error = cm.exception
-        self.assertEqual(str(error),
-                         'invalid literal for int() with base 10: \'4.4\'')
