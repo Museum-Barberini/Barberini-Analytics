@@ -15,6 +15,7 @@ class CsvToDb(CopyToTable):
     Don't forget to write a migration script if you change the table schema.
     """
 
+    # TODO: Deprecate
     schema_only = luigi.BoolParameter(default=False, description=(
             "If True, the table will be only created but not actually filled"
             "with the input data."))
@@ -43,6 +44,12 @@ class CsvToDb(CopyToTable):
         self.seed = 666
 
         self.sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
+
+    """
+    CsvToDb does not support this operation.
+    To change the schema, create a migration script.
+    """
+    create_table = None
 
     def copy(self, cursor, file):
         if self.schema_only:
