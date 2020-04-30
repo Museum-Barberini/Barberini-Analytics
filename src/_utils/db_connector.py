@@ -83,7 +83,7 @@ class DbConnector:
             with conn:
                 with conn.cursor() as cur:
                     for query in queries:
-                        logger.debug(f'Executing query: {query}')
+                        logger.debug(f"DbConnector: Executing query: {query}")
                         cur.execute(query)
                         yield result_function(cur)
         finally:
