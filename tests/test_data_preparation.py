@@ -2,16 +2,15 @@ import unittest
 from unittest.mock import patch, PropertyMock
 
 import pandas as pd
-from unittest.mock import patch, PropertyMock
 
 from data_preparation_task import DataPreparationTask
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 TABLE_NAME = 'test_table'
 COLUMN_NAME = 'test_column'
 
 
-class TestDataPreparationTask(DatabaseTaskTest):
+class TestDataPreparationTask(DatabaseTestCase):
     created_tables = []
 
     def tearDown(self):
@@ -25,7 +24,7 @@ class TestDataPreparationTask(DatabaseTaskTest):
     def test_ensure_foreign_keys(self, table_name_mock):
         table_name_mock.return_value = TABLE_NAME
         self.db_connector.execute(
-            query=f'CREATE TABLE {TABLE_NAME} ({COLUMN_NAME} INT)')
+            f'CREATE TABLE {TABLE_NAME} ({COLUMN_NAME} INT)')
         self.created_tables.append(TABLE_NAME)
         self.db_connector.execute(
             f'''

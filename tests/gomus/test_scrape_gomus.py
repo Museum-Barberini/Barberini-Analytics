@@ -6,15 +6,15 @@ import pandas as pd
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchGomusHTML
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
                                        ScrapeGomusOrderContains)
-from task_test import DatabaseTaskTest
 from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
-class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
+class TestEnhanceBookingsWithScraper(DatabaseTestCase):
     '''
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
@@ -189,7 +189,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
                 'DROP TABLE gomus_customer')
 
 
-class TestScrapeOrderContains(DatabaseTaskTest):
+class TestScrapeOrderContains(DatabaseTestCase):
 
     hash_seed = 666
 

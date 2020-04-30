@@ -1,14 +1,15 @@
-from unittest.mock import patch
 import datetime as dt
 import pandas as pd
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
-class TextFetchTwitter(DatabaseTaskTest):
+class TextFetchTwitter(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
@@ -48,7 +49,7 @@ class TextFetchTwitter(DatabaseTaskTest):
         # guaranteed to be true as long as we don't delete our tweet
 
 
-class TestExtractTweets(DatabaseTaskTest):
+class TestExtractTweets(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweets, 'museum_user_id')
@@ -113,7 +114,7 @@ class TestExtractTweets(DatabaseTaskTest):
         self.assertEqual(output, extracted_tweets)
 
 
-class TestExtractTweetPerformance(DatabaseTaskTest):
+class TestExtractTweetPerformance(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')

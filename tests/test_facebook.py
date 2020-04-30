@@ -1,18 +1,17 @@
 import datetime as dt
 import json
 import re
-import unittest
 from unittest.mock import MagicMock, patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
 
+from db_test import DatabaseTestCase
 import facebook
-from task_test import DatabaseTaskTest
 
 
-class TestFacebookPost(DatabaseTaskTest):
+class TestFacebookPost(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -108,7 +107,7 @@ class TestFacebookPost(DatabaseTaskTest):
             facebook.FetchFbPosts().run()
 
 
-class TestFacebookPostPerformance(unittest.TestCase):
+class TestFacebookPostPerformance(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostPerformance, 'output')

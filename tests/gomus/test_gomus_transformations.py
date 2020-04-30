@@ -5,6 +5,7 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
+from db_test import DatabaseTestCase
 from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import \
@@ -12,10 +13,9 @@ from gomus.events import \
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_report import FetchEventReservations
-from task_test import DatabaseTaskTest
 
 
-class GomusTransformationTest(DatabaseTaskTest):
+class GomusTransformationTest(DatabaseTestCase):
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns

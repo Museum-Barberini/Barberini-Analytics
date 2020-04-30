@@ -1,12 +1,12 @@
 import json
 from unittest.mock import patch
 
+from db_test import DatabaseTestCase
 from google_trends.gtrends_topics import GtrendsTopics
 from museum_facts import MuseumFacts
-from task_test import DatabaseTaskTest
 
 
-class TestGtrendsTopics(DatabaseTaskTest):
+class TestGtrendsTopics(DatabaseTestCase):
     @patch.object(MuseumFacts, 'output')
     def test_gtrends_topics(self, facts_mock):
         facts = self.facts

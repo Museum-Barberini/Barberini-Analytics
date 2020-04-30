@@ -3,10 +3,10 @@ import psycopg2
 import time
 
 from db_connector import DbConnector
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
-class TestDbConnector(DatabaseTaskTest):
+class TestDbConnector(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()

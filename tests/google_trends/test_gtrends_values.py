@@ -3,11 +3,11 @@ import json
 from unittest.mock import patch
 
 import google_trends.gtrends_values as gtrends_values
+from db_test import DatabaseTestCase
 from museum_facts import MuseumFacts
-from task_test import DatabaseTaskTest
 
 
-class TestFetchGtrendsValues(DatabaseTaskTest):
+class TestFetchGtrendsValues(DatabaseTestCase):
 
     def __init__(self, methodName):
         super().__init__(methodName)
@@ -67,7 +67,7 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
                 "Numbers are cool! They must be trending.")
 
 
-class TestGtrendsValuesToDB(DatabaseTaskTest):
+class TestGtrendsValuesToDB(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()

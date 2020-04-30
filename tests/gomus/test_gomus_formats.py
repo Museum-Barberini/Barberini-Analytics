@@ -1,17 +1,17 @@
 import unittest
-from unittest.mock import patch
 import datetime as dt
 import os
 import pandas as pd
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 from gomus._utils.fetch_report import FetchGomusReport, FetchEventReservations
-from task_test import DatabaseTaskTest
 
 
-class GomusFormatTest(DatabaseTaskTest):
+class GomusFormatTest(DatabaseTestCase):
     def __init__(self, report, expected_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report = report

@@ -6,7 +6,7 @@ import luigi
 import mmh3
 
 from csv_to_db import CsvToDb
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 # Initialize test and write it to a csv file
 expected_data = [(1, 2, 'abc', 'xy,"z'), (2, 10, '678', ',,;abc')]
@@ -20,7 +20,7 @@ with open(tmp_csv_file.name, 'w') as f:
     f.write(expected_data_csv)
 
 
-class TestCsvToDb(DatabaseTaskTest):
+class TestCsvToDb(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
