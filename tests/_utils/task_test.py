@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import unittest
@@ -8,6 +9,7 @@ import luigi
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_connector import db_connector
 from museum_facts import MuseumFacts
 
 
@@ -29,13 +31,13 @@ def create_database_if_necessary():
         cur = conn.cursor()
         database = os.environ['POSTGRES_DB']
         assert 'test' in database, (
-            'Tests cannot be run on production database.'
-            'Use GitLab Runner or make test.')
+            "Tests cannot be run on production database."
+            "Use GitLab Runner or make test.")
 
         # each test execution should get a fresh database
-        cur.execute(f"DROP DATABASE IF EXISTS {database}")
+        cur.execute(f'DROP DATABASE IF EXISTS {database}')
 
-        cur.execute(f"CREATE DATABASE {database};")
+        cur.execute(f'CREATE DATABASE {database};')
 
     finally:
         if cur is not None:
@@ -44,40 +46,12 @@ def create_database_if_necessary():
             conn.close()
 
 
-class DatabaseHelper:
-    def setUp(self):
-        self.connection = psycopg2.connect(
-            host=os.environ['POSTGRES_HOST'],
-            dbname="barberini_test",
-            user=os.environ['POSTGRES_USER'],
-            password=os.environ['POSTGRES_PASSWORD'])
-
-    def tearDown(self):
-        self.connection.close()
-
-    def request(self, query):
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(query)
-        result = self.cursor.fetchall()
-        self.column_names = [desc[0] for desc in self.cursor.description]
-        self.cursor.close()
-        return result
-
-    def commit(self, *queries):
-        self.cursor = self.connection.cursor()
-        for query in queries:
-            self.cursor.execute(query)
-        self.cursor.close()
-        self.connection.commit()
-
-
 class DatabaseTaskTest(unittest.TestCase):
-    db = DatabaseHelper()
 
     def setUp(self):
         super().setUp()
         create_database_if_necessary()
-        self.db.setUp()
+        self.db_connector = copy.copy(db_connector)
 
         facts_task = MuseumFacts()
         facts_task.run()
@@ -88,7 +62,6 @@ class DatabaseTaskTest(unittest.TestCase):
 
     def tearDown(self):
         try:
-            self.db.tearDown()
             for file in self.dirty_file_paths:
                 os.remove(file)
         finally:

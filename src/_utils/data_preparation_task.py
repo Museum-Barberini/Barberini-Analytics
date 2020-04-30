@@ -6,7 +6,7 @@ from typing import Callable, Dict, Tuple
 
 import luigi
 
-from db_connector import DbConnector
+from db_connector import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
@@ -48,7 +48,7 @@ class DataPreparationTask(luigi.Task):
         def filter_invalid_values(df, foreign_key):
             column, (foreign_table, foreign_column) = foreign_key
 
-            foreign_values = [value for [value] in DbConnector.query(f'''
+            foreign_values = [value for [value] in db_connector.query(f'''
                     SELECT {foreign_column}
                     FROM {foreign_table}
                 ''')]
@@ -71,7 +71,7 @@ class DataPreparationTask(luigi.Task):
         return {
             column: (foreign_table, foreign_column)
             for [column, foreign_table, foreign_column]
-            in DbConnector.query(f'''
+            in db_connector.query(f'''
                 --- CREDITS: https://stackoverflow.com/a/1152321
                 SELECT
                     kcu.column_name,

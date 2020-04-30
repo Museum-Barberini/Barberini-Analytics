@@ -1,5 +1,4 @@
 import sys
-import unittest
 from unittest.mock import patch
 
 import mmh3
@@ -7,15 +6,15 @@ import pandas as pd
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
-from db_connector import DbConnector
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchGomusHTML
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
                                        ScrapeGomusOrderContains)
+from task_test import DatabaseTaskTest
 from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
-class TestEnhanceBookingsWithScraper(unittest.TestCase):
+class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
     '''
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
@@ -87,7 +86,8 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
             FetchGomusHTML(url='test2')])
 
         # -- execute code under test --
-        run = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS).run()
+        self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+        run = self.task.run()
         for yielded_task in run:
             self.assertIsInstance(yielded_task, FetchGomusHTML)
 
@@ -139,47 +139,56 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         try:
             # Set up tables. This is unnecessary when the test DB's
             # schema automatically equals that of the actual DB
-            DbConnector.execute(query='CREATE TABLE gomus_customer '
-                                      '(customer_id INTEGER)')
-            DbConnector.execute(query='CREATE TABLE gomus_to_customer_mapping '
-                                      '(gomus_id INTEGER, '
-                                      'customer_id INTEGER)')
-            DbConnector.execute(query='ALTER TABLE gomus_customer '
-                                      'ADD CONSTRAINT customer_id_primkey '
-                                      'PRIMARY KEY (customer_id)')
-            DbConnector.execute(query='ALTER TABLE gomus_to_customer_mapping '
-                                      'ADD CONSTRAINT customer_id_fkey '
-                                      'FOREIGN KEY (customer_id) REFERENCES '
-                                      'gomus_customer (customer_id) '
-                                      'ON UPDATE CASCADE')
+            self.db_connector.execute(
+                '''CREATE TABLE gomus_customer (
+                    customer_id INTEGER
+                )''',
+                '''CREATE TABLE gomus_to_customer_mapping (
+                    gomus_id INTEGER,
+                    customer_id INTEGER
+                )''',
+                '''ALTER TABLE gomus_customer
+                    ADD CONSTRAINT customer_id_primkey
+                    PRIMARY KEY (customer_id)
+                ''',
+                '''ALTER TABLE gomus_to_customer_mapping
+                    ADD CONSTRAINT customer_id_fkey
+                    FOREIGN KEY (customer_id)
+                        REFERENCES gomus_customer (customer_id)
+                    ON UPDATE CASCADE
+                ''')
 
             # Insert test values
-            DbConnector.execute(query='INSERT INTO gomus_customer '
-                                      f'VALUES ({fake_customer_id})')
-            DbConnector.execute(query='INSERT INTO gomus_to_customer_mapping '
-                                      f'VALUES ({gomus_id}, '
-                                      f'{fake_customer_id})')
+            self.db_connector.execute(
+                f'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
+                f'''INSERT INTO gomus_to_customer_mapping VALUES (
+                        {gomus_id}, {fake_customer_id})
+                    ''')
 
             # Run fetch_updated_mail
-            fetch_mail = EnhanceBookingsWithScraper \
-                .fetch_updated_mail(booking_id)
+            self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+            fetch_mail = self.task.fetch_updated_mail(booking_id)
             for html_task in fetch_mail:
                 html_task.run()
 
             # Check DB values
-            new_id = DbConnector.query(query='SELECT customer_id '
-                                             'FROM gomus_to_customer_mapping '
-                                             f'WHERE gomus_id = {gomus_id}',
-                                       only_first=True)
+            new_id = self.db_connector.query(
+                f'''
+                    SELECT customer_id
+                    FROM gomus_to_customer_mapping
+                    WHERE gomus_id = {gomus_id}
+                ''',
+                only_first=True)
             self.assertEqual(new_id[0], real_customer_id)
 
         finally:
             # Clear DB again
-            DbConnector.execute(query='DROP TABLE gomus_to_customer_mapping')
-            DbConnector.execute(query='DROP TABLE gomus_customer')
+            self.db_connector.execute(
+                'DROP TABLE gomus_to_customer_mapping',
+                'DROP TABLE gomus_customer')
 
 
-class TestScrapeOrderContains(unittest.TestCase):
+class TestScrapeOrderContains(DatabaseTaskTest):
 
     hash_seed = 666
 

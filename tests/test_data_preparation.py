@@ -1,11 +1,11 @@
 import unittest
+from unittest.mock import patch, PropertyMock
+
 import pandas as pd
 from unittest.mock import patch, PropertyMock
 
 from data_preparation_task import DataPreparationTask
-from db_connector import DbConnector
 from task_test import DatabaseTaskTest
-
 
 TABLE_NAME = 'test_table'
 COLUMN_NAME = 'test_column'
@@ -17,29 +17,29 @@ class TestDataPreparationTask(DatabaseTaskTest):
     def tearDown(self):
         try:
             for table in self.created_tables:
-                DbConnector.execute(query=f'DROP TABLE {table}')
+                self.db_connector.execute(f'DROP TABLE {table}')
         finally:
             super().tearDown()
 
     @patch.object(DataPreparationTask, 'table', new_callable=PropertyMock)
     def test_ensure_foreign_keys(self, table_name_mock):
         table_name_mock.return_value = TABLE_NAME
-        DbConnector.execute(
+        self.db_connector.execute(
             query=f'CREATE TABLE {TABLE_NAME} ({COLUMN_NAME} INT)')
         self.created_tables.append(TABLE_NAME)
-        DbConnector.execute(query=f'''
+        self.db_connector.execute(
+            f'''
             ALTER TABLE {TABLE_NAME}
                 ADD CONSTRAINT {TABLE_NAME}_primkey
                 PRIMARY KEY ({COLUMN_NAME});
-            ''')
-        DbConnector.execute(query=f'''
+            ''',
+            f'''
             ALTER TABLE {TABLE_NAME}
                 ADD CONSTRAINT {TABLE_NAME}_{COLUMN_NAME}_fkey
                 FOREIGN KEY ({COLUMN_NAME})
                 REFERENCES {TABLE_NAME} ({COLUMN_NAME})
-            ''')
-        DbConnector.execute(
-            query=f'INSERT INTO {TABLE_NAME} VALUES (0)')
+            ''',
+            f'INSERT INTO {TABLE_NAME} VALUES (0)')
 
         df = pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
 

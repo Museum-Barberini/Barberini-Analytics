@@ -5,7 +5,7 @@ import requests
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from db_connector import DbConnector
+from db_connector import db_connector
 
 
 class ExhibitionToDB(CsvToDb):
@@ -47,4 +47,4 @@ class FetchExhibitions(DataPreparationTask):
         # to make sure we don't have outdated information in our DB
         # we drop the table exhibitions beforehand
         query = (f'DROP TABLE IF EXISTS exhibitions')
-        DbConnector.execute(query)
+        db_connector.execute(query)

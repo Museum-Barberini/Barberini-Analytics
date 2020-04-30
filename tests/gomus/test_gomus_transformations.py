@@ -1,5 +1,4 @@
 import datetime as dt
-import unittest
 from unittest.mock import patch
 
 from luigi.format import UTF8
@@ -13,11 +12,10 @@ from gomus.events import \
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_report import FetchEventReservations
-from task_test import DatabaseHelper
+from task_test import DatabaseTaskTest
 
 
-# TODO: Don't reinvent the wheel, inherit from DatabaseTaskTest!
-class GomusTransformationTest(unittest.TestCase):
+class GomusTransformationTest(DatabaseTaskTest):
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns
@@ -142,25 +140,26 @@ class TestOrderTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.test_data_path += 'orders/'
-        self.db_helper = DatabaseHelper()
 
     # Provide mock customer IDs to be found by querying
     def setUp(self):
         super().setUp()
-        self.db_helper.setUp()
-        self.db_helper.commit(
-            ('CREATE TABLE gomus_to_customer_mapping '
-             '(gomus_id INTEGER, customer_id INTEGER)'),
-            'INSERT INTO gomus_to_customer_mapping VALUES (117899, 100)'
+        self.db_connector.execute(
+            '''CREATE TABLE gomus_to_customer_mapping (
+                gomus_id INTEGER,
+                customer_id INTEGER
+            )''',
+            '''
+                INSERT INTO gomus_to_customer_mapping
+                VALUES (117899, 100)
+            '''
         )
 
     def tearDown(self):
         try:
-            self.db_helper.commit(
-                'DROP TABLE gomus_to_customer_mapping'
-            )
+            self.db_connector.execute(
+                'DROP TABLE gomus_to_customer_mapping')
         finally:
-            self.db_helper.tearDown()
             super().tearDown()
 
     @patch.object(ExtractOrderData, 'output')
@@ -252,11 +251,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
         self.test_data_path += 'daily_entries/'
 
     # Don't prepare targets like usual because two inputs are expected
-    def prepare_mock_targets(self,
-                             input_mock,
-                             output_mock,
-                             infile_1,
-                             infile_2):
+    def prepare_mock_targets(
+            self, input_mock, output_mock, infile_1, infile_2):
         input_target_1 = MockTarget('data_in_1', format=UTF8)
         input_target_2 = MockTarget('data_in_2', format=UTF8)
         input_mock.return_value = iter([input_target_1, input_target_2])
@@ -316,34 +312,36 @@ class TestEventTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.categories = [
-            'Öffentliche Führung',
-            'Event',
-            'Gespräch',
-            'Kinder-Workshop',
-            'Konzert',
-            'Lesung',
-            'Vortrag']
+            "Öffentliche Führung",
+            "Event",
+            "Gespräch",
+            "Kinder-Workshop",
+            "Konzert",
+            "Lesung",
+            "Vortrag"]
 
         self.test_data_path += 'events/'
-        self.db_helper = DatabaseHelper()
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
-        self.db_helper.setUp()
-        self.db_helper.commit(
-            ('CREATE TABLE gomus_booking ('
-                'booking_id INTEGER, '
-                'category VARCHAR(255), '
-                'start_datetime TIMESTAMP)'),
-            (f'INSERT INTO gomus_booking VALUES ('
-                f'0, \'Öffentliche Führung\', \'{dt.datetime.today()}\')')
+        super().setUp()
+        self.db_connector.execute(
+            '''CREATE TABLE gomus_booking (
+                booking_id INTEGER,
+                category VARCHAR(255),
+                start_datetime TIMESTAMP
+            )''',
+            f'''INSERT INTO gomus_booking VALUES (
+                0,
+                'Öffentliche Führung',
+                '{dt.datetime.today()}')
+            '''
         )
 
     def tearDown(self):
-        self.db_helper.commit(
-            'DROP TABLE gomus_booking'
-        )
-        self.db_helper.tearDown()
+        self.db_connector.execute(
+            'DROP TABLE gomus_booking')
+        super().tearDown()
 
     @patch.object(ExtractEventData, 'output')
     @patch.object(ExtractEventData, 'input')
