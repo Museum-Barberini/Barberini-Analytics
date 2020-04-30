@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
+
 cd "$(dirname "$0")"
 git pull
-../migrations/migrate.sh
+
+source /etc/secrets/database.env
+../migrations/migrate.sh "/var/db-data/applied_migrations.txt"

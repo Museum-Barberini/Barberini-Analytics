@@ -8,11 +8,23 @@ RUN apt-get upgrade -y --no-install-recommends
 
 ARG install='apt-get install -y --no-install-recommends'
 
-# install utilities
-#RUN apt-get install -y --fix-missing --no-install-recommends apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
-# Todo: This would be great to fix the apt warnings, but unfortunately, it raises http://security.ubuntu.com/ubuntu 404 Not Found ...
-RUN $install --fix-missing build-essential vim curl gnupg iproute2
-RUN $install nano psmisc git
+
+# Install utilities
+#RUN $install apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
+# TODO: This would be great to fix the apt warnings, but unfortunately, it raises http://security.ubuntu.com/ubuntu 404 Not Found ...
+RUN $INSTALL build-essential curl gnupg iproute2 lsb-release wget
+RUN $INSTALL git psmisc
+# Optional tools for dev experience:
+RUN $INSTALL nano vim
+
+# Install postgresql
+RUN wget --quiet --no-check-certificate -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+	| APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add -
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
+	| tee /etc/apt/sources.list.d/pgdg.list
+# scan new sources
+RUN apt-get update
+RUN $INSTALL postgresql-client-12
 
 # install python
 RUN $install python3.6 python3-pip python3-setuptools python3-dev python3-wheel
