@@ -8,6 +8,7 @@ import unittest
 from queue import Queue
 
 import luigi
+import luigi.mock
 import psycopg2
 
 import suitable
