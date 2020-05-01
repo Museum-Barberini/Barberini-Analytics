@@ -144,17 +144,15 @@ class TestOrderTransformation(GomusTransformationTest):
     # Provide mock customer IDs to be found by querying
     def setUp(self):
         super().setUp()
-        # TODO: Create relations via framework (#146)
         self.db_connector.execute(
-            '''CREATE TABLE gomus_to_customer_mapping (
-                gomus_id INTEGER,
-                customer_id INTEGER
-            )''',
+            '''
+                INSERT INTO gomus_customer
+                VALUES (100)
+            ''',
             '''
                 INSERT INTO gomus_to_customer_mapping
                 VALUES (117899, 100)
-            '''
-        )
+            ''')
 
     def tearDown(self):
         try:
@@ -326,23 +324,13 @@ class TestEventTransformation(GomusTransformationTest):
     # Provide mock booking IDs to be found by querying
     def setUp(self):
         super().setUp()
-        self.db_connector.execute(
-            '''CREATE TABLE gomus_booking (
-                booking_id INTEGER,
-                category VARCHAR(255),
-                start_datetime TIMESTAMP
-            )''',
-            f'''INSERT INTO gomus_booking VALUES (
-                0,
-                'Öffentliche Führung',
-                '{dt.datetime.today()}')
-            '''
-        )
-
-    def tearDown(self):
-        self.db_connector.execute(
-            'DROP TABLE gomus_booking')
-        super().tearDown()
+        self.db_connector.execute(f'''INSERT INTO gomus_booking VALUES (
+            0,  DEFAULT,
+            'Öffentliche Führung',
+            DEFAULT, DEFAULT, DEFAULT,
+            DEFAULT, DEFAULT, DEFAULT,
+            '{dt.datetime.today()}',
+            DEFAULT, DEFAULT)''')
 
     @patch.object(ExtractEventData, 'output')
     @patch.object(ExtractEventData, 'input')
