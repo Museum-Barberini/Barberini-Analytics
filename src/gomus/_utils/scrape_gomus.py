@@ -10,7 +10,6 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
@@ -170,7 +169,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         # Update customer ID in gomus_customer
         # and gomus_to_customer_mapping
         customer_id = hash_id(customer_email)
-        old_customer = db_connector.query(
+        old_customer = self.db_connector.query(
             query=f'SELECT customer_id FROM gomus_to_customer_mapping '
                   f'WHERE gomus_id = {gomus_id}',
             only_first=True)
@@ -185,7 +184,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         # References are updated through foreign key
         # references via ON UPDATE CASCADE
-        db_connector.execute(f'''
+        self.db_connector.execute(f'''
             UPDATE gomus_customer
             SET customer_id = {customer_id}
             WHERE customer_id = {old_customer_id}

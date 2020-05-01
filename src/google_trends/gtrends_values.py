@@ -38,7 +38,7 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            db_connector.execute(f'''
+            db_connector().execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])

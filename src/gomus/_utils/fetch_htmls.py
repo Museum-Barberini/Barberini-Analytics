@@ -6,7 +6,7 @@ import requests
 import time
 from luigi.format import UTF8
 
-from db_connector import db_connector
+from data_preparation_task import DataPreparationTask
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
@@ -39,7 +39,7 @@ class FetchGomusHTML(luigi.Task):
             html_out.write(response.text)
 
 
-class FetchBookingsHTML(luigi.Task):
+class FetchBookingsHTML(DataPreparationTask):
     timespan = luigi.parameter.Parameter(default='_nextYear')
     base_url = luigi.parameter.Parameter(
         description="Base URL to append bookings IDs to")
@@ -65,14 +65,14 @@ class FetchBookingsHTML(luigi.Task):
 
         db_booking_rows = []
 
-        bookings_table_exists = db_connector.exists('''
+        bookings_table_exists = self.db_connector.exists('''
             SELECT * FROM information_schema.tables
             WHERE table_name='gomus_booking'
         ''')
 
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
         if bookings_table_exists:
-            db_booking_rows = db_connector.query(f'''
+            db_booking_rows = self.db_connector.query(f'''
                 SELECT booking_id FROM gomus_booking
                 WHERE start_datetime < '{today_time}'
             ''')
@@ -96,7 +96,7 @@ class FetchBookingsHTML(luigi.Task):
             html_files.write('\n'.join(self.output_list))
 
 
-class FetchOrdersHTML(luigi.Task):
+class FetchOrdersHTML(DataPreparationTask):
     base_url = luigi.parameter.Parameter(
         description="Base URL to append order IDs to")
 
@@ -117,23 +117,20 @@ class FetchOrdersHTML(luigi.Task):
 
         query_limit = 'LIMIT 10' if os.environ['MINIMAL'] == 'True' else ''
 
-        order_contains_table_exists = db_connector.exists('''
+        order_contains_table_exists = self.db_connector.exists('''
             SELECT * FROM information_schema.tables
             WHERE table_name='gomus_order_contains'
         ''')
-        if order_contains_table_exists:
-            order_ids = db_connector.query(f'''
+        order_ids = self.db_connector.query(
+            f'''
                 SELECT order_id FROM gomus_order
                 WHERE order_id NOT IN (
                     SELECT order_id FROM gomus_order_contains
                 )
                 {query_limit}
-            ''')
-
-        else:
-            order_ids = db_connector.query(
-                f'SELECT order_id FROM gomus_order {query_limit}'
-            )
+            '''
+            if order_contains_table_exists else
+            f'SELECT order_id FROM gomus_order {query_limit}')
 
         return order_ids
 

@@ -98,8 +98,9 @@ class DbConnector:
         return self._execute_queries([query], result_function)
 
 
-db_connector = DbConnector(
-    host=os.environ['POSTGRES_HOST'],
-    database=os.environ['POSTGRES_DB'],
-    user=os.environ['POSTGRES_USER'],
-    password=os.environ['POSTGRES_PASSWORD'])
+def db_connector():
+    return DbConnector(
+        host=os.environ['POSTGRES_HOST'],
+        database=os.environ['POSTGRES_DB'],
+        user=os.environ['POSTGRES_USER'],
+        password=os.environ['POSTGRES_PASSWORD'])

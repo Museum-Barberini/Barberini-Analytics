@@ -28,26 +28,28 @@ class CsvToDb(CopyToTable):
         default=dt.datetime.timestamp(dt.datetime.now()),
         visibility=luigi.parameter.ParameterVisibility.PRIVATE)
 
-    # Set db connection parameters using env vars
-    host = os.environ['POSTGRES_HOST']
-    database = os.environ['POSTGRES_DB']
-    user = os.environ['POSTGRES_USER']
-    password = os.environ['POSTGRES_PASSWORD']
-
     # override the default column separator (tab)
     column_separator = ','
+
+    host = database = user = password = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.schema_only:
             self.requires = lambda: []
-        self.seed = 666
 
-        self.sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
+        # Set db connection parameters using env vars
+        self.host = os.environ['POSTGRES_HOST']
+        self.database = os.environ['POSTGRES_DB']
+        self.user = os.environ['POSTGRES_USER']
+        self.password = os.environ['POSTGRES_PASSWORD']
+
+    seed = 666
+    sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
     """
-    CsvToDb does not support this operation.
-    To change the schema, create a migration script.
+    CsvToDb does not support dynamical schema changes.
+    To change the schema, create and run a migration script.
     """
     create_table = None
 

@@ -11,7 +11,9 @@ COLUMN_NAME = 'test_column'
 
 
 class TestDataPreparationTask(DatabaseTestCase):
-    created_tables = []
+    def setUp(self):
+        super().setUp()
+        self.created_tables = []
 
     def tearDown(self):
         try:

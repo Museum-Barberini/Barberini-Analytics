@@ -6,12 +6,16 @@ from typing import Callable, Dict, Tuple
 
 import luigi
 
-from db_connector import db_connector
+import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
 
 class DataPreparationTask(luigi.Task):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db_connector = db_connector.db_connector()
+
     table = luigi.parameter.Parameter(
         description="The name of the table the data should be prepared for",
         default=None)
@@ -48,7 +52,7 @@ class DataPreparationTask(luigi.Task):
         def filter_invalid_values(df, foreign_key):
             column, (foreign_table, foreign_column) = foreign_key
 
-            foreign_values = [value for [value] in db_connector.query(f'''
+            foreign_values = [value for [value] in self.db_connector.query(f'''
                     SELECT {foreign_column}
                     FROM {foreign_table}
                 ''')]
@@ -71,7 +75,7 @@ class DataPreparationTask(luigi.Task):
         return {
             column: (foreign_table, foreign_column)
             for [column, foreign_table, foreign_column]
-            in db_connector.query(f'''
+            in self.db_connector.query(f'''
                 --- CREDITS: https://stackoverflow.com/a/1152321
                 SELECT
                     kcu.column_name,
@@ -86,6 +90,6 @@ class DataPreparationTask(luigi.Task):
                     ON ccu.constraint_name = tc.constraint_name
                     AND ccu.table_schema = tc.table_schema
                 WHERE tc.constraint_type = 'FOREIGN KEY'
-                    AND tc.table_name='{self.table}';
+                    AND tc.table_name = '{self.table}';
             ''')
         }

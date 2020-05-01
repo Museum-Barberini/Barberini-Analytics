@@ -9,7 +9,6 @@ from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from gomus.customers import hash_id
@@ -125,7 +124,7 @@ class ExtractEventData(DataPreparationTask):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class FetchCategoryReservations(luigi.Task):
+class FetchCategoryReservations(DataPreparationTask):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
@@ -148,7 +147,7 @@ class FetchCategoryReservations(luigi.Task):
                      f'category=\'{self.category}\' '
                      f'AND start_datetime > \'{two_weeks_ago}\'')
 
-        booking_ids = db_connector.query(query)
+        booking_ids = self.db_connector.query(query)
 
         for row in booking_ids:
             event_id = row[0]
