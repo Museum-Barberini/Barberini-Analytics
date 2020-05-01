@@ -37,30 +37,26 @@ class CsvToDb(CopyToTable):
         self.database = self.db_connector.database
         self.user = self.db_connector.user
         self.password = self.db_connector.password
+        self._columns = None  # lazy property
 
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
     """
-    CsvToDb does not support dynamical schema changes.
+    CsvToDb does not support dynamical schema modifications.
     To change the schema, create and run a migration script.
     """
     create_table = None
 
-    def run(self):
-        if not self.table:
-            raise Exception("Table needs to be specified")
-        """
-        Set self.columns via reflection. Note that CopyToTable requires this
-        to be set but postgres actually would also accept None ¯\\_(ツ)_/¯
-        """
-        if not self.columns:
-            self.columns = self.db_connector.query(f'''
-                    SELECT column_name, data_type
-                    FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE table_name = '{self.table}';
-                ''')
-        return super().run()
+    @property
+    def columns(self):
+        if not self._columns:
+            self._columns = self.db_connector.query(f'''
+                SELECT column_name, data_type
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE table_name = '{self.table}';
+            ''')
+        return self._columns
 
     def copy(self, cursor, file):
         query = self.load_sql_script('copy', self.table, ','.join(
