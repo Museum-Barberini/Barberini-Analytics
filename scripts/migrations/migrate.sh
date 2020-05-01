@@ -37,7 +37,7 @@ do
 
         # ON_ERROR_STOP makes psql abort when the first error is encountered
         # as well as makes it return a non-zero exit code
-        psql -v ON_ERROR_STOP=1 -f $MIGRATION_FILE
+        psql -q -v ON_ERROR_STOP=1 -f $MIGRATION_FILE
         EXIT_VAL=$?
 
         chmod +x $MIGRATION_FILE
