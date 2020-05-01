@@ -37,6 +37,7 @@ services:
         env_file:
             - /etc/secrets/database.env
         volumes:
+            - .:/app
             - /var/db-data/:/var/lib/postgresql/data/
         networks:
             - database_network

@@ -4,5 +4,5 @@ set -e
 cd "$(dirname "$0")"
 git pull
 
-source /etc/secrets/database.env
-../migrations/migrate.sh "/var/db-data/applied_migrations.txt"
+# TODO: Test
+docker exec -i db /app/scripts/migrations/migrate.sh /var/lib/postgresql/data/applied_migrations.txt
