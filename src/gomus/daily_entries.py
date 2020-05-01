@@ -11,7 +11,7 @@ from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class DailyEntriesToDB(AbstractDailyEntriesToDB):
+class DailyEntriesToDB(CsvToDb):
     table = 'gomus_daily_entry'
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -22,7 +22,7 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
                                      today=self.today)
 
 
-class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
+class ExpectedDailyEntriesToDB(CsvToDb):
     table = 'gomus_expected_daily_entry'
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
