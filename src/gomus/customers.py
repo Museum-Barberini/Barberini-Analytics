@@ -15,23 +15,9 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 class CustomersToDB(CsvToDb):
 
-    today = luigi.parameter.DateParameter(default=dt.datetime.today())
-
     table = 'gomus_customer'
 
-    columns = [
-        ('customer_id', 'INT'),
-        ('postal_code', 'TEXT'),  # e.g. non-german
-        ('newsletter', 'BOOL'),
-        ('gender', 'TEXT'),
-        ('category', 'TEXT'),
-        ('language', 'TEXT'),
-        ('country', 'TEXT'),
-        ('type', 'TEXT'),  # shop, shop guest or normal
-        ('register_date', 'DATE'),
-        ('annual_ticket', 'BOOL'),
-        ('valid_mail', 'BOOL')
-    ]
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     def requires(self):
         return ExtractCustomerData(
@@ -41,14 +27,9 @@ class CustomersToDB(CsvToDb):
 
 class GomusToCustomerMappingToDB(CsvToDb):
 
-    today = luigi.parameter.DateParameter(default=dt.datetime.today())
-
     table = 'gomus_to_customer_mapping'
 
-    columns = [
-        ('gomus_id', 'INT'),
-        ('customer_id', 'INT')
-    ]
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     def requires(self):
         return ExtractGomusToCustomerMapping(

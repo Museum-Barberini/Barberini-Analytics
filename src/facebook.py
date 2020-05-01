@@ -19,12 +19,6 @@ class FbPostsToDB(CsvToDb):
 
     table = 'fb_post'
 
-    columns = [
-        ('post_date', 'TIMESTAMP'),
-        ('text', 'TEXT'),
-        ('fb_post_id', 'TEXT')
-    ]
-
     def requires(self):
         return FetchFbPosts()
 
@@ -32,25 +26,6 @@ class FbPostsToDB(CsvToDb):
 class FbPostPerformanceToDB(CsvToDb):
 
     table = 'fb_post_performance'
-
-    columns = [
-        ('fb_post_id', 'TEXT'),
-        ('time_stamp', 'TIMESTAMP'),
-        ('react_like', 'INT'),
-        ('react_love', 'INT'),
-        ('react_wow', 'INT'),
-        ('react_haha', 'INT'),
-        ('react_sorry', 'INT'),
-        ('react_anger', 'INT'),
-        ('likes', 'INT'),
-        ('shares', 'INT'),
-        ('comments', 'INT'),
-        ('video_clicks', 'INT'),
-        ('link_clicks', 'INT'),
-        ('other_clicks', 'INT'),
-        ('negative_feedback', 'INT'),
-        ('paid_impressions', 'INT')
-    ]
 
     def requires(self):
         return FetchFbPostPerformance(table=self.table)

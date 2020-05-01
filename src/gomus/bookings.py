@@ -8,23 +8,9 @@ from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 class BookingsToDB(CsvToDb):
 
-    timespan = luigi.parameter.Parameter(default='_nextYear')
     table = 'gomus_booking'
 
-    columns = [
-        ('booking_id', 'INT'),
-        ('customer_id', 'INT'),
-        ('category', 'TEXT'),
-        ('participants', 'INT'),
-        ('guide_id', 'INT'),
-        ('duration', 'INT'),  # in minutes
-        ('exhibition', 'TEXT'),
-        ('title', 'TEXT'),
-        ('status', 'TEXT'),
-        ('start_datetime', 'TIMESTAMP'),
-        ('order_date', 'DATE'),
-        ('language', 'TEXT')
-    ]
+    timespan = luigi.parameter.Parameter(default='_nextYear')
 
     def requires(self):
         timespan = self.timespan

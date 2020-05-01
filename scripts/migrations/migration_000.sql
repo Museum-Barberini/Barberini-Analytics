@@ -86,13 +86,13 @@ BEGIN;
 
     CREATE TABLE gomus_customer (
         customer_id INTEGER,
-        postal_code TEXT,
+        postal_code TEXT,  -- e.g. non-german
         newsletter BOOLEAN,
         gender TEXT,
         category TEXT,
         language TEXT,
         country TEXT,
-        type TEXT,
+        type TEXT,  -- shop, shop guest or normal
         register_date DATE,
         annual_ticket BOOLEAN,
         valid_mail BOOLEAN

@@ -22,7 +22,7 @@ class GtrendsValuesToDB(luigi.WrapperTask):
         yield GtrendsValuesAddToDB()
 
 
-class GtrendsValuesClearDB(luigi.WrapperTask):
+class GtrendsValuesClearDB(luigi.Task):
 
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
@@ -44,7 +44,6 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
                     ','.join([f"'{topic}'" for topic in topics])
                 })
             ''')
-
         except psycopg2.errors.UndefinedTable:
             # Table does not exist
             pass
@@ -53,12 +52,6 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
 class GtrendsValuesAddToDB(CsvToDb):
 
     table = 'gtrends_value'
-
-    columns = [
-        ('topic', 'TEXT'),
-        ('date', 'DATE'),
-        ('interest_value', 'INT'),
-    ]
 
     def requires(self):
         return ConvertGtrendsValues()

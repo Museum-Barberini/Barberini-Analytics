@@ -1,6 +1,5 @@
 import datetime as dt
 import logging
-import os
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
@@ -47,6 +46,21 @@ class CsvToDb(CopyToTable):
     To change the schema, create and run a migration script.
     """
     create_table = None
+
+    def run(self):
+        if not self.table:
+            raise Exception("Table needs to be specified")
+        """
+        Set self.columns via reflection. Note that CopyToTable requires this
+        to be set but postgres actually would also accept None ¯\\_(ツ)_/¯
+        """
+        if not self.columns:
+            self.columns = self.db_connector.query(f'''
+                    SELECT column_name, data_type
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE table_name = '{self.table}';
+                ''')
+        return super().run()
 
     def copy(self, cursor, file):
         query = self.load_sql_script('copy', self.table, ','.join(

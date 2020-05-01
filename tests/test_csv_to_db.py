@@ -66,8 +66,21 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name};')
+            f'SELECT * FROM {self.table_name}')
         self.assertEqual(actual_data, EXPECTED_DATA)
+
+    def test_columns(self):
+
+        self.run_task(self.dummy)
+
+        expected_columns = [
+            ('id', 'integer'),
+            ('a', 'integer'),
+            ('b', 'text'),
+            ('c', 'text')
+        ]
+        actual_columns = list(self.dummy.columns)
+        self.assertListEqual(expected_columns, actual_columns)
 
 
 class DummyFileWrapper(luigi.Task):
@@ -90,13 +103,6 @@ class DummyWriteCsvToDb(CsvToDb):
     def __init__(self, table_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__class__.table = table_name
-
-    columns = [
-        ('id', 'INT'),
-        ('A', 'INT'),
-        ('B', 'TEXT'),
-        ('C', 'TEXT')
-    ]
 
     table = None  # value set in __init__
 

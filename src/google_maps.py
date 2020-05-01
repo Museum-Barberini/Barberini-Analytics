@@ -19,15 +19,6 @@ class GoogleMapsReviewsToDB(CsvToDb):
 
     table = 'google_maps_review'
 
-    columns = [
-        ('google_maps_review_id', 'TEXT'),
-        ('post_date', 'DATE'),
-        ('rating', 'INT'),
-        ('text', 'TEXT'),
-        ('text_english', 'TEXT'),
-        ('language', 'TEXT')
-    ]
-
     def requires(self):
         return FetchGoogleMapsReviews()
 

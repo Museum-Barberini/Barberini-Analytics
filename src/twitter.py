@@ -16,15 +16,6 @@ class TweetsToDB(CsvToDb):
 
     table = 'tweet'
 
-    columns = [
-        ("user_id", "TEXT"),
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "DATE"),
-        ("is_from_barberini", "BOOL")
-    ]
-
     def requires(self):
         return ExtractTweets()
 
@@ -33,14 +24,6 @@ class TweetPerformanceToDB(CsvToDb):
 
     table = 'tweet_performance'
 
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("timestamp", "TIMESTAMP")
-    ]
-
     def requires(self):
         return ExtractTweetPerformance(table=self.table)
 
@@ -48,11 +31,6 @@ class TweetPerformanceToDB(CsvToDb):
 class TweetAuthorsToDB(CsvToDb):
 
     table = 'tweet_author'
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("user_name", "TEXT")
-    ]
 
     def requires(self):
         return LoadTweetAuthors()

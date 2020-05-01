@@ -13,19 +13,10 @@ from gomus.customers import GomusToCustomerMappingToDB
 
 
 class OrdersToDB(CsvToDb):
-    today = luigi.parameter.DateParameter(
-        default=dt.datetime.today())
-
     table = 'gomus_order'
 
-    columns = [
-        ('order_id', 'INT'),
-        ('order_date', 'DATE'),
-        ('customer_id', 'INT'),
-        ('valid', 'BOOL'),
-        ('paid', 'BOOL'),
-        ('origin', 'TEXT')
-    ]
+    today = luigi.parameter.DateParameter(
+        default=dt.datetime.today())
 
     def requires(self):
         return ExtractOrderData(

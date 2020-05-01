@@ -11,12 +11,6 @@ class ExhibitionToDB(CsvToDb):
 
     table = 'exhibition'
 
-    columns = [
-        ('title', 'TEXT'),
-        ('start_date', 'DATE'),
-        ('end_date', 'DATE')
-    ]
-
     def requires(self):
         return FetchExhibitions()
 

@@ -11,19 +11,10 @@ from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class AbstractDailyEntriesToDB(CsvToDb):
-    today = luigi.parameter.DateParameter(default=dt.datetime.today())
-
-    columns = [
-        ('id', 'INT'),
-        ('ticket', 'TEXT'),
-        ('datetime', 'TIMESTAMP'),
-        ('count', 'INT'),
-    ]
-
-
 class DailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_daily_entry'
+
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     def requires(self):
         return ExtractDailyEntryData(expected=False,
@@ -33,6 +24,8 @@ class DailyEntriesToDB(AbstractDailyEntriesToDB):
 
 class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
     table = 'gomus_expected_daily_entry'
+
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     def requires(self):
         return ExtractDailyEntryData(expected=True,

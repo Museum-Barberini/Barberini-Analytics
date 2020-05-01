@@ -18,6 +18,7 @@ class EventsToDB(CsvToDb):
 
     table = 'gomus_event'
 
+    # TODO: Align column order with migration_000!
     columns = [
         ('event_id', 'INT'),
         ('booking_id', 'INT'),
