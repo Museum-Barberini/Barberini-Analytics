@@ -69,15 +69,6 @@ class TestFetchGtrendsValues(DatabaseTestCase):
 
 class TestGtrendsValuesToDB(DatabaseTestCase):
 
-    def setUp(self):
-        super().setUp()
-        gtrends_values.GtrendsValuesAddToDB(schema_only=True).run()
-        self.db_connector.execute('DROP TABLE table_updates')
-        """
-        WORKAROUND for "UniqueViolation: duplicate key value violates unique
-        constraint 'table_updates_pkey' ;-(
-        """
-
     @patch.object(gtrends_values.GtrendsTopics, 'run')
     @patch.object(gtrends_values.GtrendsTopics, 'output')
     def test_updated_values_are_overridden(self, topics_mock, topics_run_mock):

@@ -15,11 +15,6 @@ class CsvToDb(CopyToTable):
     Don't forget to write a migration script if you change the table schema.
     """
 
-    # TODO: Deprecate
-    schema_only = luigi.BoolParameter(default=False, description=(
-            "If True, the table will be only created but not actually filled"
-            "with the input data."))
-
     """
     Don't delete this! This parameter assures that every (sub)instance of me
     is treated as an individual and will be re-run.
@@ -35,9 +30,6 @@ class CsvToDb(CopyToTable):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.schema_only:
-            self.requires = lambda: []
-
         # Set db connection parameters using env vars
         self.host = os.environ['POSTGRES_HOST']
         self.database = os.environ['POSTGRES_DB']
@@ -54,16 +46,12 @@ class CsvToDb(CopyToTable):
     create_table = None
 
     def copy(self, cursor, file):
-        if self.schema_only:
-            return
         query = self.load_sql_script('copy', self.table, ','.join(
             [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
         logger.debug(f"{self.__class__}: Executing query: {query}")
         cursor.copy_expert(query, file)
 
     def rows(self):
-        if self.schema_only:
-            return []
         rows = super().rows()
         next(rows)
         return rows
