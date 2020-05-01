@@ -174,8 +174,9 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                   f'WHERE gomus_id = {gomus_id}',
             only_first=True)
         if not old_customer:
-            logger.warn(("Cannot update email address of customer which is"
-                         " not in database.\nSkipping ..."))
+            logger.warning(
+                "Cannot update email address of customer which is not in "
+                "database.\nSkipping ...")
             return
         old_customer_id = old_customer[0]
 
