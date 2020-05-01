@@ -5,6 +5,8 @@ import os
 import luigi
 from luigi.contrib.postgres import CopyToTable
 
+import db_connector
+
 logger = logging.getLogger('luigi-interface')
 
 
@@ -31,10 +33,11 @@ class CsvToDb(CopyToTable):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Set db connection parameters using env vars
-        self.host = os.environ['POSTGRES_HOST']
-        self.database = os.environ['POSTGRES_DB']
-        self.user = os.environ['POSTGRES_USER']
-        self.password = os.environ['POSTGRES_PASSWORD']
+        self.db_connector = db_connector.db_connector()
+        self.host = self.db_connector.host
+        self.database = self.db_connector.database
+        self.user = self.db_connector.user
+        self.password = self.db_connector.password
 
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
