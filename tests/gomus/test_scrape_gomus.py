@@ -31,12 +31,9 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
-    def test_scrape_bookings(self,
-                             output_mock,
-                             all_htmls_mock,
-                             input_mock,
-                             foreign_key_mock,
-                             new_mail_mock):
+    def test_scrape_bookings(
+            self, output_mock, all_htmls_mock, input_mock, foreign_key_mock,
+            new_mail_mock):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')

@@ -151,8 +151,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with booking_html_task.output().open('r') as booking_html_fp:
             booking_html = html.fromstring(booking_html_fp.read())
         booking_customer = booking_html.xpath(
-                    '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
-                    '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
+            '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
+            '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
         gomus_id = int(booking_customer.get('href').split('/')[-1])
 
         # Second step: Get current e-mail address for customer
@@ -223,8 +223,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 tree_order = html.fromstring(res_order)
 
                 tree_details = tree_order.xpath(
-                     '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
-                     'div/div[2]/div/div/div/div[2]')[0]
+                    '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
+                    'div/div[2]/div/div/div/div[2]')[0]
 
                 # every other td contains the information of an article in the
                 # order
