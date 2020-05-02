@@ -62,7 +62,7 @@ luigi:
 
 luigi-task: luigi-scheduler
 	mkdir -p output
-	luigi --module $(LMODULE) $(LTASK)
+	luigi --module $(LMODULE) $(LTASK) $(LARGS)
 
 luigi-clean:
 	rm -rf output
