@@ -46,11 +46,11 @@ class TestDataPreparationTask(DatabaseTestCase):
 
         # Expected behaviour: 1 is removed because it is not found in the DB
         expected_df = pd.DataFrame(
-            [[0]],
+            [['0']],
             columns=[COLUMN_NAME],
             index=[0])
         expected_invalid_values = pd.DataFrame(
-            [[1]],
+            [['1']],
             columns=[COLUMN_NAME],
             index=[1])
 

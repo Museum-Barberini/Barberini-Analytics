@@ -1,0 +1,20 @@
+{
+    "data": [
+        {
+            "id": "1234567890",
+            "caption": "Dies ist eine\nTest Caption",
+            "timestamp": "2020-01-02T13:00:02+0000",
+            "media_type": "FOOBAR",
+            "like_count": 128,
+            "comments_count": 256,
+            "permalink": "https://www.instagram.com/thisisapermalink"
+        }
+    ],
+    "paging": {
+        "cursors": {
+            "before": "something_irrelevant",
+            "after": "something_irrelevent_too"
+        },
+        "previous": "http://previous-page-url"
+    }
+}

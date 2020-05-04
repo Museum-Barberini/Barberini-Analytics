@@ -6,7 +6,7 @@ import requests
 import time
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation_task import DataPreparationTask, minimal_mode
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
@@ -60,7 +60,7 @@ class FetchBookingsHTML(DataPreparationTask):
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL'] == 'True':
+            if minimal_mode:
                 bookings = bookings.head(5)
 
         db_booking_rows = []
@@ -115,7 +115,7 @@ class FetchOrdersHTML(DataPreparationTask):
 
         order_ids = []
 
-        query_limit = 'LIMIT 10' if os.environ['MINIMAL'] == 'True' else ''
+        query_limit = 'LIMIT 10' if minimal_mode else ''
 
         order_contains_table_exists = self.db_connector.exists('''
             SELECT * FROM information_schema.tables

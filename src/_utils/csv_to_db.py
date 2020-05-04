@@ -5,6 +5,7 @@ import luigi
 from luigi.contrib.postgres import CopyToTable
 
 import db_connector
+from data_preparation_task import minimal_mode
 
 logger = logging.getLogger('luigi-interface')
 
@@ -15,6 +16,20 @@ class CsvToDb(CopyToTable):
     Subclasses have to override columns and requires().
     Don't forget to write a migration script if you change the table schema.
     """
+
+    @property
+    def primary_key(self):
+        raise NotImplementedError
+
+    @property
+    def foreign_keys(self):
+        # Default: no foreign key definitions
+        return []
+
+    minimal_mode = luigi.parameter.BoolParameter(
+        default=minimal_mode,
+        description="If True, only a minimal amount of data will be prepared"
+                    "in order to test the pipeline for structural problems")
 
     """
     Don't delete this! This parameter assures that every (sub)instance of me
@@ -42,12 +57,6 @@ class CsvToDb(CopyToTable):
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
-    """
-    CsvToDb does not support dynamical schema modifications.
-    To change the schema, create and run a migration script.
-    """
-    create_table = None
-
     @property
     def columns(self):
         if not self._columns:
@@ -63,6 +72,11 @@ class CsvToDb(CopyToTable):
             [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
         logger.debug(f"{self.__class__}: Executing query: {query}")
         cursor.copy_expert(query, file)
+
+    def create_table(self):
+        raise Exception(
+            "CsvToDb does not support dynamical schema modifications."
+            "To change the schema, create and run a migration script.")
 
     def rows(self):
         rows = super().rows()

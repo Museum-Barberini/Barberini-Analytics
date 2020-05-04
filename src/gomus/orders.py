@@ -1,7 +1,6 @@
 import datetime as dt
 import luigi
 import numpy as np
-import os
 import pandas as pd
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
@@ -37,7 +36,7 @@ class ExtractOrderData(DataPreparationTask):
         ])
 
     def requires(self):
-        suffix = '_1day' if os.environ['MINIMAL'] == 'True' else '_7days'
+        suffix = '_1day' if self.minimal_mode else '_7days'
         return FetchGomusReport(report='orders',
                                 suffix=suffix,
                                 today=self.today)

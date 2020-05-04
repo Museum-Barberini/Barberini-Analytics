@@ -5,16 +5,24 @@ from functools import reduce
 from typing import Callable, Dict, Tuple
 
 import luigi
+import os
 
 import db_connector
 
 logger = logging.getLogger('luigi-interface')
+
+minimal_mode = os.getenv('MINIMAL') == 'True'
 
 
 class DataPreparationTask(luigi.Task):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db_connector = db_connector.db_connector()
+
+    minimal_mode = luigi.parameter.BoolParameter(
+        default=minimal_mode,
+        description="If True, only a minimal amount of data will be prepared"
+                    "in order to test the pipeline for structural problems")
 
     table = luigi.parameter.Parameter(
         description="The name of the table the data should be prepared for",
@@ -52,10 +60,15 @@ class DataPreparationTask(luigi.Task):
         def filter_invalid_values(df, foreign_key):
             column, (foreign_table, foreign_column) = foreign_key
 
-            foreign_values = [value for [value] in self.db_connector.query(f'''
+            foreign_values = [
+                # cast values to string uniformly to prevent
+                # mismatching due to wrong data types
+                str(value) for [value] in self.db_connector.query(f'''
                     SELECT {foreign_column}
                     FROM {foreign_table}
                 ''')]
+            if not isinstance(df[column][0], str):
+                df[column] = df[column].apply(str)
 
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
