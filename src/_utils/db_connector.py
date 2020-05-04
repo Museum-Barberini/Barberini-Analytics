@@ -39,6 +39,15 @@ class DbConnector:
             query=f'SELECT EXISTS({query})',
             only_first=True)[0])
 
+    def exists_table(self, table: str) -> bool:
+        """
+        Check if the given table is present in the database.
+        """
+        return self.exists(f'''
+                SELECT * FROM information_schema.tables
+                WHERE LOWER(table_name) = LOWER('{table}')
+            ''')
+
     def query(self, query: str, only_first: bool = False) -> List[Tuple]:
         """
         Execute a query and return a list of results.

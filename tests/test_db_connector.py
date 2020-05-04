@@ -1,6 +1,7 @@
 import os
-import psycopg2
 import time
+
+import psycopg2
 
 from db_connector import DbConnector
 from task_test import DatabaseTaskTest
@@ -107,6 +108,20 @@ class TestDbConnector(DatabaseTaskTest):
             WHERE col1 = 10
         ''')
 
+        self.assertFalse(exists)
+
+    def test_exists_table_case_true(self):
+
+        exists = self.connector.exists_table(self.temp_table)
+        self.assertTrue(exists)
+
+    def test_exists_table_case_false(self):
+
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'DROP TABLE {self.temp_table}')
+
+        exists = self.connector.exists_table(self.temp_table)
         self.assertFalse(exists)
 
     def test_error_is_raised_on_bad_table_name(self):
