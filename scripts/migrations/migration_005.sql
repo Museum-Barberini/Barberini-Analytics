@@ -23,7 +23,6 @@ CREATE TABLE ig_post_performance (
     saved INT,
     video_views INT
 );
-
 ALTER TABLE ig_post_performance
     ADD CONSTRAINT ig_post_performance_primkey PRIMARY KEY (ig_post_id, timestamp);
 
