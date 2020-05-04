@@ -125,7 +125,9 @@ class FetchIgPosts(DataPreparationTask):
             'comments_count',
             'permalink'
         ])
-        limit = 100  # use limit=100 to keep amount of requests small
+        # use limit=100 to keep amount of requests small
+        # 100 is the maximum value the Graph API will accept
+        limit = 100
 
         media_url = (f'{API_BASE}/{page_id}/media'
                      f'?fields={fields}&limit={limit}')
@@ -151,10 +153,10 @@ class FetchIgPosts(DataPreparationTask):
                 all_media.append(media)
 
             if os.getenv('MINIMAL', 'False') == 'True':
-                print()  # have to manually print newline
                 logger.info("Running in minimal mode, stopping now")
                 response_json['paging'].pop('next')
 
+        print()  # have to manually print newline
         logger.info("Fetching of Instagram posts complete")
 
         df = pd.DataFrame([media for media in all_media])

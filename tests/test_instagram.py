@@ -16,10 +16,8 @@ class TestInstagram(unittest.TestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
-    def test_post_transformation(self,
-                                 fact_mock,
-                                 output_mock,
-                                 request_mock):
+    def test_post_transformation(
+            self, fact_mock, output_mock, request_mock):
         fact_target = MockTarget('facts_in', format=UTF8)
         fact_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
@@ -48,10 +46,8 @@ class TestInstagram(unittest.TestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
-    def test_pagination(self,
-                        fact_mock,
-                        output_mock,
-                        request_mock):
+    def test_pagination(
+            self, fact_mock, output_mock, request_mock):
         # This is very similar to test_facebook.test_pagination
 
         fact_target = MockTarget('facts_in', format=UTF8)
@@ -146,10 +142,8 @@ class TestInstagram(unittest.TestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgAudienceOrigin, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
-    def test_audience_origin_transformation(self,
-                                            input_mock,
-                                            output_mock,
-                                            request_mock):
+    def test_audience_origin_transformation(
+            self, input_mock, output_mock, request_mock):
         fact_target = MockTarget('facts_in', format=UTF8)
         input_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
@@ -182,10 +176,8 @@ class TestInstagram(unittest.TestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgAudienceGenderAge, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
-    def test_audience_gender_age_transformation(self,
-                                                input_mock,
-                                                output_mock,
-                                                request_mock):
+    def test_audience_gender_age_transformation(
+            self, input_mock, output_mock, request_mock):
         fact_target = MockTarget('facts_in', format=UTF8)
         input_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
