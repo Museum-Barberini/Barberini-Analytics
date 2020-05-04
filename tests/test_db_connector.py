@@ -43,7 +43,7 @@ class TestDbConnector(DatabaseTaskTest):
         self.connection.set_isolation_level(0)
         with self.connection as conn:
             with conn.cursor() as cur:
-                cur.execute(f'DROP TABLE {self.temp_table}')
+                cur.execute(f'DROP TABLE IF EXISTS {self.temp_table}')
         self.connection.close()
 
         super().tearDown()
