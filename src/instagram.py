@@ -108,7 +108,6 @@ class FetchIgPosts(DataPreparationTask):
     def run(self):
         access_token = os.getenv('FB_ACCESS_TOKEN')
         if not access_token:
-            logger.error("FB Access Token not set")
             raise EnvironmentError("FB Access token is not set")
 
         with self.input().open('r') as facts_file:
@@ -132,31 +131,31 @@ class FetchIgPosts(DataPreparationTask):
         media_url = (f'{API_BASE}/{page_id}/media'
                      f'?fields={fields}&limit={limit}')
 
-        res = try_request_multiple_times(media_url)
-        res_json = res.json()
+        response = try_request_multiple_times(media_url)
+        response_json = response.json()
 
-        current_count = len(res_json['data'])
-        for media in res_json['data']:
+        current_count = len(response_json['data'])
+        for media in response_json['data']:
             all_media.append(media)
 
         logger.info("Fetching Instagram posts ...")
-        while 'next' in res_json['paging']:
-            next_url = res_json['paging']['next']
-            res = try_request_multiple_times(next_url)
-            res_json = res.json()
+        while 'next' in response_json['paging']:
+            next_url = response_json['paging']['next']
+            response = try_request_multiple_times(next_url)
+            response_json = response.json()
 
-            current_count += len(res_json['data'])
+            current_count += len(response_json['data'])
             print(
                 f"\rFetched {current_count} Instagram posts",
                 end='',
                 flush=True)
-            for media in res_json['data']:
+            for media in response_json['data']:
                 all_media.append(media)
 
             if os.getenv('MINIMAL', 'False') == 'True':
                 print()  # have to manually print newline
                 logger.info("Running in minimal mode, stopping now")
-                res_json['paging'].pop('next')
+                response_json['paging'].pop('next')
 
         logger.info("Fetching of Instagram posts complete")
 
@@ -172,6 +171,8 @@ class FetchIgPostPerformance(DataPreparationTask):
         description="For how much time posts should be fetched")
 
     def _requires(self):
+        # _requires introduces dependencies without
+        # affecting the input() of a task
         return luigi.task.flatten([
             IgPostsToDB(),
             super()._requires()
@@ -207,7 +208,7 @@ class FetchIgPostPerformance(DataPreparationTask):
                 row['timestamp'],
                 '%Y-%m-%dT%H:%M:%S+%f')
             if post_time.date() < \
-               dt.datetime.now().date() - self.timespan:
+               fetch_time.date() - self.timespan:
                 break
 
             print(
@@ -267,14 +268,12 @@ class FetchIgAudienceOrigin(DataPreparationTask):
 
         df = pd.DataFrame(columns=self.columns)
         values = get_profile_metric(page_id, 'audience_city')
-        i = 0
 
-        for city, amount in values.items():
+        for i, (city, amount) in enumerate(values.items()):
             df.loc[i] = [
                 city,
                 amount
             ]
-            i += 1
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
@@ -298,16 +297,14 @@ class FetchIgAudienceGenderAge(DataPreparationTask):
 
         df = pd.DataFrame(columns=self.columns)
         values = get_profile_metric(page_id, 'audience_gender_age')
-        i = 0
 
-        for gender_age, amount in values.items():
+        for i, (gender_age, amount) in enumerate(values.items()):
             gender, age = gender_age.split('.')
             df.loc[i] = [
                 gender,
                 age,
                 amount
             ]
-            i += 1
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

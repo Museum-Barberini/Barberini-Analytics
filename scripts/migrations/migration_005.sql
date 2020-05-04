@@ -3,10 +3,10 @@ BEGIN;
 CREATE TABLE ig_post (
     ig_post_id TEXT,
     caption TEXT,
-    post_time TIMESTAMP,
+    post_date TIMESTAMP,
     media_type TEXT,
-    like_count INT,
-    comments_count INT,
+    likes INT,
+    comments INT,
     permalink TEXT
 );
 
