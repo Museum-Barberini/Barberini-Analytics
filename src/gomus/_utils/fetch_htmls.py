@@ -71,7 +71,7 @@ class FetchBookingsHTML(luigi.Task):
                 SELECT booking_id FROM gomus_booking
                 WHERE start_datetime < '{today_time}'
             ''')
-        except UndefinedTableError:
+        except UndefinedTable:
             db_booking_rows = []
 
         for i, row in bookings.iterrows():
@@ -122,7 +122,7 @@ class FetchOrdersHTML(luigi.Task):
                 )
                 {query_limit}
             ''')
-        except UndefinedTableError:
+        except UndefinedTable:
             order_ids = db_connector.query(
                 f'SELECT order_id FROM gomus_order {query_limit}'
             )
