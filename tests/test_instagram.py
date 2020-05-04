@@ -38,7 +38,7 @@ class TestInstagram(DatabaseTaskTest):
         mock_response = MagicMock(ok=True, json=mock_json)
         request_mock.return_value = mock_response
 
-        self.run_task(instagram.FetchIgPosts)
+        self.run_task(instagram.FetchIgPosts())
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
@@ -77,7 +77,7 @@ class TestInstagram(DatabaseTaskTest):
             previous_response
         ]
 
-        self.run_task(instagram.FetchIgPosts)
+        self.run_task(instagram.FetchIgPosts())
 
         self.assertEqual(request_mock.call_count, 2)
 
