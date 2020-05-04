@@ -135,8 +135,7 @@ class FetchIgPosts(DataPreparationTask):
         res_json = res.json()
 
         current_count = len(res_json['data'])
-        for media in res_json['data']:
-            all_media.append(media)
+        all_media.extend(res_json['data'])
 
         logger.info("Fetching Instagram posts ...")
         while 'next' in res_json['paging']:
