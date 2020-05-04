@@ -117,7 +117,7 @@ class FetchIgPosts(DataPreparationTask):
 
         all_media = []
 
-        fields = [
+        fields = ','.join([
             'id',
             'caption',
             'timestamp',
@@ -125,8 +125,7 @@ class FetchIgPosts(DataPreparationTask):
             'like_count',
             'comments_count',
             'permalink'
-        ]
-        fields = ','.join(fields)
+        ])
         limit = 100  # use limit=100 to keep amount of requests small
 
         media_url = (f'{API_BASE}/{page_id}/media'
