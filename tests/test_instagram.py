@@ -6,7 +6,7 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 
 import instagram
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTaskTest
 
 IG_TEST_DATA = 'tests/test_data/instagram'
 
