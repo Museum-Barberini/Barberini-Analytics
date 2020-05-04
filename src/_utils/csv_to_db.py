@@ -17,15 +17,6 @@ class CsvToDb(CopyToTable):
     Don't forget to write a migration script if you change the table schema.
     """
 
-    @property
-    def primary_key(self):
-        raise NotImplementedError
-
-    @property
-    def foreign_keys(self):
-        # Default: no foreign key definitions
-        return []
-
     minimal_mode = luigi.parameter.BoolParameter(
         default=minimal_mode,
         description="If True, only a minimal amount of data will be prepared"
