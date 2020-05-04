@@ -19,14 +19,14 @@ class DataPreparationTask(luigi.Task):
         super().__init__(*args, **kwargs)
         self.db_connector = db_connector.db_connector()
 
+    table = luigi.parameter.Parameter(
+        description="The name of the table the data should be prepared for",
+        default=None)
+
     minimal_mode = luigi.parameter.BoolParameter(
         default=minimal_mode,
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
-
-    table = luigi.parameter.Parameter(
-        description="The name of the table the data should be prepared for",
-        default=None)
 
     def ensure_foreign_keys(
                 self,
