@@ -38,21 +38,17 @@ class DataPreparationTask(luigi.Task):
         """
         Note that this currently only works with lower case identifiers.
         """
-        if not invalid_values_handler:
-            def log_invalid_values(
-                    invalid_values, foreign_key, original_values):
-                column, _ = foreign_key
-                original_count = df[column].count()
-                logger.warning(
-                    f"Skipped {invalid_values.count()} out of "
-                    f"{original_count} data sets due to foreign key "
-                    f" violation: {foreign_key}")
-                print(
-                    f"Following values were invalid:\n{invalid_values}"
-                    if sys.stdin.isatty()
-                    else
-                    "Values not printed for privacy reasons")
-            return self.ensure_foreign_keys(df, log_invalid_values)
+        def log_invalid_values(
+                invalid_values, foreign_key, original_values):
+            column, _ = foreign_key
+            original_count = len(df[column])
+            logger.warning(
+                f"Skipped {len(invalid_values)} out of {original_count} rows "
+                f"due to foreign key violation: {foreign_key}")
+            print(
+                f"Following values were invalid:\n{invalid_values}"
+                if sys.stdout.isatty() else
+                "Values not printed for privacy reasons")
 
         if df.empty:
             return df  # optimization
@@ -75,7 +71,9 @@ class DataPreparationTask(luigi.Task):
             filtered_df = df[df[column].isin(foreign_values)]
             invalid_values = df[~df[column].isin(foreign_values)]
             if not invalid_values.empty:
-                invalid_values_handler(invalid_values, foreign_key, df)
+                log_invalid_values(invalid_values, foreign_key, df)
+                if invalid_values_handler:
+                    invalid_values_handler(invalid_values, foreign_key, df)
 
             return filtered_df
 
