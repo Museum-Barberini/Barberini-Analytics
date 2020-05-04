@@ -173,6 +173,10 @@ BEGIN;
     ALTER TABLE gomus_to_customer_mapping
         ADD CONSTRAINT customer_id_fkey FOREIGN KEY (customer_id) REFERENCES gomus_customer (customer_id)
         ON UPDATE CASCADE;
+    -- A null customer for all users that did not leave an email address
+    INSERT INTO gomus_customer VALUES (
+        0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    ----
 
 
     CREATE TABLE google_maps_review (
