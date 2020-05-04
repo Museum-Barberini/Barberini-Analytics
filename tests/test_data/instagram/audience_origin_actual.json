@@ -1,0 +1,21 @@
+{
+    "data": [
+      {
+        "name": "audience_city",
+        "period": "lifetime",
+        "values": [
+          {
+            "value": {
+              "City1, State1": 123,
+              "City2, State2": 456,
+              "City3, State1": 789
+            },
+            "end_time": "2020-04-30T07:00:00+0000"
+          }
+        ],
+        "title": "Audience City",
+        "description": "The cities of this profile's followers",
+        "id": "01234567899876543210/insights/audience_city/lifetime"
+      }
+    ]
+  }

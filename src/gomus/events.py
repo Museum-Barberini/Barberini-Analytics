@@ -1,6 +1,5 @@
 import csv
 import datetime as dt
-import os
 
 import luigi
 import pandas as pd
@@ -8,7 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation_task import DataPreparationTask, minimal_mode
 from db_connector import db_connector
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
@@ -153,7 +152,7 @@ class FetchCategoryReservations(luigi.Task):
 
     def run(self):
 
-        if os.environ['MINIMAL'] == 'True':
+        if minimal_mode:
             query = f'''
                 SELECT booking_id FROM gomus_booking
                 WHERE category='{self.category}'
@@ -182,6 +181,7 @@ class FetchCategoryReservations(luigi.Task):
                     self.output_list.append(approved.output().path)
                     self.output_list.append(cancelled.output().path)
                 self.row_list.append(event_id)
+
         # write list of all event reservation to output file
         with self.output().open('w') as all_outputs:
             all_outputs.write('\n'.join(self.output_list) + '\n')

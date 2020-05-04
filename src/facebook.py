@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import logging
 import os
+import sys
 
 import luigi
 import pandas as pd
@@ -13,6 +14,9 @@ from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
+
+API_VER = 'v6.0'
+API_BASE = f'https://graph.facebook.com/{API_VER}'
 
 
 class FbPostsToDB(CsvToDb):
@@ -77,17 +81,15 @@ class FetchFbPosts(DataPreparationTask):
         return luigi.LocalTarget('output/facebook/fb_posts.csv', format=UTF8)
 
     def run(self):
-        access_token = os.environ['FB_ACCESS_TOKEN']
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
         page_id = facts['ids']['facebook']['pageId']
 
         posts = []
 
-        url = f'https://graph.facebook.com/v6.0/{page_id}/feed'
-        headers = {'Authorization': 'Bearer ' + access_token}
+        url = f'{API_BASE}/{page_id}/feed'
 
-        response = try_request_multiple_times(url, headers=headers)
+        response = try_request_multiple_times(url)
         response.raise_for_status()
 
         response_content = response.json()
@@ -99,16 +101,22 @@ class FetchFbPosts(DataPreparationTask):
         while ('next' in response_content['paging']):
             page_count = page_count + 1
             url = response_content['paging']['next']
-            response = try_request_multiple_times(url, headers=headers)
+            response = try_request_multiple_times(url)
             response.raise_for_status()
 
             response_content = response.json()
             for post in (response_content['data']):
                 posts.append(post)
-            print(f"\rFetched facebook page {page_count}", end='', flush=True)
+            if sys.stdout.isatty():
+                print(f"\rFetched facebook page {page_count}",
+                      end='',
+                      flush=True)
 
-            if os.environ['MINIMAL'] == 'True':
+            if self.minimal_mode:
                 response_content['paging'].pop('next')
+
+        if sys.stdout.isatty():
+            print()
 
         logger.info("Fetching of facebook posts completed")
 
@@ -142,7 +150,7 @@ class FetchFbPostPerformance(DataPreparationTask):
             'output/facebook/fb_post_performances.csv', format=UTF8)
 
     def run(self):
-        access_token = os.environ['FB_ACCESS_TOKEN']
+        access_token = os.getenv('FB_ACCESS_TOKEN')
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         earliest_valid_date = (dt.datetime.now()
@@ -151,7 +159,7 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
 
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             df = df.head(5)
 
         invalid_count = 0
@@ -163,8 +171,10 @@ class FetchFbPostPerformance(DataPreparationTask):
             if post_date < earliest_valid_date:
                 continue
 
-            # print(f"[FB] Loading performance data for post {str(post_id)}")
-            url = f'https://graph.facebook.com/v6.0/{post_id}/insights'
+            logger.info(
+                f"Loading performance data for FB post {str(post_id)}")
+
+            url = f'{API_BASE}/{post_id}/insights'
             metrics = [
                 'post_reactions_by_type_total',
                 'post_activity_by_action_type',
@@ -223,12 +233,13 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             performances.append(post_perf)
 
-        df, _ = self.ensure_foreign_keys(df)
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
 
+        df = pd.DataFrame([perf for perf in performances])
+        df, _ = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
-            df = pd.DataFrame([perf for perf in performances])
             df.to_csv(output_file, index=False, header=True)
 
 
@@ -238,15 +249,26 @@ def try_request_multiple_times(url, **kwargs):
     some requests to fail (mainly: to time out), request the api up
     to four times.
     """
+    headers = kwargs.pop('headers', None)
+    if not headers:
+        access_token = os.getenv('FB_ACCESS_TOKEN')
+        if not access_token:
+            raise EnvironmentError("FB Access token is not set")
+        headers = {'Authorization': 'Bearer ' + access_token}
+
     for _ in range(3):
         try:
-            response = requests.get(url, timeout=60, **kwargs)
+            response = requests.get(
+                url,
+                timeout=60,
+                headers=headers,
+                **kwargs)
             response.raise_for_status()
             return response
         except requests.RequestException as e:
-            print(
-                "An Error occured requesting the Facebook api.\n"
-                "Trying to request the api again.\n"
-                f"error message: {e}"
+            logger.error(
+                "An Error occurred requesting the Facebook API.\n"
+                "Trying to request the API again.\n"
+                f"Error message: {e}"
             )
     return requests.get(url, timeout=100, **kwargs)
