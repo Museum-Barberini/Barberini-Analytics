@@ -1,5 +1,7 @@
 -- Create tables for Instagram
+
 BEGIN;
+
 CREATE TABLE ig_post (
     ig_post_id TEXT,
     caption TEXT,
