@@ -116,7 +116,7 @@ class FetchIgPosts(DataPreparationTask):
 
         all_media = []
 
-        fields = [
+        fields = ','.join([
             'id',
             'caption',
             'timestamp',
@@ -124,8 +124,7 @@ class FetchIgPosts(DataPreparationTask):
             'like_count',
             'comments_count',
             'permalink'
-        ]
-        fields = ','.join(fields)
+        ])
         limit = 100  # use limit=100 to keep amount of requests small
 
         media_url = (f'{API_BASE}/{page_id}/media'
@@ -135,8 +134,7 @@ class FetchIgPosts(DataPreparationTask):
         response_json = response.json()
 
         current_count = len(response_json['data'])
-        for media in response_json['data']:
-            all_media.append(media)
+        all_media.extend(response_json['data'])
 
         logger.info("Fetching Instagram posts ...")
         while 'next' in response_json['paging']:
