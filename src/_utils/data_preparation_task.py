@@ -50,10 +50,10 @@ class DataPreparationTask(luigi.Task):
                 if sys.stdout.isatty() else
                 "Values not printed for privacy reasons")
 
-        if df.empty:
-            return df  # optimization
-
         def filter_invalid_values(df, foreign_key):
+            if df.empty:
+                return df
+
             column, (foreign_table, foreign_column) = foreign_key
 
             foreign_values = [
