@@ -12,16 +12,28 @@ from .posts import FetchPosts
 regex_type = type(regex.compile(''))
 
 
-def regex_compile_outermost(pattern: str, flags = 0) -> regex_type:
-    return regex.compile(
-        f'^{pattern}|{pattern}$',
-        flags=flags | regex.VERSION1)
+def regex_compile(pattern: str) -> regex_type:
+    return regex.compile(pattern, flags=regex.VERBOSE | regex.VERSION1)
 
 
-def regex_compile_greedy_lookaround(pattern: str, flags = 0) -> regex_type:
-    return regex.compile(
-        f'(?<=(?!{pattern}){pattern}+)|(?=(?<!{pattern}){pattern}+)',
-        flags=flags | regex.VERSION1)
+def regex_compile_outermost(pattern: str, flags=0) -> regex_type:
+    return regex_compile(rf'''
+        ^
+        {pattern}
+        |
+        {pattern}
+        $''')
+
+
+def regex_compile_greedy_lookaround(pattern: str, flags=0) -> regex_type:
+    return regex_compile(rf'''
+        (?<=
+            (?!{pattern})
+            {pattern}+
+        ) | (?=
+            (?<!{pattern})
+            {pattern}+
+        )''')
 
 
 class PostWordsToDB(CsvToDb):
@@ -97,32 +109,35 @@ class CollectPostWords(DataPreparationTask):
             post_words.to_csv(words_stream, index=False, header=True)
 
     # Patterns to split text, removing the matching chars
-    split = regex.compile(r'''
+    split = regex_compile(r'''
             \s+                 # Whitespace
             |
             (?<!\/\S*)\/(?!\/)  # Slashes (but not in URLs)
-        ''', flags=regex.VERBOSE)
+        ''')
     # Patterns to isolate a separate word
     separate = regex_compile_greedy_lookaround(r'''
             \p{So}+  # Symbols and emojis
-        ''', flags=regex.VERBOSE)
+        ''')
     # Patterns to strip from beginning and end of each word
-    strip = regex_compile_outermost(r''' # LATEST TODO: Verbosity apparently not working here! Find out why!
+    strip = regex_compile_outermost(r'''
+            # every punctuation, but not:
+            # hashtags and mentions (twitter)
             [
-                \p{P}   # every punctuation
-                --[     # but not:
-                    @#  # hashtags and mentions (twitter)
+                \p{P}
+                --[
+                    \@\#
                 ]
             ]+
-        ''', flags=regex.VERBOSE)
+        ''')
+    # cvyp
     # Patterns to ignore words
-    ignore = regex.compile(r'''
+    ignore = regex_compile(r'''
             ^\w$  # Single character as word
-        ''', flags=regex.VERBOSE)
+        ''')
     # Patterns to compress the remaining words
     compressions = {
         # Treat repeated emoji as one occurence
-        regex.compile(r'(\p{So}){2,}', flags=regex.VERSION1): r'\1'
+        regex_compile(r'(\p{So}){2,}'): r'\1'
     }
 
     def tokenize(self, text):
