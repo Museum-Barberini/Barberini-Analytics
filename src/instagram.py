@@ -9,7 +9,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation_task import DataPreparationTask, minimal_mode
 from facebook import API_BASE, try_request_multiple_times
 from museum_facts import MuseumFacts
 
@@ -154,7 +154,7 @@ class FetchIgPosts(DataPreparationTask):
             for media in response_json['data']:
                 all_media.append(media)
 
-            if os.getenv('MINIMAL', 'False') == 'True':
+            if minimal_mode:
                 logger.info("Running in minimal mode, stopping now")
                 response_json['paging'].pop('next')
 
