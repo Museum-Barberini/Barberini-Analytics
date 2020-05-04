@@ -2,8 +2,6 @@ import json
 import luigi
 import random
 
-import pandas as pd
-
 from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 

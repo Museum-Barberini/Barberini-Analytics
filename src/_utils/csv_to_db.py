@@ -6,9 +6,9 @@ import luigi
 import psycopg2
 from luigi.contrib.postgres import CopyToTable
 
-logger = logging.getLogger('luigi-interface')
-
 from data_preparation_task import minimal_mode
+
+logger = logging.getLogger('luigi-interface')
 
 
 class CsvToDb(CopyToTable):
