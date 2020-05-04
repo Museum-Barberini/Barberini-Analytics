@@ -17,13 +17,10 @@ class GtrendsTopics(DataPreparationTask):
         return luigi.LocalTarget('output/google_trends/topics.json')
 
     def run(self):
-        topics = pd.DataFrame(self.collect_topics())
-
-        # not necessary but good style
-        topics = self.ensure_foreign_keys(topics)
+        topics = self.collect_topics()
 
         with self.output().open('w') as output_file:
-            json.dump(list(topics[0]), output_file)
+            json.dump(topics, output_file)
 
     def collect_topics(self):
         with self.input().open('r') as facts_file:

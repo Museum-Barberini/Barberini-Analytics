@@ -165,7 +165,6 @@ class FetchTwitter(DataPreparationTask):
 
         df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
         df = df.drop_duplicates(subset=["tweet_id"])
-        df = self.ensure_foreign_keys(df)  # Not necessary but good style
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
