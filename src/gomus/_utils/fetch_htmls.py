@@ -50,8 +50,8 @@ class FetchBookingsHTML(DataPreparationTask):
         self.output_list = []
 
     def requires(self):
-        return ExtractGomusBookings(timespan=self.timespan,
-                                    columns=self.columns)
+        return ExtractGomusBookings(
+            timespan=self.timespan, columns=self.columns)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
