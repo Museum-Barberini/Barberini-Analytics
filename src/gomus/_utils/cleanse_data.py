@@ -14,6 +14,9 @@ class CleansePostalCodes(DataPreparationTask):
     skip_count = 0
     none_count = 0
 
+    common_lookahead = r'(?=$|\s|[a-zA-Z])'
+    common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))'
+
     def requires(self):
         return CustomersToDB(today=self.today)
 
@@ -65,6 +68,8 @@ class CleansePostalCodes(DataPreparationTask):
 
     def match_postal_code(self, postal_code, country):
 
+        result = None
+
         if not postal_code:
             self.none_count += 1
 
@@ -72,39 +77,55 @@ class CleansePostalCodes(DataPreparationTask):
         cleansed_postal_code = cleansed_postal_code.replace('^', '')
         cleansed_postal_code = cleansed_postal_code.replace(' ', '')
 
-        country_func = self.get_validation_function(country)
-        if country_func:
-            result = country_func(cleansed_postal_code)
-            if country_func == self.validate_US:
-                if not result:
-                    print(result, cleansed_postal_code)
-            if not result:
-                self.skip_count += 1
-            return result
-        else:
-            self.skip_count += 1
-            return None
-
-    def get_validation_function(self, country):
-        country_to_func = {
+        country_to_function = {
             'Deutschland': self.validate_DE,
             'Schweiz': self.validate_CH,
             'Vereinigtes Königreich': self.validate_GB,
             'Vereinigte Staaten von Amerika': self.validate_US,
-            None: self.validate_DE
+            'Frankreich': self.validate_FR,
+            'Niederlande': self.validate_NL
         }
-        return country_to_func.get(country)
+        country_func = country_to_function.get(country)
+
+        if country_func:
+            result = country_func(cleansed_postal_code)
+
+        for key, func in country_to_function.items():
+            if not result:
+                result = func(cleansed_postal_code)
+
+        if not result:
+            self.skip_count += 1
+            if postal_code:
+                print(cleansed_postal_code, country)
+
+        return result
+
+    def add_zeroes(self, postal_code, digit_count):
+        not_null_part = None
+
+        for num in reversed(range(0, digit_count)):
+            if not not_null_part:
+                not_null_part = re.findall(
+                    self.common_lookbehind +
+                    rf'\d{{{num + 1}}}' +
+                    self.common_lookahead,
+                    postal_code)
+                null_count = digit_count - (num + 1)
+
+        if not_null_part:
+            not_null_part = str(not_null_part[0])
+            return null_count * '0' + not_null_part
+        else:
+            return postal_code
 
     def validate_DE(self, postal_code):
-        if len(re.findall(
-            r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))\d{4}(?=$|\s|[a-zA-Z])',
-            postal_code)
-        ):
-            postal_code = '0' + postal_code
+
+        new_postal_code = self.add_zeroes(postal_code, 5)
 
         matching_codes = re.findall(
             r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})',
-            postal_code)
+            new_postal_code)
 
         if len(matching_codes):
             return matching_codes[0]
@@ -112,9 +133,12 @@ class CleansePostalCodes(DataPreparationTask):
             return None
 
     def validate_CH(self, postal_code):
+
+        new_postal_code = self.add_zeroes(postal_code, 4)
+
         matches = re.findall(
-            r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))[1-9]\d{3}(?=$|\s|[a-zA-Z])',
-            postal_code
+            self.common_lookbehind + r'[1-9]\d{3}' + self.common_lookahead,
+            new_postal_code
         )
         if len(matches):
             return matches[0]
@@ -132,15 +156,38 @@ class CleansePostalCodes(DataPreparationTask):
         return None
 
     def validate_US(self, postal_code):
-        if len(re.findall(
-            r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))\d{4}(?=$|\s|[a-zA-Z])',
-            postal_code)
-        ):
-            postal_code = '0' + postal_code
+
+        new_postal_code = self.add_zeroes(postal_code, 5)
 
         matches = re.findall(
-            r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))([0-9]{5}(?:-[0-9]{4})?)|'
-            r'[0-9]{9}(?=$|\s|[a-zA-Z])',
+            self.common_lookbehind +
+            r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}' +
+            self.common_lookahead,
+            new_postal_code
+        )
+        if len(matches):
+            return matches[0]
+        return None
+
+    def validate_FR(self, postal_code):
+
+        new_postal_code = self.add_zeroes(postal_code, 5)
+
+        matches = re.findall(
+            self.common_lookbehind +
+            r'(?:[0-8]\d|9[0-8])\d{3}' +
+            self.common_lookahead,
+            new_postal_code
+        )
+        if len(matches):
+            return matches[0]
+
+        return None
+
+    def validate_NL(self, postal_code):
+
+        matches = re.findall(
+            r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}',
             postal_code
         )
         if len(matches):
