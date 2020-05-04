@@ -8,6 +8,7 @@ import requests
 from luigi.format import UTF8
 from psycopg2.errors import UndefinedTable
 
+from data_preparation_task import minimal_mode
 from db_connector import db_connector
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
@@ -62,7 +63,7 @@ class FetchBookingsHTML(luigi.Task):
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL'] == 'True':
+            if minimal_mode:
                 bookings = bookings.head(5)
 
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
@@ -112,7 +113,7 @@ class FetchOrdersHTML(luigi.Task):
 
         order_ids = []
 
-        query_limit = 'LIMIT 10' if os.environ['MINIMAL'] == 'True' else ''
+        query_limit = 'LIMIT 10' if minimal_mode else ''
 
         try:
             order_ids = db_connector.query(f'''
