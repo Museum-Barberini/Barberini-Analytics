@@ -71,21 +71,18 @@ class ExtractEventData(DataPreparationTask):
         for index, event_files in enumerate(self.input()):
             category = self.categories[index]
             with event_files.open('r') as events:
-
                 # for every event that falls into that category
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
-
-                    if path == '':
+                    if not path:
                         continue
+
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
-                    if i % 2 == 0:
-                        self.append_event_data(
-                            event_data, "Gebucht", category)
-                    else:
-                        self.append_event_data(
-                            event_data, "Storniert", category)
+                    self.append_event_data(
+                        event_data,
+                        "Storniert" if i % 2 else "Gebucht",
+                        category)
 
         self.events_df = self.ensure_foreign_keys(self.events_df)
 
