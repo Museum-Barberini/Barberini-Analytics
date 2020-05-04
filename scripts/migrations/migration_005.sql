@@ -30,7 +30,6 @@ CREATE TABLE ig_audience_origin (
     city TEXT,
     amount INT
 );
-
 ALTER TABLE ig_audience_origin
     ADD CONSTRAINT ig_audience_origin_primkey PRIMARY KEY (city);
 
