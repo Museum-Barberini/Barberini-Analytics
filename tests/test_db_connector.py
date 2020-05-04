@@ -49,8 +49,15 @@ class TestDbConnector(DatabaseTaskTest):
 
     def test_query(self):
 
-        res = self.connector.query(f'SELECT * FROM {self.temp_table}')
-        self.assertEqual(res, [(1, 2), (3, 4)])
+        rows = self.connector.query(f'SELECT * FROM {self.temp_table}')
+        self.assertEqual(rows, [(1, 2), (3, 4)])
+
+    def test_query_with_header(self):
+
+        rows, columns = self.connector.query_with_header(
+            f'SELECT * FROM {self.temp_table}')
+        self.assertEqual([(1, 2), (3, 4)], rows)
+        self.assertSequenceEqual(['col1', 'col2'], columns)
 
     def test_execute(self):
 
