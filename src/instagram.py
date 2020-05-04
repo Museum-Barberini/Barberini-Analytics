@@ -9,7 +9,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask, minimal_mode
+from data_preparation_task import DataPreparationTask
 from facebook import API_BASE, try_request_multiple_times
 from museum_facts import MuseumFacts
 
@@ -21,18 +21,6 @@ logger = logging.getLogger('luigi-interface')
 class IgPostsToDB(CsvToDb):
     table = 'ig_post'
 
-    columns = [
-        ('ig_post_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('post_date', 'TIMESTAMP'),
-        ('media_type', 'TEXT'),
-        ('likes', 'INT'),
-        ('comments', 'INT'),
-        ('permalink', 'TEXT')
-    ]
-
-    primary_key = 'ig_post_id'
-
     def requires(self):
         return FetchIgPosts()
 
@@ -40,61 +28,25 @@ class IgPostsToDB(CsvToDb):
 class IgPostPerformanceToDB(CsvToDb):
     table = 'ig_post_performance'
 
-    columns = [
-        ('ig_post_id', 'TEXT'),
-        ('timestamp', 'TIMESTAMP'),
-        ('impressions', 'INT'),
-        ('reach', 'INT'),
-        ('engagement', 'INT'),
-        ('saved', 'INT'),
-        ('video_views', 'INT')
-    ]
-
-    primary_key = ('ig_post_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            'origin_column': 'ig_post_id',
-            'target_table': 'ig_post',
-            'target_column': 'ig_post_id'
-        }
-    ]
-
     def requires(self):
         return FetchIgPostPerformance(
-            foreign_keys=self.foreign_keys,
-            columns=[col[0] for col in self.columns])
+            table=self.table, columns=[col[0] for col in self.columns])
 
 
 class IgAudienceOriginToDB(CsvToDb):
     table = 'ig_audience_origin'
 
-    columns = [
-        ('city', 'TEXT'),
-        ('amount', 'INT')
-    ]
-
-    primary_key = 'city'
-
     def requires(self):
         return FetchIgAudienceOrigin(
-            columns=[col[0] for col in self.columns])
+            table=self.table, columns=[col[0] for col in self.columns])
 
 
 class IgAudienceGenderAgeToDB(CsvToDb):
     table = 'ig_audience_gender_age'
 
-    columns = [
-        ('gender', 'TEXT'),
-        ('age', 'TEXT'),
-        ('amount', 'INT')
-    ]
-
-    primary_key = ('gender', 'age')
-
     def requires(self):
         return FetchIgAudienceGenderAge(
-            columns=[col[0] for col in self.columns])
+            table=self.table, columns=[col[0] for col in self.columns])
 
 # =============== DataPreparation Tasks ===============
 
@@ -154,7 +106,7 @@ class FetchIgPosts(DataPreparationTask):
             for media in response_json['data']:
                 all_media.append(media)
 
-            if minimal_mode:
+            if self.minimal_mode:
                 logger.info("Running in minimal mode, stopping now")
                 response_json['paging'].pop('next')
 
@@ -252,7 +204,7 @@ class FetchIgPostPerformance(DataPreparationTask):
         if sys.stdout.isatty():
             print()
 
-        performance_df, _ = self.ensure_foreign_keys(performance_df)
+        performance_df = self.ensure_foreign_keys(performance_df)
 
         with self.output().open('w') as output_file:
             performance_df.to_csv(output_file, index=False, header=True)
