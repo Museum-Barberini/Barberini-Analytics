@@ -13,6 +13,7 @@ class CleansePostalCodes(DataPreparationTask):
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     skip_count = 0
     none_count = 0
+    other_country_count = 0
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))'
@@ -28,7 +29,10 @@ class CleansePostalCodes(DataPreparationTask):
         customer_df = self.get_customer_data()
 
         customer_df['cleansed_postal_code'] = ''
-        customer_df['cleansed_postal_code'] = customer_df.apply(
+        customer_df['cleansed_country'] = ''
+
+        customer_df['cleansed_postal_code'],
+        customer_df['cleansed_country'] = customer_df.apply(
                 lambda x: self.match_postal_code(
                     postal_code=x['postal_code'],
                     country=x['country']
@@ -48,6 +52,8 @@ class CleansePostalCodes(DataPreparationTask):
         print()
         print(' =>', self.skip_count-self.none_count,
               'values were not validated.')
+        print()
+        print('Num Postal Codes of other countries:', self.other_country_count)
         print('-------------------------------------------------')
 
     def get_customer_data(self):
@@ -68,14 +74,15 @@ class CleansePostalCodes(DataPreparationTask):
 
     def match_postal_code(self, postal_code, country):
 
-        result = None
+        result_postal = None
 
         if not postal_code:
             self.none_count += 1
+            self.skip_count += 1
+            return None
 
-        cleansed_postal_code = str(postal_code)
-        cleansed_postal_code = cleansed_postal_code.replace('^', '')
-        cleansed_postal_code = cleansed_postal_code.replace(' ', '')
+        cleansed_postal_code = \
+            self.replace_rare_symbols(str(postal_code))
 
         country_to_function = {
             'Deutschland': self.validate_DE,
@@ -83,23 +90,67 @@ class CleansePostalCodes(DataPreparationTask):
             'Vereinigtes Königreich': self.validate_GB,
             'Vereinigte Staaten von Amerika': self.validate_US,
             'Frankreich': self.validate_FR,
-            'Niederlande': self.validate_NL
+            'Niederlande': self.validate_NL,
+            'Österreich': self.validate_AT,
+            'Polen': self.validate_PL,
+            'Britische Jungferninseln': self.validate_GB,
+            'United States Minor Outlying Islands': self.validate_US
         }
         country_func = country_to_function.get(country)
 
         if country_func:
-            result = country_func(cleansed_postal_code)
+            result_postal = country_func(cleansed_postal_code)
+            result_country = country
 
         for key, func in country_to_function.items():
-            if not result:
-                result = func(cleansed_postal_code)
+            if not result_postal:
+                result_postal = func(cleansed_postal_code)
+                result_country = key
 
-        if not result:
+        if not result_postal:
             self.skip_count += 1
-            if postal_code:
-                print(cleansed_postal_code, country)
+            result_country = country
+            # print(cleansed_postal_code, country)
+            # print(result_postal, result_country)
 
-        return result
+        if country and not country_func:
+            # we have countries that we can't check yet - let us count them
+            self.other_country_count += 1
+            print(postal_code, country, result_postal, result_country)
+
+        return result_postal, result_country
+
+    def replace_rare_symbols(self, postal_code):
+
+        replacements = {
+            '!': '1',
+            '"': '2',
+            '§': '3',
+            '$': '4',
+            '%': '5',
+            '&': '6',
+            '/': '7',
+            '(': '8',
+            ')': '9',
+            '=': '0',
+            '^': '',
+            '+': '',
+            '*': '',
+            ' ': '',
+            '´': '',
+            ',': '',
+            '.': '',
+            '_': '',
+            '-': '',
+            '@': '',
+            '?': '0',
+            'ß': '0'
+        }
+
+        converted_postal_code = \
+            postal_code.translate(str.maketrans(replacements))
+
+        return converted_postal_code
 
     def add_zeroes(self, postal_code, digit_count):
         not_null_part = None
@@ -124,7 +175,9 @@ class CleansePostalCodes(DataPreparationTask):
         new_postal_code = self.add_zeroes(postal_code, 5)
 
         matching_codes = re.findall(
-            r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})',
+            self.common_lookbehind +
+            r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})' +
+            self.common_lookahead,
             new_postal_code)
 
         if len(matching_codes):
@@ -192,4 +245,39 @@ class CleansePostalCodes(DataPreparationTask):
         )
         if len(matches):
             return matches[0]
+        return None
+
+    def validate_AT(self, postal_code):
+        new_postal_code = self.add_zeroes(postal_code, 4)
+
+        matches = re.findall(
+            self.common_lookbehind + r'\d{4}' + self.common_lookahead,
+            new_postal_code
+        )
+        if len(matches):
+            return matches[0]
+        return None
+
+    def validate_PL(self, postal_code):
+
+        matches = re.findall(
+            self.common_lookbehind +
+            r'([0-9]{2})((-|)[0-9]{3})?' +
+            self.common_lookahead,
+            postal_code
+        )
+        if len(matches):
+            return matches[0]
+
+        else:
+            new_postal_code = self.add_zeroes(postal_code, 5)
+            new_matches = re.findall(
+                self.common_lookbehind +
+                r'([0-9]{2})((-|)[0-9]{3})?' +
+                self.common_lookahead,
+                new_postal_code
+            )
+            if len(new_matches):
+                return new_matches[0]
+
         return None
