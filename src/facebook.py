@@ -112,7 +112,7 @@ class FetchFbPosts(DataPreparationTask):
                       end='',
                       flush=True)
 
-            if os.environ['MINIMAL'] == 'True':
+            if self.minimal_mode:
                 response_content['paging'].pop('next')
 
         if sys.stdout.isatty():
@@ -159,7 +159,7 @@ class FetchFbPostPerformance(DataPreparationTask):
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
 
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             df = df.head(5)
 
         invalid_count = 0

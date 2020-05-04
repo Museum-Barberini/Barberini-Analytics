@@ -1,6 +1,5 @@
 import csv
 import logging
-import os
 import re
 
 import dateparser
@@ -57,7 +56,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL'] == 'True':
+            if self.minimal_mode:
                 bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position
