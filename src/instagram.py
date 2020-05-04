@@ -146,6 +146,9 @@ class FetchIgPostPerformance(DataPreparationTask):
         with self.input().open('r') as input_file:
             post_df = pd.read_csv(input_file)
 
+        if self.minimal_mode:
+            post_df = post_df.head(5)
+
         generic_metrics = [
             'impressions',
             'reach',
