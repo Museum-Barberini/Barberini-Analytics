@@ -6,12 +6,12 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 
 import instagram
-from db_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 IG_TEST_DATA = 'tests/test_data/instagram'
 
 
-class TestInstagram(DatabaseTaskTest):
+class TestInstagram(DatabaseTestCase):
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')
