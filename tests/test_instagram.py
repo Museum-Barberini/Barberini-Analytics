@@ -206,9 +206,3 @@ class TestInstagram(DatabaseTaskTest):
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
-
-    def test_ig_to_db_wrapper(self):
-        gen = instagram.IgToDBWrapper().requires()
-        self.assertIsInstance(next(gen), instagram.IgPostsToDB)
-        self.assertIsInstance(next(gen), instagram.IgAudienceGenderAgeToDB)
-        self.assertIsInstance(next(gen), instagram.IgAudienceOriginToDB)
