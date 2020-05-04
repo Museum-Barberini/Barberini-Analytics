@@ -6,7 +6,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from db_connector import DbConnector
+from db_connector import db_connector
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import GomusToCustomerMappingToDB
@@ -91,7 +91,7 @@ class ExtractOrderData(DataPreparationTask):
                 self.parse_boolean,
                 args=('bezahlt',))
 
-            df = self.ensure_foreign_keys(df)
+            df, _ = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
@@ -106,9 +106,11 @@ class ExtractOrderData(DataPreparationTask):
         else:
             org_id = int(float(customer_string))
 
-        customer_row = DbConnector.query(
-            f'SELECT customer_id FROM gomus_to_customer_mapping '
-            f'WHERE gomus_id = {org_id}',
+        customer_row = db_connector.query(
+            f'''
+                SELECT customer_id FROM gomus_to_customer_mapping
+                WHERE gomus_id = {org_id}
+            ''',
             only_first=True)
 
         customer_id = customer_row[0] if customer_row else np.nan

@@ -1,6 +1,6 @@
 import csv
-
 import datetime as dt
+
 import luigi
 import pandas as pd
 from luigi.format import UTF8
@@ -8,7 +8,7 @@ from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask, minimal_mode
-from db_connector import DbConnector
+from db_connector import db_connector
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from gomus.customers import hash_id
@@ -104,7 +104,7 @@ class ExtractEventData(DataPreparationTask):
                                                'Storniert',
                                                category)
 
-        self.events_df = self.ensure_foreign_keys(self.events_df)
+        self.events_df, _ = self.ensure_foreign_keys(self.events_df)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
@@ -164,7 +164,7 @@ class FetchCategoryReservations(luigi.Task):
                      f'category=\'{self.category}\' '
                      f'AND start_datetime > \'{two_weeks_ago}\'')
 
-        booking_ids = DbConnector.query(query)
+        booking_ids = db_connector.query(query)
 
         for row in booking_ids:
             event_id = row[0]
