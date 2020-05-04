@@ -39,7 +39,6 @@ CREATE TABLE ig_audience_gender_age (
     age TEXT,
     amount INT
 );
-
 ALTER TABLE ig_audience_gender_age
     ADD CONSTRAINT ig_audience_gender_age_primkey PRIMARY KEY (gender, age);
 
