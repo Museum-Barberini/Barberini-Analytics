@@ -23,7 +23,7 @@ do
         continue
     fi
 
-    echo "INFO: Applying migration: '$MIGRATION_FILE_NAME' ..."
+    echo "INFO: Applying migration '$MIGRATION_FILE_NAME' ..."
     if [[ "$MIGRATION_FILE_NAME" == *.sql ]]
     then
         # Execute .sql scripts directly
@@ -53,7 +53,6 @@ do
         # Save applied migration
         [ -z $APPLIED_FILE ] \
             || (echo "$MIGRATION_FILE_NAME" >> "$APPLIED_FILE")
-        echo "INFO: Successfully applied migration: '$MIGRATION_FILE_NAME'"
     else
         # Print warning and exit so that the following migrations
         # are not applied as well
