@@ -1,10 +1,12 @@
 import datetime as dt
-import luigi
 import os
+import time
+
+import luigi
 import pandas as pd
 import requests
-import time
 from luigi.format import UTF8
+from psycopg2.errors import UndefinedTable
 
 from db_connector import db_connector
 from gomus.orders import OrdersToDB
@@ -63,19 +65,14 @@ class FetchBookingsHTML(luigi.Task):
             if os.environ['MINIMAL'] == 'True':
                 bookings = bookings.head(5)
 
-        db_booking_rows = []
-
-        bookings_table_exists = db_connector.exists('''
-            SELECT * FROM information_schema.tables
-            WHERE table_name='gomus_booking'
-        ''')
-
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
-        if bookings_table_exists:
+        try:
             db_booking_rows = db_connector.query(f'''
                 SELECT booking_id FROM gomus_booking
                 WHERE start_datetime < '{today_time}'
             ''')
+        except UndefinedTableError:
+            db_booking_rows = []
 
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
@@ -117,11 +114,7 @@ class FetchOrdersHTML(luigi.Task):
 
         query_limit = 'LIMIT 10' if os.environ['MINIMAL'] == 'True' else ''
 
-        order_contains_table_exists = db_connector.exists('''
-            SELECT * FROM information_schema.tables
-            WHERE table_name='gomus_order_contains'
-        ''')
-        if order_contains_table_exists:
+        try:
             order_ids = db_connector.query(f'''
                 SELECT order_id FROM gomus_order
                 WHERE order_id NOT IN (
@@ -129,8 +122,7 @@ class FetchOrdersHTML(luigi.Task):
                 )
                 {query_limit}
             ''')
-
-        else:
+        except UndefinedTableError:
             order_ids = db_connector.query(
                 f'SELECT order_id FROM gomus_order {query_limit}'
             )
