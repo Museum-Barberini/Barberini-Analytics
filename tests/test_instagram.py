@@ -1,17 +1,17 @@
 import datetime as dt
 import json
-import unittest
 from unittest.mock import MagicMock, patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
 import instagram
+from task_test import DatabaseTaskTest
 
 IG_TEST_DATA = 'tests/test_data/instagram'
 
 
-class TestInstagram(unittest.TestCase):
+class TestInstagram(DatabaseTaskTest):
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')
