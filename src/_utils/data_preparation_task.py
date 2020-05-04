@@ -29,7 +29,12 @@ class DataPreparationTask(luigi.Task):
                 FROM {foreign_key['target_table']}
             ''')
 
-            foreign_values = [row[0] for row in results]
+            # cast values to 'str' uniformly to prevent
+            # mismatching due to wrong data types
+            foreign_values = [str(row[0]) for row in results]
+
+            if not isinstance(df[key][0], str):
+                df[key] = df[key].apply(str)
 
             # Remove all rows from the df where the value does not
             # match any value from the referenced table
@@ -47,7 +52,7 @@ class DataPreparationTask(luigi.Task):
                 # Only print discarded values if running from a TTY
                 # to prevent potentially sensitive data to be exposed
                 # (e.g. by the CI runner)
-                if sys.stdin.isatty():
+                if sys.stdout.isatty():
                     print(f"Following values were invalid:\n{invalid_values}")
                 else:
                     print("Values not printed for privacy reasons")
