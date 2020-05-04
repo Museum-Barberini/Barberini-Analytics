@@ -61,6 +61,22 @@ class DbConnector:
                 "DB access with just one query should only return one result")
         return result
 
+    def query_with_header(self, query: str) -> List[Tuple]:
+        """
+        Execute a query and return two values of which the first is the list
+        of fetched rows and the second is the list of column names.
+        """
+        all_results = self._execute_query(
+            query=query,
+            result_function=lambda cursor:
+                (cursor.fetchall(), [desc[0] for desc in cursor.description])
+        )
+        results = next(all_results)
+        if next(all_results, results) is not results:
+            raise AssertionError(
+                "DB access with just one query should only return one table")
+        return results
+
     def _execute_queries(
                 self,
                 queries: List[str],
