@@ -4,7 +4,7 @@ BEGIN;
 
 CREATE TABLE ig_post (
     ig_post_id TEXT,
-    caption TEXT,
+    text TEXT,
     post_date TIMESTAMP,
     media_type TEXT,
     likes INT,

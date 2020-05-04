@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import logging
 import os
+import sys
 
 import luigi
 import pandas as pd
@@ -106,10 +107,16 @@ class FetchFbPosts(DataPreparationTask):
             response_content = response.json()
             for post in (response_content['data']):
                 posts.append(post)
-            print(f"\rFetched facebook page {page_count}", end='', flush=True)
+            if sys.stdout.isatty():
+                print(f"\rFetched facebook page {page_count}",
+                      end='',
+                      flush=True)
 
             if os.environ['MINIMAL'] == 'True':
                 response_content['paging'].pop('next')
+
+        if sys.stdout.isatty():
+            print()
 
         logger.info("Fetching of facebook posts completed")
 
@@ -164,7 +171,9 @@ class FetchFbPostPerformance(DataPreparationTask):
             if post_date < earliest_valid_date:
                 continue
 
-            # print(f"[FB] Loading performance data for post {str(post_id)}")
+            logger.info(
+                f"Loading performance data for FB post {str(post_id)}")
+
             url = f'{API_BASE}/{post_id}/insights'
             metrics = [
                 'post_reactions_by_type_total',

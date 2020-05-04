@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import logging
 import os
+import sys
 
 import luigi
 import pandas as pd
@@ -22,11 +23,11 @@ class IgPostsToDB(CsvToDb):
 
     columns = [
         ('ig_post_id', 'TEXT'),
-        ('caption', 'TEXT'),
-        ('post_time', 'TIMESTAMP'),
+        ('text', 'TEXT'),
+        ('post_date', 'TIMESTAMP'),
         ('media_type', 'TEXT'),
-        ('like_count', 'INT'),
-        ('comments_count', 'INT'),
+        ('likes', 'INT'),
+        ('comments', 'INT'),
         ('permalink', 'TEXT')
     ]
 
@@ -145,10 +146,11 @@ class FetchIgPosts(DataPreparationTask):
             response_json = response.json()
 
             current_count += len(response_json['data'])
-            print(
-                f"\rFetched {current_count} Instagram posts",
-                end='',
-                flush=True)
+            if sys.stdout.isatty():
+                print(
+                    f"\rFetched {current_count} Instagram posts",
+                    end='',
+                    flush=True)
             for media in response_json['data']:
                 all_media.append(media)
 
@@ -156,7 +158,9 @@ class FetchIgPosts(DataPreparationTask):
                 logger.info("Running in minimal mode, stopping now")
                 response_json['paging'].pop('next')
 
-        print()  # have to manually print newline
+        if sys.stdout.isatty():
+            print()  # have to manually print newline
+
         logger.info("Fetching of Instagram posts complete")
 
         df = pd.DataFrame([media for media in all_media])
@@ -211,10 +215,11 @@ class FetchIgPostPerformance(DataPreparationTask):
                fetch_time.date() - self.timespan:
                 break
 
-            print(
-                f"\rFetched insight for instagram post from {post_time}",
-                end='',
-                flush=True)
+            if sys.stdout.isatty():
+                print(
+                    f"\rFetched insight for instagram post from {post_time}",
+                    end='',
+                    flush=True)
 
             if row['media_type'] == 'VIDEO':
                 metrics += ',video_views'  # causes error if used on non-video
@@ -243,6 +248,9 @@ class FetchIgPostPerformance(DataPreparationTask):
                 saved,
                 video_views
             ]
+
+        if sys.stdout.isatty():
+            print()
 
         performance_df, _ = self.ensure_foreign_keys(performance_df)
 
