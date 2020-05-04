@@ -11,7 +11,6 @@ CREATE TABLE ig_post (
     comments_count INT,
     permalink TEXT
 );
-
 ALTER TABLE ig_post
     ADD CONSTRAINT ig_post_primkey PRIMARY KEY (ig_post_id);
 
