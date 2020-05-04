@@ -90,10 +90,8 @@ class TestInstagram(unittest.TestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPostPerformance, 'output')
     @patch.object(instagram.FetchIgPostPerformance, 'input')
-    def test_post_performance_transformation(self,
-                                             input_mock,
-                                             output_mock,
-                                             request_mock):
+    def test_post_performance_transformation(
+            self, input_mock, output_mock, request_mock):
         input_target = MockTarget('posts_in', format=UTF8)
         input_mock.return_value = input_target
         output_target = MockTarget('insights_out', format=UTF8)
