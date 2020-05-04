@@ -28,8 +28,8 @@ class CleansePostalCodes(DataPreparationTask):
     def run(self):
         customer_df = self.get_customer_data()
 
-        customer_df['cleansed_postal_code'] = ''
-        customer_df['cleansed_country'] = ''
+        customer_df['cleansed_postal_code'] = None
+        customer_df['cleansed_country'] = None
 
         customer_df['cleansed_postal_code'],
         customer_df['cleansed_country'] = customer_df.apply(
@@ -53,8 +53,12 @@ class CleansePostalCodes(DataPreparationTask):
         print(' =>', self.skip_count-self.none_count,
               'values were not validated.')
         print()
-        print('Num Postal Codes of other countries:', self.other_country_count)
+        print('Count of other (less common, not validated) countries:',
+              self.other_country_count)
         print('-------------------------------------------------')
+
+        with self.output().open('w') as output_csv:
+            customer_df.to_csv(output_csv, index=False, header=True)
 
     def get_customer_data(self):
         customer_data = db_connector.query(
@@ -116,7 +120,7 @@ class CleansePostalCodes(DataPreparationTask):
         if country and not country_func:
             # we have countries that we can't check yet - let us count them
             self.other_country_count += 1
-            print(postal_code, country, result_postal, result_country)
+            # print(postal_code, country, result_postal, result_country)
 
         return result_postal, result_country
 
@@ -248,6 +252,7 @@ class CleansePostalCodes(DataPreparationTask):
         return None
 
     def validate_AT(self, postal_code):
+
         new_postal_code = self.add_zeroes(postal_code, 4)
 
         matches = re.findall(
