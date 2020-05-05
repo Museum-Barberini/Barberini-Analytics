@@ -7,7 +7,8 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask, minimal_mode
+from data_preparation_task import DataPreparationTask, \
+                                  minimal_mode, OUTPUT_DIR
 from db_connector import db_connector
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
@@ -144,7 +145,7 @@ class ExtractEventData(DataPreparationTask):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class FetchCategoryReservations(DataPreparationTask):
+class FetchCategoryReservations(luigi.Task):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
@@ -193,7 +194,7 @@ class FetchCategoryReservations(DataPreparationTask):
     def output(self):
         cat = cleanse_umlauts(self.category)
         return luigi.LocalTarget(
-            f'{self.output_dir}/gomus/all_{cat}_reservations.txt',
+            f'{OUTPUT_DIR}/gomus/all_{cat}_reservations.txt',
             format=UTF8
         )
 

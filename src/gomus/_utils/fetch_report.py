@@ -6,13 +6,13 @@ import luigi
 import requests
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation_task import OUTPUT_DIR
 from gomus._utils.edit_report import EditGomusReport
 from gomus._utils.fetch_report_helper import (REPORT_IDS, csv_from_excel,
                                               parse_timespan, request_report)
 
 
-class FetchGomusReport(DataPreparationTask):
+class FetchGomusReport(luigi.Task):
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     report = luigi.parameter.Parameter(
         description="The report name (e.g. \'bookings\')")
@@ -29,7 +29,7 @@ class FetchGomusReport(DataPreparationTask):
     def output(self):
         for index in self.sheet_indices:
             yield luigi.LocalTarget(
-                f'{self.output_dir}/gomus/{self.report_name}.{index}.csv',
+                f'{OUTPUT_DIR}/gomus/{self.report_name}.{index}.csv',
                 format=UTF8
             )
 
@@ -60,7 +60,7 @@ class FetchGomusReport(DataPreparationTask):
                     self.sheet_indices[index])
 
 
-class FetchEventReservations(DataPreparationTask):
+class FetchEventReservations(luigi.Task):
     booking_id = luigi.parameter.IntParameter(
         description="The booking's index")
     status = luigi.parameter.IntParameter(
@@ -69,7 +69,7 @@ class FetchEventReservations(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'{self.output_dir}/gomus/reservations/'
+            (f'{OUTPUT_DIR}/gomus/reservations/'
              f'reservations_{self.booking_id}.{self.status}.csv'),
             format=UTF8
         )

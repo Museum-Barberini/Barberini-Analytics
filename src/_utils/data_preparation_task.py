@@ -9,6 +9,7 @@ from db_connector import db_connector
 logger = logging.getLogger('luigi-interface')
 
 minimal_mode = os.getenv('MINIMAL') == 'True'
+OUTPUT_DIR = os.environ['OUTPUT_DIR']
 
 
 class DataPreparationTask(luigi.Task):
@@ -24,7 +25,7 @@ class DataPreparationTask(luigi.Task):
 
     @property
     def output_dir(self):
-        return os.environ['OUTPUT_DIR']
+        return OUTPUT_DIR
 
     def ensure_foreign_keys(self, df):
         filtered_df = df

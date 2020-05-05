@@ -7,7 +7,7 @@ import psycopg2
 from luigi.contrib.external_program import ExternalProgramTask
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation_task import OUTPUT_DIR
 from db_connector import db_connector
 from google_trends.gtrends_topics import GtrendsTopics
 from json_to_csv import JsonToCsv
@@ -77,7 +77,7 @@ class ConvertGtrendsValues(JsonToCsv):
             f'{self.output_dir}/google_trends/values.csv')
 
 
-class FetchGtrendsValues(ExternalProgramTask, DataPreparationTask):
+class FetchGtrendsValues(ExternalProgramTask):
 
     js_engine = luigi.Parameter(default='node')
     js_path = './src/google_trends/gtrends_values.js'
@@ -88,7 +88,7 @@ class FetchGtrendsValues(ExternalProgramTask, DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/google_trends/values.json')
+            f'{OUTPUT_DIR}/google_trends/values.json')
 
     def program_args(self):
         with self.input()[0].open('r') as facts_file:
