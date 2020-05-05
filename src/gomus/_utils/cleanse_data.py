@@ -43,7 +43,7 @@ COUNTRY_TO_DATA = {
         [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
             r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
     'United States Minor Outlying Islands':
-        [5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}']
+        [5, r'([0-9]{5}(?:-[0-9]{4})?)(?=\d{4}|)']
 }
 
 
@@ -171,7 +171,7 @@ class CleansePostalCodes(DataPreparationTask):
         self.cleansed_count += 1
         percentage = int(round(self.cleansed_count/self.total_count*100))
 
-        if percentage % 5 == 0 and self.last_percentage < percentage:
+        if self.last_percentage < percentage:
             print(f"\r{percentage}% cleansed ({self.cleansed_count})",
                   end='',
                   flush=True)
