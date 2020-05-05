@@ -226,16 +226,16 @@ class FetchIgPostPerformance(DataPreparationTask):
 
             url = f'{API_BASE}/{row["id"]}/insights?metric={metrics}'
 
-            res = try_request_multiple_times(url)
-            res_data = res.json()['data']
+            response = try_request_multiple_times(url)
+            response_data = response.json()['data']
 
-            impressions = res_data[0]['values'][0]['value']
-            reach = res_data[1]['values'][0]['value']
-            engagement = res_data[2]['values'][0]['value']
-            saved = res_data[3]['values'][0]['value']
+            impressions = response_data[0]['values'][0]['value']
+            reach = response_data[1]['values'][0]['value']
+            engagement = response_data[2]['values'][0]['value']
+            saved = response_data[3]['values'][0]['value']
 
             if row['media_type'] == 'VIDEO':
-                video_views = res_data[4]['values'][0]['value']
+                video_views = response_data[4]['values'][0]['value']
             else:
                 video_views = 0  # for non-video posts
 
