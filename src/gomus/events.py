@@ -145,7 +145,7 @@ class ExtractEventData(DataPreparationTask):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class FetchCategoryReservations(luigi.Task):
+class FetchCategoryReservations(DataPreparationTask):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 

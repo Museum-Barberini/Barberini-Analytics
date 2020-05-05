@@ -74,7 +74,7 @@ class ConvertGtrendsValues(JsonToCsv):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_folder}/google_trends/values.csv')
+            f'{self.output_dir}/google_trends/values.csv')
 
 
 class FetchGtrendsValues(ExternalProgramTask, DataPreparationTask):
@@ -88,7 +88,7 @@ class FetchGtrendsValues(ExternalProgramTask, DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_folder}/google_trends/values.json')
+            f'{self.output_dir}/google_trends/values.json')
 
     def program_args(self):
         with self.input()[0].open('r') as facts_file:

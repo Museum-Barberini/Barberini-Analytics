@@ -153,7 +153,7 @@ class FetchTwitter(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_folder}/twitter/raw_tweets.csv',
+            f'{self.output_dir}/twitter/raw_tweets.csv',
             format=UTF8
         )
 

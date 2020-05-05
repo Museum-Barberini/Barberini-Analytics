@@ -9,7 +9,8 @@ class MuseumFacts(luigi.Task):
     facts_file = luigi.Parameter(default='data/barberini_facts.jsonc')
 
     def output(self):
-        return luigi.LocalTarget(f'{os.environ[OUTPUT_DIR]}/museum_facts.json')
+        return luigi.LocalTarget(
+            f'{os.environ["OUTPUT_DIR"]}/museum_facts.json')
 
     def run(self):
         with open(self.facts_file, 'r') as input_file:
