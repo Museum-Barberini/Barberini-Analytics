@@ -1,4 +1,6 @@
 import datetime as dt
+from pytz.utc import localize
+import tzlocal
 import json
 
 import luigi
@@ -172,6 +174,11 @@ class FetchTwitter(DataPreparationTask):
                 'retweets',
                 'replies'])
         df = df.drop_duplicates(subset=["tweet_id"])
+
+        # timestamp is utc by default
+        df['timestamp'] = df['timestamp'].apply(
+            lambda utc_dt:
+            localize(utc_dt, is_dst=None).astimezone(tzlocal.get_localzone()))
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
