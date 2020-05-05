@@ -17,7 +17,6 @@ class CleansePostalCodes(DataPreparationTask):
     skip_count = 0
     none_count = 0
     other_country_count = 0
-    total_count = 0
     cleansed_count = 0
     last_percentage = 0
 
@@ -45,10 +44,7 @@ class CleansePostalCodes(DataPreparationTask):
             'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
             'EXISTS cleansed_country TEXT'))
 
-        self.total_count = db_connector.query(
-            query='SELECT COUNT(*) FROM gomus_customer',
-            only_first=True
-        )[0]
+        self.total_count = len(customer_df)
 
         customer_df['cleansed_postal_code'],
         customer_df['cleansed_country'] = customer_df.apply(
@@ -59,8 +55,9 @@ class CleansePostalCodes(DataPreparationTask):
                 ), axis=1)
 
         print('-------------------------------------------------')
-        print(f'Skipped {self.skip_count} out of {self.total_count} postal codes')
-        print('Percentage:', '{0:.0%}'.format(self.skip_count/self.total_count))
+        print(f'Skipped {self.skip_count} of {self.total_count} postal codes')
+        print('Percentage:',
+              '{0:.0%}'.format(self.skip_count/self.total_count))
         print()
         print('{0:.0%}'.format(self.none_count/self.total_count),
               'of all values are empty. ({})'.format(self.none_count))
