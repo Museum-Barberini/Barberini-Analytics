@@ -47,6 +47,15 @@ class TextFetchTwitter(DatabaseTaskTest):
         self.assertTrue(len(output_df.index) >= 1)
         # guaranteed to be true as long as we don't delete our tweet
 
+        # check if timezone is correct on known example
+        got_the_right_value = False
+        for timestamp in output_df['timestamp']:
+            if "2020-02-06 16:05" in timestamp:  # the post time shown online
+                got_the_right_value = True
+        self.assertTrue(
+            got_the_right_value,
+            msg="timestamp of our tweet not found, wrong timezone?")
+
 
 class TestExtractTweets(DatabaseTaskTest):
 
