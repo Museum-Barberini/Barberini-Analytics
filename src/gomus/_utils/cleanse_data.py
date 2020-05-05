@@ -169,7 +169,7 @@ class CleansePostalCodes(DataPreparationTask):
             '''))
 
         self.cleansed_count += 1
-        percentage = int(round(self.cleansed_count/self.total_count)*100)
+        percentage = int(round(self.cleansed_count/self.total_count*100))
 
         if percentage % 5 == 0 and self.last_percentage < percentage:
             print(percentage, '% cleansed (', self.cleansed_count, ')')
