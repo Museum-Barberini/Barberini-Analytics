@@ -6,16 +6,17 @@ import requests
 import time
 from luigi.format import UTF8
 
+from data_preparation_task import DataPreparationTask
 from db_connector import db_connector
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
 
-class FetchGomusHTML(luigi.Task):
+class FetchGomusHTML(DataPreparationTask):
     url = luigi.parameter.Parameter(description="The URL to fetch")
 
     def output(self):
-        name = 'output/gomus/html/' + \
+        name = f'{self.output_dir}/gomus/html/' + \
             self.url. \
             replace('http://', ''). \
             replace('https://', ''). \
@@ -39,7 +40,7 @@ class FetchGomusHTML(luigi.Task):
             html_out.write(response.text)
 
 
-class FetchBookingsHTML(luigi.Task):
+class FetchBookingsHTML(DataPreparationTask):
     timespan = luigi.parameter.Parameter(default='_nextYear')
     base_url = luigi.parameter.Parameter(
         description="Base URL to append bookings IDs to")
@@ -54,7 +55,8 @@ class FetchBookingsHTML(luigi.Task):
                                     columns=self.columns)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/bookings_htmls.txt')
 
     def run(self):
         with self.input().open('r') as input_file:
@@ -96,7 +98,7 @@ class FetchBookingsHTML(luigi.Task):
             html_files.write('\n'.join(self.output_list))
 
 
-class FetchOrdersHTML(luigi.Task):
+class FetchOrdersHTML(DataPreparationTask):
     base_url = luigi.parameter.Parameter(
         description="Base URL to append order IDs to")
 
@@ -109,7 +111,8 @@ class FetchOrdersHTML(luigi.Task):
         return OrdersToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/orders_htmls.txt')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/orders_htmls.txt')
 
     def get_order_ids(self):
 

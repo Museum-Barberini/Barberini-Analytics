@@ -64,8 +64,9 @@ luigi-task: luigi-scheduler
 	mkdir -p output
 	luigi --module $(LMODULE) $(LTASK)
 
+output_dir = output # default output directory is 'output'
 luigi-clean:
-	rm -rf output
+	rm -rf $(output_dir)
 
 luigi-minimal:
 	# the environment variable has to be set to true 

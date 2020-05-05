@@ -3,16 +3,18 @@ import luigi
 import os
 import random
 
+from data_preparation_task import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
-class GtrendsTopics(luigi.Task):
+class GtrendsTopics(DataPreparationTask):
 
     def requires(self):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget('output/google_trends/topics.json')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/google_trends/topics.json')
 
     def run(self):
         topics = self.collect_topics()

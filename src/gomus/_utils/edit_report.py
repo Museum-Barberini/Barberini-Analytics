@@ -7,6 +7,7 @@ import luigi
 import requests
 from bs4 import BeautifulSoup
 
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report_helper import REPORT_IDS_INV
 
 # These lists map directly to various Gomus attributes used for editing
@@ -47,7 +48,7 @@ INFORM_USER = 0
 # (i.e. Order Reports, Customer Reports, Entry Reports)
 
 
-class EditGomusReport(luigi.Task):
+class EditGomusReport(DataPreparationTask):
     report = luigi.parameter.IntParameter(description="Report ID to edit")
     start_at = luigi.parameter.DateParameter(description="Start date to set")
     end_at = luigi.parameter.DateParameter(description="End date to set")
@@ -63,7 +64,8 @@ class EditGomusReport(luigi.Task):
 
     # obsoletes output() and requires()
     def output(self):
-        return luigi.LocalTarget(f'output/gomus/edit_report_{self.task_id}')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/edit_report_{self.task_id}')
 
     def run(self):
         self.add_to_body(f'_method={METHOD}')

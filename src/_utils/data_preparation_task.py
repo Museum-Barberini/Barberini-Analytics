@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 import luigi
@@ -12,6 +13,10 @@ class DataPreparationTask(luigi.Task):
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted",
         default=[])
+
+    @property
+    def output_dir(self):
+        return os.environ['OUTPUT_DIR']
 
     def ensure_foreign_keys(self, df):
         filtered_df = df
