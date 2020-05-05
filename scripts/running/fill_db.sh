@@ -12,6 +12,7 @@ case $1 in
 esac
 
 export OUTPUT_DIR="output_$TASK"
+echo output directory is $OUTPUT_DIR
 
 cd /app
 make luigi-task LMODULE=fill_db LTASK=$TASK
