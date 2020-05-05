@@ -18,7 +18,7 @@ COUNTRY_TO_DATA = {
         [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
             r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
     'Vereinigte Staaten von Amerika':
-        [5, r'([0-9]{5}(?:-[0-9]{4})?)(?=\d{4}|)'],
+        [5, r'([0-9]{5}(?:[0-9]{4})?)'],
     'Frankreich':
         [5, r'(?:[0-8]\d|9[0-8])\d{3}'],
     'Niederlande':
@@ -43,7 +43,7 @@ COUNTRY_TO_DATA = {
         [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
             r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
     'United States Minor Outlying Islands':
-        [5, r'([0-9]{5}(?:-[0-9]{4})?)(?=\d{4}|)']
+        [5, r'([0-9]{5}(?:[0-9]{4})?)']
 }
 
 
