@@ -15,7 +15,7 @@ For Google Trends, the facts file contains the value `ids.google.knowledgeId`. I
 
 ## Email alerts
 
-Email alerts will be sent if any task in the luigi pipeline fails. To set up these alerts, edit the `/etc/secrets/smtp.env` file and update the following variables:
+Email alerts will be sent if any task in the luigi pipeline fails. To set up these alerts, edit the `/etc/barberini-analytics/secrets/smtp.env` file and update the following variables:
 
 - `SMTP_HOST`
 - `SMTP_PORT`
