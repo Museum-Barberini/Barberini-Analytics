@@ -5,7 +5,7 @@
 # ------ Internal variables ------
 
 SHELL := /bin/bash
-SSL_CERT_DIR := /var/db-data
+SSL_CERT_DIR := /var/barberini-analytics/db-data
 
 
 # ------ For use outside of containers ------
@@ -13,7 +13,7 @@ SSL_CERT_DIR := /var/db-data
 # --- To manage docker ---
 
 # Start the container luigi. Also start the container db if it is not already running.
-# If the container db is being started, start it with ssl encryption if the file '/var/db-data/server.key'.
+# If the container db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
 startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
@@ -107,7 +107,7 @@ db-do:
 	docker exec -it db psql -U postgres -a $(db) -c $(do)
 
 db-backup:
-	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 # Restore the database from a dump/backup
 db-restore:

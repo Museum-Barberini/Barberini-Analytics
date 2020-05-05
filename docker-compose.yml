@@ -10,7 +10,7 @@ services:
         build: .
         volumes:
             - .:/app
-            - /etc/secrets/secret_files:/app/secret_files
+            - /etc/barberini-analytics/secrets/secret_files:/app/secret_files
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
         ports:
@@ -21,9 +21,9 @@ services:
             - PYTHONPATH=./src/:./src/_utils/
             - CONTAINER_USER=${USER}  # used to determine name of gplay_api container
         env_file:
-            - /etc/secrets/keys.env
-            - /etc/secrets/database.env
-            - /etc/secrets/smtp.env
+            - /etc/barberini-analytics/secrets/keys.env
+            - /etc/barberini-analytics/secrets/database.env
+            - /etc/barberini-analytics/secrets/smtp.env
         stdin_open: true
         tty: true
         networks:
@@ -36,9 +36,9 @@ services:
         ports:
             - "5432:5432"
         env_file:
-            - /etc/secrets/database.env
+            - /etc/barberini-analytics/secrets/database.env
         volumes:
-            - /var/db-data/:/var/lib/postgresql/data/
+            - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
         networks:
             - database_network
 

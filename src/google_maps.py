@@ -35,7 +35,8 @@ class GoogleMapsReviewsToDB(CsvToDb):
 
 class FetchGoogleMapsReviews(DataPreparationTask):
 
-    # secret_files is a folder mounted from /etc/secrets via docker-compose
+    # secret_files is a folder mounted from
+    # /etc/barberini-analytics/secrets via docker-compose
     token_cache = luigi.Parameter(
         default='secret_files/google_gmb_credential_cache.json')
     client_secret = luigi.Parameter(
