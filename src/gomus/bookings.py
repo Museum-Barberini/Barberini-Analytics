@@ -1,5 +1,3 @@
-import os
-
 import luigi
 
 from csv_to_db import CsvToDb
@@ -38,7 +36,7 @@ class BookingsToDB(CsvToDb):
 
     def requires(self):
         timespan = self.timespan
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             timespan = '_7days'
         return EnhanceBookingsWithScraper(
             columns=[col[0] for col in self.columns],

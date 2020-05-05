@@ -2,13 +2,22 @@ import logging
 import sys
 
 import luigi
+import os
 
-from db_connector import DbConnector
+from db_connector import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
+minimal_mode = os.getenv('MINIMAL') == 'True'
+
 
 class DataPreparationTask(luigi.Task):
+
+    minimal_mode = luigi.parameter.BoolParameter(
+        default=minimal_mode,
+        description="If True, only a minimal amount of data will be prepared"
+                    "in order to test the pipeline for structural problems")
+
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted",
         default=[])
@@ -24,12 +33,17 @@ class DataPreparationTask(luigi.Task):
             key = foreign_key['origin_column']
             old_count = df[key].count()
 
-            results = DbConnector.query(
-                f"SELECT {foreign_key['target_column']} "
-                f"FROM {foreign_key['target_table']}"
-            )
+            results = db_connector.query(f'''
+                SELECT {foreign_key['target_column']}
+                FROM {foreign_key['target_table']}
+            ''')
 
-            foreign_values = [row[0] for row in results]
+            # cast values to 'str' uniformly to prevent
+            # mismatching due to wrong data types
+            foreign_values = [str(row[0]) for row in results]
+
+            if not isinstance(df[key][0], str):
+                df[key] = df[key].apply(str)
 
             # Remove all rows from the df where the value does not
             # match any value from the referenced table
@@ -47,7 +61,7 @@ class DataPreparationTask(luigi.Task):
                 # Only print discarded values if running from a TTY
                 # to prevent potentially sensitive data to be exposed
                 # (e.g. by the CI runner)
-                if sys.stdin.isatty():
+                if sys.stdout.isatty():
                     print(f"Following values were invalid:\n{invalid_values}")
                 else:
                     print("Values not printed for privacy reasons")

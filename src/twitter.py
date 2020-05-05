@@ -2,7 +2,6 @@ import datetime as dt
 import json
 
 import luigi
-import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
@@ -139,7 +138,7 @@ class ExtractTweetPerformance(DataPreparationTask):
             "output/twitter/tweet_performance.csv", format=UTF8)
 
 
-class FetchTwitter(luigi.Task):
+class FetchTwitter(DataPreparationTask):
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
@@ -153,7 +152,7 @@ class FetchTwitter(luigi.Task):
 
     def run(self):
         timespan = self.timespan
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             timespan = dt.timedelta(days=0)
 
         tweets = ts.query_tweets(
@@ -173,6 +172,7 @@ class FetchTwitter(luigi.Task):
                 'retweets',
                 'replies'])
         df = df.drop_duplicates(subset=["tweet_id"])
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 

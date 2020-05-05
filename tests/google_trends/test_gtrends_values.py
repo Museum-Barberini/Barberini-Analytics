@@ -72,7 +72,7 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
     def setUp(self):
         super().setUp()
         gtrends_values.GtrendsValuesAddToDB(schema_only=True).run()
-        self.db.commit(f'''DROP TABLE table_updates''')
+        self.db_connector.execute('DROP TABLE table_updates')
         """
         WORKAROUND for "UniqueViolation: duplicate key value violates unique
         constraint 'table_updates_pkey' ;-(
@@ -87,15 +87,24 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
             lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
-        self.db.commit(
-            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
-            .format(42, dt.datetime.now().strftime('%Y-%m-%d'), 200))
+        self.db_connector.execute('''
+            INSERT INTO gtrends_value
+            VALUES ('{0}', DATE('{1}'), {2})
+            '''.format(
+                42,
+                dt.datetime.now().strftime('%Y-%m-%d'),
+                200
+            )
+        )
 
         self.task = gtrends_values.GtrendsValuesToDB()
         self.run_task(self.task)
 
-        self.assertCountEqual([(0,)], self.db.request(
-            'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
+        self.assertCountEqual([(0,)], self.db_connector.query('''
+            SELECT COUNT(*)
+            FROM gtrends_value
+            WHERE interest_value > 100
+        '''))
 
     @patch.object(gtrends_values.GtrendsTopics, 'run')
     @patch.object(gtrends_values.GtrendsTopics, 'output')
@@ -107,12 +116,21 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
             lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
-        self.db.commit(
-            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
-            .format(43, dt.datetime.now().strftime('%Y-%m-%d'), 200))
+        self.db_connector.execute('''
+            INSERT INTO gtrends_value
+            VALUES ('{0}', DATE('{1}'), {2})
+            '''.format(
+                43,
+                dt.datetime.now().strftime('%Y-%m-%d'),
+                200
+            )
+        )
 
         self.task = gtrends_values.GtrendsValuesToDB()
         self.task.run()
 
-        self.assertCountEqual([(1,)], self.db.request(
-            'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
+        self.assertCountEqual([(1,)], self.db_connector.query('''
+            SELECT COUNT(*)
+            FROM gtrends_value
+            WHERE interest_value > 100
+        '''))

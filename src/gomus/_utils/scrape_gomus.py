@@ -1,6 +1,5 @@
 import csv
 import logging
-import os
 import re
 
 import dateparser
@@ -10,7 +9,7 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
-from db_connector import DbConnector
+from db_connector import db_connector
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
@@ -57,7 +56,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL'] == 'True':
+            if self.minimal_mode:
                 bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position
@@ -126,8 +125,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 header=True,
                 quoting=csv.QUOTE_NONNUMERIC)
 
-    @staticmethod
-    def fetch_updated_mail(booking_id):
+    def fetch_updated_mail(self, booking_id):
         # This would be cleaner to put into an extra function,
         # but dynamic dependencies only work when yielded from 'run()'
         logger.info(f"Fetching new mail for booking {booking_id}")
@@ -160,7 +158,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         # Update customer ID in gomus_customer
         # and gomus_to_customer_mapping
         customer_id = hash_id(customer_email)
-        old_customer_id = DbConnector.query(
+        old_customer_id = db_connector.query(
             query=f'SELECT customer_id FROM gomus_to_customer_mapping '
                   f'WHERE gomus_id = {gomus_id}',
             only_first=True)[0]
@@ -170,11 +168,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         # References are updated through foreign key
         # references via ON UPDATE CASCADE
-        DbConnector.execute(
-            query=f'UPDATE gomus_customer '
-                  f'SET customer_id = {customer_id} '
-                  f'WHERE customer_id = {old_customer_id}'
-        )
+        db_connector.execute(f'''
+            UPDATE gomus_customer
+            SET customer_id = {customer_id}
+            WHERE customer_id = {old_customer_id}
+        ''')
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):

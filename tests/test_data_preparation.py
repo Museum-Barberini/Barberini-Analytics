@@ -1,21 +1,20 @@
-import unittest
 from unittest.mock import patch, PropertyMock
 
 import pandas as pd
 
 from data_preparation_task import DataPreparationTask
-from db_connector import DbConnector
+from task_test import DatabaseTaskTest
 
 
-class TestDataPreparationTask(unittest.TestCase):
+class TestDataPreparationTask(DatabaseTaskTest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.created_tables = []
 
     def tearDown(self):
         for table in self.created_tables:
-            DbConnector.execute(query=f'DROP TABLE {table}')
-        self.created_tables = []
+            self.db_connector.execute(f'DROP TABLE {table}')
+        super().tearDown()
 
     @patch.object(
         DataPreparationTask,
@@ -25,11 +24,10 @@ class TestDataPreparationTask(unittest.TestCase):
         test_table = 'test_table'
         test_column = 'test_column'
 
-        DbConnector.execute(
-            query=f'CREATE TABLE {test_table} ({test_column} INT)')
-        DbConnector.execute(
-            query=f'INSERT INTO {test_table} VALUES (0)')
-
+        self.db_connector.execute(
+            f'CREATE TABLE {test_table} ({test_column} INT)',
+            f'INSERT INTO {test_table} VALUES (0)'
+        )
         self.created_tables.append(test_table)
 
         fkeys_mock.return_value = [
@@ -44,16 +42,17 @@ class TestDataPreparationTask(unittest.TestCase):
 
         # Expected behaviour: 1 is removed because it is not found in the DB
         expected_df = pd.DataFrame(
-            [[0]],
+            [['0']],
             columns=[test_column],
             index=[0])
         expected_invalid_values = pd.DataFrame(
-            [[1]],
+            [['1']],
             columns=[test_column],
             index=[1])
 
         actual_df, actual_invalid_values = \
             DataPreparationTask().ensure_foreign_keys(df)
 
-        self.assertTrue(expected_df.equals(actual_df))
-        self.assertTrue(expected_invalid_values.equals(actual_invalid_values))
+        pd.testing.assert_frame_equal(expected_df, actual_df)
+        pd.testing.assert_frame_equal(
+            expected_invalid_values, actual_invalid_values)
