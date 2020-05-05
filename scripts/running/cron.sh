@@ -6,8 +6,8 @@ PATH=/usr/local/bin:$PATH
 LOGPATH=/var/log/bp-logs
 LOGFILE=$LOGPATH/"$1-`date +%Y-%m-%d`.log"
 
-# Delete 1 week old log
-rm $LOGPATH/"$1-`date -d '1 week ago' +%Y-%m-%d`.log" || true
+# Delete 2 weeks old log
+rm $LOGPATH/"$1-`date -d '2 weeks ago' +%Y-%m-%d`.log" || true
 
 {
 echo "================================================================================================"
