@@ -157,6 +157,7 @@ class CleansePostalCodes(DataPreparationTask):
         if not result_postal:
             self.skip_count += 1
             result_country = country
+            return result_postal, country
 
         if country and not country_data:
             # we have countries that we can't check yet - let us count them
