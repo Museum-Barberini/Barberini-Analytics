@@ -26,7 +26,7 @@ COUNTRY_TO_DATA = {
     'Österreich':
         [4, r'\d{4}'],
     'Polen':
-        [5, r'[0-9]{2}[0-9]{3}?'],
+        [5, r'[0-9]{2}(-|)[0-9]{3}?'],
     'Belgien':
         [4, r'[1-9]\d{3}'],
     'Dänemark':
@@ -204,7 +204,7 @@ class CleansePostalCodes(DataPreparationTask):
             ':': '',
             ';': '',
             '_': '',
-            '-': '',
+            '-': '',  # maybe remove this to keep layout of polish codes
             '@': '',
             '?': '0',
             'ß': '0'
