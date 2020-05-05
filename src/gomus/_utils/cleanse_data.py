@@ -76,8 +76,11 @@ class CleansePostalCodes(DataPreparationTask):
             customer_df.to_csv(output_csv, index=False, header=True)
 
     def get_customer_data(self):
+
+        query_limit = 'LIMIT 10' if self.minimal_mode else ''
+
         customer_data = db_connector.query(
-            query='SELECT * FROM gomus_customer')
+            query=f'SELECT * FROM gomus_customer {query_limit}')
 
         columns = db_connector.query(
             query='''
