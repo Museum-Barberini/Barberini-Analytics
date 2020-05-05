@@ -177,6 +177,8 @@ class CleansePostalCodes(DataPreparationTask):
                   flush=True)
             self.last_percentage = percentage
 
+        print()
+
         return result_postal, result_country
 
     def replace_rare_symbols(self, postal_code):
