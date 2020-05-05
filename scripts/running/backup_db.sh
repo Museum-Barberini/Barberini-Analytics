@@ -1,5 +1,5 @@
 #!/bin/bash
-BACKUP_DIR='/var/db-backups'
+BACKUP_DIR='/var/barberini-analytics/db-backups'
 
 case $1 in
     monthly)
