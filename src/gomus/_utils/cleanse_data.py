@@ -93,6 +93,7 @@ class CleansePostalCodes(DataPreparationTask):
                     customer_id=x['customer_id']
                 ), axis=1)
 
+        print()
         print('-------------------------------------------------')
         print(f'Skipped {self.skip_count} of {self.total_count} postal codes')
         print('Percentage:',
@@ -176,8 +177,6 @@ class CleansePostalCodes(DataPreparationTask):
                   end='',
                   flush=True)
             self.last_percentage = percentage
-
-        print()
 
         return result_postal, result_country
 
