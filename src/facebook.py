@@ -90,7 +90,6 @@ class FetchFbPosts(DataPreparationTask):
         url = f'{API_BASE}/{page_id}/feed'
 
         response = try_request_multiple_times(url)
-        response.raise_for_status()
 
         response_content = response.json()
         for post in (response_content['data']):
@@ -102,7 +101,6 @@ class FetchFbPosts(DataPreparationTask):
             page_count = page_count + 1
             url = response_content['paging']['next']
             response = try_request_multiple_times(url)
-            response.raise_for_status()
 
             response_content = response.json()
             for post in (response_content['data']):
@@ -271,4 +269,9 @@ def try_request_multiple_times(url, **kwargs):
                 "Trying to request the API again.\n"
                 f"Error message: {e}"
             )
-    return requests.get(url, timeout=100, **kwargs)
+    response = requests.get(url, timeout=100, headers=headers, **kwargs)
+
+    # cause clear error instead of trying
+    # to process the invalid response
+    response.raise_for_status()
+    return response
