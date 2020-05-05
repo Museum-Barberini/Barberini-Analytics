@@ -10,10 +10,16 @@ from db_connector import db_connector
 
 
 class CleansePostalCodes(DataPreparationTask):
+
+    worker_timeout = 80000
+
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     skip_count = 0
     none_count = 0
     other_country_count = 0
+    total_count = 0
+    cleansed_count = 0
+    last_percentage = 0
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))'
@@ -31,23 +37,32 @@ class CleansePostalCodes(DataPreparationTask):
         customer_df['cleansed_postal_code'] = None
         customer_df['cleansed_country'] = None
 
-        customer_df['cleansed_postal_code'],
-        customer_df['cleansed_country'] = customer_df.apply(
-                lambda x: self.match_postal_code(
-                    postal_code=x['postal_code'],
-                    country=x['country']
-                ), axis=1)
+        db_connector.execute((
+            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
+            'EXISTS cleansed_postal_code TEXT'))
 
-        total_count = db_connector.query(
+        db_connector.execute((
+            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
+            'EXISTS cleansed_country TEXT'))
+
+        self.total_count = db_connector.query(
             query='SELECT COUNT(*) FROM gomus_customer',
             only_first=True
         )[0]
 
+        customer_df['cleansed_postal_code'],
+        customer_df['cleansed_country'] = customer_df.apply(
+                lambda x: self.match_postal_code(
+                    postal_code=x['postal_code'],
+                    country=x['country'],
+                    customer_id=x['customer_id']
+                ), axis=1)
+
         print('-------------------------------------------------')
-        print(f'Skipped {self.skip_count} out of {total_count} postal codes')
-        print('Percentage:', '{0:.0%}'.format(self.skip_count/total_count))
+        print(f'Skipped {self.skip_count} out of {self.total_count} postal codes')
+        print('Percentage:', '{0:.0%}'.format(self.skip_count/self.total_count))
         print()
-        print('{0:.0%}'.format(self.none_count/total_count),
+        print('{0:.0%}'.format(self.none_count/self.total_count),
               'of all values are empty. ({})'.format(self.none_count))
         print()
         print(' =>', self.skip_count-self.none_count,
@@ -76,7 +91,7 @@ class CleansePostalCodes(DataPreparationTask):
                                    columns=[col[0] for col in columns])
         return customer_df
 
-    def match_postal_code(self, postal_code, country):
+    def match_postal_code(self, postal_code, country, customer_id):
 
         result_postal = None
 
@@ -94,10 +109,8 @@ class CleansePostalCodes(DataPreparationTask):
             'Schweiz':
                 [cleansed_code, 4, r'[1-9]\d{3}'],
             'Vereinigtes Königreich':
-                [cleansed_code, 0, r'([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z]'
-                    r'[0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|'
-                    r'(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y]'
-                    r'[0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})'],
+                [cleansed_code, 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
+                    r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
             'Vereinigte Staaten von Amerika':
                 [cleansed_code, 5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}'],
             'Frankreich':
@@ -107,7 +120,7 @@ class CleansePostalCodes(DataPreparationTask):
             'Österreich':
                 [cleansed_code, 4, r'\d{4}'],
             'Polen':
-                [cleansed_code, 5, r'([0-9]{2})((-|)[0-9]{3})?'],
+                [cleansed_code, 5, r'[0-9]{2}[0-9]{3}?'],
             'Belgien':
                 [cleansed_code, 4, r'[1-9]\d{3}'],
             'Dänemark':
@@ -121,10 +134,8 @@ class CleansePostalCodes(DataPreparationTask):
             'Spanien':
                 [cleansed_code, 5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}'],
             'Britische Jungferninseln':
-                [cleansed_code, 0, r'([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z]'
-                    r'[0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|'
-                    r'(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y]'
-                    r'[0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})'],
+                [cleansed_code, 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
+                    r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
             'United States Minor Outlying Islands':
                 [cleansed_code, 5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}']
         }
@@ -146,6 +157,20 @@ class CleansePostalCodes(DataPreparationTask):
         if country and not country_data:
             # we have countries that we can't check yet - let us count them
             self.other_country_count += 1
+
+        db_connector.execute(
+            (f'''
+                UPDATE gomus_customer SET cleansed_postal_code
+                =\'{result_postal}\',cleansed_country=\'{result_country}\'
+                WHERE customer_id={customer_id}
+            '''))
+
+        self.cleansed_count += 1
+        percentage = int(round(self.cleansed_count/self.total_count)*100)
+
+        if percentage % 5 == 0 and self.last_percentage < percentage:
+            print(percentage, '% cleansed (', self.cleansed_count, ')')
+            self.last_percentage = percentage
 
         return result_postal, result_country
 
