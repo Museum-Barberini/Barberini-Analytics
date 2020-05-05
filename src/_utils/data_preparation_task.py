@@ -3,7 +3,6 @@ import os
 import sys
 
 import luigi
-import os
 
 from db_connector import db_connector
 

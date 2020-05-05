@@ -27,7 +27,10 @@ class ExhibitionToDB(CsvToDb):
 class FetchExhibitions(DataPreparationTask):
 
     def output(self):
-        return luigi.LocalTarget(f'{self.output_dir}/exhibitions.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/exhibitions.csv',
+            format=UTF8
+        )
 
     def run(self):
         url = 'https://barberini.gomus.de/api/v4/exhibitions?per_page=100'

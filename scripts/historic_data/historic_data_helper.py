@@ -21,6 +21,6 @@ def run_luigi_task(module_name, task_name, parameter='', value=''):
 
 
 def rename_output(name, offset):
-    base_path = f'{os.environ[OUTPUT_DIR]}/gomus/'
+    base_path = f'{os.environ["OUTPUT_DIR"]}/gomus/'
     shutil.move(base_path + name,
                 base_path + f'{offset}_' + name)

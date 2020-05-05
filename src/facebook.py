@@ -78,7 +78,8 @@ class FetchFbPosts(DataPreparationTask):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget(f'{self.output_dir}/facebook/fb_posts.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/facebook/fb_posts.csv', format=UTF8)
 
     def run(self):
         with self.input().open('r') as facts_file:
