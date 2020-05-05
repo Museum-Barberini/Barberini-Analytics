@@ -146,7 +146,7 @@ class FetchFbPostPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/facebook/fb_post_performances.csv', 
+            f'{self.output_dir}/facebook/fb_post_performances.csv',
             format=UTF8
         )
 
