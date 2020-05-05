@@ -5,7 +5,6 @@ import sys
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
-import os
 import pandas as pd
 from oauth2client.file import Storage
 
@@ -166,7 +165,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
 
-                if os.environ['MINIMAL'] == 'True':
+                if self.minimal_mode:
                     review_list.pop('nextPageToken')
         finally:
             print()

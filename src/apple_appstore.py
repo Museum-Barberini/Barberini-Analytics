@@ -2,7 +2,6 @@ import json
 import logging
 
 import luigi
-import os
 import pandas as pd
 import random
 import requests
@@ -55,7 +54,7 @@ class FetchAppstoreReviews(DataPreparationTask):
     def fetch_all(self):
         data = []
         country_codes = sorted(self.get_country_codes())
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             random_num = random.randint(0, len(country_codes) - 2)
 
             country_codes = country_codes[random_num:random_num + 2]
@@ -70,9 +69,11 @@ class FetchAppstoreReviews(DataPreparationTask):
                     end='',
                     flush=True)
                 try:
-                    data.append(self.fetch_for_country(country_code))
-                except ValueError:
-                    pass  # no data for given country code
+                    data_for_country = self.fetch_for_country(country_code)
+                    # check if there's data for given
+                    # country code before appending
+                    if not data_for_country.empty:
+                        data.append(data_for_country)
                 except requests.HTTPError as error:
                     if error.response.status_code == 400:
                         # not all countries are available
@@ -100,12 +101,21 @@ class FetchAppstoreReviews(DataPreparationTask):
         data_list = []
 
         while url:
-            data, url = self.fetch_page(url)
-            data_list += data
+            try:
+                data, url = self.fetch_page(url)
+                data_list += data
+            except requests.exceptions.HTTPError as error:
+                if error.response and error.response.status_code == 503:
+                    logger.warning(
+                        f"Encountered 503 server error: {error}")
+                    logger.warning("Continuing anyway")
+                    break
+                else:
+                    raise
 
         if not data_list:
             # no reviews for the given country code
-            raise ValueError()
+            logger.warning(f"Empty data for country {country_code}")
 
         result = pd.DataFrame(data_list)
         result['country_code'] = country_code

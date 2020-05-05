@@ -62,7 +62,7 @@ class FetchGplayReviews(DataPreparationTask):
         # Different languages have different reviews. Iterate over
         # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             random_num = random.randint(0, len(language_codes) - 2)
             language_codes = language_codes[random_num:random_num + 2]
 

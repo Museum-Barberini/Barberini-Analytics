@@ -1,6 +1,5 @@
 import json
 import luigi
-import os
 import random
 
 from data_preparation_task import DataPreparationTask
@@ -18,6 +17,7 @@ class GtrendsTopics(DataPreparationTask):
 
     def run(self):
         topics = self.collect_topics()
+
         with self.output().open('w') as output_file:
             json.dump(topics, output_file)
 
@@ -33,7 +33,8 @@ class GtrendsTopics(DataPreparationTask):
             ' '.join([museum_name, extra_topic])
             for extra_topic in extra_topics
             for museum_name in museum_names]
-        if os.environ['MINIMAL'] == 'True':
+
+        if self.minimal_mode:
             random_museum_name = random.randint(0, len(museum_names) - 1)
             random_topic = random.randint(0, len(extra_topics) - 1)
 
