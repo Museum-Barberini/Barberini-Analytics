@@ -9,9 +9,48 @@ from data_preparation_task import DataPreparationTask
 from db_connector import db_connector
 
 
+COUNTRY_TO_DATA = {
+    'Deutschland':
+        [5, r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})'],
+    'Schweiz':
+        [4, r'[1-9]\d{3}'],
+    'Vereinigtes Königreich':
+        [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
+            r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
+    'Vereinigte Staaten von Amerika':
+        [5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}'],
+    'Frankreich':
+        [5, r'(?:[0-8]\d|9[0-8])\d{3}'],
+    'Niederlande':
+        [0, r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}'],
+    'Österreich':
+        [4, r'\d{4}'],
+    'Polen':
+        [5, r'[0-9]{2}[0-9]{3}?'],
+    'Belgien':
+        [4, r'[1-9]\d{3}'],
+    'Dänemark':
+        [4, r'[1-9]\d{3}'],
+    'Italien':
+        [5, r'\d{5}'],
+    'Russische Föderation':
+        [0, r'\d{6}'],
+    'Schweden':
+        [5, r'\d{3}\s*\d{2}'],
+    'Spanien':
+        [5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}'],
+    'Britische Jungferninseln':
+        [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
+            r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
+    'United States Minor Outlying Islands':
+        [5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}']
+}
+
+
 class CleansePostalCodes(DataPreparationTask):
 
-    worker_timeout = 80000
+    # runs about 60 mins - 2 hours should suffice
+    worker_timeout = 7200
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     skip_count = 0
@@ -103,51 +142,15 @@ class CleansePostalCodes(DataPreparationTask):
         cleansed_code = \
             self.replace_rare_symbols(str(postal_code))
 
-        country_to_data = {
-            'Deutschland':
-                [cleansed_code, 5, r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})'],
-            'Schweiz':
-                [cleansed_code, 4, r'[1-9]\d{3}'],
-            'Vereinigtes Königreich':
-                [cleansed_code, 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
-                    r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
-            'Vereinigte Staaten von Amerika':
-                [cleansed_code, 5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}'],
-            'Frankreich':
-                [cleansed_code, 5, r'(?:[0-8]\d|9[0-8])\d{3}'],
-            'Niederlande':
-                [cleansed_code, 0, r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}'],
-            'Österreich':
-                [cleansed_code, 4, r'\d{4}'],
-            'Polen':
-                [cleansed_code, 5, r'[0-9]{2}[0-9]{3}?'],
-            'Belgien':
-                [cleansed_code, 4, r'[1-9]\d{3}'],
-            'Dänemark':
-                [cleansed_code, 4, r'[1-9]\d{3}'],
-            'Italien':
-                [cleansed_code, 5, r'\d{5}'],
-            'Russische Föderation':
-                [cleansed_code, 0, r'\d{6}'],
-            'Schweden':
-                [cleansed_code, 5, r'\d{3}\s*\d{2}'],
-            'Spanien':
-                [cleansed_code, 5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}'],
-            'Britische Jungferninseln':
-                [cleansed_code, 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
-                    r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
-            'United States Minor Outlying Islands':
-                [cleansed_code, 5, r'([0-9]{5}(?:-[0-9]{4})?)|[0-9]{9}']
-        }
-        country_data = country_to_data.get(country)
+        country_data = COUNTRY_TO_DATA.get(country)
 
         if country_data:
-            result_postal = self.validate_country(*country_data)
+            result_postal = self.validate_country(cleansed_code, *country_data)
             result_country = country
 
-        for key, data in country_to_data.items():
+        for key, data in COUNTRY_TO_DATA.items():
             if not result_postal:
-                result_postal = self.validate_country(*data)
+                result_postal = self.validate_country(cleansed_code, *data)
                 result_country = key
 
         if not result_postal:
