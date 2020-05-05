@@ -1,5 +1,5 @@
 import datetime as dt
-from pytz.utc import localize
+from pytz import utc
 import tzlocal
 import json
 
@@ -22,7 +22,7 @@ class TweetsToDB(CsvToDb):
         ("tweet_id", "TEXT"),
         ("text", "TEXT"),
         ("response_to", "TEXT"),
-        ("post_date", "DATE"),
+        ("post_date", "TIMESTAMP"),
         ("is_from_barberini", "BOOL")
     ]
 
@@ -178,7 +178,8 @@ class FetchTwitter(DataPreparationTask):
         # timestamp is utc by default
         df['timestamp'] = df['timestamp'].apply(
             lambda utc_dt:
-            localize(utc_dt, is_dst=None).astimezone(tzlocal.get_localzone()))
+            utc.localize(utc_dt, is_dst=None).astimezone(
+                tzlocal.get_localzone()))
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
