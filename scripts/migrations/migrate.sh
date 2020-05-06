@@ -65,4 +65,4 @@ do
     fi
 done
 
-echo "INFO: All pending migrations have been applied succesfully."
+echo "INFO: All pending migrations have been applied successfully."
