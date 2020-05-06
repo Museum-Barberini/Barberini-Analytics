@@ -1,14 +1,15 @@
 import logging
+import os
 import sys
 
 import luigi
-import os
 
 from db_connector import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
 minimal_mode = os.getenv('MINIMAL') == 'True'
+OUTPUT_DIR = os.environ['OUTPUT_DIR']
 
 
 class DataPreparationTask(luigi.Task):
@@ -21,6 +22,10 @@ class DataPreparationTask(luigi.Task):
     foreign_keys = luigi.parameter.ListParameter(
         description="The foreign keys to be asserted",
         default=[])
+
+    @property
+    def output_dir(self):
+        return OUTPUT_DIR
 
     def ensure_foreign_keys(self, df):
         filtered_df = df
