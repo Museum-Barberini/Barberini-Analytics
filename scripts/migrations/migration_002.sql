@@ -32,7 +32,7 @@ BEGIN;
         user_name   TEXT
     );
     ALTER TABLE tweet_author
-        ADD CONSTRAINT  tweet_author_primke
+        ADD CONSTRAINT  tweet_author_primkey
         PRIMARY KEY     (user_id);
 
 COMMIT;
