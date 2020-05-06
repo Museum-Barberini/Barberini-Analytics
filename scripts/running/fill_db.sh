@@ -17,7 +17,7 @@ esac
 cd /app
 make luigi-task LMODULE=fill_db LTASK=$TASK
 if [ $? -ne 0 ]
-    then cp -r ./output ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
+    then cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
 fi
 
 make luigi-clean
