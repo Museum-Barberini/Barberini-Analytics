@@ -17,17 +17,6 @@ class EventsToDB(CsvToDb):
 
     table = 'gomus_event'
 
-    # TODO: Align column order with migration_000!
-    columns = [
-        ('event_id', 'INT'),
-        ('booking_id', 'INT'),
-        ('customer_id', 'INT'),
-        ('reservation_count', 'INT'),
-        ('order_date', 'DATE'),
-        ('status', 'TEXT'),
-        ('category', 'TEXT')
-    ]
-
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],
