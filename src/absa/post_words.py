@@ -39,8 +39,8 @@ def regex_compile_greedy_lookaround(pattern: str, flags=0) -> regex_type:
 class PostWordsToDB(CsvToDb):
 
     limit = luigi.IntParameter(
-        default=None,
-        description="The maximum number posts to fetch. Optional. If None, "
+        default=-1,
+        description="The maximum number posts to fetch. Optional. If -1, "
                     "all posts will be fetched.")
 
     shuffle = luigi.BoolParameter(
@@ -68,8 +68,8 @@ class PostWordsToDB(CsvToDb):
 class CollectPostWords(DataPreparationTask):
 
     limit = luigi.IntParameter(
-        default=None,
-        description="The maximum number posts to fetch. Optional. If None, "
+        default=-1,
+        description="The maximum number posts to fetch. Optional. If -1, "
                     "all posts will be fetched.")
 
     shuffle = luigi.BoolParameter(

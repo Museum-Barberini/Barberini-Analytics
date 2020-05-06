@@ -12,8 +12,8 @@ from .stopwords import StopwordsToDb
 class PostNgramsToDB(CsvToDb):
 
     limit = luigi.IntParameter(
-        default=None,
-        description="The maximum number posts to fetch. Optional. If None, "
+        default=-1,
+        description="The maximum number posts to fetch. Optional. If -1, "
                     "all posts will be fetched.")
 
     shuffle = luigi.BoolParameter(
@@ -34,10 +34,11 @@ class PostNgramsToDB(CsvToDb):
     columns = [
         ('source', 'TEXT'),
         ('post_id', 'TEXT'),
-        ('ngram', 'TEXT')
+        ('ngram', 'TEXT'),
+        ('count', 'INT')
     ]
 
-    primary_key = 'source', 'post_id'
+    primary_key = 'source', 'post_id', 'ngram'
 
     def requires(self):
         return CollectPostNgrams(
@@ -50,8 +51,8 @@ class PostNgramsToDB(CsvToDb):
 class CollectPostNgrams(DataPreparationTask):
 
     limit = luigi.IntParameter(
-        default=None,
-        description="The maximum number posts to fetch. Optional. If None, "
+        default=-1,
+        description="The maximum number posts to fetch. Optional. If -1, "
                     "all posts will be fetched.")
 
     shuffle = luigi.BoolParameter(
@@ -89,8 +90,11 @@ class CollectPostNgrams(DataPreparationTask):
             ngrams.extend(result)
 
         df = pd.DataFrame(ngrams, columns=['source', 'post_id', 'ngram'])
+        series = df.pivot_table(index=list(df.columns), aggfunc='size')
+        series_df = pd.DataFrame(series, columns=['count'])
+        series_df.reset_index(inplace=True)
         with self.output().open('w') as output_stream:
-            df.to_csv(output_stream, index=False, header=True)
+            series_df.to_csv(output_stream, index=False, header=True)
 
     def _build_query(self, n):
 

@@ -8,8 +8,8 @@ from db_connector import db_connector
 class QueryDb(DataPreparationTask):
 
     limit = luigi.parameter.IntParameter(
-        default=None,
-        description="The maximum number posts to fetch. Optional. If None, "
+        default=-1,
+        description="The maximum number posts to fetch. Optional. If -1, "
                     "all posts will be fetched.")
 
     shuffle = luigi.BoolParameter(
@@ -31,7 +31,7 @@ class QueryDb(DataPreparationTask):
         query = self.query
         if self.shuffle:
             query += 'ORDER BY RANDOM() '
-        if self.limit:
+        if self.limit and self.limit != -1:
             query += f'LIMIT {self.limit} '
         return query
 
