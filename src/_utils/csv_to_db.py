@@ -84,4 +84,3 @@ class CsvToDb(CopyToTable):
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:
             return sql_file.read().format(*args)
-
