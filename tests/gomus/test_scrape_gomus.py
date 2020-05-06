@@ -15,14 +15,14 @@ from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
 class TestEnhanceBookingsWithScraper(DatabaseTestCase):
-    '''
+    """
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
     It then compares the expected hash (also in the file above)
     with the hash of what our scraper got.
 
     To easily add test cases, use create_test_data_for_bookings.py.
-    '''
+    """
 
     hash_seed = 666
 
@@ -32,8 +32,8 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
     def test_scrape_bookings(
-            self, output_mock, all_htmls_mock, input_mock, foreign_key_mock,
-            new_mail_mock):
+            self, output_mock, all_htmls_mock, input_mock,
+            ensure_foreign_key_mock, new_mail_mock):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')
@@ -73,10 +73,11 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
         # Also test that fetch_updated_mail would be called for non-empty
         # invalid_values (actual functionality tested elsewhere)
         invalid_values = pd.DataFrame([0], columns=['booking_id'])
-        def mocked_foreign_key(x, y):
-            y(invalid_values, None, None)
-            return x  # TODO: Change DB instead?
-        foreign_key_mock.side_effect = mocked_foreign_key
+
+        def mocked_ensure_foreign_key(df, invalid_handler):
+            invalid_handler(invalid_values, None, None)
+            return df
+        ensure_foreign_key_mock.side_effect = mocked_ensure_foreign_key
 
         new_mail_mock.return_value = iter([
             FetchGomusHTML(url='test1'),
