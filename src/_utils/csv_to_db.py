@@ -3,6 +3,7 @@ import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+from psycopg2.errors import UndefinedTable
 
 import db_connector
 from data_preparation_task import minimal_mode
@@ -51,11 +52,17 @@ class CsvToDb(CopyToTable):
     @property
     def columns(self):
         if not self._columns:
-            self._columns = self.db_connector.query(f'''
-                SELECT column_name, data_type
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE table_name = '{self.table}';
-            ''')
+            def fetch_columns():
+                return self.db_connector.query(f'''
+                    SELECT column_name, data_type
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE table_name = '{self.table}';
+                ''')
+            self._columns = fetch_columns()
+            if not self._columns:
+                raise UndefinedTable()
+                self._columns = fetch_columns()
+
         return self._columns
 
     def copy(self, cursor, file):
@@ -77,3 +84,4 @@ class CsvToDb(CopyToTable):
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:
             return sql_file.read().format(*args)
+
