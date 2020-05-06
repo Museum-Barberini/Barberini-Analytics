@@ -13,7 +13,7 @@ BEGIN;
             comments,
             '' as language,
             0 as rating
-        FROM fb_post jOIN ( 
+        FROM fb_post JOIN ( 
             SELECT 
                 max(likes) as likes,
                 max(shares) as shares,
@@ -33,7 +33,7 @@ BEGIN;
             null as comments,
             '' as language,
             0 as rating
-        FROM tweet jOIN ( 
+        FROM tweet JOIN ( 
             SELECT max(likes) as likes, tweet_id
             FROM tweet_performance
             GROUP BY tweet_id) as performance
