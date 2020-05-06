@@ -129,7 +129,6 @@ class CollectPostWords(DataPreparationTask):
                 ]
             ]+
         ''')
-    # cvyp
     # Patterns to ignore words
     ignore = regex_compile(r'''
             ^\w$  # Single character as word
