@@ -38,7 +38,7 @@ services:
         env_file:
             - /etc/barberini-analytics/secrets/database.env
         volumes:
-            - .:/app
+            - ./scripts/migrations:/app/scripts/migrations
             - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
         networks:
             - database_network
