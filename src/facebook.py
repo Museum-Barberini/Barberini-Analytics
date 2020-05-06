@@ -53,7 +53,6 @@ class FetchFbPosts(DataPreparationTask):
         url = f'{API_BASE}/{page_id}/feed'
 
         response = try_request_multiple_times(url)
-        response.raise_for_status()
 
         response_content = response.json()
         for post in (response_content['data']):
@@ -65,7 +64,6 @@ class FetchFbPosts(DataPreparationTask):
             page_count = page_count + 1
             url = response_content['paging']['next']
             response = try_request_multiple_times(url)
-            response.raise_for_status()
 
             response_content = response.json()
             for post in (response_content['data']):
@@ -143,7 +141,9 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'post_activity_by_action_type',
                 'post_clicks_by_type',
                 'post_negative_feedback',
-                'post_impressions_paid'
+                'post_impressions_paid',
+                'post_impressions',
+                'post_impressions_unique'  # "reach"
             ]
             request_args = {
                 'params': {'metric': ','.join(metrics)},
@@ -194,6 +194,12 @@ class FetchFbPostPerformance(DataPreparationTask):
             post_perf['paid_impressions'] = \
                 response_content['data'][4]['values'][0]['value']
 
+            post_perf['post_impressions'] = \
+                response_content['data'][5]['values'][0]['value']
+
+            post_perf['post_impressions_unique'] = \
+                response_content['data'][6]['values'][0]['value']
+
             performances.append(post_perf)
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
@@ -233,4 +239,9 @@ def try_request_multiple_times(url, **kwargs):
                 "Trying to request the API again.\n"
                 f"Error message: {e}"
             )
-    return requests.get(url, timeout=100, **kwargs)
+    response = requests.get(url, timeout=100, headers=headers, **kwargs)
+
+    # cause clear error instead of trying
+    # to process the invalid response
+    response.raise_for_status()
+    return response
