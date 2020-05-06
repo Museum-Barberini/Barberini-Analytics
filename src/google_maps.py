@@ -49,7 +49,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
+            f'{self.output_dir}/google_maps/maps_reviews.csv',
+            format=luigi.format.UTF8
+        )
 
     def run(self) -> None:
         logger.info("loading credentials...")

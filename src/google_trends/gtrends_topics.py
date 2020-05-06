@@ -12,7 +12,8 @@ class GtrendsTopics(DataPreparationTask):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget('output/google_trends/topics.json')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/google_trends/topics.json')
 
     def run(self):
         topics = self.collect_topics()

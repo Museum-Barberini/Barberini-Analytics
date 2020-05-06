@@ -1,17 +1,18 @@
 import logging
 import pandas as pd
+import os
 import sys
 from functools import reduce
 from typing import Callable, Dict, Tuple
 
 import luigi
-import os
 
 import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
 minimal_mode = os.getenv('MINIMAL') == 'True'
+OUTPUT_DIR = os.environ['OUTPUT_DIR']
 
 
 class DataPreparationTask(luigi.Task):
@@ -27,6 +28,10 @@ class DataPreparationTask(luigi.Task):
         default=minimal_mode,
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
+
+    @property
+    def output_dir(self):
+        return OUTPUT_DIR
 
     def ensure_foreign_keys(
                 self,

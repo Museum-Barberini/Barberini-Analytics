@@ -7,7 +7,7 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask, minimal_mode
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
 from gomus.customers import hash_id
@@ -51,7 +51,10 @@ class ExtractEventData(DataPreparationTask):
             yield FetchCategoryReservations(category=category)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/events.csv',
+            format=UTF8
+        )
 
     def run(self):
         self.events_df = pd.DataFrame(columns=self.columns)
@@ -121,7 +124,7 @@ class FetchCategoryReservations(DataPreparationTask):
 
     def run(self):
 
-        if minimal_mode:
+        if self.minimal_mode:
             query = f'''
                 SELECT booking_id FROM gomus_booking
                 WHERE category='{self.category}'
@@ -158,8 +161,10 @@ class FetchCategoryReservations(DataPreparationTask):
     # save a list of paths for all single csv files
     def output(self):
         cat = cleanse_umlauts(self.category)
-        return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
-                                 format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/all_{cat}_reservations.txt',
+            format=UTF8
+        )
 
     def requires(self):
         yield BookingsToDB()

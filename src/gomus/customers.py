@@ -51,7 +51,10 @@ class ExtractCustomerData(DataPreparationTask):
                                 suffix=suffix)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/customers.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/customers.csv',
+            format=UTF8
+        )
 
     def run(self):
         with next(self.input()).open('r') as input_csv:
@@ -125,8 +128,10 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
                                 suffix=suffix)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/gomus_to_customers_mapping.csv',
-                                 format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/gomus_to_customers_mapping.csv',
+            format=UTF8
+        )
 
     def run(self):
         with next(self.input()).open('r') as input_csv:

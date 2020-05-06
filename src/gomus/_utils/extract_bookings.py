@@ -28,7 +28,9 @@ class ExtractGomusBookings(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/bookings_prepared.csv', format=UTF8)
+            f'{self.output_dir}/gomus/bookings_prepared.csv',
+            format=UTF8
+        )
 
     def run(self):
         with next(self.input()).open('r') as bookings_file:

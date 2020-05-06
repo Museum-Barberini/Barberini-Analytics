@@ -31,7 +31,8 @@ class FetchAppstoreReviews(DataPreparationTask):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget('output/appstore_reviews.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/appstore_reviews.csv', format=UTF8)
 
     def run(self):
         reviews = self.fetch_all()

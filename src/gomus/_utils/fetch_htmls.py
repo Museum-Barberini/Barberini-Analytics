@@ -6,16 +6,16 @@ import requests
 import time
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask, minimal_mode
+from data_preparation_task import DataPreparationTask
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
 
-class FetchGomusHTML(luigi.Task):
+class FetchGomusHTML(DataPreparationTask):
     url = luigi.parameter.Parameter(description="The URL to fetch")
 
     def output(self):
-        name = 'output/gomus/html/' + \
+        name = f'{self.output_dir}/gomus/html/' + \
             self.url. \
             replace('http://', ''). \
             replace('https://', ''). \
@@ -54,13 +54,14 @@ class FetchBookingsHTML(DataPreparationTask):
             timespan=self.timespan, columns=self.columns)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/bookings_htmls.txt')
 
     def run(self):
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if minimal_mode:
+            if self.minimal_mode:
                 bookings = bookings.head(5)
 
         db_booking_rows = []
@@ -109,13 +110,14 @@ class FetchOrdersHTML(DataPreparationTask):
         return OrdersToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/orders_htmls.txt')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/orders_htmls.txt')
 
     def get_order_ids(self):
 
         order_ids = []
 
-        query_limit = 'LIMIT 10' if minimal_mode else ''
+        query_limit = 'LIMIT 10' if self.minimal_mode else ''
 
         order_contains_table_exists = self.db_connector.exists('''
             SELECT * FROM information_schema.tables

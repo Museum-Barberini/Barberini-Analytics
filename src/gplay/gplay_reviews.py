@@ -31,7 +31,9 @@ class FetchGplayReviews(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gplay_reviews.csv', format=luigi.format.UTF8)
+            f'{self.output_dir}/gplay_reviews.csv',
+            format=luigi.format.UTF8
+        )
 
     def run(self):
 

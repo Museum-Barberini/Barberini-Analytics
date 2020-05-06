@@ -53,7 +53,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         yield GomusToCustomerMappingToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/bookings.csv', format=UTF8)
 
     def run(self):
         with self.input()[0].open('r') as input_file:
@@ -205,7 +206,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.csv', format=UTF8)
+            f'{self.output_dir}/gomus/scraped_order_contains.csv',
+            format=UTF8
+        )
 
     def run(self):
 

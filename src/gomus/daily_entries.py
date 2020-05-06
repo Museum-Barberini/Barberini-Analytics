@@ -50,8 +50,9 @@ class ExtractDailyEntryData(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/{"expected_" if self.expected else ""}'
-            'daily_entries.csv', format=UTF8)
+            f'{self.output_dir}/gomus/{"expected_" if self.expected else ""}'
+            'daily_entries.csv', format=UTF8
+        )
 
     def run(self):
         # get date from first sheet
