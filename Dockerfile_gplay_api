@@ -11,6 +11,7 @@ RUN apt-get update
 ARG INSTALL='apt-get install -y'
 
 # Install utilities
+RUN $INSTALL apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
 RUN $INSTALL curl git
 
 # Clone google-play-api repo

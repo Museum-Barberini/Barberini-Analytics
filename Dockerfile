@@ -12,8 +12,7 @@ ARG INSTALL='apt-get install -y --no-install-recommends'
 
 
 # Install utilities
-#RUN $install apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
-# TODO: This would be great to fix the apt warnings, but unfortunately, it raises http://security.ubuntu.com/ubuntu 404 Not Found ...
+RUN $INSTALL apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
 RUN $INSTALL build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
 # Optional tools for dev experience:
