@@ -8,6 +8,7 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+from db_connector import db_connector
 
 from gomus._utils.fetch_report import FetchGomusReport
 
@@ -111,6 +112,14 @@ class ExtractCustomerData(DataPreparationTask):
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
         df['cleansed_postal_code'] = None
         df['cleansed_country'] = None
+
+        db_connector.execute((
+            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
+            'EXISTS cleansed_postal_code TEXT'))
+
+        db_connector.execute((
+            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
+            'EXISTS cleansed_country TEXT'))
 
         # Drop duplicate occurences of customers with same mail,
         # keeping the most recent one

@@ -7,6 +7,7 @@ from luigi.format import UTF8
 from gomus.customers import CustomersToDB
 from data_preparation_task import DataPreparationTask
 from db_connector import db_connector
+from _utils.german_postal_codes import GermanPostalCodes
 
 
 COUNTRY_TO_DATA = {
@@ -58,12 +59,14 @@ class CleansePostalCodes(DataPreparationTask):
     other_country_count = 0
     cleansed_count = 0
     last_percentage = 0
+    german_postal_df = None
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))'
 
     def requires(self):
-        return CustomersToDB(today=self.today)
+        yield GermanPostalCodes()
+        yield CustomersToDB(today=self.today)
 
     def output(self):
         return luigi.LocalTarget('output/gomus/cleansed_customers.csv',
@@ -72,16 +75,12 @@ class CleansePostalCodes(DataPreparationTask):
     def run(self):
         customer_df = self.get_customer_data()
 
+        with self.input()[0].open('r') as postal_csv:
+            self.german_postal_df = \
+                pd.read_csv(postal_csv, encoding='utf-8', dtype=str)
+
         customer_df['cleansed_postal_code'] = None
         customer_df['cleansed_country'] = None
-
-        db_connector.execute((
-            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
-            'EXISTS cleansed_postal_code TEXT'))
-
-        db_connector.execute((
-            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
-            'EXISTS cleansed_country TEXT'))
 
         self.total_count = len(customer_df)
 
@@ -131,7 +130,7 @@ class CleansePostalCodes(DataPreparationTask):
                                    columns=[col[0] for col in columns])
         return customer_df
 
-    def match_postal_code(self, country_id, postal_code, country, customer_id):
+    def match_postal_code(self, postal_code, country, customer_id):
 
         result_postal = None
 
@@ -145,12 +144,14 @@ class CleansePostalCodes(DataPreparationTask):
         country_data = COUNTRY_TO_DATA.get(country)
 
         if country_data:
-            result_postal = self.validate_country(country_id, cleansed_code, *country_data)
+            result_postal = \
+                self.validate_country(cleansed_code, *country_data)
             result_country = country
 
         for key, data in COUNTRY_TO_DATA.items():
             if not result_postal:
-                result_postal = self.validate_country(country_id, cleansed_code, *data)
+                result_postal = \
+                    self.validate_country(cleansed_code, *data)
                 result_country = key
 
         if not result_postal:
@@ -231,7 +232,7 @@ class CleansePostalCodes(DataPreparationTask):
         else:
             return postal_code
 
-    def validate_country(self, country_code, postal_code, zeroes, regex):
+    def validate_country(self, postal_code, country_code, zeroes, regex):
 
         new_postal_code = postal_code
 
@@ -251,6 +252,12 @@ class CleansePostalCodes(DataPreparationTask):
             new_postal_code)
 
         if len(matching_codes):
-            return matching_codes[0]
-
+            result_code = matching_codes[0]
+            if country_code == 'DE':
+                if not(self.german_postal_df[
+                       self.german_postal_df[
+                            'Plz'].str.contains(result_code)].empty):
+                    return result_code
+            else:
+                return result_code
         return None
