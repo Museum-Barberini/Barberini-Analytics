@@ -37,14 +37,14 @@ class FillDBDaily(luigi.WrapperTask):
         yield TweetsToDB()
 
         # === Gomus ===
-        yield BookingsToDB()
-        yield CustomersToDB()
+        # yield BookingsToDB()
+        # yield CustomersToDB()
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
-        yield EventsToDB()
-        yield GomusToCustomerMappingToDB()
-        yield OrderContainsToDB()
-        yield OrdersToDB()
+        # yield EventsToDB()
+        # yield GomusToCustomerMappingToDB()
+        # yield OrderContainsToDB()
+        # yield OrdersToDB()
 
 
 class FillDBHourly(luigi.WrapperTask):
