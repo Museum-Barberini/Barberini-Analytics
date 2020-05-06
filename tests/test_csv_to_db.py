@@ -28,7 +28,7 @@ class TestCsvToDb(DatabaseTestCase):
                 A int,
                 B text,
                 C text
-            );''',
+            )''',
             f'''
                 ALTER TABLE {self.table_name}
                 ADD CONSTRAINT {self.table_name}_primkey PRIMARY KEY (id);
