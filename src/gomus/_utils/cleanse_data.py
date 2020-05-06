@@ -11,39 +11,39 @@ from db_connector import db_connector
 
 COUNTRY_TO_DATA = {
     'Deutschland':
-        [5, r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})'],
+        ['DE', 5, r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})'],
     'Schweiz':
-        [4, r'[1-9]\d{3}'],
+        ['CH', 4, r'[1-9]\d{3}'],
     'Vereinigtes Königreich':
-        [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
+        ['UK', 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
             r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
     'Vereinigte Staaten von Amerika':
-        [5, r'([0-9]{5}(?:[0-9]{4})?)'],
+        ['US', 5, r'([0-9]{5}(?:[0-9]{4})?)'],
     'Frankreich':
-        [5, r'(?:[0-8]\d|9[0-8])\d{3}'],
+        ['FR', 5, r'(?:[0-8]\d|9[0-8])\d{3}'],
     'Niederlande':
-        [0, r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}'],
+        ['NL', 0, r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}'],
     'Österreich':
-        [4, r'\d{4}'],
+        ['AT', 4, r'\d{4}'],
     'Polen':
-        [5, r'[0-9]{2}(-|)[0-9]{3}?'],
+        ['PL', 5, r'[0-9]{2}(-|)[0-9]{3}?'],
     'Belgien':
-        [4, r'[1-9]\d{3}'],
+        ['BE', 4, r'[1-9]\d{3}'],
     'Dänemark':
-        [4, r'[1-9]\d{3}'],
+        ['DK', 4, r'[1-9]\d{3}'],
     'Italien':
-        [5, r'\d{5}'],
+        ['IT', 5, r'\d{5}'],
     'Russische Föderation':
-        [0, r'\d{6}'],
+        ['RU', 0, r'\d{6}'],
     'Schweden':
-        [5, r'\d{3}\s*\d{2}'],
+        ['SE', 5, r'\d{3}\s*\d{2}'],
     'Spanien':
-        [5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}'],
+        ['ES', 5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}'],
     'Britische Jungferninseln':
-        [0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
+        ['UK', 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
             r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
     'United States Minor Outlying Islands':
-        [5, r'([0-9]{5}(?:[0-9]{4})?)']
+        ['US', 5, r'([0-9]{5}(?:[0-9]{4})?)']
 }
 
 
@@ -131,7 +131,7 @@ class CleansePostalCodes(DataPreparationTask):
                                    columns=[col[0] for col in columns])
         return customer_df
 
-    def match_postal_code(self, postal_code, country, customer_id):
+    def match_postal_code(self, country_id, postal_code, country, customer_id):
 
         result_postal = None
 
@@ -140,18 +140,17 @@ class CleansePostalCodes(DataPreparationTask):
             self.skip_count += 1
             return None
 
-        cleansed_code = \
-            self.replace_rare_symbols(str(postal_code))
+        cleansed_code = self.replace_rare_symbols(str(postal_code))
 
         country_data = COUNTRY_TO_DATA.get(country)
 
         if country_data:
-            result_postal = self.validate_country(cleansed_code, *country_data)
+            result_postal = self.validate_country(country_id, cleansed_code, *country_data)
             result_country = country
 
         for key, data in COUNTRY_TO_DATA.items():
             if not result_postal:
-                result_postal = self.validate_country(cleansed_code, *data)
+                result_postal = self.validate_country(country_id, cleansed_code, *data)
                 result_country = key
 
         if not result_postal:
@@ -204,7 +203,6 @@ class CleansePostalCodes(DataPreparationTask):
             ':': '',
             ';': '',
             '_': '',
-            '-': '',  # maybe remove this to keep layout of polish codes
             '@': '',
             '?': '0',
             'ß': '0'
@@ -233,12 +231,20 @@ class CleansePostalCodes(DataPreparationTask):
         else:
             return postal_code
 
-    def validate_country(self, postal_code, zeroes, regex):
+    def validate_country(self, country_code, postal_code, zeroes, regex):
+
+        new_postal_code = postal_code
 
         if zeroes:
-            new_postal_code = self.add_zeroes(postal_code, zeroes)
-        else:
-            new_postal_code = postal_code
+            if country_code == 'PL':
+                perfect_matches = re.findall(
+                    self.common_lookbehind + regex + self.common_lookahead,
+                    postal_code)
+                if not len(perfect_matches):
+                    postal_code = postal_code.replace('-', '')
+                    new_postal_code = self.add_zeroes(postal_code, zeroes)
+            else:
+                new_postal_code = self.add_zeroes(postal_code, zeroes)
 
         matching_codes = re.findall(
             self.common_lookbehind + regex + self.common_lookahead,
