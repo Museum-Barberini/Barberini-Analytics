@@ -104,7 +104,10 @@ class ExtractTweets(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def output(self):
-        return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/twitter/tweets.csv',
+            format=UTF8
+        )
 
     def museum_user_id(self):
         with self.input()[0].open('r') as facts_file:
@@ -137,7 +140,9 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            "output/twitter/tweet_performance.csv", format=UTF8)
+            f'{self.output_dir}/twitter/tweet_performance.csv',
+            format=UTF8
+        )
 
 
 class FetchTwitter(DataPreparationTask):
@@ -149,8 +154,9 @@ class FetchTwitter(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/twitter/raw_tweets.csv'),
-            format=UTF8)
+            f'{self.output_dir}/twitter/raw_tweets.csv',
+            format=UTF8
+        )
 
     def run(self):
         timespan = self.timespan
