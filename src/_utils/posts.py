@@ -10,6 +10,11 @@ from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 
 class PostsToDb(luigi.WrapperTask):
 
+    fetch_performance = luigi.BoolParameter(
+        description="If enabled, performance data will be also fetched now.",
+        default=False
+    )
+
     def requires(self):
         yield AppstoreReviewsToDB()
         yield FbPostsToDB()
@@ -18,6 +23,9 @@ class PostsToDb(luigi.WrapperTask):
         yield IgToDBWrapper()
         yield TweetAuthorsToDB()
         yield TweetsToDB()
+
+        if self.fetch_performance:
+            yield PostPerformanceToDb()
 
 
 class PostPerformanceToDb(luigi.WrapperTask):
