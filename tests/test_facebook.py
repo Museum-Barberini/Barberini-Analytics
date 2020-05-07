@@ -17,7 +17,13 @@ class TestFacebookPost(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
-    def test_post_transformation(self, output_mock, requests_get_mock):
+    @patch.object(facebook.MuseumFacts, 'output')
+    def test_post_transformation(self,
+                                 fact_mock,
+                                 output_mock,
+                                 requests_get_mock):
+        fact_target = MockTarget('facts_in', format=UTF8)
+        fact_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -38,14 +44,18 @@ class TestFacebookPost(DatabaseTestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        self.run_task(facebook.FetchFbPosts())
+        facebook.MuseumFacts().run()
+        facebook.FetchFbPosts().run()
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
-    def test_pagination(self, output_mock, requests_get_mock):
+    @patch.object(facebook.MuseumFacts, 'output')
+    def test_pagination(self, fact_mock, output_mock, requests_get_mock):
+        fact_target = MockTarget('facts_in', format=UTF8)
+        fact_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -71,12 +81,18 @@ class TestFacebookPost(DatabaseTestCase):
             previous_response
         ]
 
-        self.run_task(facebook.MuseumFacts())
+        facebook.MuseumFacts().run()
+        facebook.FetchFbPosts().run()
 
         self.assertEqual(requests_get_mock.call_count, 2)
 
     @patch('facebook.requests.get')
-    def test_invalid_response_raises_error(self, requests_get_mock):
+    @patch.object(facebook.MuseumFacts, 'output')
+    def test_invalid_response_raises_error(self,
+                                           fact_mock,
+                                           requests_get_mock):
+        fact_target = MockTarget('facts_in', format=UTF8)
+        fact_mock.return_value = fact_target
         error_mock = MagicMock(status_code=404)
 
         def error_raiser():
@@ -87,8 +103,10 @@ class TestFacebookPost(DatabaseTestCase):
 
         requests_get_mock.return_value = mock_response
 
+        facebook.MuseumFacts().run()
+
         with self.assertRaises(HTTPError):
-            self.run_task(facebook.FetchFbPosts())
+            facebook.FetchFbPosts().run()
 
 
 class TestFacebookPostPerformance(DatabaseTestCase):
@@ -180,4 +198,4 @@ class TestFacebookPostPerformance(DatabaseTestCase):
         # fail at a very specific point (processing "react_anger")
         with self.assertRaisesRegex(ValueError, re.escape(
                 'invalid literal for int() with base 10: \'4.4\'')):
-            self.run_task(facebook.FetchFbPostPerformance())
+            facebook.FetchFbPostPerformance().run()
