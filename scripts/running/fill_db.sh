@@ -2,25 +2,22 @@
 case $1 in
     daily)
         TASK=FillDBDaily
-        OTHER_CONTAINER=hourly-run-luigi
+        export OUTPUT_DIR="output_daily"
         ;;
     hourly)
         TASK=FillDBHourly
-        OTHER_CONTAINER=daily-run-luigi
+        export OUTPUT_DIR="output_hourly"
         ;;
     *)
         TASK=FillDB
-        OTHER_CONTAINER=ly-run-luigi  # matches both hourly and daily run
         ;;
 esac
+
 
 cd /app
 make luigi-task LMODULE=fill_db LTASK=$TASK
 if [ $? -ne 0 ]
-    then cp -r ./output ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
+    then cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
 fi
 
-# don't delete the output if a daily/hourly run is still in progress
-if [ ! "$( docker ps -q --filter name=$OTHER_CONTAINER )" ]
-    then make luigi-clean
-fi
+make luigi-clean

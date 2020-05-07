@@ -60,12 +60,13 @@ luigi-restart-scheduler:
 luigi:
 	./scripts/running/fill_db.sh
 
+OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler
-	mkdir -p output
+	mkdir -p $(OUTPUT_DIR) 
 	luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
-	rm -rf output
+	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal:
 	# the environment variable has to be set to true 

@@ -6,6 +6,7 @@ import luigi
 import requests
 from luigi.format import UTF8
 
+from data_preparation_task import OUTPUT_DIR
 from gomus._utils.edit_report import EditGomusReport
 from gomus._utils.fetch_report_helper import (REPORT_IDS, csv_from_excel,
                                               parse_timespan, request_report)
@@ -28,8 +29,9 @@ class FetchGomusReport(luigi.Task):
     def output(self):
         for index in self.sheet_indices:
             yield luigi.LocalTarget(
-                f'output/gomus/{self.report_name}.{index}.csv',
-                format=UTF8)
+                f'{OUTPUT_DIR}/gomus/{self.report_name}.{index}.csv',
+                format=UTF8
+            )
 
     def requires(self):
         if REPORT_IDS[f'{self.report_name}'] > 0:  # report refreshable
@@ -61,9 +63,10 @@ class FetchEventReservations(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/gomus/reservations/reservations_{self.booking_id}.'
-             f'{self.status}.csv'),
-            format=UTF8)
+            (f'{OUTPUT_DIR}/gomus/reservations/'
+             f'reservations_{self.booking_id}.{self.status}.csv'),
+            format=UTF8
+        )
 
     def run(self):
         url = (f'https://barberini.gomus.de/bookings/{self.booking_id}/'

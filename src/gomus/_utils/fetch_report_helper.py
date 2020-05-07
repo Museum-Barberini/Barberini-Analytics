@@ -21,9 +21,9 @@ REPORT_IDS = {
 
     'entries_1day': 1262,
 
-    'bookings_7days': 0,
-    'bookings_1month': -3,
-    'bookings_1year': -1,
+    'bookings_nextYear': -5,
+    'bookings_nextWeek': -6,
+    'bookings_all': -11,
 
     'guides': -2
 }
