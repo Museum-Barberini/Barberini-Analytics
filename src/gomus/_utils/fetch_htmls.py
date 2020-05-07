@@ -8,7 +8,7 @@ import requests
 from luigi.format import UTF8
 from psycopg2.errors import UndefinedTable
 
-from data_preparation_task import minimal_mode
+from data_preparation_task import OUTPUT_DIR, minimal_mode
 from db_connector import db_connector
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
@@ -18,7 +18,7 @@ class FetchGomusHTML(luigi.Task):
     url = luigi.parameter.Parameter(description="The URL to fetch")
 
     def output(self):
-        name = 'output/gomus/html/' + \
+        name = f'{OUTPUT_DIR}/gomus/html/' + \
             self.url. \
             replace('http://', ''). \
             replace('https://', ''). \
@@ -57,7 +57,8 @@ class FetchBookingsHTML(luigi.Task):
                                     columns=self.columns)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
+        return luigi.LocalTarget(
+            f'{OUTPUT_DIR}/gomus/bookings_htmls.txt')
 
     def run(self):
         with self.input().open('r') as input_file:
@@ -107,7 +108,8 @@ class FetchOrdersHTML(luigi.Task):
         return OrdersToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/orders_htmls.txt')
+        return luigi.LocalTarget(
+            f'{OUTPUT_DIR}/gomus/orders_htmls.txt')
 
     def get_order_ids(self):
 

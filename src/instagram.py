@@ -104,7 +104,8 @@ class FetchIgPosts(DataPreparationTask):
         return MuseumFacts()
 
     def output(self):
-        return luigi.LocalTarget('output/instagram/ig_posts.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/instagram/ig_posts.csv', format=UTF8)
 
     def run(self):
         access_token = os.getenv('FB_ACCESS_TOKEN')
@@ -187,7 +188,7 @@ class FetchIgPostPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/instagram/ig_post_performance.csv',
+            f'{self.output_dir}/instagram/ig_post_performance.csv',
             format=UTF8)
 
     def run(self):
@@ -266,7 +267,7 @@ class FetchIgAudienceOrigin(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/instagram/ig_audience_origin.csv',
+            f'{self.output_dir}/instagram/ig_audience_origin.csv',
             format=UTF8)
 
     def run(self):
@@ -295,7 +296,7 @@ class FetchIgAudienceGenderAge(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/instagram/ig_audience_gender_age.csv',
+            f'{self.output_dir}/instagram/ig_audience_gender_age.csv',
             format=UTF8)
 
     def run(self):
