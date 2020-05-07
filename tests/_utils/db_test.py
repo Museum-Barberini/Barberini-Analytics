@@ -71,7 +71,6 @@ class DatabaseTestCase(unittest.TestCase):
         # Generate "unique" database name
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
-            method=self._testMethodName.lower(),
             id=id(self))
         # Create database
         _perform_query(f'''
