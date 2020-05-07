@@ -5,7 +5,7 @@ import requests
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from db_connector import DbConnector
+from db_connector import db_connector
 
 
 class ExhibitionToDB(CsvToDb):
@@ -27,7 +27,10 @@ class ExhibitionToDB(CsvToDb):
 class FetchExhibitions(DataPreparationTask):
 
     def output(self):
-        return luigi.LocalTarget('output/exhibitions.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/exhibitions.csv',
+            format=UTF8
+        )
 
     def run(self):
         url = 'https://barberini.gomus.de/api/v4/exhibitions?per_page=100'
@@ -49,4 +52,4 @@ class FetchExhibitions(DataPreparationTask):
         # to make sure we don't have outdated information in our DB
         # we drop the table exhibitions beforehand
         query = (f'DROP TABLE IF EXISTS exhibitions')
-        DbConnector.execute(query)
+        db_connector.execute(query)

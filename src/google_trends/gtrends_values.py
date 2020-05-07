@@ -7,7 +7,8 @@ import psycopg2
 from luigi.contrib.external_program import ExternalProgramTask
 
 from csv_to_db import CsvToDb
-from db_connector import DbConnector
+from data_preparation_task import OUTPUT_DIR
+from db_connector import db_connector
 from google_trends.gtrends_topics import GtrendsTopics
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
@@ -38,7 +39,7 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            DbConnector.execute(f'''
+            db_connector.execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
@@ -72,7 +73,8 @@ class ConvertGtrendsValues(JsonToCsv):
         return FetchGtrendsValues()
 
     def output(self):
-        return luigi.LocalTarget('output/google_trends/values.csv')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/google_trends/values.csv')
 
 
 class FetchGtrendsValues(ExternalProgramTask):
@@ -85,7 +87,8 @@ class FetchGtrendsValues(ExternalProgramTask):
         yield GtrendsTopics()
 
     def output(self):
-        return luigi.LocalTarget('output/google_trends/values.json')
+        return luigi.LocalTarget(
+            f'{OUTPUT_DIR}/google_trends/values.json')
 
     def program_args(self):
         with self.input()[0].open('r') as facts_file:

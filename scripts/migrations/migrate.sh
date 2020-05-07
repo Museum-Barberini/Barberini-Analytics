@@ -10,11 +10,11 @@
 MIGRATION_DIR=$(dirname "$0")
 
 MIGRATION_FILES="$MIGRATION_DIR/migration_*"
-APPLIED_FILE="/var/db-data/applied_migrations.txt"
-DB_CRED_FILE="/etc/secrets/database.env"
+APPLIED_FILE="/var/barberini-analytics/db-data/applied_migrations.txt"
+DB_CRED_FILE="/etc/barberini-analytics/secrets/database.env"
 
 # Create empty 'applied_migrations.txt' if it doesn't exist
-# (Assumption: /var/db-data exists and is readable)
+# (Assumption: /var/barberini-analytics/db-data exists and is readable)
 if [[ ! -f "$APPLIED_FILE" ]]
 then
     {

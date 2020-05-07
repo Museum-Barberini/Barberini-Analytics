@@ -5,7 +5,6 @@ import sys
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
-import os
 import pandas as pd
 from oauth2client.file import Storage
 
@@ -36,7 +35,8 @@ class GoogleMapsReviewsToDB(CsvToDb):
 
 class FetchGoogleMapsReviews(DataPreparationTask):
 
-    # secret_files is a folder mounted from /etc/secrets via docker-compose
+    # secret_files is a folder mounted from
+    # /etc/barberini-analytics/secrets via docker-compose
     token_cache = luigi.Parameter(
         default='secret_files/google_gmb_credential_cache.json')
     client_secret = luigi.Parameter(
@@ -60,7 +60,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
+            f'{self.output_dir}/google_maps/maps_reviews.csv',
+            format=luigi.format.UTF8
+        )
 
     def run(self) -> None:
         logger.info("loading credentials...")
@@ -164,7 +166,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
 
-                if os.environ['MINIMAL'] == 'True':
+                if self.minimal_mode:
                     review_list.pop('nextPageToken')
         finally:
             print()

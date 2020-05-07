@@ -1,0 +1,21 @@
+{
+    "data": [
+      {
+        "name": "audience_gender_age",
+        "period": "lifetime",
+        "values": [
+          {
+            "value": {
+              "A.15-19": 123,
+              "B.20-24": 456,
+              "C.25-29": 789
+            },
+            "end_time": "2020-04-30T07:00:00+0000"
+          }
+        ],
+        "title": "Gender and Age",
+        "description": "The gender and age distribution of this profile's followers",
+        "id": "01234567899876543210/insights/audience_gender_age/lifetime"
+      }
+    ]
+  }

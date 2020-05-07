@@ -10,9 +10,10 @@ from luigi.mock import MockTarget
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus._utils.edit_report import EditGomusReport
 from gomus._utils.fetch_report_helper import REPORT_IDS
+from task_test import DatabaseTaskTest
 
 
-class TestGomusEditReport(unittest.TestCase):
+class TestGomusEditReport(DatabaseTaskTest):
     @patch.object(FetchGomusReport, 'output')
     @unittest.skipUnless(
         os.getenv('FULL_TEST') == 'True', 'long running test')

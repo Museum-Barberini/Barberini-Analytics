@@ -1,8 +1,9 @@
 import datetime as dt
+from pytz import utc
+import tzlocal
 import json
 
 import luigi
-import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
@@ -21,7 +22,7 @@ class TweetsToDB(CsvToDb):
         ("tweet_id", "TEXT"),
         ("text", "TEXT"),
         ("response_to", "TEXT"),
-        ("post_date", "DATE"),
+        ("post_date", "TIMESTAMP"),
         ("is_from_barberini", "BOOL")
     ]
 
@@ -103,7 +104,10 @@ class ExtractTweets(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def output(self):
-        return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/twitter/tweets.csv',
+            format=UTF8
+        )
 
     def museum_user_id(self):
         with self.input()[0].open('r') as facts_file:
@@ -136,10 +140,12 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            "output/twitter/tweet_performance.csv", format=UTF8)
+            f'{self.output_dir}/twitter/tweet_performance.csv',
+            format=UTF8
+        )
 
 
-class FetchTwitter(luigi.Task):
+class FetchTwitter(DataPreparationTask):
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
@@ -148,12 +154,13 @@ class FetchTwitter(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/twitter/raw_tweets.csv'),
-            format=UTF8)
+            f'{self.output_dir}/twitter/raw_tweets.csv',
+            format=UTF8
+        )
 
     def run(self):
         timespan = self.timespan
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             timespan = dt.timedelta(days=0)
 
         tweets = ts.query_tweets(
@@ -173,6 +180,13 @@ class FetchTwitter(luigi.Task):
                 'retweets',
                 'replies'])
         df = df.drop_duplicates(subset=["tweet_id"])
+
+        # timestamp is utc by default
+        df['timestamp'] = df['timestamp'].apply(
+            lambda utc_dt:
+            utc.localize(utc_dt, is_dst=None).astimezone(
+                tzlocal.get_localzone()))
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 

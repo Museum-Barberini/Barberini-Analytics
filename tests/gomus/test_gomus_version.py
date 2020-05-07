@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 import os
-import unittest
 
 import requests
+
+from task_test import DatabaseTaskTest
 
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 EXPECTED_VERSION_TAG = 'v4.1.3 – Premium Edition'
 
 
-class TestGomusVersion(unittest.TestCase):
+class TestGomusVersion(DatabaseTaskTest):
     def test_session_id_is_valid(self):
         # test if GOMUS_SESS_ID env variable contains a valid session id
         response = requests.get(

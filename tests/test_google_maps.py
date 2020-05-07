@@ -1,4 +1,3 @@
-import unittest
 import warnings
 from unittest.mock import MagicMock
 import json
@@ -7,9 +6,10 @@ import pandas as pd
 import googleapiclient.discovery
 
 from google_maps import FetchGoogleMapsReviews
+from task_test import DatabaseTaskTest
 
 
-class TestFetchGoogleMapsReviews(unittest.TestCase):
+class TestFetchGoogleMapsReviews(DatabaseTaskTest):
 
     def setUp(self):
         super().setUp()
