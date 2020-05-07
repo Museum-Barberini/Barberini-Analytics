@@ -177,7 +177,7 @@ class TestEntriesSheet0Format(GomusFormatTest):
     def test_entries_sheet0_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report(suffix='_1day', sheet=[0])
-        self.check_format(skiprows=5, skipfooter=1)
+        self.check_format(skiprows=7, skipfooter=1)
 
 
 class TestEntriesSheet1Format(GomusFormatTest):
