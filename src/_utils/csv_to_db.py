@@ -71,6 +71,9 @@ class CsvToDb(CopyToTable):
         cursor.copy_expert(query, file)
 
     def create_table(self):
+        """
+        Overridden from superclass to forbid dynamical schema changes.
+        """
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
