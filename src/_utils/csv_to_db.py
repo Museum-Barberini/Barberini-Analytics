@@ -61,7 +61,6 @@ class CsvToDb(CopyToTable):
             self._columns = fetch_columns()
             if not self._columns:
                 raise UndefinedTable()
-                self._columns = fetch_columns()
 
         return self._columns
 
