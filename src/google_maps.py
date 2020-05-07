@@ -140,37 +140,29 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         location = location_list['locations'][0]['name']
 
         # get reviews for that location
-        reviews = []
         review_list = service.accounts().locations().reviews().list(
             parent=location,
             pageSize=page_size).execute()
-        reviews = reviews + review_list['reviews']
+        yield from review_list['reviews']
         total_reviews = review_list['totalReviewCount']
-        try:
-            print(
-                f"Fetched {len(reviews)} out of {total_reviews} reviews",
-                end='', flush=True)
 
-            while 'nextPageToken' in review_list:
-                """
-                TODO: optimize by requesting the latest review from DB rather
-                than fetching more pages once that one is found
-                """
-                next_page_token = review_list['nextPageToken']
-                review_list = service.accounts().locations().reviews().list(
-                    parent=location,
-                    pageSize=page_size,
-                    pageToken=next_page_token).execute()
-                reviews = reviews + review_list['reviews']
-                print(
-                    f"\rFetched {len(reviews)} out of {total_reviews} reviews",
-                    end='', flush=True)
+        for next_page_token in self.loop_verbose(
+                while_fun=lambda: 'nextPageToken' in review_list,
+                item_fun=lambda: review_list['nextPageToken'],
+                size=total_reviews,
+                msg="Fetching Google Maps page {index}/{size}"):
+            """
+            TODO: optimize by requesting the latest review from DB rather
+            than fetching more pages once that one is found
+            """
+            review_list = service.accounts().locations().reviews().list(
+                parent=location,
+                pageSize=page_size,
+                pageToken=next_page_token).execute()
+            yield from review_list['reviews']
 
-                if self.minimal_mode:
-                    review_list.pop('nextPageToken')
-        finally:
-            print()
-        return reviews
+            if self.minimal_mode:
+                review_list.pop('nextPageToken')
 
     def extract_reviews(self, raw_reviews) -> pd.DataFrame:
         extracted_reviews = []

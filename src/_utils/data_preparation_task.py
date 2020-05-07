@@ -72,3 +72,37 @@ class DataPreparationTask(luigi.Task):
                     print("Values not printed for privacy reasons")
 
         return filtered_df, invalid_values
+
+    def iter_verbose(self, iterable, msg, size=None):
+        if not sys.stdout.isatty():
+            yield from iterable
+            return
+        if size is None:
+            size = len(iterable) if hasattr(iterable, '__len__') else None
+        format_args = {
+            'item': str(None),
+            'index': 0
+        }
+        if size:
+            format_args['size'] = size
+        print()
+        try:
+            for index, item in enumerate(iterable, start=1):
+                format_args['index'] = index
+                format_args['item'] = item
+                message = msg.format(**format_args)
+                message = f'\r{message} ... '
+                if size:
+                    message += f'({(index - 1) / size :2.1%})'
+                print(message, end=' ', flush=True)
+                yield item
+            print(f'\r{msg.format(**format_args)} ... done.', flush=True)
+        except Exception:
+            print(flush=True)
+            raise
+
+    def loop_verbose(self, while_fun, item_fun, msg, size=None):
+        def loop():
+            while while_fun():
+                yield item_fun()
+        return self.iter_verbose(loop(), msg, size=size)
