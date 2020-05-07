@@ -38,7 +38,7 @@ class TestFacebookPost(DatabaseTestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        self.run_task(facebook.FetchFbPosts().run()
+        self.run_task(facebook.FetchFbPosts())
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
@@ -71,8 +71,7 @@ class TestFacebookPost(DatabaseTestCase):
             previous_response
         ]
 
-        facebook.MuseumFacts().run()
-        facebook.FetchFbPosts().run()
+        self.run_task(facebook.MuseumFacts())
 
         self.assertEqual(requests_get_mock.call_count, 2)
 
@@ -88,10 +87,8 @@ class TestFacebookPost(DatabaseTestCase):
 
         requests_get_mock.return_value = mock_response
 
-        facebook.MuseumFacts().run()
-
         with self.assertRaises(HTTPError):
-            facebook.FetchFbPosts().run()
+            self.run_task(facebook.FetchFbPosts())
 
 
 class TestFacebookPostPerformance(DatabaseTestCase):
@@ -183,4 +180,4 @@ class TestFacebookPostPerformance(DatabaseTestCase):
         # fail at a very specific point (processing "react_anger")
         with self.assertRaisesRegex(ValueError, re.escape(
                 'invalid literal for int() with base 10: \'4.4\'')):
-            facebook.FetchFbPostPerformance().run()
+            self.run_task(facebook.FetchFbPostPerformance())
