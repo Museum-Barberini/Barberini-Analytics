@@ -64,7 +64,6 @@ class DatabaseTestCase(unittest.TestCase):
         super().setUp()
         self.setUpDatabase()
         self.setUpLuigi()
-        self.setUpFacts()
         self.setUpFileSystem()
 
     def setUpDatabase(self):
@@ -99,20 +98,10 @@ class DatabaseTestCase(unittest.TestCase):
             lambda: luigi.task_register.Register._set_reg(_stashed_reg),
             lambda: luigi.task_register.Register.clear_instance_cache())
 
-    def setUpFacts(self):
-        facts_task = MuseumFacts()
-        facts_task.run()
-        with facts_task.output().open('r') as facts_file:
-            self.facts = json.load(facts_file)
-
     def setUpFileSystem(self):
         self.dirty_file_paths = []
         self.addCleanup(lambda: [
             os.remove(file) for file in self.dirty_file_paths])
-
-    def isolate(self, task):
-        task.complete = True
-        return task
 
     def install_mock_target(self, mock_object, store_function):
         mock_target = luigi.mock.MockTarget(
