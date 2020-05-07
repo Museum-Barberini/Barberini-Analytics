@@ -17,13 +17,7 @@ class TestFacebookPost(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
-    @patch.object(facebook.MuseumFacts, 'output')
-    def test_post_transformation(self,
-                                 fact_mock,
-                                 output_mock,
-                                 requests_get_mock):
-        fact_target = MockTarget('facts_in', format=UTF8)
-        fact_mock.return_value = fact_target
+    def test_post_transformation(self, output_mock, requests_get_mock):
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -44,18 +38,14 @@ class TestFacebookPost(DatabaseTestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        facebook.MuseumFacts().run()
-        facebook.FetchFbPosts().run()
+        self.run_task(facebook.FetchFbPosts().run()
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
-    @patch.object(facebook.MuseumFacts, 'output')
-    def test_pagination(self, fact_mock, output_mock, requests_get_mock):
-        fact_target = MockTarget('facts_in', format=UTF8)
-        fact_mock.return_value = fact_target
+    def test_pagination(self, output_mock, requests_get_mock):
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -87,12 +77,7 @@ class TestFacebookPost(DatabaseTestCase):
         self.assertEqual(requests_get_mock.call_count, 2)
 
     @patch('facebook.requests.get')
-    @patch.object(facebook.MuseumFacts, 'output')
-    def test_invalid_response_raises_error(self,
-                                           fact_mock,
-                                           requests_get_mock):
-        fact_target = MockTarget('facts_in', format=UTF8)
-        fact_mock.return_value = fact_target
+    def test_invalid_response_raises_error(self, requests_get_mock):
         error_mock = MagicMock(status_code=404)
 
         def error_raiser():
