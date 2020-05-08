@@ -93,7 +93,7 @@ class TestFetchGoogleMapsReviews(DatabaseTaskTest):
         reviews_list_mock.execute.side_effect = reviews_list_execute
 
         # ----- Execute code under test ----
-        result = self.task.fetch_raw_reviews(service, page_size)
+        result = list(self.task.fetch_raw_reviews(service, page_size))
 
         # ----- Inspect result ------
         self.assertSequenceEqual(all_reviews, result)

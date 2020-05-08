@@ -117,11 +117,10 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             discoveryServiceUrl=self.google_gmb_discovery_url)
 
     """
-    the google-api is based on resources that contain other resources
-    an authenticated user has account(s), an accounts contains locations and a
-    location contains reviews (which we need to request one  by one)
+    The GMB API is based on resources that contain other resources.
+    An authenticated user has account(s), an accounts contains locations, and
+    a location contains reviews (which we need to request one by one).
     """
-
     def fetch_raw_reviews(self, service, page_size=100):
         # get account identifier
         account_list = service.accounts().list().execute()
