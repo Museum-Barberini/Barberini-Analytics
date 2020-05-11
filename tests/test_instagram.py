@@ -130,6 +130,71 @@ class TestInstagram(DatabaseTestCase):
             self.task.run()
 
     @patch('instagram.try_request_multiple_times')
+    @patch.object(instagram.FetchIgProfileMetricsDevelopment, 'output')
+    @patch.object(instagram.MuseumFacts, 'output')
+    def test_fetch_profile_metrics_development(
+            self, fact_mock, output_mock, request_mock):
+        fact_target = MockTarget('facts_in', format=UTF8)
+        fact_mock.return_value = fact_target
+        output_target = MockTarget('post_out', format=UTF8)
+        output_mock.return_value = output_target
+
+        with open(f'{IG_TEST_DATA}/profile_metrics_development_actual.json',
+                  'r',
+                  encoding='utf-8') as data_in:
+            input_data = data_in.read()
+
+        with open(f'{IG_TEST_DATA}/profile_metrics_development_expected.csv',
+                  'r',
+                  encoding='utf-8') as data_out:
+            expected_data = data_out.read()
+
+        def mock_json():
+            return json.loads(input_data)
+        mock_response = MagicMock(ok=True, json=mock_json)
+        request_mock.return_value = mock_response
+
+        self.run_task(instagram.FetchIgProfileMetricsDevelopment(
+            columns=[col[0] for col in
+                     instagram.IgProfileMetricsDevelopmentToDB().columns]))
+
+        with output_target.open('r') as output_data:
+            self.assertEqual(output_data.read(), expected_data)
+
+    @patch('instagram.try_request_multiple_times')
+    @patch.object(instagram.FetchIgTotalProfileMetrics, 'output')
+    @patch.object(instagram.MuseumFacts, 'output')
+    def test_fetch_total_profile_metrics(
+            self, fact_mock, output_mock, request_mock):
+        fact_target = MockTarget('facts_in', format=UTF8)
+        fact_mock.return_value = fact_target
+        output_target = MockTarget('post_out', format=UTF8)
+        output_mock.return_value = output_target
+
+        with open(f'{IG_TEST_DATA}/total_profile_metrics_actual.json',
+                  'r',
+                  encoding='utf-8') as data_in:
+            input_data = data_in.read()
+
+        with open(f'{IG_TEST_DATA}/total_profile_metrics_expected.csv',
+                  'r',
+                  encoding='utf-8') as data_out:
+            expected_data = data_out.read()
+
+        def mock_json():
+            return json.loads(input_data)
+        mock_response = MagicMock(ok=True, json=mock_json)
+        request_mock.return_value = mock_response
+
+        with freeze_time('2020-01-01 00:00:05'):
+            self.run_task(instagram.FetchIgTotalProfileMetrics(
+                columns=[col[0] for col in
+                         instagram.IgTotalProfileMetrics().columns]))
+
+        with output_target.open('r') as output_data:
+            self.assertEqual(output_data.read(), expected_data)
+
+    @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgAudienceOrigin, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
     def test_audience_origin_transformation(
@@ -155,10 +220,17 @@ class TestInstagram(DatabaseTestCase):
         request_mock.return_value = mock_response
 
         instagram.MuseumFacts().run()
-        instagram.FetchIgAudienceOrigin(
-            columns=[col[0] for col in
-                     instagram.IgAudienceOriginToDB().columns]
-        ).run()
+
+        with freeze_time('2020-01-01 00:00:05'):
+            # Use city mode for testing, though the
+            # transformation is the same for countries
+            # The only difference between the two is the received,
+            # data, which cannot be tested here
+            instagram.FetchIgAudienceOrigin(
+                columns=[col[0] for col in
+                         instagram.IgAudienceCityToDB().columns],
+                country_mode=False
+            ).run()
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
@@ -189,10 +261,11 @@ class TestInstagram(DatabaseTestCase):
         request_mock.return_value = mock_response
 
         instagram.MuseumFacts().run()
-        instagram.FetchIgAudienceGenderAge(
-            columns=[col[0] for col in
-                     instagram.IgAudienceGenderAgeToDB().columns]
-        ).run()
+        with freeze_time('2020-01-01 00:00:05'):
+            instagram.FetchIgAudienceGenderAge(
+                columns=[col[0] for col in
+                         instagram.IgAudienceGenderAgeToDB().columns]
+            ).run()
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)

@@ -1,0 +1,55 @@
+{
+    "data": [
+      {
+        "name": "follower_count",
+        "period": "day",
+        "values": [
+          {
+            "value": 123,
+            "end_time": "2020-05-10T07:00:00+0000"
+          },
+          {
+            "value": 321,
+            "end_time": "2020-05-11T07:00:00+0000"
+          }
+        ],
+        "title": "Follower Count",
+        "description": "Total number of unique accounts following this profile",
+        "id": "01234567899876543210/insights/follower_count/day"
+      },
+      {
+        "name": "profile_views",
+        "period": "day",
+        "values": [
+          {
+            "value": 456,
+            "end_time": "2020-05-10T07:00:00+0000"
+          },
+          {
+            "value": 654,
+            "end_time": "2020-05-11T07:00:00+0000"
+          }
+        ],
+        "title": "Profile Views",
+        "description": "The total number of users who have viewed the business account's profile within the specified period.",
+        "id": "01234567899876543210/insights/profile_views/day"
+      },
+      {
+        "name": "website_clicks",
+        "period": "day",
+        "values": [
+          {
+            "value": 789,
+            "end_time": "2020-05-10T07:00:00+0000"
+          },
+          {
+            "value": 987,
+            "end_time": "2020-05-11T07:00:00+0000"
+          }
+        ],
+        "title": "Website Clicks",
+        "description": "Total number of taps on the website link in this profile",
+        "id": "01234567899876543210/insights/website_clicks/day"
+      }
+    ]
+  }
