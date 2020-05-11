@@ -24,8 +24,8 @@ class CsvToDb(CopyToTable):
                     "in order to test the pipeline for structural problems")
 
     """
-    Don't delete this! This parameter assures that every (sub)instance of me
-    is treated as an individual and will be re-run.
+    Don't delete this or make it private! This parameter assures that every
+    (sub)instance of me is treated as an individual and will be re-run.
     """
     dummy_date = luigi.FloatParameter(
         default=dt.datetime.timestamp(dt.datetime.now()))
