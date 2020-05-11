@@ -51,7 +51,7 @@ class FetchFbPosts(DataPreparationTask):
 
         posts = []
 
-        url = f'{API_BASE}/{page_id}/feed'
+        url = f'{API_BASE}/{page_id}/published_posts?limit=100'
 
         response = try_request_multiple_times(url)
 
