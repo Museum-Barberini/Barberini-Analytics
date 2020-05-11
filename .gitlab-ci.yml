@@ -41,7 +41,7 @@ pipeline:
     - ./scripts/tests/run_minimal_pipeline.sh
   artifacts:
     paths: 
-      - output/schema.txt
+      - schema.output
 
 test:
   stage: analyze
