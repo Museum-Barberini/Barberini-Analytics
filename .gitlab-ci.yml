@@ -1,12 +1,19 @@
 image: docker:latest
 
+stages:
+  - build
+  - test
+  - analyze
+
 build:
+  stage: build
   tags:
     - barberini
   script:
     - docker build -t test .
 
 coverage:
+  stage: test
   tags:
     - barberini
   script:
@@ -21,6 +28,7 @@ coverage:
       - htmlcov
 
 lint:
+  stage: analyze
   tags:
     - barberini
   script:
@@ -28,6 +36,7 @@ lint:
     - python3 -m flake8 -v --show-source .
 
 pipeline:
+  stage: test
   script:
     - ./scripts/tests/run_minimal_pipeline.sh
   artifacts:
@@ -35,6 +44,7 @@ pipeline:
       - output/schema.txt
 
 test:
+  stage: analyze
   tags:
     - barberini
   script:
