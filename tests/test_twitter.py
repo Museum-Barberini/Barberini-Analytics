@@ -1,15 +1,16 @@
-from unittest.mock import patch
 import datetime as dt
 import pandas as pd
+from unittest.mock import patch
 
 from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
-class TextFetchTwitter(DatabaseTaskTest):
+class TextFetchTwitter(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
@@ -46,7 +47,7 @@ class TextFetchTwitter(DatabaseTaskTest):
             msg="timestamp of our tweet not found, wrong timezone?")
 
 
-class TestExtractTweets(DatabaseTaskTest):
+class TestExtractTweets(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweets, 'museum_user_id')
@@ -111,7 +112,7 @@ class TestExtractTweets(DatabaseTaskTest):
         self.assertEqual(output, extracted_tweets)
 
 
-class TestExtractTweetPerformance(DatabaseTaskTest):
+class TestExtractTweetPerformance(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')
@@ -144,7 +145,7 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             output.split('\n')[0],
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
-            self.assertEqual(   # cutting away the timestamp
+            self.assertEqual(  # cutting away the timestamp
                 output.split('\n')[i].split(';')[:-1],
                 extracted_performance.split('\n')[i].split(';')[:-1])
 

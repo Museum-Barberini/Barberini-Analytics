@@ -13,6 +13,8 @@ class DbConnector:
 
     def __init__(self, host, user, database, password):
         super().__init__()
+        # crucial to avoid unintended access to default postgres database
+        assert database, "Database was not specified"
         self.host = host
         self.user = user
         self.database = database
@@ -83,7 +85,7 @@ class DbConnector:
             with conn:
                 with conn.cursor() as cur:
                     for query in queries:
-                        logger.debug(f'Executing query: {query}')
+                        logger.debug(f"DbConnector: Executing query: {query}")
                         cur.execute(query)
                         yield result_function(cur)
         finally:
@@ -98,8 +100,9 @@ class DbConnector:
         return self._execute_queries([query], result_function)
 
 
-db_connector = DbConnector(
-    host=os.environ['POSTGRES_HOST'],
-    database=os.environ['POSTGRES_DB'],
-    user=os.environ['POSTGRES_USER'],
-    password=os.environ['POSTGRES_PASSWORD'])
+def db_connector():
+    return DbConnector(
+        host=os.environ['POSTGRES_HOST'],
+        database=os.environ['POSTGRES_DB'],
+        user=os.environ['POSTGRES_USER'],
+        password=os.environ['POSTGRES_PASSWORD'])

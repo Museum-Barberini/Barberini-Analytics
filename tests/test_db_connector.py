@@ -3,10 +3,10 @@ import psycopg2
 import time
 
 from db_connector import DbConnector
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
-class TestDbConnector(DatabaseTaskTest):
+class TestDbConnector(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -39,13 +39,10 @@ class TestDbConnector(DatabaseTaskTest):
                 ''')
 
     def tearDown(self):
-        self.connection.set_isolation_level(0)
-        with self.connection as conn:
-            with conn.cursor() as cur:
-                cur.execute(f'DROP TABLE {self.temp_table}')
-        self.connection.close()
-
-        super().tearDown()
+        try:
+            self.connection.close()
+        finally:
+            super().tearDown()
 
     def test_query(self):
 

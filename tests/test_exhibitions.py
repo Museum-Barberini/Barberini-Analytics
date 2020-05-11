@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
-from task_test import DatabaseTaskTest
 
+from db_test import DatabaseTestCase
 import exhibitions
 
 
-class TestExhibitions(DatabaseTaskTest):
+class TestExhibitions(DatabaseTestCase):
 
     @patch('exhibitions.requests.get')
     @patch.object(exhibitions.FetchExhibitions, 'output')
