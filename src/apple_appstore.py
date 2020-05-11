@@ -19,26 +19,13 @@ class AppstoreReviewsToDB(CsvToDb):
 
     table = 'appstore_review'
 
-    columns = [
-        ('app_id', 'TEXT'),
-        ('appstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('vote_count', 'INT'),
-        ('vote_sum', 'INT'),
-        ('title', 'TEXT'),
-        ('post_date', 'TIMESTAMP'),
-        ('country_code', 'TEXT')
-    ]
-
-    primary_key = 'app_id', 'appstore_review_id'
-
     def requires(self):
         return FetchAppstoreReviews()
 
 
 class FetchAppstoreReviews(DataPreparationTask):
+
+    table = 'appstore_review'
 
     def requires(self):
         return MuseumFacts()

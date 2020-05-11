@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 
 from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDB
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
@@ -21,7 +21,7 @@ XML_FRAME = '''<?xml version="1.0" encoding="utf-8"?>
 XML_EMPTY_FRAME = XML_FRAME % ''
 
 
-class TestFetchAppleReviews(DatabaseTaskTest):
+class TestFetchAppleReviews(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -194,7 +194,7 @@ class TestFetchAppleReviews(DatabaseTaskTest):
         )
 
 
-class TestAppstoreReviewsToDB(DatabaseTaskTest):
+class TestAppstoreReviewsToDB(DatabaseTestCase):
 
     @patch.object(FetchAppstoreReviews, 'get_country_codes')
     @patch('apple_appstore.requests.get')

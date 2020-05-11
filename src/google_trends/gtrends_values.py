@@ -23,14 +23,17 @@ class GtrendsValuesToDB(luigi.WrapperTask):
         yield GtrendsValuesAddToDB()
 
 
-class GtrendsValuesClearDB(luigi.WrapperTask):
-
+class GtrendsValuesClearDB(luigi.Task):
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
     """
 
     table = 'gtrends_value'
+
+    def output(self):
+        # Pseudo output file to signal completion of the task
+        return luigi.LocalTarget('output/GtrendsValuesClearDB')
 
     def requires(self):
         return GtrendsTopics()
@@ -39,29 +42,23 @@ class GtrendsValuesClearDB(luigi.WrapperTask):
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            db_connector.execute(f'''
+            db_connector().execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
                 })
             ''')
-
         except psycopg2.errors.UndefinedTable:
-            # Table does not exist
+            # Nothing to delete
             pass
+
+        with self.output().open('w') as output:
+            output.write('Done')
 
 
 class GtrendsValuesAddToDB(CsvToDb):
 
     table = 'gtrends_value'
-
-    columns = [
-        ('topic', 'TEXT'),
-        ('date', 'DATE'),
-        ('interest_value', 'INT'),
-    ]
-
-    primary_key = 'topic', 'date'
 
     def requires(self):
         return ConvertGtrendsValues()

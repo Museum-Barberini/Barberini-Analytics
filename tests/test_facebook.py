@@ -1,7 +1,6 @@
 import datetime as dt
 import json
 import re
-import unittest
 from unittest.mock import MagicMock, patch
 
 from freezegun import freeze_time
@@ -9,13 +8,13 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
 
+from db_test import DatabaseTestCase
 import facebook
-from task_test import DatabaseTaskTest
 
 FB_TEST_DATA = 'tests/test_data/facebook'
 
 
-class TestFacebookPost(DatabaseTaskTest):
+class TestFacebookPost(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -111,7 +110,7 @@ class TestFacebookPost(DatabaseTaskTest):
             facebook.FetchFbPosts().run()
 
 
-class TestFacebookPostPerformance(unittest.TestCase):
+class TestFacebookPostPerformance(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostPerformance, 'output')
@@ -189,9 +188,9 @@ class TestFacebookPostPerformance(unittest.TestCase):
             # The current edge case test data should cause the interpretation
             # to fail at a very specific point (processing "react_anger")
             with self.assertRaisesRegex(
-                ValueError,
-                re.escape(
-                    "invalid literal for int() with base 10: '4.4'")):
+                    ValueError,
+                    re.escape(
+                        "invalid literal for int() with base 10: '4.4'")):
                 self.task = facebook.FetchFbPostPerformance(
                     timespan=dt.timedelta(days=100000))
                 self.task.run()

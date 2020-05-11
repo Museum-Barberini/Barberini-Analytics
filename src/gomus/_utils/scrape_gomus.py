@@ -9,11 +9,10 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
-from gomus.customers import hash_id
+from gomus.customers import GomusToCustomerMappingToDB, hash_id
 
 logger = logging.getLogger('luigi-interface')
 
@@ -43,11 +42,15 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        yield ExtractGomusBookings(timespan=self.timespan,
-                                   columns=self.columns)
-        yield FetchBookingsHTML(timespan=self.timespan,
-                                base_url=self.base_url + '/admin/bookings/',
-                                columns=self.columns)
+        yield ExtractGomusBookings(
+            timespan=self.timespan,
+            columns=self.columns)
+        yield FetchBookingsHTML(
+            timespan=self.timespan,
+            base_url=f'{self.base_url}/admin/bookings/',
+            columns=self.columns)
+        # table required for fetch_updated_mail()
+        yield GomusToCustomerMappingToDB()
 
     def output(self):
         return luigi.LocalTarget(
@@ -109,15 +112,22 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     bookings.loc[i, 'customer_id'] = 0
 
-        bookings, invalid_bookings = self.ensure_foreign_keys(bookings)
-        if invalid_bookings is not None and not invalid_bookings.empty:
-            # fetch invalid E-Mail addresses anew
-            for invalid_booking_id in invalid_bookings['booking_id']:
+        all_invalid_bookings = None
 
-                # Delegate dynamic dependencies in sub-method
-                new_mail = self.fetch_updated_mail(invalid_booking_id)
-                for yielded_task in new_mail:
-                    yield yielded_task
+        def handle_invalid_bookings(invalid_bookings, _, __):
+            nonlocal all_invalid_bookings
+            if all_invalid_bookings is None:
+                all_invalid_bookings = invalid_bookings.copy()
+            else:
+                all_invalid_bookings.append(invalid_bookings)
+
+        bookings = self.ensure_foreign_keys(bookings, handle_invalid_bookings)
+        # fetch invalid E-Mail addresses anew
+        for invalid_booking_id in all_invalid_bookings['booking_id']:
+            # Delegate dynamic dependencies in sub-method
+            new_mail = self.fetch_updated_mail(invalid_booking_id)
+            for yielded_task in new_mail:
+                yield yielded_task
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -141,8 +151,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with booking_html_task.output().open('r') as booking_html_fp:
             booking_html = html.fromstring(booking_html_fp.read())
         booking_customer = booking_html.xpath(
-                    '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
-                    '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
+            '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
+            '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
         gomus_id = int(booking_customer.get('href').split('/')[-1])
 
         # Second step: Get current e-mail address for customer
@@ -159,17 +169,23 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         # Update customer ID in gomus_customer
         # and gomus_to_customer_mapping
         customer_id = hash_id(customer_email)
-        old_customer_id = db_connector.query(
+        old_customer = self.db_connector.query(
             query=f'SELECT customer_id FROM gomus_to_customer_mapping '
                   f'WHERE gomus_id = {gomus_id}',
-            only_first=True)[0]
+            only_first=True)
+        if not old_customer:
+            logger.warning(
+                "Cannot update email address of customer which is not in "
+                "database.\nSkipping ...")
+            return
+        old_customer_id = old_customer[0]
 
         logger.info(f"Replacing old customer ID {old_customer_id} "
                     f"with new customer ID {customer_id}")
 
         # References are updated through foreign key
         # references via ON UPDATE CASCADE
-        db_connector.execute(f'''
+        self.db_connector.execute(f'''
             UPDATE gomus_customer
             SET customer_id = {customer_id}
             WHERE customer_id = {old_customer_id}
@@ -209,8 +225,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 tree_order = html.fromstring(res_order)
 
                 tree_details = tree_order.xpath(
-                     '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
-                     'div/div[2]/div/div/div/div[2]')[0]
+                    '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
+                    'div/div[2]/div/div/div/div[2]')[0]
 
                 # every other td contains the information of an article in the
                 # order
@@ -276,8 +292,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
-
-        df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

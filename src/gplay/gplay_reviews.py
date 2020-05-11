@@ -16,19 +16,6 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
 
     table = 'gplay_review'
 
-    columns = [
-        ('app_id', 'TEXT'),
-        ('playstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('thumbs_up', 'INT'),
-        ('title', 'TEXT'),
-        ('post_date', 'TIMESTAMP')
-    ]
-
-    primary_key = 'app_id', 'playstore_review_id'
-
     def requires(self):
         return FetchGplayReviews()
 
