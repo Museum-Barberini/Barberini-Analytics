@@ -200,6 +200,7 @@ class TestFacebookPostPerformance(unittest.TestCase):
         try:
             # The current edge case test data should cause the interpretation
             # to fail at a very specific point (processing "react_anger")
+            dt.datetime = MockDatetime
             with self.assertRaises(ValueError) as cm:
                 facebook.FetchFbPostPerformance(
                     timespan=dt.timedelta(days=100000)).run()
