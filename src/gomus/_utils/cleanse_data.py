@@ -12,39 +12,37 @@ from _utils.german_postal_codes import GermanPostalCodes
 
 COUNTRY_TO_DATA = {
     'Deutschland':
-        ['DE', 5, r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})'],
+        ['DE', 5, r'(?!01000|99999)(0[1-9]\d{3}|[1-9]\d{4})', True],
     'Schweiz':
-        ['CH', 4, r'[1-9]\d{3}'],
+        ['CH', 0, r'[1-9]\d{3}', False],
     'Vereinigtes Königreich':
         ['UK', 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
-            r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
+            r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})', True],
     'Vereinigte Staaten von Amerika':
-        ['US', 5, r'([0-9]{5}(?:[0-9]{4})?)'],
+        ['US', 5, r'([0-9]{5}(?:[0-9]{4})?)', False],
     'Frankreich':
-        ['FR', 5, r'(?:[0-8]\d|9[0-8])\d{3}'],
+        ['FR', 5, r'(?:[0-8]\d|9[0-8])\d{3}', False],
     'Niederlande':
-        ['NL', 0, r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}'],
+        ['NL', 0, r'[1-9][0-9]{3}?(?!sa|sd|ss)[a-zA-Z]{2}', True],
     'Österreich':
-        ['AT', 4, r'\d{4}'],
+        ['AT', 4, r'\d{4}', False],
     'Polen':
-        ['PL', 5, r'([0-9]{2}\-[0-9]{3})|[0-9]{5}'],
+        ['PL', 5, r'([0-9]{2}\-[0-9]{3})|[0-9]{5}', True],
     'Belgien':
-        ['BE', 4, r'[1-9]\d{3}'],
+        ['BE', 0, r'[1-9]\d{3}', False],
     'Dänemark':
-        ['DK', 4, r'[1-9]\d{3}'],
+        ['DK', 0, r'[1-9]\d{3}', False],
     'Italien':
-        ['IT', 5, r'\d{5}'],
+        ['IT', 5, r'\d{5}', False],
     'Russische Föderation':
-        ['RU', 0, r'\d{6}'],
+        ['RU', 0, r'\d{6}', True],
     'Schweden':
-        ['SE', 5, r'\d{3}\s*\d{2}'],
+        ['SE', 5, r'\d{3}\s*\d{2}', False],
     'Spanien':
-        ['ES', 5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}'],
-    'Britische Jungferninseln':
-        ['UK', 0, r'([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]'
-            r'? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})'],
-    'United States Minor Outlying Islands':
-        ['US', 5, r'([0-9]{5}(?:[0-9]{4})?)']
+        ['ES', 5, r'(?:0[1-9]|[1-4]\d|5[0-2])\d{3}', False],
+    'Kanada':
+        ['CA', 0, r'[ABCEGHJKLMNPRSTVXYabceghjklmnprstvxy]{1}'
+            r'\d{1}[A-Za-z]{1}\d{1}[A-Za-z]{1}\d{1}', True]
 }
 
 
@@ -74,6 +72,8 @@ class CleansePostalCodes(DataPreparationTask):
 
     def run(self):
         customer_df = self.get_customer_data()
+
+        self.add_columns_for_cleansed_data()
 
         with self.input()[0].open('r') as postal_csv:
             self.german_postal_df = \
@@ -130,6 +130,16 @@ class CleansePostalCodes(DataPreparationTask):
                                    columns=[col[0] for col in columns])
         return customer_df
 
+    def add_columns_for_cleansed_data(self):
+
+        db_connector.execute((
+            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
+            'EXISTS cleansed_postal_code TEXT'))
+
+        db_connector.execute((
+            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
+            'EXISTS cleansed_country TEXT'))
+
     def match_postal_code(self, postal_code, country, customer_id):
 
         result_postal = None
@@ -149,7 +159,7 @@ class CleansePostalCodes(DataPreparationTask):
             result_country = country
 
         for key, data in COUNTRY_TO_DATA.items():
-            if not result_postal:
+            if not result_postal and data[3]:
                 result_postal = \
                     self.validate_country(cleansed_code, *data)
                 result_country = key
@@ -232,7 +242,8 @@ class CleansePostalCodes(DataPreparationTask):
         else:
             return postal_code
 
-    def validate_country(self, postal_code, country_code, zeroes, regex):
+    def validate_country(self, postal_code, country_code,
+                         zeroes, regex, is_unique):
 
         new_postal_code = postal_code
 
@@ -242,8 +253,7 @@ class CleansePostalCodes(DataPreparationTask):
                     self.common_lookbehind + regex + self.common_lookahead,
                     postal_code)
                 if not len(perfect_matches):
-                    postal_code = postal_code.replace('-', '')
-                    new_postal_code = self.add_zeroes(postal_code, zeroes)
+                    postal_code = '0' + postal_code
             else:
                 new_postal_code = self.add_zeroes(postal_code, zeroes)
 
