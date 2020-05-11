@@ -1,5 +1,6 @@
 image: docker:latest
 
+# Stages are required a) to priorize jobs and b) to avoid concurrency issues.
 stages:
   - build
   - test
@@ -35,14 +36,16 @@ lint:
     - python3 -m pip install flake8 --user
     - python3 -m flake8 -v --show-source .
 
-pipeline:
+mining-pipeline:
   stage: test
   script:
-    - ./scripts/tests/run_minimal_pipeline.sh
+    - ./scripts/tests/run_minimal_mining_pipeline.sh
   artifacts:
     paths: 
       - schema.output
 
+# Deprecated, see #145. Moving this to the bottom of CI for now in order to
+# detect possible problems with the coverage job as failure detector.
 test:
   stage: analyze
   tags:
