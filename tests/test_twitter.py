@@ -2,6 +2,7 @@ from unittest.mock import patch
 import datetime as dt
 import pandas as pd
 
+from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
@@ -22,21 +23,9 @@ class TextFetchTwitter(DatabaseTaskTest):
             'parent_tweet_id',
             'timestamp']
 
-        class MockDate(dt.date):
-            @classmethod
-            def today(cls):
-                # on this day our team's account had sent a related tweet
-                return cls(2020, 2, 6)
-
-        tmp_date = dt.date
-
-        # Ensure dt.date is reset in any case
-        try:
-            dt.date = MockDate
+        with freeze_time('2020-02-06'):
+            # on this day our team's account had sent a related tweet
             FetchTwitter(timespan=dt.timedelta(days=1)).run()
-
-        finally:
-            dt.date = tmp_date
 
         with output_target.open('r') as output_file:
             output_df = pd.read_csv(output_file)
