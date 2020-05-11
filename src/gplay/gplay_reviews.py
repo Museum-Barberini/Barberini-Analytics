@@ -17,6 +17,7 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
     table = 'gplay_review'
 
     columns = [
+        ('app_id', 'TEXT'),
         ('playstore_review_id', 'TEXT'),
         ('text', 'TEXT'),
         ('rating', 'INT'),
@@ -26,7 +27,7 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
         ('post_date', 'TIMESTAMP')
     ]
 
-    primary_key = 'playstore_review_id'
+    primary_key = 'app_id', 'playstore_review_id'
 
     def requires(self):
         return FetchGplayReviews()
@@ -36,6 +37,7 @@ class FetchGplayReviews(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.app_id = None
         self.url = None
 
     def requires(self):
@@ -76,6 +78,7 @@ class FetchGplayReviews(DataPreparationTask):
             columns=['id', 'date', 'score', 'text',
                      'title', 'thumbsUp', 'version']
         )
+        reviews_df.insert(0, 'app_id', self.get_app_id())
         return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
@@ -108,7 +111,10 @@ class FetchGplayReviews(DataPreparationTask):
         keep_values = ['id', 'date', 'score',
                        'text', 'title', 'thumbsUp', 'version']
         reviews_reduced = [
-            {key: r[key] for key in keep_values} for r in reviews
+            {
+                key: r[key] for key in keep_values
+            }
+            for r in reviews
         ]
 
         return reviews_reduced
@@ -116,7 +122,7 @@ class FetchGplayReviews(DataPreparationTask):
     def get_url(self):
         """
         The webserver that serves the gplay api runs in a different
-        container.The container name is user specific:
+        container. The container name is user specific:
             [CONTAINER_USER]-gplay-api
         Note that the container name and the CONTAINER_USER
         environment variable are set in the docker-compose.yml.
@@ -131,10 +137,13 @@ class FetchGplayReviews(DataPreparationTask):
         return self.url
 
     def get_app_id(self):
+        if self.app_id:
+            return self.app_id
+        
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
-            app_id = facts['ids']['gplay']['appId']
-        return app_id
+            self.app_id = facts['ids']['gplay']['appId']
+        return self.app_id
 
     def convert_to_right_output_format(self, reviews):
         """

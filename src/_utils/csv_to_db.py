@@ -70,6 +70,7 @@ class CsvToDb(CopyToTable):
             return
         query = self.load_sql_script('copy', self.table, ','.join(
             [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
+        print(query)
         cursor.copy_expert(query, file)
 
     def rows(self):
