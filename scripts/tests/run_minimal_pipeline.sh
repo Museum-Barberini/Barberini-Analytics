@@ -3,7 +3,7 @@
 set -e
 
 set -a
-source /etc/secrets/database.env
+. /etc/barberini-analytics/secrets/database.env
 POSTGRES_HOST=localhost
 POSTGRES_DB='barberini_test'
 set +a
