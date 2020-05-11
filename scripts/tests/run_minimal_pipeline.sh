@@ -6,14 +6,14 @@ set +e
     set -e
     
     echo "Setting up test database ..."
-    docker exec -i db psql -U postgres -a postgres <<< "
-        DROP DATABASE IF EXISTS $POSTGRES_DB;
-        CREATE DATABASE $POSTGRES_DB;"
     set -a
     . /etc/barberini-analytics/secrets/database.env
     POSTGRES_HOST=localhost
     POSTGRES_DB='barberini_test'
     set +a
+    docker exec -i db psql -U postgres -a postgres <<< "
+        DROP DATABASE IF EXISTS $POSTGRES_DB;
+        CREATE DATABASE $POSTGRES_DB;"
 
     echo "Applying all migrations ..."
     ./scripts/migrations/migrate.sh
