@@ -118,7 +118,6 @@ class ExtractCustomerData(DataPreparationTask):
                 WHERE table_name='gomus_customer'
                 AND column_name='cleansed_postal_code' '''
 
-        print(db_connector.exists(query))
         if db_connector.exists(query):
             df['cleansed_postal_code'] = None
             df['cleansed_country'] = None
