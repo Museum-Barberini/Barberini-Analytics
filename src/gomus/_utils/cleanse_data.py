@@ -69,7 +69,7 @@ class CleansePostalCodes(DataPreparationTask):
     def requires(self):
         yield GermanPostalCodes()
         yield ExtractCustomerData(
-            colums=self.columns,
+            columns=self.columns,
             today=self.today
         )
 

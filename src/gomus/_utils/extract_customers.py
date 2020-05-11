@@ -50,20 +50,8 @@ class ExtractCustomerData(DataPreparationTask):
             'Sprache', 'Land', 'Typ',
             'Erstellt am', 'Jahreskarte', 'Gültige E-Mail'])
 
-        print(self.columns)
-        self.customer_relation_exists = self.db_connector.exists(
-            '''SELECT * FROM information_schema.tables
-            WHERE table_name = 'gomus_customer' ''')
-
-        df['cleansed_postal_code'] = df.apply(
-            lambda x: self.query_cleansed_data(
-                x['customer_id'], True
-            ), axis=1)
-
-        df['cleansed_country'] = df.apply(
-            lambda x: self.query_cleansed_data(
-                x['customer_id'], False
-            ), axis=1)
+        df['cleansed_postal_code'] = None
+        df['cleansed_country'] = None
 
         df.columns = self.columns
 
@@ -98,24 +86,6 @@ class ExtractCustomerData(DataPreparationTask):
         if len(post_string) >= 2:
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
-
-    def query_cleansed_data(self, customer_id, querying_postal):
-        postal = None
-        country = None
-
-        if self.customer_relation_exists:
-            result = self.db_connector.execute((
-                f'''SELECT cleansed_postal_code, cleansed_country FROM gomus_customer
-                WHERE customer_id={customer_id}'''))[0]
-            print(result)
-            if result:
-                postal, country = result
-
-        if querying_postal:
-            return postal
-        else:
-            return country
-
 
 # Return hash for e-mail value, or alternative (usually original gomus_id
 # or default value 0 for the dummy customer) if the e-mail is invalid

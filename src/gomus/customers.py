@@ -22,9 +22,12 @@ class CustomersToDB(CsvToDb):
     primary_key = 'customer_id'
 
     def _requires(self):
-        return ExtractCustomerData(
-            columns=[col[0] for col in self.columns],
-            today=self.today)
+        return luigi.task.flatten([
+            ExtractCustomerData(
+                columns=[col[0] for col in self.columns],
+                today=self.today),
+            super()._requires()
+        ])
 
     def requires(self):
         return CleansePostalCodes(
