@@ -48,8 +48,8 @@ COUNTRY_TO_DATA = {
 
 class CleansePostalCodes(DataPreparationTask):
 
-    # runs about 60-80 mins for all the data - 2 hours should suffice
-    worker_timeout = 7200
+    # runs about 30 mins when cleansing all the data - 1 hour should suffice
+    worker_timeout = 3600
 
     # whether task should be run regularly (7 days) or on all postal codes
     amount = luigi.parameter.Parameter(default='regular')
@@ -88,13 +88,17 @@ class CleansePostalCodes(DataPreparationTask):
 
         self.total_count = len(customer_df)
 
-        customer_df['cleansed_postal_code'],
-        customer_df['cleansed_country'] = customer_df.apply(
+        customer_df['result'] = customer_df.apply(
                 lambda x: self.match_postal_code(
                     postal_code=x['postal_code'],
                     country=x['country'],
                     customer_id=x['customer_id']
                 ), axis=1)
+
+        customer_df['cleansed_postal_code'] = \
+            [result[0] for result in customer_df['result']]
+        customer_df['cleansed_country'] = \
+            [result[1] for result in customer_df['result']]
 
         print()
         print('-------------------------------------------------')
@@ -157,6 +161,9 @@ class CleansePostalCodes(DataPreparationTask):
                 result_postal = \
                     self.validate_country(cleansed_code, *data)
                 result_country = key
+
+        if '(' in str(country):
+            print(result_postal, country)
 
         if not result_postal:
             self.skip_count += 1
