@@ -138,8 +138,13 @@ class DatabaseTestCase(unittest.TestCase):
             requirement.run()
 
 
-main = None
+"""
+This module is a transparent wrapper around the main entry point of the
+default unittest module. The protocol exactly matches unittest's CLI.
+For example, you can run this module by executing a command like:
+    python3 -m db_test my_test_module
+For further information on the CLI, read here:
+https://docs.python.org/3/library/unittest.html#command-line-interface
+"""
 if __name__ == '__main__':
-    main = suitable.DatabaseTestProgram
-    __unittest = True
-    main(module=None, testSuiteClass=DatabaseTestSuite)
+    suitable._main(DatabaseTestSuite)

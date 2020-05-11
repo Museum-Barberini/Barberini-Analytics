@@ -1,3 +1,7 @@
+"""
+suitable is a generic extension of unittest. It provides hooks to specify a
+custom TestSuite which implements testUpSuite() and tearDownSuite().
+"""
 import unittest
 
 
@@ -45,3 +49,11 @@ class FixtureTestSuite(unittest.TestSuite):
         tests in the suite.
         """
         pass
+
+
+def _main(testSuiteClass=FixtureTestSuite):
+    """
+    Main entry point of the suitable module to run the tests.
+    """
+    unittest.__unittest = True
+    DatabaseTestProgram(module=None, testSuiteClass=testSuiteClass)
