@@ -33,7 +33,7 @@ shutdown-db:
 	docker-compose rm -sf db
 
 connect:
-	docker-compose -p ${USER} exec luigi bash
+	docker-compose -p ${USER} exec luigi ${SHELL}
 
 # runs a command in the luigi container
 # example: sudo make docker-do do='make luigi'
@@ -44,6 +44,13 @@ docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
 
 
+apply-pending-migrations:
+	${SHELL} -c '\
+		set -a \
+		&& . /etc/barberini-analytics/secrets/database.env \
+		&& POSTGRES_HOST=localhost \
+		&& ./scripts/migrations/migrate.sh /var/barberini-analytics/db-data/applied_migrations.txt'
+
 # ------ For use inside the Luigi container ------
 
 # --- Control luigi ---
@@ -51,7 +58,7 @@ docker-clean-cache:
 luigi-scheduler:
 	luigid --background
 	# Waiting for scheduler ...
-	bash -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
+	${SHELL} -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
 luigi-restart-scheduler:
 	killall luigid
