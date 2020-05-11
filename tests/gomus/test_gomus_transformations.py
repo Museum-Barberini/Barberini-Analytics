@@ -84,7 +84,9 @@ class TestCustomerTransformation(GomusTransformationTest):
             'type',
             'register_date',
             'annual_ticket',
-            'valid_mail'],
+            'valid_mail',
+            'cleansed_postal_code',
+            'cleansed_country'],
             ExtractCustomerData,
             *args, **kwargs)
 

@@ -6,7 +6,6 @@ import re
 from luigi.format import UTF8
 
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 from gomus._utils.extract_customers import ExtractCustomerData
 from _utils.german_postal_codes import GermanPostalCodes
 
@@ -122,7 +121,7 @@ class CleansePostalCodes(DataPreparationTask):
 
         if self.amount == 'all':
 
-            customer_data = db_connector.query(
+            customer_data = self.db_connector.query(
                 query=f'SELECT * FROM gomus_customer {query_limit}')
 
             customer_df = pd.DataFrame(customer_data,
@@ -142,7 +141,7 @@ class CleansePostalCodes(DataPreparationTask):
         if not postal_code:
             self.none_count += 1
             self.skip_count += 1
-            return None
+            return None, None
 
         cleansed_code = self.replace_rare_symbols(str(postal_code))
 
