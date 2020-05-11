@@ -38,16 +38,6 @@ class TestDbConnector(DatabaseTestCase):
                     VALUES (1,2),(3,4)
                 ''')
 
-    def tearDown(self):
-        try:
-            self.connection.set_isolation_level(0)
-            with self.connection as conn:
-                with conn.cursor() as cur:
-                    cur.execute(f'DROP TABLE IF EXISTS {self.temp_table}')
-            self.connection.close()
-        finally:
-            super().tearDown()
-
     def test_query(self):
 
         res = self.connector.query(f'SELECT * FROM {self.temp_table}')

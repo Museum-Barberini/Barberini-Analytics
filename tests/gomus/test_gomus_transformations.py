@@ -154,13 +154,6 @@ class TestOrderTransformation(GomusTransformationTest):
                 VALUES (117899, 100)
             ''')
 
-    def tearDown(self):
-        try:
-            self.db_connector.execute(
-                'DROP TABLE gomus_to_customer_mapping')
-        finally:
-            super().tearDown()
-
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
     def test_order_transformation(self,

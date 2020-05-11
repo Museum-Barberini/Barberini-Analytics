@@ -11,24 +11,12 @@ COLUMN_NAME = 'test_column'
 
 
 class TestDataPreparationTask(DatabaseTestCase):
-    def setUp(self):
-        super().setUp()
-        self.created_tables = []
-
-    def tearDown(self):
-        try:
-            for table in self.created_tables:
-                self.db_connector.execute(f'DROP TABLE {table}')
-        finally:
-            super().tearDown()
 
     @patch.object(DataPreparationTask, 'table', new_callable=PropertyMock)
     def test_ensure_foreign_keys(self, table_name_mock):
         table_name_mock.return_value = TABLE_NAME
         self.db_connector.execute(
-            f'CREATE TABLE {TABLE_NAME} ({COLUMN_NAME} INT)')
-        self.created_tables.append(TABLE_NAME)
-        self.db_connector.execute(
+            f'CREATE TABLE {TABLE_NAME} ({COLUMN_NAME} INT)',
             f'''
             ALTER TABLE {TABLE_NAME}
                 ADD CONSTRAINT {TABLE_NAME}_primkey
