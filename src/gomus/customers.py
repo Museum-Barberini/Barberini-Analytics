@@ -113,8 +113,6 @@ class ExtractCustomerData(DataPreparationTask):
         df['register_date'] = pd.to_datetime(
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
-        df['cleansed_postal_code'] = None
-        df['cleansed_country'] = None
 
         query = '''SELECT 1 FROM information_schema.columns
                 WHERE table_name='gomus_customer'
