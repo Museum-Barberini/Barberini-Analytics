@@ -18,7 +18,7 @@ set +e
     ./scripts/migrations/migrate.sh
 
     make startup
-    do='make luigi-minimal' make docker-do
+    make docker-do do='make luigi-minimal'
     make shutdown
 }
 ERR=$?
