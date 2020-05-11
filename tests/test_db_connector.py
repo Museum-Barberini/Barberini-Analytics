@@ -38,6 +38,12 @@ class TestDbConnector(DatabaseTestCase):
                     VALUES (1,2),(3,4)
                 ''')
 
+    def tearDown(self):
+        try:
+            self.connection.close()
+        finally:
+            super().tearDown()
+
     def test_query(self):
 
         res = self.connector.query(f'SELECT * FROM {self.temp_table}')
