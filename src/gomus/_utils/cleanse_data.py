@@ -62,7 +62,7 @@ class CleansePostalCodes(DataPreparationTask):
     german_postal_df = None
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
-    common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-_.]))'
+    common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-]))'
 
     def requires(self):
         yield GermanPostalCodes()
