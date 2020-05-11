@@ -116,9 +116,18 @@ class ExtractCustomerData(DataPreparationTask):
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
 
-        df['cleansed_postal_code'], df['cleansed_country'] = df.apply(
+        self.customer_relation_exists = db_connector.exists(
+            '''SELECT * FROM information_schema.tables
+            WHERE table_name = 'gomus_customer' ''')
+
+        df['cleansed_postal_code'] = df.apply(
             lambda x: self.query_cleansed_data(
-                x['customer_id']
+                x['customer_id'], True
+            ), axis=1)
+
+        df['cleansed_country'] = df.apply(
+            lambda x: self.query_cleansed_data(
+                x['customer_id'], False
             ), axis=1)
 
         # Drop duplicate occurences of customers with same mail,
@@ -146,13 +155,19 @@ class ExtractCustomerData(DataPreparationTask):
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
 
-    def query_cleansed_data(self, customer_id):
-        postal, country = db_connector.execute((
-            f'''SELECT cleansed_postal_code, cleansed_country FROM gomus_customer
-            WHERE customer_id={customer_id}'''))[0]
+    def query_cleansed_data(self, customer_id, querying_postal):
+        postal = None
+        country = None
 
-        print(postal, country)
-        return postal, country
+        if self.customer_relation_exists:
+            postal, country = db_connector.execute((
+                f'''SELECT cleansed_postal_code, cleansed_country FROM gomus_customer
+                WHERE customer_id={customer_id}'''))[0]
+
+        if querying_postal:
+            return postal
+        else:
+            return country
 
 
 class ExtractGomusToCustomerMapping(DataPreparationTask):
