@@ -6,30 +6,6 @@ build:
   script:
     - docker build -t test .
 
-test:
-  tags:
-    - barberini
-  script:
-    - container=$(docker ps -f name=gitlab-runner-luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
-    - make startup
-    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-luigi make test
-    - make shutdown
-
-pipeline:
-  script:
-    - ./scripts/tests/run_minimal_pipeline.sh
-  artifacts:
-    paths: 
-      - output/schema.txt
-
-lint:
-  tags:
-    - barberini
-  script:
-    - python3 -m pip install flake8 --user
-    - python3 -m flake8 -v --show-source .
-
 coverage:
   tags:
     - barberini
@@ -43,3 +19,28 @@ coverage:
   artifacts:
     paths: 
       - htmlcov
+
+lint:
+  tags:
+    - barberini
+  script:
+    - python3 -m pip install flake8 --user
+    - python3 -m flake8 -v --show-source .
+
+pipeline:
+  script:
+    - ./scripts/tests/run_minimal_pipeline.sh
+  artifacts:
+    paths: 
+      - output/schema.txt
+
+test:
+  tags:
+    - barberini
+  script:
+    - container=$(docker ps -f name=gitlab-runner-luigi -q)
+    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
+    - make startup
+    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-luigi make test
+    - make shutdown
+
