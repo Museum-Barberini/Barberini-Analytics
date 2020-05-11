@@ -108,14 +108,14 @@ coverage: luigi-clean
 
 # --- To access postgres ---
 
+db = barberini
+# default database for db-do
 # opens a psql shell inside the database container
 db-psql:
-	docker exec -it db psql -U postgres -d barberini
+	docker exec -it db psql -U postgres -d "$(db)"
 
 # runs a command for the database in the container
 # example: sudo make db-do do='\\d'
-db=barberini
-# default database for db-do
 db-do:
 	docker exec -it db psql -U postgres -a "$(db)" -c "$(do)"
 
