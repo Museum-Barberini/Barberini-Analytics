@@ -191,7 +191,7 @@ class TestFacebookPostPerformance(unittest.TestCase):
             with self.assertRaisesRegex(
                 ValueError,
                 re.escape(
-                    'invalid literal for int() with base 10: \'4.4\'')):
+                    "invalid literal for int() with base 10: '4.4'")):
                 self.task = facebook.FetchFbPostPerformance(
                     timespan=dt.timedelta(days=100000))
                 self.task.run()
