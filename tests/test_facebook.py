@@ -13,6 +13,12 @@ from task_test import DatabaseTaskTest
 FB_TEST_DATA = 'tests/test_data/facebook'
 
 
+class MockDatetime(dt.datetime):
+    @classmethod
+    def now(cls):
+        return cls(2020, 1, 1, 0, 0, 5)
+
+
 class TestFacebookPost(DatabaseTaskTest):
 
     @patch('facebook.requests.get')
@@ -141,11 +147,6 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        class MockDatetime(dt.datetime):
-            @classmethod
-            def now(cls):
-                return cls(2020, 1, 1, 0, 0, 5)
-
         tmp_datetime = dt.datetime
 
         # Ensure dt.datetime is reset in any case
@@ -194,10 +195,16 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        # The current edge case test data should cause the interpretation to
-        # fail at a very specific point (processing "react_anger")
-        with self.assertRaises(ValueError) as cm:
-            facebook.FetchFbPostPerformance().run()
+        tmp_datetime = dt.datetime
+
+        try:
+            # The current edge case test data should cause the interpretation
+            # to fail at a very specific point (processing "react_anger")
+            with self.assertRaises(ValueError) as cm:
+                facebook.FetchFbPostPerformance(
+                    timespan=dt.timedelta(days=100000)).run()
+        finally:
+            dt.datetime = tmp_datetime
 
         error = cm.exception
         self.assertEqual(str(error),
