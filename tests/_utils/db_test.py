@@ -17,16 +17,20 @@ def _perform_query(query):
     specific database. Meta queries include construction and deletion of
     databases.
     """
-    with psycopg2.connect(
-                host=os.environ['POSTGRES_HOST'],
-                user=os.environ['POSTGRES_USER'],
-                password=os.environ['POSTGRES_PASSWORD'],
-                database='postgres'
-            ) as connection:
-        connection.autocommit = True  # required for meta queries
-        with connection.cursor() as cursor:
-            return cursor.execute(query)
-        # Looks as if this connection must not be closed manually (TODO?)
+    connection = psycopg2.connect(
+        host=os.environ['POSTGRES_HOST'],
+        user=os.environ['POSTGRES_USER'],
+        password=os.environ['POSTGRES_PASSWORD'],
+        database='postgres'
+    )
+    try:
+        with connection:
+            connection.autocommit = True  # required for meta queries
+            with connection.cursor() as cursor:
+                return cursor.execute(query)
+            # Looks as if this connection must not be closed manually (TODO?)
+    finally:
+        connection.close()
 
 
 class DatabaseTestSuite(suitable.FixtureTestSuite):
