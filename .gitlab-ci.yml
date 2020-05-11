@@ -19,6 +19,9 @@ test:
 pipeline:
   script:
     - ./scripts/tests/run_minimal_pipeline.sh
+  artifacts:
+    paths: 
+      - output/schema.txt
 
 lint:
   tags:
