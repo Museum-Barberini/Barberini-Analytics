@@ -1,29 +1,23 @@
 #!/bin/bash
 # Set up a fresh database and perform a minimal pipeline run on it. Fail if any errors occur.
 
-set +e
-{
-    set -e
-    
-    echo "Setting up test database ..."
-    set -a
-    . /etc/barberini-analytics/secrets/database.env
-    POSTGRES_HOST=localhost
-    POSTGRES_DB='barberini_test'
-    set +a
-    docker exec -i db psql -U postgres -a postgres <<< "
-        DROP DATABASE IF EXISTS $POSTGRES_DB;
-        CREATE DATABASE $POSTGRES_DB;"
+set -e
 
-    echo "Applying all migrations ..."
-    ./scripts/migrations/migrate.sh
+echo "Setting up test database ..."
+set -a
+. /etc/barberini-analytics/secrets/database.env
+POSTGRES_HOST=localhost
+POSTGRES_DB='barberini_test'
+set +a
+docker exec -i db psql -U postgres -a postgres <<< "
+DROP DATABASE IF EXISTS $POSTGRES_DB;
+CREATE DATABASE $POSTGRES_DB;"
 
-    echo "Starting luigi container ..."
-    make startup
-    echo "Running minimal pipeline ..."
-    make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
-}
-ERR=$?
-make shutdown
-rm -r $TEMP_DIR
-exit $ERR
+echo "Applying all migrations ..."
+./scripts/migrations/migrate.sh
+
+echo "Starting luigi container ..."
+make startup
+trap "make shutdown" EXIT
+echo "Running minimal pipeline ..."
+make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
