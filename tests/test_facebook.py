@@ -1,7 +1,6 @@
 import datetime as dt
 import json
 import re
-import unittest
 from unittest.mock import MagicMock, patch
 
 from freezegun import freeze_time
