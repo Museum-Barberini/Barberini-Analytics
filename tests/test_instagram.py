@@ -2,6 +2,7 @@ import datetime as dt
 import json
 from unittest.mock import MagicMock, patch
 
+from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
@@ -119,25 +120,14 @@ class TestInstagram(DatabaseTestCase):
             mock_video_response,
             mock_no_video_response]
 
-        # This is required for automatically testing
-        # the fetch time in the output data
-        class MockDatetime(dt.datetime):
-            @classmethod
-            def now(cls):
-                return cls(2020, 1, 1, 0, 0, 5)
-
-        tmp_datetime = dt.datetime
-
-        # Ensure dt.datetime is reset in any case
-        try:
-            dt.datetime = MockDatetime
-            instagram.FetchIgPostPerformance(
-                columns=[col[0] for col in
-                         instagram.IgPostPerformanceToDB().columns],
-                timespan=dt.timedelta(days=100000)).run()
-
-        finally:
-            dt.datetime = tmp_datetime
+        with freeze_time('2020-01-01 00:00:05'):
+            self.task = instagram.FetchIgPostPerformance(
+                columns=[
+                    column[0]
+                    for column
+                    in instagram.IgPostPerformanceToDB().columns],
+                timespan=dt.timedelta(days=100000))
+            self.task.run()
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgAudienceOrigin, 'output')
