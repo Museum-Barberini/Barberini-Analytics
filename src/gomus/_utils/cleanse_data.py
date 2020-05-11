@@ -73,8 +73,6 @@ class CleansePostalCodes(DataPreparationTask):
     def run(self):
         customer_df = self.get_customer_data()
 
-        self.add_columns_for_cleansed_data()
-
         with self.input()[0].open('r') as postal_csv:
             self.german_postal_df = \
                 pd.read_csv(postal_csv, encoding='utf-8', dtype=str)
@@ -129,16 +127,6 @@ class CleansePostalCodes(DataPreparationTask):
         customer_df = pd.DataFrame(customer_data,
                                    columns=[col[0] for col in columns])
         return customer_df
-
-    def add_columns_for_cleansed_data(self):
-
-        db_connector.execute((
-            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
-            'EXISTS cleansed_postal_code TEXT'))
-
-        db_connector.execute((
-            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
-            'EXISTS cleansed_country TEXT'))
 
     def match_postal_code(self, postal_code, country, customer_id):
 

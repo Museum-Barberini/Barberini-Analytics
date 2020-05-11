@@ -30,7 +30,9 @@ class CustomersToDB(CsvToDb):
         ('type', 'TEXT'),  # shop, shop guest or normal
         ('register_date', 'DATE'),
         ('annual_ticket', 'BOOL'),
-        ('valid_mail', 'BOOL')
+        ('valid_mail', 'BOOL'),
+        ('cleansed_postal_code', 'TEXT'),
+        ('cleansed_country', 'TEXT')
     ]
 
     primary_key = 'customer_id'
@@ -114,13 +116,10 @@ class ExtractCustomerData(DataPreparationTask):
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
 
-        query = '''SELECT 1 FROM information_schema.columns
-                WHERE table_name='gomus_customer'
-                AND column_name='cleansed_postal_code' '''
-
-        if db_connector.exists(query):
-            df['cleansed_postal_code'] = None
-            df['cleansed_country'] = None
+        df['cleansed_postal_code'], df['cleansed_country'] = df.apply(
+            lambda x: self.query_cleansed_data(
+                x['customer_id']
+            ), axis=1)
 
         # Drop duplicate occurences of customers with same mail,
         # keeping the most recent one
@@ -146,6 +145,14 @@ class ExtractCustomerData(DataPreparationTask):
         if len(post_string) >= 2:
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
+
+    def query_cleansed_data(self, customer_id):
+        postal, country = db_connector.execute((
+            f'''SELECT cleansed_postal_code, cleansed_country FROM gomus_customer
+            WHERE customer_id={customer_id}'''))[0]
+
+        print(postal, country)
+        return postal, country
 
 
 class ExtractGomusToCustomerMapping(DataPreparationTask):
