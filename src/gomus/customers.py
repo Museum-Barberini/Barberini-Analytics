@@ -19,22 +19,6 @@ class CustomersToDB(CsvToDb):
 
     table = 'gomus_customer'
 
-    columns = [
-        ('customer_id', 'INT'),
-        ('postal_code', 'TEXT'),  # e.g. non-german
-        ('newsletter', 'BOOL'),
-        ('gender', 'TEXT'),
-        ('category', 'TEXT'),
-        ('language', 'TEXT'),
-        ('country', 'TEXT'),
-        ('type', 'TEXT'),  # shop, shop guest or normal
-        ('register_date', 'DATE'),
-        ('annual_ticket', 'BOOL'),
-        ('valid_mail', 'BOOL'),
-        ('cleansed_postal_code', 'TEXT'),
-        ('cleansed_country', 'TEXT')
-    ]
-
     primary_key = 'customer_id'
 
     def requires(self):
@@ -45,32 +29,19 @@ class CustomersToDB(CsvToDb):
 
 class GomusToCustomerMappingToDB(CsvToDb):
 
-    today = luigi.parameter.DateParameter(default=dt.datetime.today())
-
     table = 'gomus_to_customer_mapping'
 
-    columns = [
-        ('gomus_id', 'INT'),
-        ('customer_id', 'INT')
-    ]
-
-    primary_key = 'customer_id'
-
-    foreign_keys = [
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
-    ]
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     def requires(self):
         return ExtractGomusToCustomerMapping(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys, today=self.today)
+            table=self.table,
+            today=self.today)
 
 
 class ExtractCustomerData(DataPreparationTask):
+    table = 'gomus_customer'
     today = luigi.parameter.DateParameter(
         default=dt.datetime.today())
     columns = luigi.parameter.ListParameter(description="Column names")
@@ -206,7 +177,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
                 x['customer_id'], alternative=x['gomus_id']
             ), axis=1)
 
-        df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)

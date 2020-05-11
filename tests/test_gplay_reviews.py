@@ -6,8 +6,8 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 from unittest.mock import patch
 
+from db_test import DatabaseTestCase
 from gplay.gplay_reviews import FetchGplayReviews
-from task_test import DatabaseTaskTest
 
 
 response_elem_1 = {
@@ -39,7 +39,7 @@ response_elem_2 = {
 }
 
 
-class TestFetchGplayReviews(DatabaseTaskTest):
+class TestFetchGplayReviews(DatabaseTestCase):
 
     @patch('gplay.gplay_reviews.FetchGplayReviews.get_language_codes',
            return_value=['en', 'de'])
