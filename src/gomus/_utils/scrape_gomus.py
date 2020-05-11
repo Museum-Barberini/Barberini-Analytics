@@ -9,10 +9,11 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
+from gomus.customers import GomusToCustomerMappingToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
-from gomus.customers import GomusToCustomerMappingToDB, hash_id
 
 logger = logging.getLogger('luigi-interface')
 

@@ -1,28 +1,34 @@
 #!/usr/bin/env python3
 import datetime as dt
 import luigi
-import mmh3
 import pandas as pd
-import numpy as np
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 
+from gomus._utils.cleanse_data import CleansePostalCodes
+from gomus._utils.extract_customers import ExtractCustomerData, hash_id
 from gomus._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDB(CsvToDb):
 
+    amount = luigi.parameter.Parameter(default='regular')
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     table = 'gomus_customer'
 
     primary_key = 'customer_id'
 
-    def requires(self):
+    def _requires(self):
         return ExtractCustomerData(
+            columns=[col[0] for col in self.columns],
+            today=self.today)
+
+    def requires(self):
+        return CleansePostalCodes(
+            amount=self.amount,
             columns=[col[0] for col in self.columns],
             today=self.today)
 
@@ -38,107 +44,6 @@ class GomusToCustomerMappingToDB(CsvToDb):
             columns=[col[0] for col in self.columns],
             table=self.table,
             today=self.today)
-
-
-class ExtractCustomerData(DataPreparationTask):
-    table = 'gomus_customer'
-    today = luigi.parameter.DateParameter(
-        default=dt.datetime.today())
-    columns = luigi.parameter.ListParameter(description="Column names")
-
-    def requires(self):
-        suffix = '_1day' if self.minimal_mode else '_7days'
-
-        return FetchGomusReport(report='customers',
-                                today=self.today,
-                                suffix=suffix)
-
-    def output(self):
-        return luigi.LocalTarget(
-            f'{self.output_dir}/gomus/customers.csv',
-            format=UTF8
-        )
-
-    def run(self):
-        with next(self.input()).open('r') as input_csv:
-            df = pd.read_csv(input_csv)
-
-        df['Gültige E-Mail'] = df['E-Mail'].apply(isinstance, args=(str,))
-
-        # Insert Hash of E-Mail into E-Mail field,
-        # or original ID if there is none
-        df['E-Mail'] = df.apply(
-            lambda x: hash_id(
-                x['E-Mail'], alternative=x['Nummer']
-            ), axis=1)
-
-        df = df.filter([
-            'E-Mail', 'PLZ',
-            'Newsletter', 'Anrede', 'Kategorie',
-            'Sprache', 'Land', 'Typ',
-            'Erstellt am', 'Jahreskarte', 'Gültige E-Mail'])
-
-        df.columns = self.columns
-
-        df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
-        df['newsletter'] = df['newsletter'].apply(self.parse_boolean)
-        df['gender'] = df['gender'].apply(self.parse_gender)
-        df['register_date'] = pd.to_datetime(
-            df['register_date'], format='%d.%m.%Y')
-        df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
-
-        self.customer_relation_exists = db_connector.exists(
-            '''SELECT * FROM information_schema.tables
-            WHERE table_name = 'gomus_customer' ''')
-
-        df['cleansed_postal_code'] = df.apply(
-            lambda x: self.query_cleansed_data(
-                x['customer_id'], True
-            ), axis=1)
-
-        df['cleansed_country'] = df.apply(
-            lambda x: self.query_cleansed_data(
-                x['customer_id'], False
-            ), axis=1)
-
-        # Drop duplicate occurences of customers with same mail,
-        # keeping the most recent one
-        df = df.drop_duplicates(subset=['customer_id'], keep='last')
-
-        with self.output().open('w') as output_csv:
-            df.to_csv(output_csv, index=False, header=True)
-
-    def parse_boolean(self, string):
-        return string == 'ja'
-
-    def parse_gender(self, string):
-        if string == 'Frau':
-            return 'w'
-        elif string == 'Herr':
-            return 'm'
-        return ''
-
-    def cut_decimal_digits(self, post_string):
-        if post_string is np.nan:
-            post_string = ''
-        post_string = str(post_string)
-        if len(post_string) >= 2:
-            return post_string[:-2] if post_string[-2:] == '.0' else \
-                post_string
-
-    def query_cleansed_data(self, customer_id, querying_postal):
-        postal = None
-        country = None
-
-        if self.customer_relation_exists:
-            postal, country = db_connector.execute((
-                f'''SELECT cleansed_postal_code, cleansed_country FROM gomus_customer
-                WHERE customer_id={customer_id}'''))[0]
-
-        if querying_postal:
-            return postal
-        else:
-            return country
 
 
 class ExtractGomusToCustomerMapping(DataPreparationTask):
@@ -181,11 +86,3 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
-
-
-# Return hash for e-mail value, or alternative (usually original gomus_id
-# or default value 0 for the dummy customer) if the e-mail is invalid
-def hash_id(email, alternative=0, seed=666):
-    if not isinstance(email, str):
-        return int(float(alternative))
-    return mmh3.hash(email, seed, signed=True)

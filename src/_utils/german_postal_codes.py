@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import luigi
 import pandas as pd
 from luigi.format import UTF8

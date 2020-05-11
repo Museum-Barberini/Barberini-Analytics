@@ -1,12 +1,13 @@
+#!/usr/bin/env python3
 import datetime as dt
 import luigi
 import pandas as pd
 import re
 from luigi.format import UTF8
 
-from gomus.customers import CustomersToDB
 from data_preparation_task import DataPreparationTask
 from db_connector import db_connector
+from gomus._utils.extract_customers import ExtractCustomerData
 from _utils.german_postal_codes import GermanPostalCodes
 
 
@@ -48,23 +49,29 @@ COUNTRY_TO_DATA = {
 
 class CleansePostalCodes(DataPreparationTask):
 
-    # runs about 60 mins - 2 hours should suffice
+    # runs about 60-80 mins for all the data - 2 hours should suffice
     worker_timeout = 7200
 
+    # whether task should be run regularly (7 days) or on all postal codes
+    amount = luigi.parameter.Parameter(default='regular')
+    columns = luigi.parameter.ListParameter(description="Column names")
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     skip_count = 0
     none_count = 0
     other_country_count = 0
     cleansed_count = 0
     last_percentage = 0
-    german_postal_df = None
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-]))'
 
     def requires(self):
         yield GermanPostalCodes()
-        yield CustomersToDB(today=self.today)
+        yield ExtractCustomerData(
+            colums=self.columns,
+            today=self.today
+        )
 
     def output(self):
         return luigi.LocalTarget('output/gomus/cleansed_customers.csv',
@@ -113,19 +120,19 @@ class CleansePostalCodes(DataPreparationTask):
 
         query_limit = 'LIMIT 10' if self.minimal_mode else ''
 
-        customer_data = db_connector.query(
-            query=f'SELECT * FROM gomus_customer {query_limit}')
+        if self.amount == 'all':
 
-        columns = db_connector.query(
-            query='''
-                SELECT column_name
-                FROM information_schema.columns
-                WHERE table_name=\'gomus_customer\'
-                ORDER BY ordinal_position asc
-            ''')
+            customer_data = db_connector.query(
+                query=f'SELECT * FROM gomus_customer {query_limit}')
 
-        customer_df = pd.DataFrame(customer_data,
-                                   columns=[col[0] for col in columns])
+            customer_df = pd.DataFrame(customer_data,
+                                       columns=self.columns)
+
+        else:
+
+            with self.input()[1].open('r') as customer_csv:
+                customer_df = pd.read_csv(customer_csv)
+
         return customer_df
 
     def match_postal_code(self, postal_code, country, customer_id):
@@ -160,13 +167,6 @@ class CleansePostalCodes(DataPreparationTask):
         if country and not country_data:
             # we have countries that we can't check yet - let us count them
             self.other_country_count += 1
-
-        db_connector.execute(
-            (f'''
-                UPDATE gomus_customer SET cleansed_postal_code
-                =\'{result_postal}\',cleansed_country=\'{result_country}\'
-                WHERE customer_id={customer_id}
-            '''))
 
         self.cleansed_count += 1
         percentage = int(round(self.cleansed_count/self.total_count*100))

@@ -56,7 +56,8 @@ class CsvToDb(CopyToTable):
                 return self.db_connector.query(f'''
                     SELECT column_name, data_type
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE table_name = '{self.table}';
+                    WHERE table_name = '{self.table}'
+                    ORDER BY ordinal_position asc;
                 ''')
             self._columns = fetch_columns()
             if not self._columns:
