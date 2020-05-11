@@ -3,6 +3,7 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
+from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
@@ -11,12 +12,6 @@ import facebook
 from task_test import DatabaseTaskTest
 
 FB_TEST_DATA = 'tests/test_data/facebook'
-
-
-class MockDatetime(dt.datetime):
-    @classmethod
-    def now(cls):
-        return cls(2020, 1, 1, 0, 0, 5)
 
 
 class TestFacebookPost(DatabaseTaskTest):
@@ -147,16 +142,10 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        tmp_datetime = dt.datetime
-
-        # Ensure dt.datetime is reset in any case
-        try:
-            dt.datetime = MockDatetime
-            facebook.FetchFbPostPerformance(
-                timespan=dt.timedelta(days=100000)).run()
-
-        finally:
-            dt.datetime = tmp_datetime
+        with freeze_time('2020-01-01 00:00:05'):
+            self.task = facebook.FetchFbPostPerformance(
+                timespan=dt.timedelta(days=100000))
+            self.task.run()
 
         with open(f'{FB_TEST_DATA}/post_insights_expected.csv',
                   'r',
@@ -195,18 +184,15 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        tmp_datetime = dt.datetime
-
-        try:
+        with freeze_time('2020-01-01 00:00:05'):
             # The current edge case test data should cause the interpretation
             # to fail at a very specific point (processing "react_anger")
-            dt.datetime = MockDatetime
             with self.assertRaises(ValueError) as cm:
-                facebook.FetchFbPostPerformance(
-                    timespan=dt.timedelta(days=100000)).run()
-        finally:
-            dt.datetime = tmp_datetime
+                self.task = facebook.FetchFbPostPerformance(
+                    timespan=dt.timedelta(days=100000))
+                self.task.run()
 
         error = cm.exception
-        self.assertEqual(str(error),
-                         'invalid literal for int() with base 10: \'4.4\'')
+        self.assertEqual(
+            str(error),
+            "invalid literal for int() with base 10: '4.4'")
