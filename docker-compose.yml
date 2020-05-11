@@ -20,6 +20,7 @@ services:
             - PYTHONUNBUFFERED=1
             - PYTHONPATH=./src/:./src/_utils/
             - CONTAINER_USER=${USER}  # used to determine name of gplay_api container
+            - OUTPUT_DIR=output  # default output folder
         env_file:
             - /etc/barberini-analytics/secrets/keys.env
             - /etc/barberini-analytics/secrets/database.env

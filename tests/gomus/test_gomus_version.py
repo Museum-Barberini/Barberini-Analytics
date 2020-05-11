@@ -6,7 +6,7 @@ import requests
 from task_test import DatabaseTaskTest
 
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
-EXPECTED_VERSION_TAG = 'v4.1.3 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.3.2 – Premium Edition'
 
 
 class TestGomusVersion(DatabaseTaskTest):

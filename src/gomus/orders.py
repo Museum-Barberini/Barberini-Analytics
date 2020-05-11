@@ -62,7 +62,10 @@ class ExtractOrderData(DataPreparationTask):
                                 today=self.today)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/orders.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/orders.csv',
+            format=UTF8
+        )
 
     def run(self):
         with next(self.input()).open('r') as input_csv:
