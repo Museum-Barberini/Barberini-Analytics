@@ -14,7 +14,6 @@ from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
 # from gomus.events import EventsToDB
 # from gomus.order_contains import OrderContainsToDB
 # from gomus.orders import OrdersToDB
-from gomus._utils.cleanse_data import CleansePostalCodes
 
 
 class FillDB(luigi.WrapperTask):
@@ -46,9 +45,6 @@ class FillDBDaily(luigi.WrapperTask):
         # yield GomusToCustomerMappingToDB()
         # yield OrderContainsToDB()
         # yield OrdersToDB()
-
-        # Data analysis - here until further analyses are added
-        yield CleansePostalCodes()
 
 
 class FillDBHourly(luigi.WrapperTask):

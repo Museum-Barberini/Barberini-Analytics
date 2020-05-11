@@ -87,6 +87,7 @@ class ExtractCustomerData(DataPreparationTask):
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
 
+
 # Return hash for e-mail value, or alternative (usually original gomus_id
 # or default value 0 for the dummy customer) if the e-mail is invalid
 def hash_id(email, alternative=0, seed=666):
