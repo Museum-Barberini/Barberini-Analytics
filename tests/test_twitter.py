@@ -1,14 +1,16 @@
-from unittest.mock import patch
 import datetime as dt
 import pandas as pd
+from unittest.mock import patch
 
+from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
-class TextFetchTwitter(DatabaseTaskTest):
+class TextFetchTwitter(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
@@ -22,21 +24,9 @@ class TextFetchTwitter(DatabaseTaskTest):
             'parent_tweet_id',
             'timestamp']
 
-        class MockDate(dt.date):
-            @classmethod
-            def today(cls):
-                # on this day our team's account had sent a related tweet
-                return cls(2020, 2, 6)
-
-        tmp_date = dt.date
-
-        # Ensure dt.date is reset in any case
-        try:
-            dt.date = MockDate
+        with freeze_time('2020-02-06'):
+            # on this day our team's account had sent a related tweet
             FetchTwitter(timespan=dt.timedelta(days=1)).run()
-
-        finally:
-            dt.date = tmp_date
 
         with output_target.open('r') as output_file:
             output_df = pd.read_csv(output_file)
@@ -47,8 +37,17 @@ class TextFetchTwitter(DatabaseTaskTest):
         self.assertTrue(len(output_df.index) >= 1)
         # guaranteed to be true as long as we don't delete our tweet
 
+        # check if timezone is correct on known example
+        got_the_right_value = False
+        for timestamp in output_df['timestamp']:
+            if "2020-02-06 16:05" in timestamp:  # the post time shown online
+                got_the_right_value = True
+        self.assertTrue(
+            got_the_right_value,
+            msg="timestamp of our tweet not found, wrong timezone?")
 
-class TestExtractTweets(DatabaseTaskTest):
+
+class TestExtractTweets(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweets, 'museum_user_id')
@@ -113,7 +112,7 @@ class TestExtractTweets(DatabaseTaskTest):
         self.assertEqual(output, extracted_tweets)
 
 
-class TestExtractTweetPerformance(DatabaseTaskTest):
+class TestExtractTweetPerformance(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')
@@ -146,7 +145,7 @@ class TestExtractTweetPerformance(DatabaseTaskTest):
             output.split('\n')[0],
             extracted_performance.split('\n')[0])
         for i in range(1, 3):
-            self.assertEqual(   # cutting away the timestamp
+            self.assertEqual(  # cutting away the timestamp
                 output.split('\n')[i].split(';')[:-1],
                 extracted_performance.split('\n')[i].split(';')[:-1])
 

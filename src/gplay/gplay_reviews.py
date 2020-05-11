@@ -16,18 +16,6 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
 
     table = 'gplay_review'
 
-    columns = [
-        ('playstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('thumbs_up', 'INT'),
-        ('title', 'TEXT'),
-        ('post_date', 'TIMESTAMP')
-    ]
-
-    primary_key = 'playstore_review_id'
-
     def requires(self):
         return FetchGplayReviews()
 
@@ -43,7 +31,9 @@ class FetchGplayReviews(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gplay_reviews.csv', format=luigi.format.UTF8)
+            f'{self.output_dir}/gplay_reviews.csv',
+            format=luigi.format.UTF8
+        )
 
     def run(self):
 
@@ -60,7 +50,7 @@ class FetchGplayReviews(DataPreparationTask):
         # Different languages have different reviews. Iterate over
         # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             random_num = random.randint(0, len(language_codes) - 2)
             language_codes = language_codes[random_num:random_num + 2]
 

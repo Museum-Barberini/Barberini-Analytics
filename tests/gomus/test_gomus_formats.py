@@ -1,17 +1,17 @@
 import unittest
-from unittest.mock import patch
 import datetime as dt
 import os
 import pandas as pd
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 from gomus._utils.fetch_report import FetchGomusReport, FetchEventReservations
-from task_test import DatabaseTaskTest
 
 
-class GomusFormatTest(DatabaseTaskTest):
+class GomusFormatTest(DatabaseTestCase):
     def __init__(self, report, expected_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report = report
@@ -177,7 +177,7 @@ class TestEntriesSheet0Format(GomusFormatTest):
     def test_entries_sheet0_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report(suffix='_1day', sheet=[0])
-        self.check_format(skiprows=5, skipfooter=1)
+        self.check_format(skiprows=7, skipfooter=1)
 
 
 class TestEntriesSheet1Format(GomusFormatTest):

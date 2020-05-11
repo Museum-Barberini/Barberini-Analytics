@@ -1,5 +1,4 @@
 import sys
-import unittest
 from unittest.mock import patch
 
 import mmh3
@@ -7,7 +6,7 @@ import pandas as pd
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
-from db_connector import DbConnector
+from db_test import DatabaseTestCase
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchGomusHTML
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
@@ -15,15 +14,15 @@ from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
 from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
-class TestEnhanceBookingsWithScraper(unittest.TestCase):
-    '''
+class TestEnhanceBookingsWithScraper(DatabaseTestCase):
+    """
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
     It then compares the expected hash (also in the file above)
     with the hash of what our scraper got.
 
     To easily add test cases, use create_test_data_for_bookings.py.
-    '''
+    """
 
     hash_seed = 666
 
@@ -32,12 +31,9 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
-    def test_scrape_bookings(self,
-                             output_mock,
-                             all_htmls_mock,
-                             input_mock,
-                             foreign_key_mock,
-                             new_mail_mock):
+    def test_scrape_bookings(
+            self, output_mock, all_htmls_mock, input_mock,
+            ensure_foreign_key_mock, new_mail_mock):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')
@@ -77,14 +73,19 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         # Also test that fetch_updated_mail would be called for non-empty
         # invalid_values (actual functionality tested elsewhere)
         invalid_values = pd.DataFrame([0], columns=['booking_id'])
-        foreign_key_mock.side_effect = lambda x: (x, invalid_values)
+
+        def mocked_ensure_foreign_key(df, invalid_handler):
+            invalid_handler(invalid_values, None, None)
+            return df
+        ensure_foreign_key_mock.side_effect = mocked_ensure_foreign_key
 
         new_mail_mock.return_value = iter([
             FetchGomusHTML(url='test1'),
             FetchGomusHTML(url='test2')])
 
         # -- execute code under test --
-        run = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS).run()
+        self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+        run = self.task.run()
         for yielded_task in run:
             self.assertIsInstance(yielded_task, FetchGomusHTML)
 
@@ -133,50 +134,31 @@ class TestEnhanceBookingsWithScraper(unittest.TestCase):
         fake_customer_id = 121212
         real_customer_id = 1726152420
 
-        try:
-            # Set up tables. This is unnecessary when the test DB's
-            # schema automatically equals that of the actual DB
-            DbConnector.execute(query='CREATE TABLE gomus_customer '
-                                      '(customer_id INTEGER)')
-            DbConnector.execute(query='CREATE TABLE gomus_to_customer_mapping '
-                                      '(gomus_id INTEGER, '
-                                      'customer_id INTEGER)')
-            DbConnector.execute(query='ALTER TABLE gomus_customer '
-                                      'ADD CONSTRAINT customer_id_primkey '
-                                      'PRIMARY KEY (customer_id)')
-            DbConnector.execute(query='ALTER TABLE gomus_to_customer_mapping '
-                                      'ADD CONSTRAINT customer_id_fkey '
-                                      'FOREIGN KEY (customer_id) REFERENCES '
-                                      'gomus_customer (customer_id) '
-                                      'ON UPDATE CASCADE')
+        # Insert test values
+        self.db_connector.execute(
+            f'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
+            f'''INSERT INTO gomus_to_customer_mapping VALUES (
+                {gomus_id}, {fake_customer_id})
+            ''')
 
-            # Insert test values
-            DbConnector.execute(query='INSERT INTO gomus_customer '
-                                      f'VALUES ({fake_customer_id})')
-            DbConnector.execute(query='INSERT INTO gomus_to_customer_mapping '
-                                      f'VALUES ({gomus_id}, '
-                                      f'{fake_customer_id})')
+        # Run fetch_updated_mail
+        self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+        fetch_mail = self.task.fetch_updated_mail(booking_id)
+        for html_task in fetch_mail:
+            html_task.run()
 
-            # Run fetch_updated_mail
-            fetch_mail = EnhanceBookingsWithScraper \
-                .fetch_updated_mail(booking_id)
-            for html_task in fetch_mail:
-                html_task.run()
-
-            # Check DB values
-            new_id = DbConnector.query(query='SELECT customer_id '
-                                             'FROM gomus_to_customer_mapping '
-                                             f'WHERE gomus_id = {gomus_id}',
-                                       only_first=True)
-            self.assertEqual(new_id[0], real_customer_id)
-
-        finally:
-            # Clear DB again
-            DbConnector.execute(query='DROP TABLE gomus_to_customer_mapping')
-            DbConnector.execute(query='DROP TABLE gomus_customer')
+        # Check DB values
+        new_id = self.db_connector.query(
+            f'''
+                SELECT customer_id
+                FROM gomus_to_customer_mapping
+                WHERE gomus_id = {gomus_id}
+            ''',
+            only_first=True)
+        self.assertEqual(new_id[0], real_customer_id)
 
 
-class TestScrapeOrderContains(unittest.TestCase):
+class TestScrapeOrderContains(DatabaseTestCase):
 
     hash_seed = 666
 

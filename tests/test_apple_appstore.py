@@ -1,11 +1,10 @@
-import unittest
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import requests
 
 from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDB
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
@@ -22,7 +21,7 @@ XML_FRAME = '''<?xml version="1.0" encoding="utf-8"?>
 XML_EMPTY_FRAME = XML_FRAME % ''
 
 
-class TestFetchAppleReviews(unittest.TestCase):
+class TestFetchAppleReviews(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -109,12 +108,22 @@ class TestFetchAppleReviews(unittest.TestCase):
         for arg in args:
             self.assertRegex(arg, r'^\w{2}$')
 
+    @patch.object(FetchAppstoreReviews, 'fetch_page')
+    def test_http_error(self, fetch_page_mock):
+        mock_res = MagicMock(status_code=503)
+        fetch_page_mock.side_effect = \
+            requests.exceptions.HTTPError(response=mock_res)
+        try:
+            self.task.fetch_for_country('made_up_country')
+        except requests.exceptions.HTTPError:
+            self.fail("503 HTTP Error should be caught")
+
     @patch.object(FetchAppstoreReviews, 'fetch_for_country')
     def test_all_countries_some_countries_dont_have_data(self, mock):
 
         def mock_return(country_code):
             if country_code == 'BB':
-                raise ValueError()
+                return pd.DataFrame([])
             return pd.DataFrame(
                 {'country_code': [country_code],
                  'appstore_review_id': [country_code]})
@@ -130,7 +139,7 @@ class TestFetchAppleReviews(unittest.TestCase):
 
         def mock_return(country_code):
             if country_code == 'BB':  # simulate no available data
-                raise ValueError()
+                return pd.DataFrame([])
             return pd.DataFrame(
                 {'appstore_review_id': ['xyz'],
                  'country_code': [country_code]})
@@ -185,7 +194,7 @@ class TestFetchAppleReviews(unittest.TestCase):
         )
 
 
-class TestAppstoreReviewsToDB(DatabaseTaskTest):
+class TestAppstoreReviewsToDB(DatabaseTestCase):
 
     @patch.object(FetchAppstoreReviews, 'get_country_codes')
     @patch('apple_appstore.requests.get')
@@ -247,7 +256,8 @@ class TestAppstoreReviewsToDB(DatabaseTaskTest):
         self.task = AppstoreReviewsToDB()
         self.run_task(self.task)
 
-        result = self.db.request('SELECT title, text FROM appstore_review')
+        result = self.db_connector.query(
+            'SELECT title, text FROM appstore_review')
         self.assertListEqual(
             [(umlaut_title, umlaut_text)],
             result,

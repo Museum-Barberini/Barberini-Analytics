@@ -1,24 +1,98 @@
-import datetime as dt
-import tempfile
-import time
-
 import luigi
-import mmh3
+from luigi.mock import MockTarget
 
 from csv_to_db import CsvToDb
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
-# Initialize test and write it to a csv file
-expected_data = [(1, 2, "abc", "xy,\"z"), (2, 10, "678", ",,;abc")]
-expected_data_csv = "id,A,B,C\n1,2,abc,\"xy,\"\"z\"\n2,10,\"678\",\",,;abc\"\n"
-tmp_csv_file = tempfile.NamedTemporaryFile()
-with open(tmp_csv_file.name, 'w') as fp:
-    fp.write(expected_data_csv)
+
+EXPECTED_DATA = [(1, 2, 'abc', 'xy,"z'), (2, 10, '678', ',,;abc')]
+EXPECTED_CSV = '''\
+id,A,B,C
+1,2,abc,"xy,""z"
+2,10,"678",",,;abc"
+'''
+
+
+class TestCsvToDb(DatabaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.table_name = 'tmp_csv_table'
+        self.dummy = DummyWriteCsvToDb(self.table_name)
+
+        # Set up database
+        self.db_connector.execute(
+            f'''CREATE TABLE {self.table_name} (
+                id int,
+                A int,
+                B text,
+                C text
+            )''',
+            f'''
+                ALTER TABLE {self.table_name}
+                ADD CONSTRAINT {self.table_name}_primkey PRIMARY KEY (id);
+            ''')
+
+    def test_adding_data_to_database_existing_table(self):
+
+        # Set up database samples
+        self.db_connector.execute(f'''
+                INSERT INTO {self.table_name}
+                VALUES (0, 1, 'a', 'b');
+            ''')
+
+        # Execute code under test
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name};')
+        self.assertEqual(actual_data, [(0, 1, 'a', 'b'), *EXPECTED_DATA])
+
+    def test_no_duplicates_are_inserted(self):
+
+        # Set up database samples
+        self.db_connector.execute(f'''
+                INSERT INTO {self.table_name}
+                VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,"z');
+            ''')
+
+        # Execute code under test
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}')
+        self.assertEqual(actual_data, EXPECTED_DATA)
+
+    def test_columns(self):
+
+        self.run_task(self.dummy)
+
+        expected_columns = [
+            ('id', 'integer'),
+            ('a', 'integer'),
+            ('b', 'text'),
+            ('c', 'text')
+        ]
+        actual_columns = list(self.dummy.columns)
+        self.assertListEqual(expected_columns, actual_columns)
 
 
 class DummyFileWrapper(luigi.Task):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mock_target = MockTarget(
+            f'DummyFileWrapperMock{hash(self)}',
+            format=luigi.format.UTF8)
+
+    def run(self):
+        with self.mock_target.open('w') as input_file:
+            input_file.write(EXPECTED_CSV)
+
     def output(self):
-        return luigi.LocalTarget(tmp_csv_file.name)
+        return self.mock_target
 
 
 class DummyWriteCsvToDb(CsvToDb):
@@ -27,98 +101,7 @@ class DummyWriteCsvToDb(CsvToDb):
         super().__init__(*args, **kwargs)
         self.__class__.table = table_name
 
-        # By default luigi assigns the same task_id to the objects of
-        # this class.
-        # That leads to errors when updating the marker table (table_updates).
-        self.task_id = f"{self.task_id}_{str(dt.datetime.now())}"
-
-    columns = [
-        ("id", "INT"),
-        ("A", "INT"),
-        ("B", "TEXT"),
-        ("C", "TEXT")
-    ]
-    primary_key = "id"
-
     table = None  # value set in __init__
 
     def requires(self):
         return DummyFileWrapper()
-
-
-def get_temp_table():
-    return f"tmp_{time.time()}".replace(".", "")
-
-
-# -------- TESTS START HERE -------
-
-class TestCsvToDb(DatabaseTaskTest):
-
-    def setUp(self):
-
-        super().setUp()
-        self.table_name = get_temp_table()
-
-        # Insert manually calculated dummy_date because otherwise,
-        # luigi may not create a new DummyWriteCsvToDb Task
-        #
-        # This should be kept in mind in case the behaviour is seen elsewhere
-        # as well
-        self.dummy = DummyWriteCsvToDb(
-            self.table_name,
-            dummy_date=mmh3.hash(self.table_name, 666))
-
-    def tearDown(self):
-
-        self.db.connection.set_isolation_level(0)
-        self.db.commit(f"DROP TABLE {self.table_name};")
-        # Make absolutely sure that each test gets fresh params
-        self.table_name = None
-        self.dummy = None
-        super().tearDown()
-
-    def test_adding_data_to_database_new_table(self):
-
-        self.dummy.run()
-        actual_data = self.db.request(f"select * from {self.table_name};")
-        self.assertEqual(actual_data, expected_data)
-
-    def test_adding_data_to_database_existing_table(self):
-
-        # ----- Set up database -----
-        self.db.commit(
-            f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
-            f"""
-                ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_primkey\
-                    PRIMARY KEY (id);
-            """,
-            f"INSERT INTO {self.table_name} VALUES (0, 1, 'a', 'b');")
-
-        # ----- Execute code under test ----
-        self.dummy.run()
-
-        # ----- Inspect result ------
-        actual_data = self.db.request(f"select * from {self.table_name};")
-        self.assertEqual(actual_data, [(0, 1, "a", "b"), *expected_data])
-
-    def test_no_duplicates_are_inserted(self):
-
-        # ----- Set up database -----
-        self.db.commit(
-            f"CREATE TABLE {self.table_name} (id int, A int, B text, C text);",
-            f"""
-                ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_primkey\
-                    PRIMARY KEY (id);
-            """,
-            f"INSERT INTO {self.table_name} VALUES (1, 2, "
-            f"'i-am-a-deprecated-value', 'xy,\"z');"
-        )
-
-        # ----- Execute code under test ----
-        self.dummy.run()
-
-        # ----- Inspect result ------
-        actual_data = self.db.request(f"select * from {self.table_name};")
-        self.assertEqual(actual_data, expected_data)

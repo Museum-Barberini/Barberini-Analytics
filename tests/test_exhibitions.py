@@ -1,14 +1,14 @@
 import json
-import unittest
 from unittest.mock import MagicMock, patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 import exhibitions
 
 
-class TestExhibitions(unittest.TestCase):
+class TestExhibitions(DatabaseTestCase):
 
     @patch('exhibitions.requests.get')
     @patch.object(exhibitions.FetchExhibitions, 'output')

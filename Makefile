@@ -5,7 +5,7 @@
 # ------ Internal variables ------
 
 SHELL := /bin/bash
-SSL_CERT_DIR := /var/db-data
+SSL_CERT_DIR := /var/barberini-analytics/db-data
 
 
 # ------ For use outside of containers ------
@@ -13,7 +13,7 @@ SSL_CERT_DIR := /var/db-data
 # --- To manage docker ---
 
 # Start the container luigi. Also start the container db if it is not already running.
-# If the container db is being started, start it with ssl encryption if the file '/var/db-data/server.key'.
+# If the container db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
 startup:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
@@ -33,7 +33,7 @@ shutdown-db:
 	docker-compose rm -sf db
 
 connect:
-	docker-compose -p ${USER} exec luigi bash
+	docker-compose -p ${USER} exec luigi ${SHELL}
 
 # runs a command in the luigi container
 # example: sudo make docker-do do='make luigi'
@@ -44,6 +44,13 @@ docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
 
 
+apply-pending-migrations:
+	${SHELL} -c '\
+		set -a \
+		&& . /etc/barberini-analytics/secrets/database.env \
+		&& POSTGRES_HOST=localhost \
+		&& ./scripts/migrations/migrate.sh /var/barberini-analytics/db-data/applied_migrations.txt'
+
 # ------ For use inside the Luigi container ------
 
 # --- Control luigi ---
@@ -51,7 +58,7 @@ docker-clean-cache:
 luigi-scheduler:
 	luigid --background
 	# Waiting for scheduler ...
-	bash -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
+	${SHELL} -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
 luigi-restart-scheduler:
 	killall luigid
@@ -60,36 +67,40 @@ luigi-restart-scheduler:
 luigi:
 	./scripts/running/fill_db.sh
 
+OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
 	luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
-	rm -rf output
+	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	MINIMAL=True && make luigi
-	# TODO: Do we need && here?
+	MINIMAL=True make luigi
 
+# TODO: Custom output folder per test and minimal?
 output-folder:
-	mkdir -p output
-
+	mkdir -p $(OUTPUT_DIR)
 # --- Testing ---
 
-test: luigi-clean output-folder
-	# globstar needed to recursively find all .py-files via ** 
-	POSTGRES_DB=barberini_test \
+# optional argument: test
+# example: make test
+# example: make test test=tests/test_twitter.py
+test ?= tests/**/test*.py
+test: luigi-clean
+	mkdir -p output
+	# globstar needed to recursively find all .py-files via **
+	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m unittest tests/**/test*.py -v \
+		&& python3 -m db_test $(test) -v \
 		&& make luigi-clean
 
 test-full:
 	FULL_TEST=True make test
 
 coverage: luigi-clean
-	# globstar needed to recursively find all .py-files via ** 
-	POSTGRES_DB=barberini_test \
+	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ python3 -m coverage run --source ./src -m unittest -v --failfast --catch tests/**/test*.py -v
+		&& python3 -m coverage run --source ./src -m db_test -v --failfast --catch tests/**/test*.py -v
 	# print coverage results to screen. Parsed by gitlab CI regex to determine MR code coverage.
 	python3 -m coverage report
 	# generate html report. Is stored as artefact in gitlab CI job (stage: coverage)
@@ -109,7 +120,7 @@ db-do:
 	docker exec -it db psql -U postgres -a "$(db)" -c "$(do)"
 
 db-backup:
-	docker exec db pg_dump -U postgres barberini > /var/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 # Restore the database from a dump/backup
 db-restore:

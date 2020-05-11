@@ -1,15 +1,15 @@
-import unittest
 import warnings
 from unittest.mock import MagicMock
 import json
-import pandas as pd
 
 import googleapiclient.discovery
+import pandas as pd
 
+from db_test import DatabaseTestCase
 from google_maps import FetchGoogleMapsReviews
 
 
-class TestFetchGoogleMapsReviews(unittest.TestCase):
+class TestFetchGoogleMapsReviews(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()

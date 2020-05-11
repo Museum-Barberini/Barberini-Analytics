@@ -6,16 +6,16 @@ import requests
 import time
 from luigi.format import UTF8
 
-from db_connector import DbConnector
+from data_preparation_task import DataPreparationTask
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
 
-class FetchGomusHTML(luigi.Task):
+class FetchGomusHTML(DataPreparationTask):
     url = luigi.parameter.Parameter(description="The URL to fetch")
 
     def output(self):
-        name = 'output/gomus/html/' + \
+        name = f'{self.output_dir}/gomus/html/' + \
             self.url. \
             replace('http://', ''). \
             replace('https://', ''). \
@@ -39,7 +39,7 @@ class FetchGomusHTML(luigi.Task):
             html_out.write(response.text)
 
 
-class FetchBookingsHTML(luigi.Task):
+class FetchBookingsHTML(DataPreparationTask):
     timespan = luigi.parameter.Parameter(default='_nextYear')
     base_url = luigi.parameter.Parameter(
         description="Base URL to append bookings IDs to")
@@ -50,29 +50,30 @@ class FetchBookingsHTML(luigi.Task):
         self.output_list = []
 
     def requires(self):
-        return ExtractGomusBookings(timespan=self.timespan,
-                                    columns=self.columns)
+        return ExtractGomusBookings(
+            timespan=self.timespan, columns=self.columns)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings_htmls.txt')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/bookings_htmls.txt')
 
     def run(self):
         with self.input().open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if os.environ['MINIMAL'] == 'True':
+            if self.minimal_mode:
                 bookings = bookings.head(5)
 
         db_booking_rows = []
 
-        bookings_table_exists = DbConnector.exists('''
+        bookings_table_exists = self.db_connector.exists('''
             SELECT * FROM information_schema.tables
             WHERE table_name='gomus_booking'
         ''')
 
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
         if bookings_table_exists:
-            db_booking_rows = DbConnector.query(f'''
+            db_booking_rows = self.db_connector.query(f'''
                 SELECT booking_id FROM gomus_booking
                 WHERE start_datetime < '{today_time}'
             ''')
@@ -96,7 +97,7 @@ class FetchBookingsHTML(luigi.Task):
             html_files.write('\n'.join(self.output_list))
 
 
-class FetchOrdersHTML(luigi.Task):
+class FetchOrdersHTML(DataPreparationTask):
     base_url = luigi.parameter.Parameter(
         description="Base URL to append order IDs to")
 
@@ -109,31 +110,29 @@ class FetchOrdersHTML(luigi.Task):
         return OrdersToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/orders_htmls.txt')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/orders_htmls.txt')
 
     def get_order_ids(self):
 
         order_ids = []
 
-        query_limit = 'LIMIT 10' if os.environ['MINIMAL'] == 'True' else ''
+        query_limit = 'LIMIT 10' if self.minimal_mode else ''
 
-        order_contains_table_exists = DbConnector.exists(
-            'SELECT * FROM information_schema.tables '
-            'WHERE table_name=\'gomus_order_contains\''
-        )
-        if order_contains_table_exists:
-            order_ids = DbConnector.query(f'''
+        order_contains_table_exists = self.db_connector.exists('''
+            SELECT * FROM information_schema.tables
+            WHERE table_name='gomus_order_contains'
+        ''')
+        order_ids = self.db_connector.query(
+            f'''
                 SELECT order_id FROM gomus_order
                 WHERE order_id NOT IN (
                     SELECT order_id FROM gomus_order_contains
                 )
                 {query_limit}
-            ''')
-
-        else:
-            order_ids = DbConnector.query(
-                f'SELECT order_id FROM gomus_order {query_limit}'
-            )
+            '''
+            if order_contains_table_exists else
+            f'SELECT order_id FROM gomus_order {query_limit}')
 
         return order_ids
 

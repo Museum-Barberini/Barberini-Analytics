@@ -1,12 +1,12 @@
 import json
 import pandas as pd
 import requests
-import unittest
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from unittest.mock import patch
 
+from db_test import DatabaseTestCase
 from gplay.gplay_reviews import FetchGplayReviews
 
 
@@ -39,7 +39,7 @@ response_elem_2 = {
 }
 
 
-class TestFetchGplayReviews(unittest.TestCase):
+class TestFetchGplayReviews(DatabaseTestCase):
 
     @patch('gplay.gplay_reviews.FetchGplayReviews.get_language_codes',
            return_value=['en', 'de'])

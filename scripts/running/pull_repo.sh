@@ -4,5 +4,4 @@ set -e
 cd "$(dirname "$0")"
 git pull
 
-source /etc/secrets/database.env
-../migrations/migrate.sh
+make apply-pending-migrations

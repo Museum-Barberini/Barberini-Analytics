@@ -1,18 +1,19 @@
 import unittest
-from unittest.mock import patch
 import datetime as dt
 import os
 import pandas as pd
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus._utils.edit_report import EditGomusReport
 from gomus._utils.fetch_report_helper import REPORT_IDS
 
 
-class TestGomusEditReport(unittest.TestCase):
+class TestGomusEditReport(DatabaseTestCase):
     @patch.object(FetchGomusReport, 'output')
     @unittest.skipUnless(
         os.getenv('FULL_TEST') == 'True', 'long running test')
