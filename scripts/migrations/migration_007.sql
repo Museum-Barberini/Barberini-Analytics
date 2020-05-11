@@ -2,19 +2,41 @@
 
 BEGIN;
 
+    -- 0. Drop old views
+    DROP VIEW post;
+    DROP VIEW app_review;
+
     -- 1. Add app_id column to app store tables
-    ALTER TABLE appstore_review
-        ADD COLUMN app_id TEXT;
-    ALTER TABLE appstore_review
-        DROP CONSTRAINT appstore_review_primkey;
+    -- Recreate tables because they are not optimized anyway and psql does not
+    -- allow to insert a column at a different position than the end
+    DROP TABLE appstore_review;
+    CREATE TABLE appstore_review (
+        app_id text,
+        appstore_review_id text NOT NULL,
+        text text,
+        rating integer,
+        app_version text,
+        vote_count integer,
+        vote_sum integer,
+        title text,
+        post_date timestamp,
+        country_code text
+    );
     ALTER TABLE appstore_review
         ADD CONSTRAINT appstore_review_primkey
         PRIMARY KEY (app_id, appstore_review_id);
 
-    ALTER TABLE gplay_review
-        ADD COLUMN app_id TEXT;
-    ALTER TABLE gplay_review
-        DROP CONSTRAINT gplay_review_primkey;
+    DROP TABLE gplay_review;
+    CREATE TABLE public.gplay_review (
+        app_id text,
+        playstore_review_id text NOT NULL,
+        text text,
+        rating integer,
+        app_version text,
+        thumbs_up integer,
+        title text,
+        post_date timestamp
+    );
     ALTER TABLE gplay_review
         ADD CONSTRAINT gplay_review_primkey
         PRIMARY KEY (app_id, playstore_review_id);
@@ -44,11 +66,8 @@ BEGIN;
             'https://twitter.com/user/status/' || tweet_id
         ) STORED;
 
-    DROP VIEW post;
-    DROP VIEW app_review;
-
     -- TODO: It is not nice to hard-code the musem data here.
-    CREATE VIEW app_review AS
+    /*CREATE VIEW app_review AS
     (
         SELECT
             'Apple Appstore' AS source,
@@ -120,6 +139,6 @@ BEGIN;
                 GROUP BY tp2.tweet_id, tp2.timestamp
                 HAVING MAX(tp2.timestamp) = tp1.timestamp)
         ) AS performance
-    )
+    )*/
 
 COMMIT;

@@ -84,9 +84,9 @@ class FetchFbPosts(DataPreparationTask):
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
-            df['fb_page_id'] = page_id
             df = df.filter(['created_time', 'message', 'id'])
-            df.columns = ['post_date', 'text', 'page_id', 'fb_post_id']
+            df['page_id'] = page_id
+            df.columns = ['post_date', 'text', 'fb_post_id', 'page_id']
             df.to_csv(output_file, index=False, header=True)
 
 
