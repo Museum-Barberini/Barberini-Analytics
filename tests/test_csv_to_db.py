@@ -33,9 +33,6 @@ class TestCsvToDb(DatabaseTestCase):
                 ALTER TABLE {self.table_name}
                 ADD CONSTRAINT {self.table_name}_primkey PRIMARY KEY (id);
             ''')
-        self.addCleanup(
-            self.db_connector.execute,
-            f'DROP TABLE {self.table_name}')
 
     def test_adding_data_to_database_existing_table(self):
 
