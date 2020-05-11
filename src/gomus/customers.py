@@ -116,13 +116,13 @@ class ExtractCustomerData(DataPreparationTask):
         df['cleansed_postal_code'] = None
         df['cleansed_country'] = None
 
-        db_connector.execute((
-            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
-            'EXISTS cleansed_postal_code TEXT'))
+        query = '''SELECT 1 FROM information_schema.columns
+                WHERE table_name='gomus_customer'
+                AND column_name='cleansed_postal_code' '''
 
-        db_connector.execute((
-            'ALTER TABLE gomus_customer ADD COLUMN IF NOT '
-            'EXISTS cleansed_country TEXT'))
+        if db_connector.exists(query):
+            df['cleansed_postal_code'] = None
+            df['cleansed_country'] = None
 
         # Drop duplicate occurences of customers with same mail,
         # keeping the most recent one
