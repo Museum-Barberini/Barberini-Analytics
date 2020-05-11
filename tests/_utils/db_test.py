@@ -1,4 +1,3 @@
-import json
 import os
 import subprocess as sp
 import unittest
@@ -10,7 +9,6 @@ import psycopg2
 
 import suitable
 from db_connector import db_connector
-from museum_facts import MuseumFacts
 
 
 def _perform_query(query):
