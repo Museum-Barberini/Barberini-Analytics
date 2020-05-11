@@ -14,18 +14,13 @@ BEGIN;
     ALTER TABLE gplay_review
         ADD COLUMN app_id TEXT;
     ALTER TABLE gplay_review
-        DROP CONSTRAINT appstore_review_primkey;
+        DROP CONSTRAINT gplay_review_primkey;
     ALTER TABLE gplay_review
-        ADD CONSTRAINT appstore_review_primkey
-        PRIMARY KEY (app_id, appstore_review_id);
+        ADD CONSTRAINT gplay_review_primkey
+        PRIMARY KEY (app_id, playstore_review_id);
 
     ALTER TABLE fb_post
-        ADD COLUMN app_id TEXT;
-    ALTER TABLE gplay_review
-        DROP CONSTRAINT appstore_review_primkey;
-    ALTER TABLE gplay_review
-        ADD CONSTRAINT appstore_review_primkey
-        PRIMARY KEY (app_id, appstore_review_id);
+        ADD COLUMN page_id TEXT;
 
 
     -- 2. Add permalink column to post tables
