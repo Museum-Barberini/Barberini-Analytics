@@ -78,7 +78,7 @@ class FetchGplayReviews(DataPreparationTask):
             columns=['id', 'date', 'score', 'text',
                      'title', 'thumbsUp', 'version']
         )
-        reviews_df.insert(0, 'app_id', self.get_app_id())
+        reviews_df['app_id'] = self.get_app_id()
         return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
@@ -139,7 +139,7 @@ class FetchGplayReviews(DataPreparationTask):
     def get_app_id(self):
         if self.app_id:
             return self.app_id
-        
+
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
             self.app_id = facts['ids']['gplay']['appId']
@@ -158,7 +158,7 @@ class FetchGplayReviews(DataPreparationTask):
             'version': 'app_version',
             'thumbsUp': 'likes'
         })
-        reviews = reviews[['playstore_review_id', 'text', 'rating',
+        reviews = reviews[['app_id', 'playstore_review_id', 'text', 'rating',
                            'app_version', 'likes', 'title', 'date']]
         reviews = reviews.astype({
             'playstore_review_id': str,
