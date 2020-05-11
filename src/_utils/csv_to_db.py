@@ -28,8 +28,7 @@ class CsvToDb(CopyToTable):
     is treated as an individual and will be re-run.
     """
     dummy_date = luigi.FloatParameter(
-        default=dt.datetime.timestamp(dt.datetime.now()),
-        visibility=luigi.parameter.ParameterVisibility.PRIVATE)
+        default=dt.datetime.timestamp(dt.datetime.now()))
 
     # override the default column separator (tab)
     column_separator = ','
