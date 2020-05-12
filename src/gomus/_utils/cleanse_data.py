@@ -100,7 +100,7 @@ class CleansePostalCodes(DataPreparationTask):
         customer_df['cleansed_country'] = \
             [result[1] for result in customer_df['result']]
 
-        customer_df.drop(['result'], axis=1)
+        customer_df = customer_df.drop('result', axis=1)
         print(customer_df)
 
         print()
