@@ -10,7 +10,7 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
-from gomus.customers import hash_id
+from gomus._utils.extract_customers import hash_id
 
 
 class EventsToDB(CsvToDb):

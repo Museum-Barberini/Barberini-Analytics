@@ -40,8 +40,8 @@ do
         psql -q -v ON_ERROR_STOP=1 -f "$MIGRATION_FILE"
         EXIT_VAL=$?
 
-        chmod +x "$MIGRATION_FILE"
     else
+        chmod +x "$MIGRATION_FILE"
         # Have the migration interpreted by bash, requires shebang
         "$MIGRATION_FILE"
         EXIT_VAL=$?
