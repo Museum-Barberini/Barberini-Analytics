@@ -41,7 +41,7 @@ class IgProfileMetricsDevelopmentToDB(CsvToDb):
             table=self.table, columns=[col[0] for col in self.columns])
 
 
-class IgTotalProfileMetrics(CsvToDb):
+class IgTotalProfileMetricsToDB(CsvToDb):
     table = 'ig_total_profile_metrics'
 
     def requires(self):
@@ -415,7 +415,7 @@ class IgToDBWrapper(luigi.WrapperTask):
     def requires(self):
         yield IgPostsToDB()
         yield IgProfileMetricsDevelopmentToDB()
-        yield IgTotalProfileMetrics()
+        yield IgTotalProfileMetricsToDB()
         yield IgAudienceGenderAgeToDB()
         yield IgAudienceCityToDB()
         yield IgAudienceCountryToDB()

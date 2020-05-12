@@ -189,7 +189,7 @@ class TestInstagram(DatabaseTestCase):
         with freeze_time('2020-01-01 00:00:05'):
             self.run_task(instagram.FetchIgTotalProfileMetrics(
                 columns=[col[0] for col in
-                         instagram.IgTotalProfileMetrics().columns]))
+                         instagram.IgTotalProfileMetricsToDB().columns]))
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
