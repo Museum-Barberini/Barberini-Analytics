@@ -125,3 +125,6 @@ db-backup:
 # Restore the database from a dump/backup
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
+
+db-schema-report:
+	docker exec db pg_dump -U postgres -d barberini -s

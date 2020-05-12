@@ -21,6 +21,3 @@ make startup
 trap "make shutdown" EXIT
 echo "Running minimal pipeline ..."
 make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
-
-echo "Generating schema report ..."
-docker exec db pg_dump -U postgres -d barberini -s > schema_dump.txt

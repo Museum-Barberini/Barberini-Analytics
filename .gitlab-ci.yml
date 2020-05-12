@@ -40,9 +40,6 @@ mining-pipeline:
   stage: test
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
-  artifacts:
-    paths: 
-      - schema_dump.txt
 
 # Deprecated, see #145. Moving this to the bottom of CI for now in order to
 # detect possible problems with the coverage job as failure detector.
