@@ -248,3 +248,41 @@ def try_request_multiple_times(url, **kwargs):
     # to process the invalid response
     response.raise_for_status()
     return response
+
+
+class DebugFbComments(DataPreparationTask):#testing
+    def run(self):
+        with open('data/deleteMe.txt', 'r') as id_file:#just for testing
+            all_ids = id_file.read().split('\n')
+        count = len(all_ids)
+
+        number_of_comments = 0
+        summary_total = 0
+        errors = 0
+
+        i = 0
+
+        for id in all_ids:
+            id = id.replace('"', '').strip()
+            i = i + 1
+            print(f"Requesting for ID {id} - {i}/{count}")
+            url = f'{API_BASE}/{id}/comments?summary=1&filter=stream'
+            try:
+                response = try_request_multiple_times(url).json()
+                summary_total = summary_total + response['summary']['total_count']
+                for comment in response['data']:
+                    if 'from' in comment:
+                        if comment['from']['name'] == "Museum Barberini":
+                            continue
+                    number_of_comments = number_of_comments + 1
+            except Exception:
+                errors = errors + 1
+        
+        print(f"summary_totals: {summary_total}")
+        print(f"number_of_comments: {number_of_comments}")
+        print(f"errors: {errors}")
+
+        
+        #url = f'{API_BASE}/{post_id}/comments?summary=1&filter=stream'
+        #response = try_request_multiple_times(url)
+        #print(response)
