@@ -33,10 +33,6 @@ RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev python3-wheel
 # Install psycopg2 (incl. system dependencies)
 RUN DEBIAN_FRONTEND=noninteractive $INSTALL libpq-dev
 
-# Install python packages
-COPY requirements.txt /app
-RUN pip3 install -r requirements.txt
-
 # Install node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $INSTALL nodejs
@@ -51,6 +47,9 @@ COPY package*.json /
 RUN npm install
 WORKDIR /app
 
+# Install python packages
+COPY requirements.txt /app
+RUN pip3 install -r requirements.txt
 
 # Clean up everything
 RUN apt-get clean all
