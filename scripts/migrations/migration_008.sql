@@ -29,3 +29,5 @@ AND (tweet_id, perf.timestamp) NOT IN
 	FROM tweet_performance AS perf2
 	group by perf2.tweet_id
 	having perf2.tweet_id = perf.tweet_id);
+
+COMMIT;
