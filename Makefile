@@ -38,7 +38,7 @@ connect:
 # runs a command in the luigi container
 # example: sudo make docker-do do='make luigi'
 docker-do:
-	docker-compose -p ${USER} exec luigi $(do)
+	docker exec -i "${USER}-luigi" bash -c "$(do)"
 
 docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
@@ -68,17 +68,18 @@ luigi:
 	./scripts/running/fill_db.sh
 
 OUTPUT_DIR ?= output # default output directory is 'output'
-luigi-task: luigi-scheduler
-	mkdir -p $(OUTPUT_DIR) 
+luigi-task: luigi-scheduler output-folder
 	luigi --module $(LMODULE) $(LTASK)
 
 luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
-luigi-minimal:
-	# the environment variable has to be set to true 
+luigi-minimal: luigi-scheduler luigi-clean output-folder
 	MINIMAL=True make luigi
 
+# TODO: Custom output folder per test and minimal?
+output-folder:
+	mkdir -p $(OUTPUT_DIR)
 # --- Testing ---
 
 # optional argument: test
@@ -107,15 +108,16 @@ coverage: luigi-clean
 
 # --- To access postgres ---
 
+db = barberini
+# default database for db-do
 # opens a psql shell inside the database container
 db-psql:
-	docker exec -it db psql -U postgres -d barberini
+	docker exec -it db psql -U postgres -d "$(db)"
 
 # runs a command for the database in the container
 # example: sudo make db-do do='\\d'
-db = barberini # default database for db-do
 db-do:
-	docker exec -it db psql -U postgres -a $(db) -c $(do)
+	docker exec -it db psql -U postgres -a "$(db)" -c "$(do)"
 
 db-backup:
 	docker exec db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
@@ -123,3 +125,6 @@ db-backup:
 # Restore the database from a dump/backup
 db-restore:
 	docker exec -i db psql -U postgres barberini < $(dump)
+
+db-schema-report:
+	docker exec db pg_dump -U postgres -d barberini -s
