@@ -1,4 +1,4 @@
-city,amount
-"City1, State1",123
-"City2, State2",456
-"City3, State1",789
+city,timestamp,amount
+"City1, State1",2020-01-01 00:00:05,123
+"City2, State2",2020-01-01 00:00:05,456
+"City3, State1",2020-01-01 00:00:05,789
