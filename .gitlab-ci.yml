@@ -36,7 +36,7 @@ lint:
     - python3 -m pip install flake8 --user
     - python3 -m flake8 -v --show-source .
 
-mining-pipeline:
+minimal-mining-pipeline:
   stage: test
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
