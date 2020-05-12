@@ -23,4 +23,4 @@ echo "Running minimal pipeline ..."
 make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
 
 echo "Generating schema report ..."
-docker exec -i db pg_dump -U postgres -d barberini -s > schema_dump.txt
+docker exec db pg_dump -U postgres -d barberini -s > schema_dump.txt
