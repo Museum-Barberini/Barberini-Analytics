@@ -26,4 +26,4 @@ xmltodict==0.12.0
 stop-words==2018.7.23
 git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
 nltk==3.5
-langdetect=1.0.8
+langdetect==1.0.8

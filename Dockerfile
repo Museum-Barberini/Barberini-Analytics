@@ -51,5 +51,8 @@ WORKDIR /app
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
 
+# Install required nltk resource
+RUN python3 -c "import nltk; nltk.download('punkt')"
+
 # Clean up everything
 RUN apt-get clean all
