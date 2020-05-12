@@ -8,7 +8,6 @@ echo "merge-migrations $4"
 set -e
 
 o=$(pwd)
-# $4 is %P
 cd $(dirname "$4")
 [[ "$4" =~ .*\/migration_([[:alnum:]]+)(\..+)? ]]
 i="${BASH_REMATCH[1]}"
