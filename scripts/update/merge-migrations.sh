@@ -1,21 +1,21 @@
 #!/bin/bash
-echo "merge-migrations $4"
+# This is a merge driver for git that automatically resolves conflicts between
+# migration scripts. To install it, run scripts/setup/setup_gitconfig.sh. For
+# more information, read the MR description of !157.
+# $@ = %O %A %B %P = ancestor theirs ours path
 
+echo "merge-migrations $4"
 set -e
 
 o=$(pwd)
 # $4 is %P
 cd $(dirname "$4")
- echo "cd'ed"
 [[ "$4" =~ .*\/migration_([[:alnum:]]+)(\..+)? ]]
- echo "matched"
 i="${BASH_REMATCH[1]}"
 ext="${BASH_REMATCH[2]}"
- echo "i=$i, ext=$ext"
 
 j="$i"
 while : ; do
-     echo "i=$i"
     ((j++))
     i=$(printf "%0${#i}d\n" "$j")
     n="migration_$i"
@@ -24,7 +24,6 @@ while : ; do
 done
 
 cd "$o"
-echo "now moving"
 mv "$2" "$(dirname "$4")/migration_$i$ext"
 mv "$3" "$2"
 
