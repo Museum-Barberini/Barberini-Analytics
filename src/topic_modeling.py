@@ -12,7 +12,9 @@ import logging
 from luigi.format import UTF8
 
 from apple_appstore import AppstoreReviewsToDB
+from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+from db_connector import db_connector
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from twitter import TweetsToDB
@@ -20,47 +22,71 @@ from twitter import TweetsToDB
 logger = logging.getLogger('luigi-interface')
 
 
-class Doc:
-    def __init__(self, text, source, post_date):
-        self.text = text
-        self.source = source
-        self.post_date = post_date
-        self.tokens = None
-        self.topic = None
-        self.model_name = None
-        self.language = None
+class TopicModeling(luigi.WrapperTask):
 
-    def in_year(self, year):
-        if year == "all":
-            return True
-        return year in self.post_date
-
-    def too_short(self):
-        return len(self.tokens) <= 2
-
-    def predict(self, model, model_name):
-        self.topic = model.choose_best_label(self.tokens)[0]
-        self.model_name = model_name
-    
-    def guess_language(self):
-        try:
-            self.language = langdetect.detect(self.text)
-        except langdetect.LangDetectException as e:
-            # langdetect does not handle emojis well
-            logger.warning(e)
-            logger.info(f"Warning was raised for doc {self.to_dict()}")
-
-    def to_dict(self):
-        return {
-            "text": self.text,
-            "source": self.source,
-            "post_date": self.post_date,
-            "topic": self.topic,
-            "model_name": self.model_name
-        }
+    def requires(self):
+        yield TopicModelingTextsToDb()
+        yield TopicModelingTopicsToDb()
 
 
-class TopicModeling(DataPreparationTask):
+class TopicModelingTextsToDb(CsvToDb):
+
+    table = "topic_modeling_texts"
+
+    def requires(self):
+        return TopicModelingTextDf()
+
+
+class TopicModelingTopicsToDb(CsvToDb):
+
+    table = "topic_modeling_topics"
+
+    def requires(self):
+        return TopicModelingTopicsDf()
+
+
+class TopicModelingTopicsDf(DataPreparationTask):
+
+    def requires(self):
+        return TopicModelingFindTopics()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f"{self.output_dir}/topic_modeling/topics_2.csv",
+            format=UTF8
+        )
+
+    def run(self):
+
+        with next(self.input()).open("r") as fp:
+            data = fp.read()
+        with self.output().open("w") as fp:
+            fp.write(data)
+
+
+class TopicModelingTextDf(DataPreparationTask):
+
+    def requires(self):
+        return TopicModelingFindTopics()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f"{self.output_dir}/topic_modeling/text_2.csv",
+            format=UTF8
+        )
+
+    def run(self):
+        
+        input_files = self.input()
+        next(input_files)
+        with next(input_files).open("r") as fp:
+            data = fp.read()
+        with self.output().open("w") as fp:
+            fp.write(data)
+
+
+
+class TopicModelingFindTopics(DataPreparationTask):
    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -70,13 +96,14 @@ class TopicModeling(DataPreparationTask):
             *["http", "https", "www", "com", "de", "google", "translated", 
               "twitter", "fur", "uber", "html", "barberini", 
               "museumbarberini", "museum", "ausstellung", "ausstellungen",
-              "potsdam"]
+              "potsdam", "mal"]
         ]
 
     def requires(self):
-        yield AppstoreReviewsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield GooglePlaystoreReviewsToDB()
+        # TODO: add back in
+        # yield AppstoreReviewsToDB()
+        # yield GoogleMapsReviewsToDB()
+        # yield GooglePlaystoreReviewsToDB()
         yield TweetsToDB()
 
     def output(self):
@@ -95,10 +122,23 @@ class TopicModeling(DataPreparationTask):
         docs = self.preprocess(docs)
         topic_df, text_df = self.find_topics(docs)
 
-        with next(self.output()).open("w") as topic_file:
-            topic_df.to_csv(topic_file, index=False)
-        with next(self.output()).open("w") as text_file:
-            text_df.to_csv(text_file, index=False)
+        output_files = self.output()
+        with next(output_files).open("w") as topic_file:
+            topic_df.to_csv(topic_file, index=True)
+        with next(output_files).open("w") as text_file:
+            text_df.to_csv(text_file, index=True)
+
+    def build_corpus(self):
+
+        # TODO: use new posts view
+        texts = db_connector().query("""
+            SELECT text, source, post_date FROM post
+        """)
+        docs = [
+            Doc(row[0], row[1], row[2])
+            for row in texts if row[0] is not None
+        ]
+        return docs
 
     def preprocess(self, docs):
         
@@ -108,7 +148,7 @@ class TopicModeling(DataPreparationTask):
             doc.tokens = doc.text.lower()
             doc.guess_language()
             doc.tokens = word_tokenize(doc.tokens)
-            doc.tokens = [token for token in doc.tokens if token not in stop_words]
+            doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
             # keep only alphabetical tokens
             doc.tokens = [token for token in doc.tokens if token.isalpha()]
             # remove single-digit tokens
@@ -145,19 +185,23 @@ class TopicModeling(DataPreparationTask):
         topic_dfs = []
 
         for model_name in models:
-            data_in_timespan = [
-                doc for doc in relevant_docs if doc.in_year(model_name)]
-            model = self.train_mgp(data_in_timespan)
+            docs_in_timespan = [
+                doc for doc in docs if doc.in_year(model_name)]
 
-            for doc in docs:
+            if model_name == "all":
+                model = self.train_mgp(docs_in_timespan, K=12)
+            else:
+                model = self.train_mgp(docs_in_timespan, K=10)
+
+            for doc in docs_in_timespan:
                 doc.predict(model, model_name)
 
-            # cols: source,post_date,topic,model
-            text_df = pd.DataFrame([doc.to_dict() for doc in docs])
+            # cols: text,source,post_date,topic,model_name
+            text_df = pd.DataFrame([doc.to_dict() for doc in docs_in_timespan])
 
             # topic,term,count,model
             out = []
-            for i, topic_terms in enumerate(top_terms(model)):
+            for i, topic_terms in enumerate(self.top_terms(model)):
                 for term in topic_terms:
                     out.append({
                         "topic": i,
@@ -167,15 +211,18 @@ class TopicModeling(DataPreparationTask):
                     })
             topic_df = pd.DataFrame(out)
 
+            # name topics
+            get_title = lambda x: self.top_terms(model)[x][0][0]
+            topic_df["topic"] = topic_df["topic"].apply(get_title)
+            text_df["topic"] = text_df["topic"].apply(get_title)
+
             text_dfs.append(text_df)
             topic_dfs.append(topic_df)
 
-            # TODO: name topics
-
-        return pd.concat(topic_dfs), pd.concat(text_dfs)
+        return pd.concat(topic_dfs).reset_index(), pd.concat(text_dfs).reset_index()
 
 
-    def train_mgp(docs, K=10, alpha=0.1, beta=0.1, n_iters=10):
+    def train_mgp(self, docs, K=10, alpha=0.1, beta=0.1, n_iters=30):
         vocab = set(x for doc in docs for x in doc.tokens)
         n_terms = len(vocab)
 
@@ -183,9 +230,49 @@ class TopicModeling(DataPreparationTask):
         mgp.fit([doc.tokens for doc in docs], n_terms)
         return mgp
 
-    def top_terms(model, n=20, print_it=False):
+    def top_terms(self, model, n=20, print_it=False):
         top_terms = [
             sorted(list(doc_dist.items()), key = lambda x: x[1], reverse=True)[:n]
             for doc_dist in model.cluster_word_distribution
         ]
         return top_terms
+
+
+class Doc:
+    def __init__(self, text, source, post_date):
+        self.text = text
+        self.source = source
+        self.post_date = post_date
+        self.tokens = None
+        self.topic = None
+        self.model_name = None
+        self.language = None
+
+    def in_year(self, year):
+        if year == "all":
+            return True
+        return str(self.post_date.year) == str(year)
+
+    def too_short(self):
+        return len(self.tokens) <= 2
+
+    def predict(self, model, model_name):
+        self.topic = model.choose_best_label(self.tokens)[0]
+        self.model_name = model_name
+    
+    def guess_language(self):
+        try:
+            self.language = langdetect.detect(self.text)
+        except langdetect.lang_detect_exception.LangDetectException as e:
+            # langdetect can not handle emoji-only texts
+            logger.warning(f"langdetect error: {e}")
+            logger.info(f"Warning was raised for doc {self.to_dict()}")
+
+    def to_dict(self):
+        return {
+            "text": self.text,
+            "source": self.source,
+            "post_date": self.post_date,
+            "topic": self.topic,
+            "model_name": self.model_name
+        }
