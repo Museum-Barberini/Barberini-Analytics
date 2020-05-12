@@ -6,7 +6,7 @@ set -e
 echo "Setting up test database ..."
 set -a
 . /etc/barberini-analytics/secrets/database.env
-POSTGRES_HOST=localhost
+POSTGRES_HOST="localhost"
 POSTGRES_DB='barberini_test'
 set +a
 docker exec -i db psql -U postgres -a postgres <<< "
