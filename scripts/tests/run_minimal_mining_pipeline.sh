@@ -3,6 +3,8 @@
 
 set -e
 
+cd $(dirname "$0")/../..
+
 echo "Setting up test database ..."
 set -a
 . /etc/barberini-analytics/secrets/database.env
@@ -14,7 +16,7 @@ DROP DATABASE IF EXISTS $POSTGRES_DB;
 CREATE DATABASE $POSTGRES_DB;"
 
 echo "Applying all migrations ..."
-$(dirname "$0")/../migrations/migrate.sh
+./migrations/migrate.sh
 
 echo "Starting luigi container ..."
 make startup
