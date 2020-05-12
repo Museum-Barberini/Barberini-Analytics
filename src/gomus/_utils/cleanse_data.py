@@ -104,18 +104,17 @@ class CleansePostalCodes(DataPreparationTask):
 
         customer_df = customer_df.drop('result', axis=1)
 
-        logger.info()
+        skip_percentage = '{0:.0%}'.format(self.skip_count/self.total_count)
+        logger.info('')
         logger.info('-------------------------------------------------')
-        logger.info(f'Skipped {self.skip_count} of {self.total_count}'
+        logger.info(f'Skipped {self.skip_count} of {self.total_count} '
                     'postal codes')
-        logger.info('Percentage:',
-                    '{0:.0%}'.format(self.skip_count/self.total_count))
-        logger.info('{0:.0%}'.format(self.none_count/self.total_count),
-                    'of all values are empty. ({})'.format(self.none_count))
-        logger.info(' =>', self.skip_count-self.none_count,
-                    'values were not validated.')
-        logger.info('Count of other (less common, not validated) countries:',
-                    self.other_country_count)
+        logger.info(f'Percentage: {skip_percentage}')
+        logger.info(f'{self.none_count} of all values are empty.')
+        logger.info(' => ' + str(self.skip_count-self.none_count) +
+                    ' values were not validated.')
+        logger.info('Count of less common countries: ' +
+                    str(self.other_country_count))
         logger.info('-------------------------------------------------')
 
         with self.output().open('w') as output_csv:
