@@ -38,7 +38,7 @@ connect:
 # runs a command in the luigi container
 # example: sudo make docker-do do='make luigi'
 docker-do:
-	docker exec -i "${USER}-luigi" bash -c "$(do)"
+	docker-compose -p ${USER} exec luigi $(do)
 
 docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
