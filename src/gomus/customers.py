@@ -8,7 +8,7 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 
 from gomus._utils.cleanse_data import CleansePostalCodes
-from gomus._utils.extract_customers import ExtractCustomerData, hash_id
+from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchGomusReport
 
 
@@ -20,14 +20,6 @@ class CustomersToDB(CsvToDb):
     table = 'gomus_customer'
 
     primary_key = 'customer_id'
-
-    def _requires(self):
-        return luigi.task.flatten([
-            ExtractCustomerData(
-                columns=[col[0] for col in self.columns],
-                today=self.today),
-            super()._requires()
-        ])
 
     def requires(self):
         return CleansePostalCodes(

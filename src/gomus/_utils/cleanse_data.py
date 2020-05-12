@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import datetime as dt
+import logging
 import luigi
 import pandas as pd
 import re
@@ -9,6 +10,7 @@ from data_preparation_task import DataPreparationTask
 from gomus._utils.extract_customers import ExtractCustomerData
 from _utils.german_postal_codes import GermanPostalCodes
 
+logger = logging.getLogger('luigi-interface')
 
 COUNTRY_TO_DATA = {
     'Deutschland':
@@ -101,23 +103,20 @@ class CleansePostalCodes(DataPreparationTask):
             [result[1] for result in customer_df['result']]
 
         customer_df = customer_df.drop('result', axis=1)
-        print(customer_df)
 
-        print()
-        print('-------------------------------------------------')
-        print(f'Skipped {self.skip_count} of {self.total_count} postal codes')
-        print('Percentage:',
-              '{0:.0%}'.format(self.skip_count/self.total_count))
-        print()
-        print('{0:.0%}'.format(self.none_count/self.total_count),
-              'of all values are empty. ({})'.format(self.none_count))
-        print()
-        print(' =>', self.skip_count-self.none_count,
-              'values were not validated.')
-        print()
-        print('Count of other (less common, not validated) countries:',
-              self.other_country_count)
-        print('-------------------------------------------------')
+        logger.info()
+        logger.info('-------------------------------------------------')
+        logger.info(f'Skipped {self.skip_count} of {self.total_count}'
+                    'postal codes')
+        logger.info('Percentage:',
+                    '{0:.0%}'.format(self.skip_count/self.total_count))
+        logger.info('{0:.0%}'.format(self.none_count/self.total_count),
+                    'of all values are empty. ({})'.format(self.none_count))
+        logger.info(' =>', self.skip_count-self.none_count,
+                    'values were not validated.')
+        logger.info('Count of other (less common, not validated) countries:',
+                    self.other_country_count)
+        logger.info('-------------------------------------------------')
 
         with self.output().open('w') as output_csv:
             customer_df.to_csv(output_csv, index=False, header=True)
