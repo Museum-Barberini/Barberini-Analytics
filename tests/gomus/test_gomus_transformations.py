@@ -6,12 +6,14 @@ from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
 from db_test import DatabaseTestCase
-from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
+from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
-from gomus.events import \
-    cleanse_umlauts, ExtractEventData, FetchCategoryReservations
+from gomus.events import (cleanse_umlauts,
+                          ExtractEventData,
+                          FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_customers import ExtractCustomerData
 from gomus._utils.fetch_report import FetchEventReservations
 
 
@@ -82,7 +84,9 @@ class TestCustomerTransformation(GomusTransformationTest):
             'type',
             'register_date',
             'annual_ticket',
-            'valid_mail'],
+            'valid_mail',
+            'cleansed_postal_code',
+            'cleansed_country'],
             ExtractCustomerData,
             *args, **kwargs)
 
