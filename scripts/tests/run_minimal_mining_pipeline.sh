@@ -16,7 +16,7 @@ DROP DATABASE IF EXISTS $POSTGRES_DB;
 CREATE DATABASE $POSTGRES_DB;"
 
 echo "Applying all migrations ..."
-./migrations/migrate.sh
+./scripts/migrations/migrate.sh
 
 echo "Starting luigi container ..."
 make startup
