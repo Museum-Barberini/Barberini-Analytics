@@ -13,10 +13,10 @@ cd $(dirname "$4")
 i="${BASH_REMATCH[1]}"
 ext="${BASH_REMATCH[2]}"
 
+# Find available migration number
 j="$i"
 while : ; do
-    ((j++))
-    i=$(printf "%0${#i}d\n" "$j")
+    ((j++)) && i=$(printf "%0${#i}d\n" "$j")
     n="migration_$i"
     [ "$(echo "$(find . -maxdepth 1 -name 'migration_*.*' -exec bash -c 'printf "%s.\n" "${@%.*}"' _ {} + | cut -c3-)"$'\n'"$n" | sort | tail -n1)" = "$n" ] \
         && break
