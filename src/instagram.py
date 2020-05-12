@@ -260,8 +260,10 @@ class FetchIgProfileMetricsDevelopment(DataPreparationTask):
 
         df = pd.DataFrame(columns=self.columns)
         metrics = ','.join([
-            'follower_count',
+            'impressions',
+            'reach',
             'profile_views',
+            'follower_count',
             'website_clicks'
         ])
         period = 'day'
@@ -271,14 +273,18 @@ class FetchIgProfileMetricsDevelopment(DataPreparationTask):
 
         timestamp = response_data[0]['values'][0]['end_time']
 
-        follower_count = response_data[0]['values'][0]['value']
-        profile_views = response_data[1]['values'][0]['value']
-        website_clicks = response_data[2]['values'][0]['value']
+        impressions = response_data[0]['values'][0]['value']
+        reach = response_data[1]['values'][0]['value']
+        profile_views = response_data[2]['values'][0]['value']
+        follower_count = response_data[3]['values'][0]['value']
+        website_clicks = response_data[4]['values'][0]['value']
 
         df.loc[0] = [
             timestamp,
-            follower_count,
+            impressions,
+            reach,
             profile_views,
+            follower_count,
             website_clicks
         ]
 

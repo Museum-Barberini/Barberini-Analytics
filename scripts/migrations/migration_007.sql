@@ -39,8 +39,10 @@ ALTER TABLE ig_audience_gender_age
 -- Create profile metrics tables
 CREATE TABLE ig_profile_metrics_development (
     timestamp TIMESTAMP,
-    follower_count INT,
+    impressions INT,
+    reach INT,
     profile_views INT,
+    follower_count INT,
     website_clicks INT
 );
 ALTER TABLE ig_profile_metrics_development
