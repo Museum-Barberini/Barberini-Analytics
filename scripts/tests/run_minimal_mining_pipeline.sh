@@ -6,7 +6,7 @@ set -e
 echo "Setting up test database ..."
 set -a
 . /etc/barberini-analytics/secrets/database.env
-POSTGRES_HOST=localhost
+POSTGRES_HOST="localhost"
 POSTGRES_DB='barberini_test'
 set +a
 docker exec -i db psql -U postgres -a postgres <<< "
@@ -23,4 +23,4 @@ echo "Running minimal pipeline ..."
 make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
 
 echo "Generating schema report ..."
-docker exec -i db pg_dump -U postgres -d barberini -s > schema_dump.txt
+docker exec db pg_dump -U postgres -d barberini -s > schema_dump.txt
