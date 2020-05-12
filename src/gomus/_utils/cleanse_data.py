@@ -164,9 +164,6 @@ class CleansePostalCodes(DataPreparationTask):
                     self.validate_country(cleansed_code, *data)
                 result_country = key
 
-        if '(' in str(country):
-            print(result_postal, country)
-
         if not result_postal:
             self.skip_count += 1
             result_country = country
@@ -180,9 +177,9 @@ class CleansePostalCodes(DataPreparationTask):
         percentage = int(round(self.cleansed_count/self.total_count*100))
 
         if self.last_percentage < percentage:
-            print(f"\r{percentage}% cleansed ({self.cleansed_count})",
-                  end='',
-                  flush=True)
+            logger.info(f"\r{percentage}% cleansed ({self.cleansed_count})",
+                        end='',
+                        flush=True)
             self.last_percentage = percentage
 
         return result_postal, result_country
