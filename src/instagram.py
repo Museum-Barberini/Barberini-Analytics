@@ -189,16 +189,15 @@ class FetchIgPostPerformance(DataPreparationTask):
 
         fetch_time = dt.datetime.now()
         for i, row in post_df.iterrows():
-            metrics = ','.join(generic_metrics)
-
             # Fetch only insights for less than 2 months old posts
             post_time = dt.datetime.strptime(
                 row['timestamp'],
                 '%Y-%m-%dT%H:%M:%S+%f')
             if post_time.date() < \
                fetch_time.date() - self.timespan:
-                break
+                continue
 
+            metrics = ','.join(generic_metrics)
             if sys.stdout.isatty():
                 print(
                     f"\rFetched insight for instagram post from {post_time}",
