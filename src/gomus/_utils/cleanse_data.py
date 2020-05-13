@@ -37,7 +37,7 @@ COUNTRY_TO_DATA = {
     'Italien':
         ['IT', 5, r'\d{5}', False],
     'Russische Föderation':
-        ['RU', 0, r'\d{6}', True],
+        ['RU', 0, r'\d{6}', False],
     'Schweden':
         ['SE', 5, r'\d{3}\s*\d{2}', False],
     'Spanien':
