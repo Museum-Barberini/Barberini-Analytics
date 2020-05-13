@@ -4,7 +4,7 @@ import requests
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from db_test import DatabaseTestCase
 from gplay.gplay_reviews import FetchGplayReviews
@@ -148,7 +148,7 @@ class TestFetchGplayReviews(DatabaseTestCase):
         self.task = FetchGplayReviews()
         result = FetchGplayReviews().fetch_for_language('xyz')
 
-        self.assertCountEqual([RESPONSE_ELEM_1], result)  # TODO: Dont search app_id here. How to? Change module under test?
+        self.assertCountEqual([RESPONSE_ELEM_1], result)
 
     @patch('gplay.gplay_reviews.requests.Response.json')
     def test_fetch_for_lang_multi_return_values(self, mock_json):
