@@ -114,7 +114,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         account_list = service.accounts().list().execute()
         # in almost all cases one only has access to one account
         account = account_list['accounts'][0]['name']
-        print("DEBUG account: " + account)
 
         # get location identifier of the first location
         # available to this account
