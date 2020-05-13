@@ -51,8 +51,6 @@ class TestFacebookPost(DatabaseTestCase):
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
 
-        self.fail() 
-
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
     @patch.object(facebook.MuseumFacts, 'output')
