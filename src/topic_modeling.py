@@ -127,114 +127,123 @@ class TopicModelingFindTopics(DataPreparationTask):
         with next(output_files).open("w") as text_file:
             text_df.to_csv(text_file, index=False)
 
-def build_corpus(self):
+    def build_corpus(self):
 
-    # TODO: use new posts view
-    texts = db_connector().query("""
-        SELECT text, source, post_date FROM post
-    """)
-    docs = [
-        Doc(row[0], row[1], row[2])
-        for row in texts if row[0] is not None
-    ]
-    return docs
+        # TODO: use new posts view
+        texts = db_connector().query("""
+            SELECT text, source, post_date FROM post
+        """)
+        docs = [
+            Doc(row[0], row[1], row[2])
+            for row in texts if row[0] is not None
+        ]
+        return docs
 
-def preprocess(self, docs):
-    
-    for doc in docs:
-        # remove leading "None" (introduced by DB export)
-        doc.text = doc.text.replace("None ", "", 1)
-        doc.tokens = doc.text.lower()
-        doc.guess_language()
-        doc.tokens = word_tokenize(doc.tokens)
-        doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
-        # keep only alphabetical tokens
-        doc.tokens = [token for token in doc.tokens if token.isalpha()]
-        # remove single-digit tokens
-        doc.tokens = [token for token in doc.tokens if len(token) > 1]
+    def preprocess(self, docs):
+        
+        for doc in docs:
+            # remove leading "None" (introduced by DB export)
+            doc.text = doc.text.replace("None ", "", 1)
+            doc.tokens = doc.text.lower()
+            doc.guess_language()
+            doc.tokens = word_tokenize(doc.tokens)
+            doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
+            # keep only alphabetical tokens
+            doc.tokens = [token for token in doc.tokens if token.isalpha()]
+            # remove single-digit tokens
+            doc.tokens = [token for token in doc.tokens if len(token) > 1]
 
-    # consider only german docs
-    docs = [doc for doc in docs if doc.language == "de"]
+        # consider only german docs
+        docs = [doc for doc in docs if doc.language == "de"]
 
-    # stemming
-    #stemmer = nltk.stem.cistem.Cistem()
-    #for doc in docs:
-    #    doc.tokens = [stemmer.stem(token) for token in doc.tokens]
-    
-    # remove tokens that appear only once
-    tokens = defaultdict(lambda: 0)
-    for doc in docs:
-        for token in doc.tokens:
-            tokens[token] += 1
-    for doc in docs:
-        for token in doc.tokens:
-            if tokens[token] == 1:
-                doc.tokens.remove(token)
+        # stemming
+        #stemmer = nltk.stem.cistem.Cistem()
+        #for doc in docs:
+        #    doc.tokens = [stemmer.stem(token) for token in doc.tokens]
+        
+        # remove tokens that appear only once
+        tokens = defaultdict(lambda: 0)
+        for doc in docs:
+            for token in doc.tokens:
+                tokens[token] += 1
+        for doc in docs:
+            for token in doc.tokens:
+                if tokens[token] == 1:
+                    doc.tokens.remove(token)
+                    
+        # remove docs with less than three tokens
+        docs = [doc for doc in docs if not doc.too_short()]
                 
-    # remove docs with less than three tokens
-    docs = [doc for doc in docs if not doc.too_short()]
-            
-    return docs
+        return docs
 
-def find_topics(self, docs):
-    # TODO: don't hardcode the years
-    models = ["all", "2020", "2019", "2018", "2017", "2016"]
+    def find_topics(self, docs):
+        # TODO: don't hardcode the years
+        models = ["all", "2020", "2019", "2018", "2017", "2016"]
 
-    text_dfs = []
-    topic_dfs = []
+        text_dfs = []
+        topic_dfs = []
 
-    for model_name in models:
-        docs_in_timespan = [
-            doc for doc in docs if doc.in_year(model_name)]
+        for model_name in models:
+            docs_in_timespan = [
+                doc for doc in docs if doc.in_year(model_name)]
 
-        if model_name == "all":
-            model = self.train_mgp(docs_in_timespan, K=12)
-        else:
-            model = self.train_mgp(docs_in_timespan, K=10)
+            if model_name == "all":
+                model = self.train_mgp(docs_in_timespan, K=12)
+            else:
+                model = self.train_mgp(docs_in_timespan, K=10)
 
-        for doc in docs_in_timespan:
-            doc.predict(model, model_name)
+            for doc in docs_in_timespan:
+                doc.predict(model, model_name)
 
-        # cols: text,source,post_date,topic,model_name
-        text_df = pd.DataFrame([doc.to_dict() for doc in docs_in_timespan])
+            # cols: text,source,post_date,topic,model_name
+            text_df = pd.DataFrame([doc.to_dict() for doc in docs_in_timespan])
 
-        # topic,term,count,model
-        out = []
-        for i, topic_terms in enumerate(self.top_terms(model)):
-            for term in topic_terms:
-                out.append({
-                    "topic": i,
-                    "term": term[0],
-                    "count": term[1],
-                    "model": model_name
-                })
-        topic_df = pd.DataFrame(out)
+            # topic,term,count,model
+            out = []
+            for i, topic_terms in enumerate(self.top_terms(model)):
+                for term in topic_terms:
+                    out.append({
+                        "topic": i,
+                        "term": term[0],
+                        "count": term[1],
+                        "model": model_name
+                    })
+            topic_df = pd.DataFrame(out)
 
-        # name topics
-        get_title = lambda x: self.top_terms(model)[x][0][0]
-        topic_df["topic"] = topic_df["topic"].apply(get_title)
-        text_df["topic"] = text_df["topic"].apply(get_title)
+            # name topics
+            get_title = lambda x: self.top_terms(model)[x][0][0]
+            topic_df["topic"] = topic_df["topic"].apply(get_title)
+            text_df["topic"] = text_df["topic"].apply(get_title)
 
-        text_dfs.append(text_df)
-        topic_dfs.append(topic_df)
+            # Small topics are bundled in topic "other".
+            # A topic is considered small if it contains less than 2 percent 
+            # of all text comments.
+            total_size = len(text_df)
+            topic_sizes = text_df["topic"].value_counts().to_dict()
+            validate_topic = lambda x: x if topic_sizes[x] >= 0.02 * total_size else "other"
+            topic_df["topic"] = topic_df["topic"].apply(validate_topic)
+            text_df["topic"] = text_df["topic"].apply(validate_topic)
 
-    return pd.concat(topic_dfs), pd.concat(text_dfs)
+            text_dfs.append(text_df)
+            topic_dfs.append(topic_df)
+
+        return pd.concat(topic_dfs), pd.concat(text_dfs)
 
 
-def train_mgp(self, docs, K=10, alpha=0.1, beta=0.1, n_iters=30):
-    vocab = set(x for doc in docs for x in doc.tokens)
-    n_terms = len(vocab)
+    def train_mgp(self, docs, K=10, alpha=0.1, beta=0.1, n_iters=30):
+        vocab = set(x for doc in docs for x in doc.tokens)
+        n_terms = len(vocab)
 
-    mgp = MovieGroupProcess(K=K, alpha=alpha, beta=beta, n_iters=n_iters)
-    mgp.fit([doc.tokens for doc in docs], n_terms)
-    return mgp
+        mgp = MovieGroupProcess(K=K, alpha=alpha, beta=beta, n_iters=n_iters)
+        mgp.fit([doc.tokens for doc in docs], n_terms)
+        return mgp
 
-def top_terms(self, model, n=20, print_it=False):
-    top_terms = [
-        sorted(list(doc_dist.items()), key = lambda x: x[1], reverse=True)[:n]
-        for doc_dist in model.cluster_word_distribution
-    ]
-    return top_terms
+    def top_terms(self, model, n=20, print_it=False):
+        top_terms = [
+            sorted(list(doc_dist.items()), key = lambda x: x[1], reverse=True)[:n]
+            for doc_dist in model.cluster_word_distribution
+        ]
+        return top_terms
 
 
 class Doc:
