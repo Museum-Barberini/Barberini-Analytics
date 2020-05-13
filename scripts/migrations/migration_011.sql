@@ -1,16 +1,18 @@
--- Revise social media views (#187), add permalinks (#137) and rename constraints
+-- Revise social media views (#187) and add permalinks (#137)
 BEGIN;
 
-    -- A. Drop old views
+    /** A. Drop old views */
     DROP VIEW post;
     DROP VIEW app_review;
 
 
-    /** B. Alter tables to add museum-specific service id and generated
-        columns
-      * Recreate tables if necessary because they are not optimized anyway and
-      * psql does not allow to insert a column at a different position than
-      * the end.
+    /** B. Alter tables to add generated columns for permalink. For some
+        sources, this requires to add the "service id" of a post
+        (app_id/page_id). Recreate relevant primary keys to include this
+        information. This also makes comparison with competitors possible.
+        Recreate certain tables if necessary because they are not optimized
+        anyway and psql does not allow to insert a column at a different
+        position than the end.
       */
     DROP TABLE appstore_review;
     CREATE TABLE appstore_review (
@@ -74,8 +76,11 @@ BEGIN;
         ADD COLUMN post_id text;
     -- 3b. Refill post table
     INSERT INTO fb_post (page_id, post_id, post_date, text)
-        SELECT old_post_id[1] as page_id, old_post_id[2] AS post_id, post_date, text
-        FROM fb_post_old, regexp_matches(fb_post_id, '^(\d+)_(\d+)$') AS old_post_id;
+        SELECT
+            old_post_id[1] as page_id, old_post_id[2] AS post_id,
+            post_date, text
+        FROM fb_post_old,
+            regexp_matches(fb_post_id, '^(\d+)_(\d+)$') AS old_post_id;
         -- unfortunately O(n²) because inter-row updates appear impossible
     -- 4. Reconnect performance table
     UPDATE fb_post_performance
@@ -121,7 +126,7 @@ BEGIN;
         ) STORED;
 
 
-    -- C. Create new views
+    /** C. Create new views */
 
     -- 1. Create rich views for posts joined with latest performance data
     CREATE VIEW fb_post_rich AS (
