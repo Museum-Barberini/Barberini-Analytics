@@ -104,7 +104,7 @@ class FetchOrdersHTML(DataPreparationTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.output_list = []
-        self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
+        self.order_ids = []
 
     def requires(self):
         return OrdersToDB()
@@ -123,6 +123,7 @@ class FetchOrdersHTML(DataPreparationTask):
             SELECT * FROM information_schema.tables
             WHERE table_name='gomus_order_contains'
         ''')
+
         order_ids = self.db_connector.query(
             f'''
                 SELECT order_id FROM gomus_order
@@ -137,6 +138,8 @@ class FetchOrdersHTML(DataPreparationTask):
         return order_ids
 
     def run(self):
+        self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
+
         for i in range(len(self.order_ids)):
 
             url = self.base_url + str(self.order_ids[i])
