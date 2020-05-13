@@ -19,10 +19,8 @@ class TestFacebookPost(DatabaseTestCase):
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
     @patch.object(facebook.MuseumFacts, 'output')
-    def test_post_transformation(self,
-                                 fact_mock,
-                                 output_mock,
-                                 requests_get_mock):
+    def test_post_transformation(
+            self, fact_mock, output_mock, requests_get_mock):
         fact_target = MockTarget('facts_in', format=UTF8)
         fact_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
@@ -49,7 +47,7 @@ class TestFacebookPost(DatabaseTestCase):
         facebook.FetchFbPosts().run()
 
         with output_target.open('r') as output_data:
-            self.assertEqual(output_data.read(), expected_data)
+            self.assertEqual(expected_data, output_data.read())
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -153,7 +151,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
             expected_insights = csv_out.read()
 
         with output_target.open('r') as output_data:
-            self.assertEqual(output_data.read(), expected_insights)
+            self.assertEqual(expected_insights, output_data.read())
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostPerformance, 'output')
