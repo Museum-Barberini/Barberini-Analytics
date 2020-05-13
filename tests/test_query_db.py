@@ -4,11 +4,11 @@ import luigi.mock
 import pandas as pd
 import pandas.testing
 
+from db_test import DatabaseTestCase
 from query_db import QueryDb
-from task_test import DatabaseTaskTest
 
 
-class TestQueryDb(DatabaseTaskTest):
+class TestQueryDb(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
