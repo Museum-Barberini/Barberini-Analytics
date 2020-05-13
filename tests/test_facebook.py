@@ -113,10 +113,8 @@ class TestFacebookPostPerformance(DatabaseTestCase):
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostPerformance, 'output')
     @patch.object(facebook.FetchFbPostPerformance, 'input')
-    def test_post_performance_transformation(self,
-                                             input_mock,
-                                             output_mock,
-                                             requests_get_mock):
+    def test_post_performance_transformation(
+            self, input_mock, output_mock, requests_get_mock):
 
         input_target = MockTarget('posts_in', format=UTF8)
         input_mock.return_value = input_target
