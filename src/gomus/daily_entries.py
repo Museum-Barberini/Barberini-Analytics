@@ -11,35 +11,28 @@ from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class AbstractDailyEntriesToDB(CsvToDb):
-    today = luigi.parameter.DateParameter(default=dt.datetime.today())
-
-    columns = [
-        ('id', 'INT'),
-        ('ticket', 'TEXT'),
-        ('datetime', 'TIMESTAMP'),
-        ('count', 'INT'),
-    ]
-
-    primary_key = ('id', 'datetime')
-
-
-class DailyEntriesToDB(AbstractDailyEntriesToDB):
+class DailyEntriesToDB(CsvToDb):
     table = 'gomus_daily_entry'
 
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     def requires(self):
-        return ExtractDailyEntryData(expected=False,
-                                     columns=[col[0] for col in self.columns],
-                                     today=self.today)
+        return ExtractDailyEntryData(
+            expected=False,
+            columns=[col[0] for col in self.columns],
+            today=self.today)
 
 
-class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
+class ExpectedDailyEntriesToDB(CsvToDb):
     table = 'gomus_expected_daily_entry'
 
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     def requires(self):
-        return ExtractDailyEntryData(expected=True,
-                                     columns=[col[0] for col in self.columns],
-                                     today=self.today)
+        return ExtractDailyEntryData(
+            expected=True,
+            columns=[col[0] for col in self.columns],
+            today=self.today)
 
 
 class ExtractDailyEntryData(DataPreparationTask):
@@ -50,9 +43,10 @@ class ExtractDailyEntryData(DataPreparationTask):
 
     def requires(self):
         return FetchGomusReport(
-            report='entries', suffix='_1day', sheet_indices=[
-                0, 1] if not self.expected else [
-                2, 3], today=self.today)
+            report='entries',
+            suffix='_1day',
+            sheet_indices=[0, 1] if not self.expected else [2, 3],
+            today=self.today)
 
     def output(self):
         return luigi.LocalTarget(
@@ -67,8 +61,8 @@ class ExtractDailyEntryData(DataPreparationTask):
             while True:
                 try:
                     date_line = first_sheet.readline()
-                    date = pd.to_datetime(date_line.split(',')[2],
-                                          format='"%d.%m.%Y"')
+                    date = pd.to_datetime(
+                        date_line.split(',')[2], format='"%d.%m.%Y"')
                     break
                 except ValueError:
                     continue

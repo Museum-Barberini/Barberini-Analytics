@@ -1,69 +1,49 @@
 #!/bin/bash
 # This script reads files like 'migration_*' from its directory
-# and executes all it finds which are not yet listed in 'applied_migrations.txt'
-
-# Potential ideas for commandline arguments:
-# - "reset" to drop database and apply all migrations
-# - "test" to set PGDATABASE to "barberini_test"
+# and executes all it finds which are not yet listed in the "applied file".
+# Expects $POSTGRES_* variables to be available.
+# * If $1/$APPLIED_FILE is set, the migrations to be applied will be synced
+#   with that file.
+#   Otherwise, all migrations will be run and nothing will be recorded.
 
 # Directory and file names
 MIGRATION_DIR=$(dirname "$0")
-
+# Globstar guarantees us to get the files in order ascending
 MIGRATION_FILES="$MIGRATION_DIR/migration_*"
-APPLIED_FILE="/var/barberini-analytics/db-data/applied_migrations.txt"
-DB_CRED_FILE="/etc/barberini-analytics/secrets/database.env"
-
-# Create empty 'applied_migrations.txt' if it doesn't exist
-# (Assumption: /var/barberini-analytics/db-data exists and is readable)
-if [[ ! -f "$APPLIED_FILE" ]]
-then
-    {
-        echo "WARNING: Could not find '$APPLIED_FILE'"
-        echo "         Trying to create a new one"
-    } >&2
-    sudo touch $APPLIED_FILE
-    if [[ $? -ne 0 ]]
-    then
-        echo "Please provide sudo rights to create $APPLIED_FILE"
-        exit 1
-    fi
-    sudo chmod a+rwx $APPLIED_FILE
-    echo "INFO: '$APPLIED_FILE' was created"
-fi
+APPLIED_FILE="${1:-$APPLIED_FILE}"
 
 for MIGRATION_FILE in $MIGRATION_FILES
 do
-    MIGRATION_FILE_NAME="$(basename $MIGRATION_FILE)"
+    MIGRATION_FILE_NAME="$(basename "$MIGRATION_FILE")"
 
-    # Only for files which are not yet applied
-    if grep -Fxq "$MIGRATION_FILE_NAME" $APPLIED_FILE
+    if [ ! -z $APPLIED_FILE ] \
+        && grep -Fxq "$MIGRATION_FILE_NAME" "$APPLIED_FILE"
     then
+        # Migrations has already been applied, skipping to next one
         continue
     fi
 
+    echo "INFO: Applying migration '$MIGRATION_FILE_NAME' ..."
     if [[ "$MIGRATION_FILE_NAME" == *.sql ]]
-    # Execute .sql scripts directly
     then
-        # Read in DB credentials (POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD)
-        . $DB_CRED_FILE
+        # Execute .sql scripts directly
 
         # Set default Postgres Env variables to
         # avoid having to specify passwords etc. manually
-        export PGHOST="localhost"
+        export PGHOST="$POSTGRES_HOST"
         export PGDATABASE="$POSTGRES_DB"
         export PGUSER="$POSTGRES_USER"
         export PGPASSWORD="$POSTGRES_PASSWORD"
 
         # ON_ERROR_STOP makes psql abort when the first error is encountered
         # as well as makes it return a non-zero exit code
-        psql -v ON_ERROR_STOP=1 -f $MIGRATION_FILE
+        psql -q -v ON_ERROR_STOP=1 -f "$MIGRATION_FILE"
         EXIT_VAL=$?
 
-    # Otherwise let it be interpreted by bash
-    # (use shebang-line for scripts!)
     else
-        chmod +x $MIGRATION_FILE
-        ./$MIGRATION_FILE
+        chmod +x "$MIGRATION_FILE"
+        # Have the migration interpreted by bash, requires shebang
+        "$MIGRATION_FILE"
         EXIT_VAL=$?
     fi
 
@@ -71,17 +51,18 @@ do
     if [ $EXIT_VAL -eq 0 ]
     then
         # Save applied migration
-        echo "$MIGRATION_FILE_NAME" >> $APPLIED_FILE
-        echo "INFO: Applied migration: $MIGRATION_FILE_NAME"
+        [ -z "$APPLIED_FILE" ] \
+            || (echo "$MIGRATION_FILE_NAME" >> "$APPLIED_FILE")
     else
         # Print warning and exit so that the following migrations
         # are not applied as well
         {
             echo
-            echo "ERROR: Migration failed to apply: $MIGRATION_FILE_NAME"
-            echo "    Please resolve the issue manually and add"
-            echo "    it to '$(basename $APPLIED_FILE)' or try again!"
+            echo "ERROR: Migration failed to apply: '$MIGRATION_FILE_NAME'"
+            echo "    Please fix the migration script and try it again!"
         } >&2
         exit $EXIT_VAL
     fi
 done
+
+echo "INFO: All pending migrations have been applied successfully."

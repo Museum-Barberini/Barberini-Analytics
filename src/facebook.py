@@ -23,14 +23,6 @@ class FbPostsToDB(CsvToDb):
 
     table = 'fb_post'
 
-    columns = [
-        ('post_date', 'TIMESTAMP'),
-        ('text', 'TEXT'),
-        ('fb_post_id', 'TEXT')
-    ]
-
-    primary_key = 'fb_post_id'
-
     def requires(self):
         return FetchFbPosts()
 
@@ -39,39 +31,8 @@ class FbPostPerformanceToDB(CsvToDb):
 
     table = 'fb_post_performance'
 
-    columns = [
-        ('fb_post_id', 'TEXT'),
-        ('time_stamp', 'TIMESTAMP'),
-        ('react_like', 'INT'),
-        ('react_love', 'INT'),
-        ('react_wow', 'INT'),
-        ('react_haha', 'INT'),
-        ('react_sorry', 'INT'),
-        ('react_anger', 'INT'),
-        ('likes', 'INT'),
-        ('shares', 'INT'),
-        ('comments', 'INT'),
-        ('video_clicks', 'INT'),
-        ('link_clicks', 'INT'),
-        ('other_clicks', 'INT'),
-        ('negative_feedback', 'INT'),
-        ('paid_impressions', 'INT'),
-        ('post_impressions', 'INT'),
-        ('post_impressions_unique', 'INT')
-    ]
-
-    primary_key = ('fb_post_id', 'time_stamp')
-
-    foreign_keys = [
-            {
-                'origin_column': 'fb_post_id',
-                'target_table': 'fb_post',
-                'target_column': 'fb_post_id'
-            }
-        ]
-
     def requires(self):
-        return FetchFbPostPerformance(foreign_keys=self.foreign_keys)
+        return FetchFbPostPerformance(table=self.table)
 
 
 class FetchFbPosts(DataPreparationTask):
@@ -97,7 +58,7 @@ class FetchFbPosts(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_posts(self, page_id):
-        url = f'{API_BASE}/{page_id}/feed'
+        url = f'{API_BASE}/{page_id}/published_posts?limit=100'
 
         response = try_request_multiple_times(url)
         response_content = response.json()
@@ -208,9 +169,9 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             # Activity
             activity = response_content['data'][1]['values'][0]['value']
-            post_perf['likes'] = int(activity.get('LIKE', 0))
-            post_perf['shares'] = int(activity.get('SHARE', 0))
-            post_perf['comments'] = int(activity.get('COMMENT', 0))
+            post_perf['likes'] = int(activity.get('like', 0))
+            post_perf['shares'] = int(activity.get('share', 0))
+            post_perf['comments'] = int(activity.get('comment', 0))
 
             # Clicks
             clicks = response_content['data'][2]['values'][0]['value']
@@ -234,12 +195,11 @@ class FetchFbPostPerformance(DataPreparationTask):
                 response_content['data'][6]['values'][0]['value']
 
             performances.append(post_perf)
-
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
 
-        df = pd.DataFrame([perf for perf in performances])
-        df, _ = self.ensure_foreign_keys(df)
+        df = pd.DataFrame(performances)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

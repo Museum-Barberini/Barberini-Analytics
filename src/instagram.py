@@ -9,7 +9,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask, minimal_mode
+from data_preparation_task import DataPreparationTask
 from facebook import API_BASE, try_request_multiple_times
 from museum_facts import MuseumFacts
 
@@ -21,18 +21,6 @@ logger = logging.getLogger('luigi-interface')
 class IgPostsToDB(CsvToDb):
     table = 'ig_post'
 
-    columns = [
-        ('ig_post_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('post_date', 'TIMESTAMP'),
-        ('media_type', 'TEXT'),
-        ('likes', 'INT'),
-        ('comments', 'INT'),
-        ('permalink', 'TEXT')
-    ]
-
-    primary_key = 'ig_post_id'
-
     def requires(self):
         return FetchIgPosts()
 
@@ -40,61 +28,53 @@ class IgPostsToDB(CsvToDb):
 class IgPostPerformanceToDB(CsvToDb):
     table = 'ig_post_performance'
 
-    columns = [
-        ('ig_post_id', 'TEXT'),
-        ('timestamp', 'TIMESTAMP'),
-        ('impressions', 'INT'),
-        ('reach', 'INT'),
-        ('engagement', 'INT'),
-        ('saved', 'INT'),
-        ('video_views', 'INT')
-    ]
-
-    primary_key = ('ig_post_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            'origin_column': 'ig_post_id',
-            'target_table': 'ig_post',
-            'target_column': 'ig_post_id'
-        }
-    ]
-
     def requires(self):
         return FetchIgPostPerformance(
-            foreign_keys=self.foreign_keys,
-            columns=[col[0] for col in self.columns])
+            table=self.table, columns=[col[0] for col in self.columns])
 
 
-class IgAudienceOriginToDB(CsvToDb):
-    table = 'ig_audience_origin'
+class IgProfileMetricsDevelopmentToDB(CsvToDb):
+    table = 'ig_profile_metrics_development'
 
-    columns = [
-        ('city', 'TEXT'),
-        ('amount', 'INT')
-    ]
+    def requires(self):
+        return FetchIgProfileMetricsDevelopment(
+            table=self.table, columns=[col[0] for col in self.columns])
 
-    primary_key = 'city'
+
+class IgTotalProfileMetricsToDB(CsvToDb):
+    table = 'ig_total_profile_metrics'
+
+    def requires(self):
+        return FetchIgTotalProfileMetrics(
+            table=self.table, columns=[col[0] for col in self.columns])
+
+
+class IgAudienceCityToDB(CsvToDb):
+    table = 'ig_audience_city'
 
     def requires(self):
         return FetchIgAudienceOrigin(
-            columns=[col[0] for col in self.columns])
+            table=self.table,
+            columns=[col[0] for col in self.columns],
+            country_mode=False)
+
+
+class IgAudienceCountryToDB(CsvToDb):
+    table = 'ig_audience_country'
+
+    def requires(self):
+        return FetchIgAudienceOrigin(
+            table=self.table,
+            columns=[col[0] for col in self.columns],
+            country_mode=True)
 
 
 class IgAudienceGenderAgeToDB(CsvToDb):
     table = 'ig_audience_gender_age'
 
-    columns = [
-        ('gender', 'TEXT'),
-        ('age', 'TEXT'),
-        ('amount', 'INT')
-    ]
-
-    primary_key = ('gender', 'age')
-
     def requires(self):
         return FetchIgAudienceGenderAge(
-            columns=[col[0] for col in self.columns])
+            table=self.table, columns=[col[0] for col in self.columns])
 
 # =============== DataPreparation Tasks ===============
 
@@ -155,7 +135,7 @@ class FetchIgPosts(DataPreparationTask):
             for media in response_json['data']:
                 all_media.append(media)
 
-            if minimal_mode:
+            if self.minimal_mode:
                 logger.info("Running in minimal mode, stopping now")
                 response_json['paging'].pop('next')
 
@@ -195,6 +175,9 @@ class FetchIgPostPerformance(DataPreparationTask):
         with self.input().open('r') as input_file:
             post_df = pd.read_csv(input_file)
 
+        if self.minimal_mode:
+            post_df = post_df.head(5)
+
         generic_metrics = [
             'impressions',
             'reach',
@@ -206,16 +189,15 @@ class FetchIgPostPerformance(DataPreparationTask):
 
         fetch_time = dt.datetime.now()
         for i, row in post_df.iterrows():
-            metrics = ','.join(generic_metrics)
-
             # Fetch only insights for less than 2 months old posts
             post_time = dt.datetime.strptime(
                 row['timestamp'],
                 '%Y-%m-%dT%H:%M:%S+%f')
             if post_time.date() < \
                fetch_time.date() - self.timespan:
-                break
+                continue
 
+            metrics = ','.join(generic_metrics)
             if sys.stdout.isatty():
                 print(
                     f"\rFetched insight for instagram post from {post_time}",
@@ -253,13 +235,13 @@ class FetchIgPostPerformance(DataPreparationTask):
         if sys.stdout.isatty():
             print()
 
-        performance_df, _ = self.ensure_foreign_keys(performance_df)
+        performance_df = self.ensure_foreign_keys(performance_df)
 
         with self.output().open('w') as output_file:
             performance_df.to_csv(output_file, index=False, header=True)
 
 
-class FetchIgAudienceOrigin(DataPreparationTask):
+class FetchIgProfileMetricsDevelopment(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
@@ -267,7 +249,7 @@ class FetchIgAudienceOrigin(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/instagram/ig_audience_origin.csv',
+            f'{self.output_dir}/instagram/ig_profile_metrics_development.csv',
             format=UTF8)
 
     def run(self):
@@ -276,11 +258,110 @@ class FetchIgAudienceOrigin(DataPreparationTask):
         page_id = facts['ids']['instagram']['pageId']
 
         df = pd.DataFrame(columns=self.columns)
-        values = get_profile_metric(page_id, 'audience_city')
+        metrics = ','.join([
+            'impressions',
+            'reach',
+            'profile_views',
+            'follower_count',
+            'website_clicks'
+        ])
+        period = 'day'
+        url = f'{API_BASE}/{page_id}/insights?metric={metrics}&period={period}'
+        response = try_request_multiple_times(url)
+        response_data = response.json()['data']
 
-        for i, (city, amount) in enumerate(values.items()):
+        timestamp = response_data[0]['values'][0]['end_time']
+
+        impressions = response_data[0]['values'][0]['value']
+        reach = response_data[1]['values'][0]['value']
+        profile_views = response_data[2]['values'][0]['value']
+        follower_count = response_data[3]['values'][0]['value']
+        website_clicks = response_data[4]['values'][0]['value']
+
+        df.loc[0] = [
+            timestamp,
+            impressions,
+            reach,
+            profile_views,
+            follower_count,
+            website_clicks
+        ]
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+
+class FetchIgTotalProfileMetrics(DataPreparationTask):
+    columns = luigi.parameter.ListParameter(description="Column names")
+
+    def requires(self):
+        return MuseumFacts()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/instagram/ig_total_profile_metrics.csv',
+            format=UTF8)
+
+    def run(self):
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+        page_id = facts['ids']['instagram']['pageId']
+
+        df = pd.DataFrame(columns=self.columns)
+        fields = ','.join([
+            'followers_count',
+            'media_count'
+        ])
+        url = f'{API_BASE}/{page_id}?fields={fields}'
+        response = try_request_multiple_times(url)
+        response_data = response.json()
+
+        timestamp = dt.datetime.now()
+
+        follower_count = response_data.get('followers_count')
+        media_count = response_data.get('media_count')
+
+        df.loc[0] = [
+            timestamp,
+            follower_count,
+            media_count
+        ]
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+
+class FetchIgAudienceOrigin(DataPreparationTask):
+    columns = luigi.parameter.ListParameter(description="Column names")
+    country_mode = luigi.parameter.BoolParameter(
+        description="Whether to use countries instead of cities",
+        default=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.metric = 'country' if self.country_mode else 'city'
+
+    def requires(self):
+        return MuseumFacts()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/instagram/ig_audience_{self.metric}.csv',
+            format=UTF8)
+
+    def run(self):
+        with self.input().open('r') as facts_file:
+            facts = json.load(facts_file)
+        page_id = facts['ids']['instagram']['pageId']
+
+        df = pd.DataFrame(columns=self.columns)
+        values = get_single_metric(page_id, f'audience_{self.metric}')
+
+        timstamp = dt.datetime.now()
+        for i, (value, amount) in enumerate(values.items()):
             df.loc[i] = [
-                city,
+                value,
+                timstamp,
                 amount
             ]
 
@@ -305,13 +386,15 @@ class FetchIgAudienceGenderAge(DataPreparationTask):
         page_id = facts['ids']['instagram']['pageId']
 
         df = pd.DataFrame(columns=self.columns)
-        values = get_profile_metric(page_id, 'audience_gender_age')
+        values = get_single_metric(page_id, 'audience_gender_age')
 
+        timstamp = dt.datetime.now()
         for i, (gender_age, amount) in enumerate(values.items()):
             gender, age = gender_age.split('.')
             df.loc[i] = [
                 gender,
                 age,
+                timstamp,
                 amount
             ]
 
@@ -321,7 +404,7 @@ class FetchIgAudienceGenderAge(DataPreparationTask):
 # =============== Utilities ===============
 
 
-def get_profile_metric(page_id, metric, period='lifetime'):
+def get_single_metric(page_id, metric, period='lifetime'):
     url = f'{API_BASE}/{page_id}/insights?metric={metric}&period={period}'
     res = try_request_multiple_times(url)
     return res.json()['data'][0]['values'][0]['value']
@@ -330,5 +413,8 @@ def get_profile_metric(page_id, metric, period='lifetime'):
 class IgToDBWrapper(luigi.WrapperTask):
     def requires(self):
         yield IgPostsToDB()
+        yield IgProfileMetricsDevelopmentToDB()
+        yield IgTotalProfileMetricsToDB()
         yield IgAudienceGenderAgeToDB()
-        yield IgAudienceOriginToDB()
+        yield IgAudienceCityToDB()
+        yield IgAudienceCountryToDB()

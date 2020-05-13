@@ -1,19 +1,20 @@
 import datetime as dt
 import json
-import unittest
+import re
 from unittest.mock import MagicMock, patch
 
+from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
 
+from db_test import DatabaseTestCase
 import facebook
-from task_test import DatabaseTaskTest
 
 FB_TEST_DATA = 'tests/test_data/facebook'
 
 
-class TestFacebookPost(DatabaseTaskTest):
+class TestFacebookPost(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -109,7 +110,7 @@ class TestFacebookPost(DatabaseTaskTest):
             facebook.FetchFbPosts().run()
 
 
-class TestFacebookPostPerformance(unittest.TestCase):
+class TestFacebookPostPerformance(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostPerformance, 'output')
@@ -141,21 +142,10 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        class MockDatetime(dt.datetime):
-            @classmethod
-            def now(cls):
-                return cls(2020, 1, 1, 0, 0, 5)
-
-        tmp_datetime = dt.datetime
-
-        # Ensure dt.datetime is reset in any case
-        try:
-            dt.datetime = MockDatetime
-            facebook.FetchFbPostPerformance(
-                timespan=dt.timedelta(days=100000)).run()
-
-        finally:
-            dt.datetime = tmp_datetime
+        with freeze_time('2020-01-01 00:00:05'):
+            self.task = facebook.FetchFbPostPerformance(
+                timespan=dt.timedelta(days=100000))
+            self.task.run()
 
         with open(f'{FB_TEST_DATA}/post_insights_expected.csv',
                   'r',
@@ -194,11 +184,13 @@ class TestFacebookPostPerformance(unittest.TestCase):
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        # The current edge case test data should cause the interpretation to
-        # fail at a very specific point (processing "react_anger")
-        with self.assertRaises(ValueError) as cm:
-            facebook.FetchFbPostPerformance().run()
-
-        error = cm.exception
-        self.assertEqual(str(error),
-                         'invalid literal for int() with base 10: \'4.4\'')
+        with freeze_time('2020-01-01 00:00:05'):
+            # The current edge case test data should cause the interpretation
+            # to fail at a very specific point (processing "react_anger")
+            with self.assertRaisesRegex(
+                    ValueError,
+                    re.escape(
+                        "invalid literal for int() with base 10: '4.4'")):
+                self.task = facebook.FetchFbPostPerformance(
+                    timespan=dt.timedelta(days=100000))
+                self.task.run()

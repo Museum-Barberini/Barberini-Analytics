@@ -7,47 +7,20 @@ from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask, \
-                                  minimal_mode, OUTPUT_DIR
-from db_connector import db_connector
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
-from gomus.customers import hash_id
+from gomus._utils.extract_customers import hash_id
 
 
 class EventsToDB(CsvToDb):
 
     table = 'gomus_event'
 
-    columns = [
-        ('event_id', 'INT'),
-        ('booking_id', 'INT'),
-        ('customer_id', 'INT'),
-        ('reservation_count', 'INT'),
-        ('order_date', 'DATE'),
-        ('status', 'TEXT'),
-        ('category', 'TEXT')
-    ]
-
-    primary_key = 'event_id'
-
-    foreign_keys = [
-        {
-            'origin_column': 'booking_id',
-            'target_table': 'gomus_booking',
-            'target_column': 'booking_id'
-        },
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
-    ]
-
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            table=self.table)
 
 
 class ExtractEventData(DataPreparationTask):
@@ -59,13 +32,13 @@ class ExtractEventData(DataPreparationTask):
         super().__init__(*args, **kwargs)
         self.events_df = None
         self.categories = [
-            'Öffentliche Führung',
-            'Event',
-            'Gespräch',
-            'Kinder-Workshop',
-            'Konzert',
-            'Lesung',
-            'Vortrag']
+            "Öffentliche Führung",
+            "Event",
+            "Gespräch",
+            "Kinder-Workshop",
+            "Konzert",
+            "Lesung",
+            "Vortrag"]
 
     def _requires(self):
         return luigi.task.flatten([
@@ -90,25 +63,20 @@ class ExtractEventData(DataPreparationTask):
         for index, event_files in enumerate(self.input()):
             category = self.categories[index]
             with event_files.open('r') as events:
-
                 # for every event that falls into that category
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
-
-                    if path == '':
+                    if not path:
                         continue
+
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
-                    if i % 2 == 0:
-                        self.append_event_data(event_data,
-                                               'Gebucht',
-                                               category)
-                    else:
-                        self.append_event_data(event_data,
-                                               'Storniert',
-                                               category)
+                    self.append_event_data(
+                        event_data,
+                        "Storniert" if i % 2 else "Gebucht",
+                        category)
 
-        self.events_df, _ = self.ensure_foreign_keys(self.events_df)
+        self.events_df = self.ensure_foreign_keys(self.events_df)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
@@ -127,8 +95,8 @@ class ExtractEventData(DataPreparationTask):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'Event_id', 'E-Mail', 'Plätze',
-                'Datum', 'Status', 'Kategorie'])
+                "Id", "Event_id", "E-Mail", "Plätze",
+                "Datum", "Status", "Kategorie"])
 
             event_df.columns = self.columns
 
@@ -145,7 +113,7 @@ class ExtractEventData(DataPreparationTask):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class FetchCategoryReservations(luigi.Task):
+class FetchCategoryReservations(DataPreparationTask):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
@@ -156,7 +124,7 @@ class FetchCategoryReservations(luigi.Task):
 
     def run(self):
 
-        if minimal_mode:
+        if self.minimal_mode:
             query = f'''
                 SELECT booking_id FROM gomus_booking
                 WHERE category='{self.category}'
@@ -168,7 +136,7 @@ class FetchCategoryReservations(luigi.Task):
                      f'category=\'{self.category}\' '
                      f'AND start_datetime > \'{two_weeks_ago}\'')
 
-        booking_ids = db_connector.query(query)
+        booking_ids = self.db_connector.query(query)
 
         for row in booking_ids:
             event_id = row[0]
@@ -194,7 +162,7 @@ class FetchCategoryReservations(luigi.Task):
     def output(self):
         cat = cleanse_umlauts(self.category)
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/gomus/all_{cat}_reservations.txt',
+            f'{self.output_dir}/gomus/all_{cat}_reservations.txt',
             format=UTF8
         )
 
