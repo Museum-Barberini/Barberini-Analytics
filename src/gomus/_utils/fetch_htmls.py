@@ -104,7 +104,9 @@ class FetchOrdersHTML(DataPreparationTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.output_list = []
+        print("self.get_order_ids() executing now!")
         self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
+        print("self.get_order_ids() executed successfully!")
 
     def requires(self):
         return OrdersToDB()
