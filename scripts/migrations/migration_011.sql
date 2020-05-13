@@ -68,7 +68,8 @@ BEGIN;
             ) STORED
     );
     ALTER TABLE fb_post_performance
-        RENAME COLUMN time_stamp TO "timestamp",
+        RENAME COLUMN time_stamp TO "timestamp";
+	ALTER TABLE fb_post_performance
         ADD COLUMN page_id text,
         ADD COLUMN post_id text;
     -- 3b. Refill post table
@@ -77,10 +78,12 @@ BEGIN;
         FROM fb_post_old, regexp_matches(fb_post_id, '^(\d+)_(\d+)$') AS old_post_id;
         -- unfortunately O(n²) because inter-row updates appear impossible
     -- 4. Reconnect performance table
-    UPDATE fb_post_performance AS perf
-        SET perf.page_id = fb_post.page_id, perf.post_id = fb_post.post_id
+    UPDATE fb_post_performance
+        SET
+			page_id = fb_post.page_id,
+			post_id = fb_post.post_id
         FROM fb_post
-        WHERE fb_post.fb_post_id = perf.fb_post_id;
+        WHERE fb_post.fb_post_id = fb_post_performance.fb_post_id;
     ALTER TABLE fb_post_performance
         ALTER COLUMN page_id SET NOT NULL,
         ALTER COLUMN post_id SET NOT NULL,
