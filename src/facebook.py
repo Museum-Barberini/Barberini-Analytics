@@ -179,9 +179,9 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             # Activity
             activity = response_content['data'][1]['values'][0]['value']
-            post_perf['likes'] = int(activity.get('LIKE', 0))
-            post_perf['shares'] = int(activity.get('SHARE', 0))
-            post_perf['comments'] = int(activity.get('COMMENT', 0))
+            post_perf['likes'] = int(activity.get('like', 0))
+            post_perf['shares'] = int(activity.get('share', 0))
+            post_perf['comments'] = int(activity.get('comment', 0))
 
             # Clicks
             clicks = response_content['data'][2]['values'][0]['value']
