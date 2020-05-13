@@ -177,7 +177,10 @@ class TestEntriesSheet0Format(GomusFormatTest):
     def test_entries_sheet0_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report(suffix='_1day', sheet=[0])
-        self.check_format(skiprows=7, skipfooter=1)
+        try:
+            self.check_format(skiprows=5, skipfooter=1)
+        except AssertionError:
+            self.check_format(skiprows=7, skipfooter=1)
 
 
 class TestEntriesSheet1Format(GomusFormatTest):
@@ -237,7 +240,4 @@ class TestEventsFormat(GomusFormatTest):
         self.output_target = MockTarget('data_out', format=UTF8)
         output_mock.return_value = self.output_target
         self.run_task(FetchEventReservations(123))
-        try:
-            self.check_format(skiprows=5, skipfooter=1)
-        except AssertionError:
-            self.check_format(skiprows=7, skipfooter=1)
+        self.check_format(skiprows=5, skipfooter=1)
