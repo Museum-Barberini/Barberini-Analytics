@@ -1,2 +1,3 @@
+cd $(dirname "$0")/../..
 chmod +x ./scripts/update/merge-migrations.sh
-cat $(dirname "$0")/../../.gitconfig >> .git/config
+cat .gitconfig >> .git/config
