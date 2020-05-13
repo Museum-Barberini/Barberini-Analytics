@@ -198,13 +198,12 @@ class ScrapeGomusOrderContains(GomusScraperTask):
     # 60 minutes until the task will timeout
     # set to about 800000 for collecting historic data ≈ 7 Days
     worker_timeout = 3600
-    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    """
+
     def requires(self):
-        # return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
-        pass
+        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
 
     def output(self):
         return luigi.LocalTarget(
