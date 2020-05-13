@@ -24,12 +24,11 @@ class CsvToDb(CopyToTable):
                     "in order to test the pipeline for structural problems")
 
     """
-    Don't delete this! This parameter assures that every (sub)instance of me
-    is treated as an individual and will be re-run.
+    Don't delete this or make it private! This parameter assures that every
+    (sub)instance of me is treated as an individual and will be re-run.
     """
     dummy_date = luigi.FloatParameter(
-        default=dt.datetime.timestamp(dt.datetime.now()),
-        visibility=luigi.parameter.ParameterVisibility.PRIVATE)
+        default=dt.datetime.timestamp(dt.datetime.now()))
 
     # override the default column separator (tab)
     column_separator = ','
@@ -56,7 +55,8 @@ class CsvToDb(CopyToTable):
                 return self.db_connector.query(f'''
                     SELECT column_name, data_type
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE table_name = '{self.table}';
+                    WHERE table_name = '{self.table}'
+                    ORDER BY ordinal_position ASC;
                 ''')
             self._columns = fetch_columns()
             if not self._columns:
