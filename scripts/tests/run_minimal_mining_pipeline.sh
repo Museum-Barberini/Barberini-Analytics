@@ -15,7 +15,7 @@ echo "Starting luigi container ..."
 make startup
 trap "make shutdown" EXIT
 
-# Emulating fill_db.sh
+# Basically, we are emulating fill_db.sh now, just without backups.
 echo "Applying all migrations ..."
 make docker-do do="POSTGRES_DB=$POSTGRES_DB ./scripts/migrations/migrate.sh"
 
