@@ -12,7 +12,7 @@ primkey_changes = [
         TO {table_name}_pkey;
     '''
     for constraint_name, table_schema, table_name
-    in db_connector.query(f'''
+    in db_connector.query('''
         SELECT DISTINCT(tco.constraint_name),
             tco.table_schema,
             kcu.table_name
@@ -34,7 +34,7 @@ fkey_changes = [
         TO {table_name}_{column_name}_fkey
     '''
     for constraint_name, table_schema, table_name, column_name
-    in db_connector.query(f'''
+    in db_connector.query('''
         SELECT DISTINCT(tco.constraint_name),
             tco.table_schema,
             tco.table_name,
