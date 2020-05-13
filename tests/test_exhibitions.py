@@ -37,3 +37,5 @@ class TestExhibitions(DatabaseTestCase):
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
+
+        self.fail()
