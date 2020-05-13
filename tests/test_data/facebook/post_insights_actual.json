@@ -25,9 +25,9 @@
             "values": [
                 {
                     "value": {
-                        "SHARE": 420,
-                        "LIKE": 690,
-                        "COMMENT": 666
+                        "share": 420,
+                        "like": 690,
+                        "comment": 666
                     }
                 }
             ],
