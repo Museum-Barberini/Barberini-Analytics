@@ -104,9 +104,7 @@ class FetchOrdersHTML(DataPreparationTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.output_list = []
-        print("self.get_order_ids() executing now!")
-        self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
-        print("self.get_order_ids() executed successfully!")
+        self.order_ids = []
 
     def requires(self):
         return OrdersToDB()
@@ -125,6 +123,7 @@ class FetchOrdersHTML(DataPreparationTask):
             SELECT * FROM information_schema.tables
             WHERE table_name='gomus_order_contains'
         ''')
+        print(f"order_contains_table_exists: {order_contains_table_exists}")
         order_ids = self.db_connector.query(
             f'''
                 SELECT order_id FROM gomus_order
@@ -135,10 +134,15 @@ class FetchOrdersHTML(DataPreparationTask):
             '''
             if order_contains_table_exists else
             f'SELECT order_id FROM gomus_order {query_limit}')
+        print("order_ids query done!")
 
         return order_ids
 
     def run(self):
+        print("self.get_order_ids() executing now!")
+        self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
+        print("self.get_order_ids() executed successfully!")
+
         for i in range(len(self.order_ids)):
 
             url = self.base_url + str(self.order_ids[i])
