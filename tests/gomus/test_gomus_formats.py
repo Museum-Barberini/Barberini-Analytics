@@ -237,4 +237,7 @@ class TestEventsFormat(GomusFormatTest):
         self.output_target = MockTarget('data_out', format=UTF8)
         output_mock.return_value = self.output_target
         self.run_task(FetchEventReservations(123))
-        self.check_format(skiprows=5, skipfooter=1)
+        try:
+            self.check_format(skiprows=5, skipfooter=1)
+        except AssertionError:
+            self.check_format(skiprows=7, skipfooter=1)
