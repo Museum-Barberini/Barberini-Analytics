@@ -72,7 +72,7 @@ class CsvToDb(CopyToTable):
             ', '.join([col[0] for col in self.columns]),
             ', '.join(
                 [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
-        logger.info(f"{self.__class__}: Executing query: {query}")
+        logger.debug(f"{self.__class__}: Executing query: {query}")
         cursor.copy_expert(query, file)
 
     def create_table(self):
