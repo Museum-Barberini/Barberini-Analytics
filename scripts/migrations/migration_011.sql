@@ -69,7 +69,7 @@ BEGIN;
     );
     ALTER TABLE fb_post_performance
         RENAME COLUMN time_stamp TO "timestamp";
-	ALTER TABLE fb_post_performance
+    ALTER TABLE fb_post_performance
         ADD COLUMN page_id text,
         ADD COLUMN post_id text;
     -- 3b. Refill post table
@@ -80,8 +80,8 @@ BEGIN;
     -- 4. Reconnect performance table
     UPDATE fb_post_performance
         SET
-			page_id = fb_post.page_id,
-			post_id = fb_post.post_id
+            page_id = fb_post.page_id,
+            post_id = fb_post.post_id
         FROM fb_post
         WHERE fb_post.fb_post_id = fb_post_performance.fb_post_id;
     ALTER TABLE fb_post_performance
@@ -122,6 +122,37 @@ BEGIN;
 
 
     -- C. Create new views
+
+    -- 1. Create rich views for posts joined with latest performance data
+    CREATE VIEW fb_post_rich AS (
+        SELECT *
+        FROM fb_post_performance AS p1
+        NATURAL JOIN (
+            SELECT page_id, post_id, MAX(timestamp) AS timestamp
+            FROM fb_post_performance
+            GROUP BY page_id, post_id) AS p2
+        NATURAL JOIN fb_post
+    );
+    CREATE VIEW ig_post_rich AS (
+        SELECT *
+        FROM ig_post_performance AS p1
+        NATURAL JOIN (
+            SELECT ig_post_id, MAX(timestamp) AS timestamp
+            FROM ig_post_performance
+            GROUP BY ig_post_id) AS p2
+        NATURAL JOIN ig_post
+    );
+    CREATE VIEW tweet_rich AS (
+        SELECT *
+        FROM tweet_performance AS p1
+        NATURAL JOIN (
+            SELECT tweet_id, MAX(timestamp) AS timestamp
+            FROM tweet_performance
+            GROUP BY tweet_id) AS p2
+        NATURAL JOIN tweet
+    );
+
+    -- 2. Create compound views by context
     CREATE VIEW app_review AS
     (
         SELECT
@@ -150,21 +181,48 @@ BEGIN;
         FROM gplay_review
         WHERE app_id = 'com.barberini.museum.barberinidigital'
     );
-
-    CREATE VIEW social_media_post AS (
+    CREATE VIEW museum_review AS (
+        SELECT
+            'Google Maps' AS source,
+            google_maps_review_id AS review_id,
+            rating,
+            text,
+            post_date,
+            permalink
+        FROM google_maps_review
+        WHERE place_id = 'ChIJyV9mg0lfqEcRnbhJji6c17E'  -- Museum Barberini
+    );
+    CREATE VIEW social_media_post AS
+    (
         SELECT
             'Facebook' AS source,
             fb_post_id AS post_id,
             text,
             post_date,
-            NULL as media_type,
-            NULL as response_to,
-            NULL as user_id,
-            TRUE as is_promotion,
+            NULL AS media_type,
+            NULL AS response_to,
+            NULL AS user_id,
+            TRUE AS is_promotion,
             likes,
             comments,
             shares,
-            
+            permalink
+        FROM fb_post_rich
+    ) UNION (
+        SELECT
+            'Instagram' AS source,
+            ig_post_id AS review_id,
+            text,
+            post_date,
+            media_type,
+            NULL AS response_to,
+            NULL AS user_id,
+            TRUE AS is_promotion,
+            likes,
+            comments,
+            NULL AS shares,
+            permalink
+        FROM ig_post_rich
     ) UNION (
         SELECT
             'Twitter' AS source,
@@ -174,22 +232,58 @@ BEGIN;
             NULL as media_type,
             response_to,
             user_id,
-            is_promotion,
+            is_from_barberini AS is_promotion,
             likes,
             replies AS comments,
             retweets AS shares,
             permalink
-        FROM tweet
-        NATURAL JOIN (
-            SELECT tweet_id, likes, replies, retweets
-            FROM tweet_performance tp1
-            WHERE EXISTS(
-                SELECT tp2.tweet_id
-                FROM tweet_performance tp2
-                WHERE tp2.tweet_id = tp1.tweet_id
-                GROUP BY tp2.tweet_id, tp2.timestamp
-                HAVING MAX(tp2.timestamp) = tp1.timestamp)
-        ) AS performance
-    )*/
+        FROM tweet_rich
+    );
+
+    -- 3. Create total view of all posts
+    CREATE VIEW post AS
+    (
+        SELECT
+            source,
+            review_id AS post_id,
+            'App Review' AS context,
+            text,
+            post_date,
+            rating,
+            FALSE AS is_promotion,
+            likes,
+            CAST(NULL AS int) AS comments,
+            CAST(NULL AS int) AS shares,
+            permalink
+        FROM app_review
+    ) UNION (
+        SELECT
+            source,
+            review_id AS post_id,
+            'Museum Review' AS context,
+            text,
+            post_date,
+            rating,
+            FALSE AS is_promotion,
+            NULL AS likes,
+            NULL AS comments,
+            NULL AS shares,
+            permalink
+        FROM museum_review
+    ) UNION (
+        SELECT
+            source,
+            post_id,
+            'Social Media' AS context,
+            text,
+            post_date,
+            NULL AS rating,
+            is_promotion,
+            likes,
+            NULL AS comments,
+            shares,
+            permalink
+        FROM social_media_post
+    );
 
 COMMIT;
