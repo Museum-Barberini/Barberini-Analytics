@@ -119,13 +119,12 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
                     'r',
                     encoding='utf-8'
                 ) as raw_reviews_file:
-            raw_reviews = json.load(raw_reviews_file,)
+            raw_reviews = json.load(raw_reviews_file)
         expected_extracted_reviews = pd.read_csv(
             'tests/test_data/google_maps/expected_extracted_reviews.csv')
 
         # ----- Execute code under test ----
-        actual_extracted_reviews = self.task.extract_reviews(
-            '123def', raw_reviews)
+        actual_extracted_reviews = self.task.extract_reviews(raw_reviews)
 
         # ----- Inspect result ------
         pd.testing.assert_frame_equal(

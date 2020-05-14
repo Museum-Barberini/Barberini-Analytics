@@ -109,7 +109,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     An authenticated user has account(s), an accounts contains locations, and
     a location contains reviews (which we need to request one by one).
     """
-    def fetch_raw_reviews(self, service, place_id_handler, page_size=100):
+    def fetch_raw_reviews(self, service, page_size=100):
         # get account identifier
         account_list = service.accounts().list().execute()
         # in almost all cases one only has access to one account
