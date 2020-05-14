@@ -29,21 +29,21 @@ BEGIN;
                 FUNCTION foreign_key_trigger()
                     RETURNS "trigger" AS
                     $BODY$ BEGIN
-                        IF (SELECT (%3$s)) NOT IN (SELECT (%4$s) FROM %2$s)
+                        -- Disabled due to performance reasons (O(n²)) ☹
+                        /*IF (SELECT (%3$s)) NOT IN (SELECT (%4$s) FROM %2$s)
                         THEN
                             RAISE EXCEPTION ''Foreign key violation: Key (%%=%%) \
                             is not present in table %%'',
                             ''(%5$s)'', (SELECT (%3$s)), ''%2$s'';
-                        END IF;
+                        END IF;*/
                         RETURN NEW;
                     END; $BODY$
                     LANGUAGE ''plpgsql'';
-                -- Disabled due to performance reasons (O(n²)) ☹
-                /*CREATE TRIGGER tr_before_insert_or_update
+                CREATE TRIGGER tr_before_insert_or_update
                     BEFORE INSERT OR UPDATE OF %5$s
                     ON %1$s
                     FOR EACH ROW
-                    EXECUTE PROCEDURE foreign_key_trigger();*/
+                    EXECUTE PROCEDURE foreign_key_trigger();
                 ',
                 "table",
                 reftable,
