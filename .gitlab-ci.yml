@@ -1,9 +1,5 @@
 image: docker:latest
 
-default:
-  before_script:
-    - global before script
-
 # Stages are required a) to priorize jobs and b) to avoid concurrency issues.
 stages:
   - build
