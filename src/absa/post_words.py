@@ -6,7 +6,7 @@ import regex
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from .posts import FetchPosts
+from query_db import QueryDb
 
 
 regex_type = type(regex.compile(''))
@@ -78,7 +78,12 @@ class CollectPostWords(DataPreparationTask):
                     "exploration purposes. Might impact performance.")
 
     def requires(self):
-        yield FetchPosts(
+        yield QueryDb(
+            query='''
+                SELECT source, post_id, text
+                FROM post
+                WHERE text <> ''
+            ''',
             limit=self.limit,
             shuffle=self.shuffle)
 

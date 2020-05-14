@@ -2,10 +2,13 @@ import luigi
 import pandas as pd
 
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 
 
 class QueryDb(DataPreparationTask):
+
+    query = luigi.Parameter(
+        description="The SQL query to perform on the DB"
+    )
 
     limit = luigi.parameter.IntParameter(
         default=-1,
