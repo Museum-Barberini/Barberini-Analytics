@@ -37,6 +37,12 @@ class QueryDb(DataPreparationTask):
             query += f'LIMIT {self.limit} '
         return query
 
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/query_{self.task_id}.csv',
+            format=luigi.format.UTF8
+        )
+
     def run(self):
         query = self.build_query()
         rows, columns = self.db_connector.query_with_header(query)
