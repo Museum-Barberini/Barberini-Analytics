@@ -40,17 +40,3 @@ minimal-mining-pipeline:
   stage: test
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
-
-# Deprecated, see #145. Moving this to the bottom of CI for now in order to
-# detect possible problems with the coverage job as failure detector.
-test:
-  stage: analyze
-  tags:
-    - barberini
-  script:
-    - container=$(docker ps -f name=gitlab-runner-luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
-    - make startup
-    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-luigi make test
-    - make shutdown
-
