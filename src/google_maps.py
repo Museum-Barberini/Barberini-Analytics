@@ -71,7 +71,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     uses oauth2 to authenticate with google, also caches credentials
     requires no login action if you have a valid cache
     """
-
     def load_credentials(self) -> oauth2client.client.Credentials:
         storage = Storage(self.token_cache)
         credentials = storage.get()
@@ -110,7 +109,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     An authenticated user has account(s), an accounts contains locations, and
     a location contains reviews (which we need to request one by one).
     """
-    def fetch_raw_reviews(self, service, page_size=100):
+    def fetch_raw_reviews(self, service, place_id_handler, page_size=100):
         # get account identifier
         account_list = service.accounts().list().execute()
         # in almost all cases one only has access to one account
@@ -126,12 +125,17 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 ("ERROR: This user seems to not have access to any google "
                  "location, unable to fetch reviews"))
         location = location_list['locations'][0]['name']
+        place_id = location_list['locations'][0]['locationKey']['placeId']
 
         # get reviews for that location
         review_list = service.accounts().locations().reviews().list(
             parent=location,
             pageSize=page_size).execute()
-        yield from review_list['reviews']
+        yield from [
+            {**review, 'placeId': place_id}
+            for review
+            in review_list['reviews']
+        ]
         total_reviews = review_list['totalReviewCount']
 
         for next_page_token in self.loop_verbose(
@@ -147,7 +151,11 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 parent=location,
                 pageSize=page_size,
                 pageToken=next_page_token).execute()
-            yield from review_list['reviews']
+            yield from [
+                {**review, 'placeId': place_id}
+                for review
+                in review_list['reviews']
+            ]
 
             if self.minimal_mode:
                 review_list.pop('nextPageToken')
@@ -162,6 +170,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             extracted['text'] = None
             extracted['text_english'] = None
             extracted['language'] = None
+            extracted['place_id'] = raw['placeId']
 
             raw_comment = raw.get('comment', None)
             if raw_comment:

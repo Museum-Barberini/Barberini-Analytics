@@ -10,7 +10,8 @@
 MIGRATION_DIR=$(dirname "$0")
 # Globstar guarantees us to get the files in order ascending
 MIGRATION_FILES="$MIGRATION_DIR/migration_*"
-APPLIED_FILE="${1:-$APPLIED_FILE}"
+APPLIED_FILE="$(which "${1:-$APPLIED_FILE}")"
+cd "$MIGRATION_DIR/../.."  # provide neutral context for migration scripts
 
 for MIGRATION_FILE in $MIGRATION_FILES
 do

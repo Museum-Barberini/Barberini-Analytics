@@ -44,14 +44,10 @@ docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
 
 
-apply-pending-migrations:
-	${SHELL} -c '\
-		set -a \
-		&& . /etc/barberini-analytics/secrets/database.env \
-		&& POSTGRES_HOST=localhost \
-		&& ./scripts/migrations/migrate.sh /var/barberini-analytics/db-data/applied_migrations.txt'
-
 # ------ For use inside the Luigi container ------
+
+apply-pending-migrations:
+	./scripts/migrations/migrate.sh /var/lib/postgresql/data/applied_migrations.txt
 
 # --- Control luigi ---
 
@@ -65,7 +61,7 @@ luigi-restart-scheduler:
 	make luigi-scheduler
 	
 luigi:
-	./scripts/running/fill_db.sh
+	make luigi-task LMODULE=fill_db LTASK=FillDB
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder

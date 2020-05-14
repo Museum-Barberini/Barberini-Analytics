@@ -56,7 +56,8 @@ class CsvToDb(CopyToTable):
                     SELECT column_name, data_type
                     FROM INFORMATION_SCHEMA.COLUMNS
                     WHERE table_name = '{self.table}'
-                    ORDER BY ordinal_position ASC;
+                        AND is_generated = 'NEVER'
+                    ORDER BY ordinal_position
                 ''')
             self._columns = fetch_columns()
             if not self._columns:
@@ -65,8 +66,12 @@ class CsvToDb(CopyToTable):
         return self._columns
 
     def copy(self, cursor, file):
-        query = self.load_sql_script('copy', self.table, ','.join(
-            [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
+        query = self.load_sql_script(
+            'copy',
+            self.table,
+            ', '.join([col[0] for col in self.columns]),
+            ', '.join(
+                [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
         logger.debug(f"{self.__class__}: Executing query: {query}")
         cursor.copy_expert(query, file)
 
