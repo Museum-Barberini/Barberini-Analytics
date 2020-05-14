@@ -4,7 +4,6 @@ import pandas as pd
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 from .post_words import PostWordsToDB
 from .stopwords import StopwordsToDb
 
