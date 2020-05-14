@@ -39,7 +39,7 @@ class QueryDb(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/query_{self.task_id}.csv',
+            f'{self.output_dir}/{self.task_id}.csv',
             format=luigi.format.UTF8
         )
 
