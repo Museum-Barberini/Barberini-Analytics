@@ -24,8 +24,7 @@ class DataPreparationTask(luigi.Task):
         self.db_connector = db_connector.db_connector()
 
     table = luigi.parameter.Parameter(
-        description="The name of the table the data should be prepared for",
-        default=None)
+        description="The name of the table the data should be prepared for")
 
     minimal_mode = luigi.parameter.BoolParameter(
         default=minimal_mode,
