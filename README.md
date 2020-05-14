@@ -22,7 +22,7 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
    
    - For best convenience, clone it into `/root/bp-barberini`.
 
-2. Copy the `secrets` folders (not available on the internet) into `/etc`
+2. Copy the `secrets` folders (not available on the internet) into `/etc/barberini-analytics`
 
 3. Set up the toolchain. See `scripts/setup/install_toolchain.sh` how to do this. If you use ubuntu/amd64, you can run the script directly. Use `sudo`!
 

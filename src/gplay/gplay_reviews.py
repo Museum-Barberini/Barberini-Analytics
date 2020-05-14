@@ -16,18 +16,6 @@ class GooglePlaystoreReviewsToDB(CsvToDb):
 
     table = 'gplay_review'
 
-    columns = [
-        ('playstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('thumbs_up', 'INT'),
-        ('title', 'TEXT'),
-        ('post_date', 'TIMESTAMP')
-    ]
-
-    primary_key = 'playstore_review_id'
-
     def requires(self):
         return FetchGplayReviews()
 
@@ -36,14 +24,17 @@ class FetchGplayReviews(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.url = None
+        self._app_id = None
+        self._url = None
 
     def requires(self):
         return MuseumFacts()
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gplay_reviews.csv', format=luigi.format.UTF8)
+            f'{self.output_dir}/gplay_reviews.csv',
+            format=luigi.format.UTF8
+        )
 
     def run(self):
 
@@ -60,7 +51,7 @@ class FetchGplayReviews(DataPreparationTask):
         # Different languages have different reviews. Iterate over
         # the language codes to fetch all reviews.
         language_codes = self.get_language_codes()
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             random_num = random.randint(0, len(language_codes) - 2)
             language_codes = language_codes[random_num:random_num + 2]
 
@@ -72,7 +63,7 @@ class FetchGplayReviews(DataPreparationTask):
         reviews_df = pd.DataFrame(
             reviews_flattened,
             columns=['id', 'date', 'score', 'text',
-                     'title', 'thumbsUp', 'version']
+                     'title', 'thumbsUp', 'version', 'app_id']
         )
         return reviews_df.drop_duplicates()
 
@@ -90,7 +81,7 @@ class FetchGplayReviews(DataPreparationTask):
         """
 
         response = requests.get(
-            url=self.get_url(),
+            url=self.url,
             params={
                 'lang': language_code,
                 # num: max number of reviews to be fetched. We want all reviews
@@ -106,33 +97,43 @@ class FetchGplayReviews(DataPreparationTask):
         keep_values = ['id', 'date', 'score',
                        'text', 'title', 'thumbsUp', 'version']
         reviews_reduced = [
-            {key: r[key] for key in keep_values} for r in reviews
+            {
+                **{
+                    key: r[key] for key in keep_values
+                },
+                'app_id': self.app_id
+            }
+            for r in reviews
         ]
 
         return reviews_reduced
 
-    def get_url(self):
+    @property
+    def url(self):
         """
         The webserver that serves the gplay api runs in a different
-        container.The container name is user specific:
+        container. The container name is user specific:
             [CONTAINER_USER]-gplay-api
         Note that the container name and the CONTAINER_USER
         environment variable are set in the docker-compose.yml.
         """
-
-        if self.url:
-            return self.url
+        if self._url:
+            return self._url
 
         user = os.getenv('CONTAINER_USER')
-        app_id = self.get_app_id()
-        self.url = f'http://{user}-gplay-api:3000/api/apps/{app_id}/reviews'
-        return self.url
+        self._url = \
+            f'http://{user}-gplay-api:3000/api/apps/{self.app_id}/reviews'
+        return self._url
 
-    def get_app_id(self):
+    @property
+    def app_id(self):
+        if self._app_id:
+            return self._app_id
+
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
-            app_id = facts['ids']['gplay']['appId']
-        return app_id
+            self._app_id = facts['ids']['gplay']['appId']
+        return self._app_id
 
     def convert_to_right_output_format(self, reviews):
         """
@@ -147,15 +148,16 @@ class FetchGplayReviews(DataPreparationTask):
             'version': 'app_version',
             'thumbsUp': 'likes'
         })
-        reviews = reviews[['playstore_review_id', 'text', 'rating',
-                           'app_version', 'likes', 'title', 'date']]
-        reviews = reviews.astype({
+        columns = {
             'playstore_review_id': str,
             'text': str,
             'rating': int,
             'app_version': str,
             'likes': int,
             'title': str,
-            'date': str
-        })
+            'date': str,
+            'app_id': str
+        }
+        reviews = reviews[columns.keys()]
+        reviews = reviews.astype(columns)
         return reviews

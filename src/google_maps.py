@@ -5,7 +5,6 @@ import sys
 import googleapiclient.discovery
 import luigi
 import oauth2client.client
-import os
 import pandas as pd
 from oauth2client.file import Storage
 
@@ -19,24 +18,14 @@ class GoogleMapsReviewsToDB(CsvToDb):
 
     table = 'google_maps_review'
 
-    columns = [
-        ('google_maps_review_id', 'TEXT'),
-        ('post_date', 'DATE'),
-        ('rating', 'INT'),
-        ('text', 'TEXT'),
-        ('text_english', 'TEXT'),
-        ('language', 'TEXT')
-    ]
-
-    primary_key = 'google_maps_review_id'
-
     def requires(self):
         return FetchGoogleMapsReviews()
 
 
 class FetchGoogleMapsReviews(DataPreparationTask):
 
-    # secret_files is a folder mounted from /etc/secrets via docker-compose
+    # secret_files is a folder mounted from
+    # /etc/barberini-analytics/secrets via docker-compose
     token_cache = luigi.Parameter(
         default='secret_files/google_gmb_credential_cache.json')
     client_secret = luigi.Parameter(
@@ -60,7 +49,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/google_maps/maps_reviews.csv', format=luigi.format.UTF8)
+            f'{self.output_dir}/google_maps/maps_reviews.csv',
+            format=luigi.format.UTF8
+        )
 
     def run(self) -> None:
         logger.info("loading credentials...")
@@ -68,9 +59,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         logger.info("creating service...")
         service = self.load_service(credentials)
         logger.info("fetching reviews...")
-        raw_reviews = self.fetch_raw_reviews(service)
+        place_id, raw_reviews = self.fetch_raw_reviews(service)
         logger.info("extracting reviews...")
-        reviews_df = self.extract_reviews(raw_reviews)
+        reviews_df = self.extract_reviews(place_id, raw_reviews)
         logger.info("success! writing...")
 
         with self.output().open('w') as output_file:
@@ -80,7 +71,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     uses oauth2 to authenticate with google, also caches credentials
     requires no login action if you have a valid cache
     """
-
     def load_credentials(self) -> oauth2client.client.Credentials:
         storage = Storage(self.token_cache)
         credentials = storage.get()
@@ -119,7 +109,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     an authenticated user has account(s), an accounts contains locations and a
     location contains reviews (which we need to request one  by one)
     """
-
     def fetch_raw_reviews(self, service, page_size=100):
         # get account identifier
         account_list = service.accounts().list().execute()
@@ -136,6 +125,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 ("ERROR: This user seems to not have access to any google "
                  "location, unable to fetch reviews"))
         location = location_list['locations'][0]['name']
+        place_id = location_list['locations'][0]['locationKey']['placeId']
 
         # get reviews for that location
         reviews = []
@@ -164,32 +154,32 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     f"\rFetched {len(reviews)} out of {total_reviews} reviews",
                     end='', flush=True)
 
-                if os.environ['MINIMAL'] == 'True':
+                if self.minimal_mode:
                     review_list.pop('nextPageToken')
         finally:
             print()
-        return reviews
+        return place_id, reviews
 
-    def extract_reviews(self, raw_reviews) -> pd.DataFrame:
+    def extract_reviews(self, place_id, raw_reviews) -> pd.DataFrame:
         extracted_reviews = []
         for raw in raw_reviews:
             extracted = dict()
             extracted['google_maps_review_id'] = raw['reviewId']
-            extracted['date'] = raw['createTime']
+            extracted['post_date'] = raw['createTime']
             extracted['rating'] = self.stars_dict[raw['starRating']]
             extracted['text'] = None
             extracted['text_english'] = None
             extracted['language'] = None
 
             raw_comment = raw.get('comment', None)
-            if (raw_comment):
+            if raw_comment:
                 # this assumes possibly unintended behavior of Google's API
                 # see for details:
                 # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
                 # We want to keep both original and english translation)
 
                 # english reviews are as is; (Original) may be part of the text
-                if ("(Translated by Google)" not in raw_comment):
+                if "(Translated by Google)" not in raw_comment:
                     extracted['text'] = raw_comment
                     extracted['text_english'] = raw_comment
                     extracted['language'] = "english"
@@ -197,8 +187,8 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 # german reviews have this format:
                 #   [german review]\n\n
                 #   (Translated by Google)\n[english translation]
-                elif ("(Original)" not in raw_comment and
-                        "(Translated by Google)" in raw_comment):
+                elif "(Original)" not in raw_comment and \
+                        "(Translated by Google)" in raw_comment:
                     parts = raw_comment.split("(Translated by Google)")
                     extracted['text'] = parts[0].strip()
                     extracted['text_english'] = parts[1].strip()
@@ -216,4 +206,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     extracted['language'] = "other"
 
             extracted_reviews.append(extracted)
-        return pd.DataFrame(extracted_reviews)
+        df = pd.DataFrame(extracted_reviews)
+        df['place_id'] = place_id
+        return df

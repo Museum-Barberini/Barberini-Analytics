@@ -1,8 +1,13 @@
 #!/bin/bash
 USER=$1-run
-LOG=/var/log/bp-logs/$1.log
 BASEDIR=$(dirname "$0")/../..
 PATH=/usr/local/bin:$PATH
+
+LOGPATH=/var/log/bp-logs
+LOGFILE=$LOGPATH/"$1-`date +%Y-%m-%d`.log"
+
+# Delete 2 weeks old log
+rm $LOGPATH/"$1-`date -d '2 weeks ago' +%Y-%m-%d`.log" || true
 
 {
 echo "================================================================================================"
@@ -10,9 +15,6 @@ echo "Starting $1 run at [$(date +"%Y-%m-%d %H:%M")]"
 make -C $BASEDIR startup USER=$USER
 docker-compose -p $USER -f $BASEDIR/docker-compose.yml exec -T luigi /app/scripts/running/fill_db.sh $1
 make -C $BASEDIR shutdown USER=$USER
-if [ $1 == "daily" ]
-    then make -C $BASEDIR db-backup
-fi
 echo "Ending $1 run at [$(date +"%Y-%m-%d %H:%M")]"
 echo "================================================================================================"
-} >> $LOG 2>&1
+} >> $LOGFILE 2>&1

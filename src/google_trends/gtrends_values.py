@@ -1,16 +1,17 @@
 import json
 import logging
-import os
-
 import luigi
+import os
 import psycopg2
+
 from luigi.contrib.external_program import ExternalProgramTask
 
 from csv_to_db import CsvToDb
+from data_preparation_task import OUTPUT_DIR
+from db_connector import db_connector
 from google_trends.gtrends_topics import GtrendsTopics
 from json_to_csv import JsonToCsv
 from museum_facts import MuseumFacts
-from set_db_connection_options import set_db_connection_options
 
 logger = logging.getLogger('luigi-interface')
 
@@ -23,7 +24,6 @@ class GtrendsValuesToDB(luigi.WrapperTask):
 
 
 class GtrendsValuesClearDB(luigi.Task):
-
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
@@ -31,9 +31,9 @@ class GtrendsValuesClearDB(luigi.Task):
 
     table = 'gtrends_value'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
+    def output(self):
+        # Pseudo output file to signal completion of the task
+        return luigi.LocalTarget('output/GtrendsValuesClearDB')
 
     def requires(self):
         return GtrendsTopics()
@@ -42,39 +42,23 @@ class GtrendsValuesClearDB(luigi.Task):
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            connection = psycopg2.connect(
-                    host=self.host, database=self.database,
-                    user=self.user, password=self.password
-                )
-            query = f'''
+            db_connector().execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
-                })'''
-            logger.info('Executing query: ' + query)
-            connection.cursor().execute(query)
-            connection.commit()
-
+                })
+            ''')
         except psycopg2.errors.UndefinedTable:
-            # Table does not exist
+            # Nothing to delete
             pass
 
-        finally:
-            if connection is not None:
-                connection.close()
+        with self.output().open('w') as output:
+            output.write('Done')
 
 
 class GtrendsValuesAddToDB(CsvToDb):
 
     table = 'gtrends_value'
-
-    columns = [
-        ('topic', 'TEXT'),
-        ('date', 'DATE'),
-        ('interest_value', 'INT'),
-    ]
-
-    primary_key = 'topic', 'date'
 
     def requires(self):
         return ConvertGtrendsValues()
@@ -86,7 +70,8 @@ class ConvertGtrendsValues(JsonToCsv):
         return FetchGtrendsValues()
 
     def output(self):
-        return luigi.LocalTarget('output/google_trends/values.csv')
+        return luigi.LocalTarget(
+            f'{self.output_dir}/google_trends/values.csv')
 
 
 class FetchGtrendsValues(ExternalProgramTask):
@@ -99,7 +84,8 @@ class FetchGtrendsValues(ExternalProgramTask):
         yield GtrendsTopics()
 
     def output(self):
-        return luigi.LocalTarget('output/google_trends/values.json')
+        return luigi.LocalTarget(
+            f'{OUTPUT_DIR}/google_trends/values.json')
 
     def program_args(self):
         with self.input()[0].open('r') as facts_file:

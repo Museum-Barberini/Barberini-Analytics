@@ -1,18 +1,21 @@
 import csv
+import logging
 import re
 
 import dateparser
 import luigi
-import os
 import pandas as pd
 from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
-from gomus.customers import hash_id
+from gomus.customers import GomusToCustomerMappingToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
-from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchOrdersHTML
-from set_db_connection_options import set_db_connection_options
+from gomus._utils.extract_customers import hash_id
+from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
+                                      FetchOrdersHTML)
+
+logger = logging.getLogger('luigi-interface')
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
@@ -20,15 +23,6 @@ from set_db_connection_options import set_db_connection_options
 # gomus)
 class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
 
     def extract_from_html(self, base_html, xpath):
         # try:
@@ -49,19 +43,24 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        yield ExtractGomusBookings(timespan=self.timespan,
-                                   columns=self.columns)
-        yield FetchBookingsHTML(timespan=self.timespan,
-                                base_url=self.base_url + '/admin/bookings/',
-                                columns=self.columns)
+        yield ExtractGomusBookings(
+            timespan=self.timespan,
+            columns=self.columns)
+        yield FetchBookingsHTML(
+            timespan=self.timespan,
+            base_url=f'{self.base_url}/admin/bookings/',
+            columns=self.columns)
+        # table required for fetch_updated_mail()
+        yield GomusToCustomerMappingToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/bookings.csv', format=UTF8)
 
     def run(self):
         bookings = pd.read_csv(self.input()[0].path)
 
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position
@@ -113,7 +112,22 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 except IndexError:  # can't find customer mail
                     bookings.loc[i, 'customer_id'] = 0
 
-        bookings = self.ensure_foreign_keys(bookings)
+        all_invalid_bookings = None
+
+        def handle_invalid_bookings(invalid_bookings, _, __):
+            nonlocal all_invalid_bookings
+            if all_invalid_bookings is None:
+                all_invalid_bookings = invalid_bookings.copy()
+            else:
+                all_invalid_bookings.append(invalid_bookings)
+
+        bookings = self.ensure_foreign_keys(bookings, handle_invalid_bookings)
+        # fetch invalid E-Mail addresses anew
+        for invalid_booking_id in all_invalid_bookings['booking_id']:
+            # Delegate dynamic dependencies in sub-method
+            new_mail = self.fetch_updated_mail(invalid_booking_id)
+            for yielded_task in new_mail:
+                yield yielded_task
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -121,6 +135,61 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 index=False,
                 header=True,
                 quoting=csv.QUOTE_NONNUMERIC)
+
+    def fetch_updated_mail(self, booking_id):
+        # This would be cleaner to put into an extra function,
+        # but dynamic dependencies only work when yielded from 'run()'
+        logger.info(f"Fetching new mail for booking {booking_id}")
+
+        # First step: Get customer of booking (cannot use customer_id,
+        # since it has been derived from the wrong e-mail address)
+        base_url = 'https://barberini.gomus.de/admin'
+
+        booking_html_task = FetchGomusHTML(
+            url=f'{base_url}/bookings/{booking_id}')
+        yield booking_html_task
+        with booking_html_task.output().open('r') as booking_html_fp:
+            booking_html = html.fromstring(booking_html_fp.read())
+        booking_customer = booking_html.xpath(
+            '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
+            '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
+        gomus_id = int(booking_customer.get('href').split('/')[-1])
+
+        # Second step: Get current e-mail address for customer
+        customer_html_task = FetchGomusHTML(
+            url=f'{base_url}/customers/{gomus_id}')
+        yield customer_html_task
+        with customer_html_task.output().open('r') as customer_html_fp:
+            customer_html = html.fromstring(customer_html_fp.read())
+        customer_email = customer_html.xpath(
+            '//body/div[2]/div[2]/div[3]/div/div[2]/div[1]'
+            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')[0]
+        customer_email = customer_email.text_content().strip()
+
+        # Update customer ID in gomus_customer
+        # and gomus_to_customer_mapping
+        customer_id = hash_id(customer_email)
+        old_customer = self.db_connector.query(
+            query=f'SELECT customer_id FROM gomus_to_customer_mapping '
+                  f'WHERE gomus_id = {gomus_id}',
+            only_first=True)
+        if not old_customer:
+            logger.warning(
+                "Cannot update email address of customer which is not in "
+                "database.\nSkipping ...")
+            return
+        old_customer_id = old_customer[0]
+
+        logger.info(f"Replacing old customer ID {old_customer_id} "
+                    f"with new customer ID {customer_id}")
+
+        # References are updated through foreign key
+        # references via ON UPDATE CASCADE
+        self.db_connector.execute(f'''
+            UPDATE gomus_customer
+            SET customer_id = {customer_id}
+            WHERE customer_id = {old_customer_id}
+        ''')
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):
@@ -137,7 +206,9 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.csv', format=UTF8)
+            f'{self.output_dir}/gomus/scraped_order_contains.csv',
+            format=UTF8
+        )
 
     def run(self):
 
@@ -154,8 +225,8 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                 tree_order = html.fromstring(res_order)
 
                 tree_details = tree_order.xpath(
-                    ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
-                     'div/div[2]/div/div/div/div[2]'))[0]
+                    '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
+                    'div/div[2]/div/div/div/div[2]')[0]
 
                 # every other td contains the information of an article in the
                 # order
@@ -175,8 +246,14 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                         self.extract_from_html(
                             article, id_xpath).strip())
 
+                    new_article['article_type'] = str(
+                        article.xpath(
+                            'td[1]/div/i/@title|td[1]/a/div/'
+                            'i/@title|td[1]/a/i/@title'
+                        )[0])
+
                     order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
-                    new_article["order_id"] = order_id
+                    new_article['order_id'] = order_id
 
                     # Workaround for orders like 478531
                     # if td[3] has no child, we have nowhere to find the ticket
@@ -215,7 +292,6 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
-
         df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:

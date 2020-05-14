@@ -2,16 +2,54 @@ import datetime as dt
 import json
 from unittest.mock import patch
 
+from google_trends.gtrends_topics import GtrendsTopics
 import google_trends.gtrends_values as gtrends_values
+from db_test import DatabaseTestCase
 from museum_facts import MuseumFacts
-from task_test import DatabaseTaskTest
 
 
-class TestFetchGtrendsValues(DatabaseTaskTest):
+class TestFetchGtrends(DatabaseTestCase):
 
-    def __init__(self, methodName):
-        super().__init__(methodName)
-        self.task = self.isolate(gtrends_values.FetchGtrendsValues())
+    def setUp(self):
+        super().setUp()
+        self.setUpFacts()
+
+    def setUpFacts(self):
+        facts_task = MuseumFacts()
+        facts_task.run()
+        with facts_task.output().open('r') as facts_file:
+            self.facts = json.load(facts_file)
+
+    @patch.object(MuseumFacts, 'output')
+    def test_gtrends_topics(self, facts_mock):
+        facts = self.facts
+        facts['countryCode'] = 'US'
+        facts['ids']['google']['knowledgeId'] = '/g/1q6jh4dg3'
+        facts['gtrends'] = {
+            'museumNames': ['42', 'fourty-two'],
+            'topics': ['life', 'universe', 'everything']
+        }
+        self.install_mock_target(
+            facts_mock,
+            lambda file: json.dump(facts, file))
+
+        self.task = GtrendsTopics()
+        self.task.run()
+
+        with self.task.output().open('r') as output_file:
+            topics_string = output_file.read()
+        self.assertTrue(topics_string)  # not empty
+        topics = json.loads(topics_string)
+        for item in topics:
+            self.assertIsInstance(item, str)
+        self.assertEqual(
+            # Generated topics should include:
+            # * the knowledge id ...
+            len([facts['ids']['google']['knowledgeId']])
+            # * ... and all combinations of museum names and topics.
+            + (len(facts['gtrends']['museumNames'])
+                * len(facts['gtrends']['topics'])),
+            len(topics))
 
     @patch.object(gtrends_values.GtrendsTopics, 'output')
     @patch.object(MuseumFacts, 'output')
@@ -67,16 +105,7 @@ class TestFetchGtrendsValues(DatabaseTaskTest):
                 "Numbers are cool! They must be trending.")
 
 
-class TestGtrendsValuesToDB(DatabaseTaskTest):
-
-    def setUp(self):
-        super().setUp()
-        gtrends_values.GtrendsValuesAddToDB(schema_only=True).run()
-        self.db.commit(f'''DROP TABLE table_updates''')
-        """
-        WORKAROUND for "UniqueViolation: duplicate key value violates unique
-        constraint 'table_updates_pkey' ;-(
-        """
+class TestGtrendsValuesToDB(DatabaseTestCase):
 
     @patch.object(gtrends_values.GtrendsTopics, 'run')
     @patch.object(gtrends_values.GtrendsTopics, 'output')
@@ -87,15 +116,24 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
             lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
-        self.db.commit(
-            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
-            .format(42, dt.datetime.now().strftime('%Y-%m-%d'), 200))
+        self.db_connector.execute('''
+            INSERT INTO gtrends_value
+            VALUES ('{0}', DATE('{1}'), {2})
+            '''.format(
+                42,
+                dt.datetime.now().strftime('%Y-%m-%d'),
+                200
+            )
+        )
 
         self.task = gtrends_values.GtrendsValuesToDB()
         self.run_task(self.task)
 
-        self.assertCountEqual([(0,)], self.db.request(
-            'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
+        self.assertCountEqual([(0,)], self.db_connector.query('''
+            SELECT COUNT(*)
+            FROM gtrends_value
+            WHERE interest_value > 100
+        '''))
 
     @patch.object(gtrends_values.GtrendsTopics, 'run')
     @patch.object(gtrends_values.GtrendsTopics, 'output')
@@ -107,12 +145,21 @@ class TestGtrendsValuesToDB(DatabaseTaskTest):
             lambda file: json.dump(topics, file))
         self.dump_mock_target_into_fs(topics_target)
         topics_run_mock.return_value = None  # don't execute this
-        self.db.commit(
-            'INSERT INTO gtrends_value VALUES (\'{0}\', DATE(\'{1}\'), {2})'
-            .format(43, dt.datetime.now().strftime('%Y-%m-%d'), 200))
+        self.db_connector.execute('''
+            INSERT INTO gtrends_value
+            VALUES ('{0}', DATE('{1}'), {2})
+            '''.format(
+                43,
+                dt.datetime.now().strftime('%Y-%m-%d'),
+                200
+            )
+        )
 
         self.task = gtrends_values.GtrendsValuesToDB()
         self.task.run()
 
-        self.assertCountEqual([(1,)], self.db.request(
-            'SELECT COUNT(*) FROM gtrends_value where interest_value > 100'))
+        self.assertCountEqual([(1,)], self.db_connector.query('''
+            SELECT COUNT(*)
+            FROM gtrends_value
+            WHERE interest_value > 100
+        '''))

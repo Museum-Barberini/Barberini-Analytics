@@ -1,16 +1,17 @@
 import unittest
-from unittest.mock import patch
 import datetime as dt
+import os
 import pandas as pd
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 from gomus._utils.fetch_report import FetchGomusReport, FetchEventReservations
-from task_test import DatabaseTaskTest
 
 
-class GomusFormatTest(DatabaseTaskTest):
+class GomusFormatTest(DatabaseTestCase):
     def __init__(self, report, expected_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report = report
@@ -35,7 +36,7 @@ class GomusFormatTest(DatabaseTaskTest):
             for i in range(len(self.expected_format)):
                 if df.columns[i] == 'Keine Daten vorhanden':
                     break
-                # this checks if the colums are named right
+                # this checks whether the columns are named right
                 self.assertEqual(df.columns[i],
                                  self.expected_format[i][0])
                 df.apply(lambda x: self.check_type(
@@ -87,9 +88,8 @@ class TestCustomersFormat(GomusFormatTest):
             *args, **kwargs)
 
     @patch.object(FetchGomusReport, 'output')
-    @unittest.skip(
-        "Takes too long time for the primary test stage."
-        "Needs to be run once a day only, see #108. Workaround.")
+    @unittest.skipUnless(
+        os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_customers_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report()
@@ -109,17 +109,17 @@ class TestBookingsFormat(GomusFormatTest):
              ("Raum", 'STRING'),
              ("Treffpunkt", 'STRING'),
              ("Angebotskategorie", 'STRING'),
-             ("Titel", 'STRING'),
+             ("Angebot/Termin", 'STRING'),
              ("Teilnehmerzahl", 'FLOAT'),
              ("Guide", 'STRING'),
              ("Kunde", 'STRING'),
              ("E-Mail", 'STRING'),
              ("Institution", 'STRING'),
-             ("Notiz", 'STRING'),
+             ("Notiz (aus Kundendatensatz)", 'STRING'),
              ("Führungsentgelt / Summe Endkundenpreis ohne Storno", 'STRING'),
              ("Honorar", 'STRING'),
              ("Zahlungsart", 'STRING'),
-             ("Kommentar", 'STRING'),
+             ("Kommentar (Interner Hinweis)", 'STRING'),
              ("Status", 'STRING')],
             *args, **kwargs)
 
@@ -177,7 +177,10 @@ class TestEntriesSheet0Format(GomusFormatTest):
     def test_entries_sheet0_format(self, output_mock):
         self.prepare_output_target(output_mock)
         self.fetch_gomus_report(suffix='_1day', sheet=[0])
-        self.check_format(skiprows=5, skipfooter=1)
+        try:
+            self.check_format(skiprows=5, skipfooter=1)
+        except AssertionError:
+            self.check_format(skiprows=7, skipfooter=1)
 
 
 class TestEntriesSheet1Format(GomusFormatTest):

@@ -1,10 +1,8 @@
 import csv
-
 import datetime as dt
+
 import luigi
-import os
 import pandas as pd
-import psycopg2
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
@@ -12,43 +10,17 @@ from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
-from gomus.customers import hash_id
-from set_db_connection_options import set_db_connection_options
+from gomus._utils.extract_customers import hash_id
 
 
 class EventsToDB(CsvToDb):
 
     table = 'gomus_event'
 
-    columns = [
-        ('event_id', 'INT'),
-        ('booking_id', 'INT'),
-        ('customer_id', 'INT'),
-        ('reservation_count', 'INT'),
-        ('order_date', 'DATE'),
-        ('status', 'TEXT'),
-        ('category', 'TEXT')
-    ]
-
-    primary_key = 'event_id'
-
-    foreign_keys = [
-        {
-            'origin_column': 'booking_id',
-            'target_table': 'gomus_booking',
-            'target_column': 'booking_id'
-        },
-        {
-            'origin_column': 'customer_id',
-            'target_table': 'gomus_customer',
-            'target_column': 'customer_id'
-        }
-    ]
-
     def requires(self):
         return ExtractEventData(
             columns=[col[0] for col in self.columns],
-            foreign_keys=self.foreign_keys)
+            table=self.table)
 
 
 class ExtractEventData(DataPreparationTask):
@@ -60,13 +32,13 @@ class ExtractEventData(DataPreparationTask):
         super().__init__(*args, **kwargs)
         self.events_df = None
         self.categories = [
-            'Öffentliche Führung',
-            'Event',
-            'Gespräch',
-            'Kinder-Workshop',
-            'Konzert',
-            'Lesung',
-            'Vortrag']
+            "Öffentliche Führung",
+            "Event",
+            "Gespräch",
+            "Kinder-Workshop",
+            "Konzert",
+            "Lesung",
+            "Vortrag"]
 
     def _requires(self):
         return luigi.task.flatten([
@@ -79,7 +51,10 @@ class ExtractEventData(DataPreparationTask):
             yield FetchCategoryReservations(category=category)
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/events.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/events.csv',
+            format=UTF8
+        )
 
     def run(self):
         self.events_df = pd.DataFrame(columns=self.columns)
@@ -88,21 +63,18 @@ class ExtractEventData(DataPreparationTask):
         for index, event_files in enumerate(self.input()):
             category = self.categories[index]
             with event_files.open('r') as events:
-
                 # for every event that falls into that category
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
+                    if not path:
+                        continue
 
                     # handle booked and cancelled events
                     event_data = luigi.LocalTarget(path, format=UTF8)
-                    if i % 2 == 0:
-                        self.append_event_data(event_data,
-                                               'Gebucht',
-                                               category)
-                    else:
-                        self.append_event_data(event_data,
-                                               'Storniert',
-                                               category)
+                    self.append_event_data(
+                        event_data,
+                        "Storniert" if i % 2 else "Gebucht",
+                        category)
 
         self.events_df = self.ensure_foreign_keys(self.events_df)
 
@@ -123,8 +95,8 @@ class ExtractEventData(DataPreparationTask):
             event_df['Event_id'] = event_id
             event_df['Kategorie'] = category
             event_df = event_df.filter([
-                'Id', 'Event_id', 'E-Mail', 'Plätze',
-                'Datum', 'Status', 'Kategorie'])
+                "Id", "Event_id", "E-Mail", "Plätze",
+                "Datum", "Status", "Kategorie"])
 
             event_df.columns = self.columns
 
@@ -141,72 +113,58 @@ class ExtractEventData(DataPreparationTask):
         return xldate_as_datetime(float(string), 0).date()
 
 
-class FetchCategoryReservations(luigi.Task):
+class FetchCategoryReservations(DataPreparationTask):
     category = luigi.parameter.Parameter(
         description="Category to search bookings for")
 
-    host = None
-    database = None
-    user = None
-    password = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
         self.output_list = []
         self.row_list = []
 
     def run(self):
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
-            cur = conn.cursor()
 
-            if os.environ['MINIMAL'] == 'True':
-                query = (f'SELECT booking_id FROM gomus_booking WHERE '
-                         f'category=\'{self.category}\' '
-                         f'ORDER BY start_datetime DESC LIMIT 2')
-            else:
-                two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+        if self.minimal_mode:
+            query = f'''
+                SELECT booking_id FROM gomus_booking
+                WHERE category='{self.category}'
+                ORDER BY start_datetime DESC LIMIT 2
+            '''
+        else:
+            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
+            query = (f'SELECT booking_id FROM gomus_booking WHERE '
+                     f'category=\'{self.category}\' '
+                     f'AND start_datetime > \'{two_weeks_ago}\'')
 
-                query = (f'SELECT booking_id FROM gomus_booking WHERE '
-                         f'category=\'{self.category}\' '
-                         f'AND start_datetime > \'{two_weeks_ago}\'')
+        booking_ids = self.db_connector.query(query)
 
-            cur.execute(query)
+        for row in booking_ids:
+            event_id = row[0]
+            if event_id not in self.row_list:
+                approved = FetchEventReservations(
+                    booking_id=event_id,
+                    status=0)
+                yield approved
+                cancelled = FetchEventReservations(
+                    booking_id=event_id,
+                    status=1)
+                yield cancelled
+                if approved and cancelled:
+                    self.output_list.append(approved.output().path)
+                    self.output_list.append(cancelled.output().path)
+                self.row_list.append(event_id)
 
-            row = cur.fetchone()
-            while row is not None:
-                event_id = row[0]
-                if event_id not in self.row_list:
-                    approved = FetchEventReservations(
-                        booking_id=event_id,
-                        status=0)
-                    yield approved
-                    cancelled = FetchEventReservations(
-                        booking_id=event_id,
-                        status=1)
-                    yield cancelled
-                    if approved and cancelled:
-                        self.output_list.append(approved.output().path)
-                        self.output_list.append(cancelled.output().path)
-                    self.row_list.append(event_id)
-                row = cur.fetchone()
-            # write list of all event reservation to output file
-            with self.output().open('w') as all_outputs:
-                all_outputs.write('\n'.join(self.output_list) + '\n')
-
-        finally:
-            if conn is not None:
-                conn.close()
+        # write list of all event reservation to output file
+        with self.output().open('w') as all_outputs:
+            all_outputs.write('\n'.join(self.output_list) + '\n')
 
     # save a list of paths for all single csv files
     def output(self):
         cat = cleanse_umlauts(self.category)
-        return luigi.LocalTarget(f'output/gomus/all_{cat}_reservations.txt',
-                                 format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/all_{cat}_reservations.txt',
+            format=UTF8
+        )
 
     def requires(self):
         yield BookingsToDB()

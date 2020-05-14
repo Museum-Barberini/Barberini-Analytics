@@ -1,30 +1,29 @@
 import datetime as dt
-import unittest
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch
 
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
-from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
+from db_test import DatabaseTestCase
+from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_customers import ExtractCustomerData
 from gomus._utils.fetch_report import FetchEventReservations
-from task_test import DatabaseHelper
 
 
-class GomusTransformationTest(unittest.TestCase):
+class GomusTransformationTest(DatabaseTestCase):
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns
         self.task = task
 
         self.test_data_path = 'tests/test_data/gomus/'
-        self.test_db_name = 'barberini_test'
 
         # TODO: Set up proper MockFileSystem isolation between tests
         # (apparently, this is just kept constantly otherwise)
@@ -85,7 +84,9 @@ class TestCustomerTransformation(GomusTransformationTest):
             'type',
             'register_date',
             'annual_ticket',
-            'valid_mail'],
+            'valid_mail',
+            'cleansed_postal_code',
+            'cleansed_country'],
             ExtractCustomerData,
             *args, **kwargs)
 
@@ -143,37 +144,30 @@ class TestOrderTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.test_data_path += 'orders/'
-        self.db_helper = DatabaseHelper()
 
     # Provide mock customer IDs to be found by querying
     def setUp(self):
-        self.db_helper.setUp()
-        self.db_helper.commit(
-            ('CREATE TABLE gomus_to_customer_mapping '
-             '(gomus_id INTEGER, customer_id INTEGER)'),
-            'INSERT INTO gomus_to_customer_mapping VALUES (117899, 100)'
-        )
+        super().setUp()
+        self.db_connector.execute(
+            '''
+                INSERT INTO gomus_customer
+                VALUES (100)
+            ''',
+            '''
+                INSERT INTO gomus_to_customer_mapping
+                VALUES (117899, 100)
+            ''')
 
-    def tearDown(self):
-        self.db_helper.commit(
-            'DROP TABLE gomus_to_customer_mapping'
-        )
-        self.db_helper.tearDown()
-
-    @patch.object(ExtractOrderData, 'database', new_callable=PropertyMock)
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
     def test_order_transformation(self,
                                   input_mock,
-                                  output_mock,
-                                  database_mock):
+                                  output_mock):
 
         output_target = self.prepare_mock_targets(
             input_mock,
             output_mock,
             'orders_in.csv')
-
-        database_mock.return_value = self.test_db_name
 
         self.execute_task()
 
@@ -253,11 +247,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
         self.test_data_path += 'daily_entries/'
 
     # Don't prepare targets like usual because two inputs are expected
-    def prepare_mock_targets(self,
-                             input_mock,
-                             output_mock,
-                             infile_1,
-                             infile_2):
+    def prepare_mock_targets(
+            self, input_mock, output_mock, infile_1, infile_2):
         input_target_1 = MockTarget('data_in_1', format=UTF8)
         input_target_2 = MockTarget('data_in_2', format=UTF8)
         input_mock.return_value = iter([input_target_1, input_target_2])
@@ -317,34 +308,26 @@ class TestEventTransformation(GomusTransformationTest):
             *args, **kwargs)
 
         self.categories = [
-            'Öffentliche Führung',
-            'Event',
-            'Gespräch',
-            'Kinder-Workshop',
-            'Konzert',
-            'Lesung',
-            'Vortrag']
+            "Öffentliche Führung",
+            "Event",
+            "Gespräch",
+            "Kinder-Workshop",
+            "Konzert",
+            "Lesung",
+            "Vortrag"]
 
         self.test_data_path += 'events/'
-        self.db_helper = DatabaseHelper()
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
-        self.db_helper.setUp()
-        self.db_helper.commit(
-            ('CREATE TABLE gomus_booking ('
-                'booking_id INTEGER, '
-                'category VARCHAR(255), '
-                'start_datetime TIMESTAMP)'),
-            (f'INSERT INTO gomus_booking VALUES ('
-                f'0, \'Öffentliche Führung\', \'{dt.datetime.today()}\')')
-        )
-
-    def tearDown(self):
-        self.db_helper.commit(
-            'DROP TABLE gomus_booking'
-        )
-        self.db_helper.tearDown()
+        super().setUp()
+        self.db_connector.execute(f'''INSERT INTO gomus_booking VALUES (
+            0,  DEFAULT,
+            'Öffentliche Führung',
+            DEFAULT, DEFAULT, DEFAULT,
+            DEFAULT, DEFAULT, DEFAULT,
+            '{dt.datetime.today()}',
+            DEFAULT, DEFAULT)''')
 
     @patch.object(ExtractEventData, 'output')
     @patch.object(ExtractEventData, 'input')
@@ -365,15 +348,24 @@ class TestEventTransformation(GomusTransformationTest):
             output_target,
             'events_out.csv')
 
+    @patch.object(ExtractEventData, 'output')
+    @patch.object(ExtractEventData, 'input')
+    def test_empty_events(self, input_mock, output_mock):
+        output_target = self.prepare_mock_targets(
+            input_mock,
+            output_mock,
+            'events_empty_in.csv')
+
+        self.execute_task()
+
+        self.check_result(
+            output_target,
+            'events_empty_out.csv')
+
     @patch.object(FetchEventReservations, 'output')
-    @patch.object(
-        FetchCategoryReservations,
-        'database',
-        new_callable=PropertyMock)
     @patch.object(FetchCategoryReservations, 'output')
     def test_fetch_category_reservations(self,
                                          output_mock,
-                                         database_mock,
                                          fetch_reservations_output_mock):
         self.task = FetchCategoryReservations
 
@@ -388,8 +380,6 @@ class TestEventTransformation(GomusTransformationTest):
             reservations_booked_target,
             reservations_cancelled_target
         ]
-
-        database_mock.return_value = self.test_db_name
 
         output_target = self.prepare_output_target(output_mock)
 

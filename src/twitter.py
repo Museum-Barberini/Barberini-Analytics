@@ -1,8 +1,9 @@
 import datetime as dt
+from pytz import utc
+import tzlocal
 import json
 
 import luigi
-import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
@@ -14,18 +15,7 @@ from museum_facts import MuseumFacts
 
 class TweetsToDB(CsvToDb):
 
-    table = "tweet"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "DATE"),
-        ("is_from_barberini", "BOOL")
-    ]
-
-    primary_key = 'tweet_id'
+    table = 'tweet'
 
     def requires(self):
         return ExtractTweets()
@@ -33,40 +23,15 @@ class TweetsToDB(CsvToDb):
 
 class TweetPerformanceToDB(CsvToDb):
 
-    table = "tweet_performance"
-
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("timestamp", "TIMESTAMP")
-    ]
-
-    primary_key = ('tweet_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            "origin_column": "tweet_id",
-            "target_table": "tweet",
-            "target_column": "tweet_id"
-        }
-    ]
+    table = 'tweet_performance'
 
     def requires(self):
-        return ExtractTweetPerformance(foreign_keys=self.foreign_keys)
+        return ExtractTweetPerformance(table=self.table)
 
 
 class TweetAuthorsToDB(CsvToDb):
 
-    table = "tweet_author"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("user_name", "TEXT")
-    ]
-
-    primary_key = "user_id"
+    table = 'tweet_author'
 
     def requires(self):
         return LoadTweetAuthors()
@@ -79,15 +44,12 @@ class ExtractTweets(DataPreparationTask):
         yield FetchTwitter()
 
     def run(self):
+
         with self.input()[1].open('r') as input_file:
             df = pd.read_csv(
-                input_file,
-                dtype={
-                    'user_id': str,
-                    'tweet_id': str,
-                    'parent_tweet_id': str
-                    })
-        # pandas would by default store them as int64 or float64
+                input_file, keep_default_na=False)
+            # parent_tweet_id can be empty,
+            # which pandas would turn into NaN by default
         df = df.filter([
             'user_id',
             'tweet_id',
@@ -106,7 +68,10 @@ class ExtractTweets(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def output(self):
-        return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/twitter/tweets.csv',
+            format=UTF8
+        )
 
     def museum_user_id(self):
         with self.input()[0].open('r') as facts_file:
@@ -128,10 +93,10 @@ class ExtractTweetPerformance(DataPreparationTask):
     def run(self):
         with self.input().open('r') as input_file:
             df = pd.read_csv(input_file)
+
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
-
         df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
@@ -139,10 +104,12 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            "output/twitter/tweet_performance.csv", format=UTF8)
+            f'{self.output_dir}/twitter/tweet_performance.csv',
+            format=UTF8
+        )
 
 
-class FetchTwitter(luigi.Task):
+class FetchTwitter(DataPreparationTask):
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
@@ -151,21 +118,39 @@ class FetchTwitter(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/twitter/raw_tweets.csv'),
-            format=UTF8)
+            f'{self.output_dir}/twitter/raw_tweets.csv',
+            format=UTF8
+        )
 
     def run(self):
         timespan = self.timespan
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             timespan = dt.timedelta(days=0)
 
         tweets = ts.query_tweets(
             self.query,
             begindate=dt.date.today() - timespan,
             enddate=dt.date.today() + dt.timedelta(days=1))
-
-        df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+        if tweets:
+            df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+        else:  # no tweets returned, ensure schema
+            df = pd.DataFrame(columns=[
+                'user_id',
+                'tweet_id',
+                'text',
+                'parent_tweet_id',
+                'timestamp',
+                'likes',
+                'retweets',
+                'replies'])
         df = df.drop_duplicates(subset=["tweet_id"])
+
+        # timestamp is utc by default
+        df['timestamp'] = df['timestamp'].apply(
+            lambda utc_dt:
+            utc.localize(utc_dt, is_dst=None).astimezone(
+                tzlocal.get_localzone()))
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
