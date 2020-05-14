@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import psycopg2
@@ -104,8 +105,40 @@ class DbConnector:
 
 
 def db_connector():
+    connector = copy.copy(default_connector())
+    connector.database = 'postgres'
+    return connector
+
+
+def default_connector():
     return DbConnector(
         host=os.environ['POSTGRES_HOST'],
-        database=os.environ['POSTGRES_DB'],
+        database='postgres',
         user=os.environ['POSTGRES_USER'],
         password=os.environ['POSTGRES_PASSWORD'])
+
+
+def register_array_type(type_name, namespace_name):
+    """
+    Register the specified postgres type manually, allowing psycopg2 to parse
+    arrays of that type correctly.
+    If custom types are not configured, queries such as
+        c.query("select array ['pg_type'::information_schema.sql_identifier]")
+    will be answered with strings like '{pg_type}' rather than with a true
+    array of objects.
+    """
+    connector = default_connector()
+    typarray, typcategory = connector.query(f'''
+            SELECT typarray, typcategory
+            FROM pg_type
+            JOIN pg_namespace
+                ON typnamespace = pg_namespace.oid
+            WHERE typname LIKE '{type_name}'
+                AND nspname LIKE '{namespace_name}'
+        ''', only_first=True)
+    psycopg2.extensions.register_type(
+        psycopg2.extensions.new_array_type(
+            (typarray,),
+            f'{type_name}[]',
+            {'S': psycopg2.STRING}[typcategory]
+        ))

@@ -16,11 +16,7 @@ logger = logging.getLogger('luigi-interface')
 minimal_mode = os.getenv('MINIMAL') == 'True'
 OUTPUT_DIR = os.environ['OUTPUT_DIR']
 
-# Register information_schema types manually, allowing psycopg2 to split up
-# arrays of it
-psycopg2.extensions.register_type(
-    psycopg2.extensions.new_array_type(
-        (13126,), 'information_schema.SQL_IDENTIFIER[]', psycopg2.STRING))
+db_connector.register_array_type('SQL_IDENTIFIER', 'information_schema')
 
 
 class DataPreparationTask(luigi.Task):
