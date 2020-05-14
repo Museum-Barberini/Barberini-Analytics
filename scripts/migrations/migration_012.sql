@@ -1,4 +1,4 @@
-/** Add missing service-specific museum IDs
+/** Add missing service-specific museum IDs (!168)
     In the past, we only fetched posts from these sources for the museum,
     but we did not note its ID. In migration_011, the missing columns were
     added, but there it was forgotten to update the existing rows. This is
