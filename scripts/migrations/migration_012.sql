@@ -38,11 +38,12 @@ BEGIN;
                         RETURN NEW;
                     END; $BODY$
                     LANGUAGE ''plpgsql'';
-                CREATE TRIGGER tr_before_insert_or_update
+                -- Disabled due to performance reasons (O(n²)) ☹
+                /*CREATE TRIGGER tr_before_insert_or_update
                     BEFORE INSERT OR UPDATE OF %5$s
                     ON %1$s
                     FOR EACH ROW
-                    EXECUTE PROCEDURE foreign_key_trigger();
+                    EXECUTE PROCEDURE foreign_key_trigger();*/
                 ',
                 "table",
                 reftable,

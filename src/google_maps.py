@@ -142,6 +142,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 while_fun=lambda: 'nextPageToken' in review_list,
                 item_fun=lambda: review_list['nextPageToken'],
                 size=total_reviews,
+                # TODO: index and size do not match together
                 msg="Fetching Google Maps page {index}/{size}"):
             """
             TODO: optimize by requesting the latest review from DB rather
