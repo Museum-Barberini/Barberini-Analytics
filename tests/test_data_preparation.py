@@ -221,7 +221,6 @@ class TestDataPreparationTask(DatabaseTestCase):
         handle_invalid_values = unittest.mock.MagicMock()
 
         self.task = DataPreparationTask()
-        import pdb; pdb.set_trace()
         actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_df, actual_df)
