@@ -96,10 +96,10 @@ test-full:
 coverage: luigi-clean
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m coverage run --source ./src -m db_test -v --failfast --catch tests/**/test*.py -v
+		&& python3 -m coverage run --source ./src -m db_test -v --catch tests/**/test*.py -v
 	# print coverage results to screen. Parsed by gitlab CI regex to determine MR code coverage.
 	python3 -m coverage report
-	# generate html report. Is stored as artefact in gitlab CI job (stage: coverage)
+	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
 	python3 -m coverage html
 
 # --- To access postgres ---
