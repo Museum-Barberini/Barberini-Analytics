@@ -9,6 +9,7 @@ class FetchPosts(QueryDb):
     def output(self):
         return luigi.LocalTarget('output/posts.csv', format=luigi.format.UTF8)
 
+    # TODO: Use post view here if !149 is merged. Maybe we don't need this task
     query = f'''
         SELECT source, post_id, text
         FROM post
