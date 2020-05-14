@@ -95,8 +95,11 @@ BEGIN;
         DROP COLUMN fb_post_id,
         ADD PRIMARY KEY (page_id, post_id, timestamp),
         ADD FOREIGN KEY (page_id, post_id) REFERENCES fb_post;
-    -- 5. Clean up
-    DROP TABLE fb_post_old;
+    /** 5. Clean up
+        Disabled for the moment to have a back-up. If everything worked fine,
+        this can be commited later.
+      */
+    --DROP TABLE fb_post_old;
 
     ALTER TABLE google_maps_review
         ADD COLUMN place_id TEXT;
