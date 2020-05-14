@@ -2,7 +2,6 @@ import datetime as dt
 import json
 import logging
 import os
-import sys
 
 import luigi
 import pandas as pd
