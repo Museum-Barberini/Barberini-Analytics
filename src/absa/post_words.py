@@ -50,15 +50,6 @@ class PostWordsToDB(CsvToDb):
 
     table = 'post_word'
 
-    columns = [
-        ('source', 'TEXT'),
-        ('post_id', 'TEXT'),
-        ('word_index', 'INT'),
-        ('word', 'TEXT')
-    ]
-
-    primary_key = 'source', 'post_id', 'word_index'
-
     def requires(self):
         return CollectPostWords(
             limit=self.limit,

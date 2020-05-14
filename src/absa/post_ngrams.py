@@ -31,15 +31,6 @@ class PostNgramsToDB(CsvToDb):
 
     table = 'post_ngram'
 
-    columns = [
-        ('source', 'TEXT'),
-        ('post_id', 'TEXT'),
-        ('ngram', 'TEXT'),
-        ('count', 'INT')
-    ]
-
-    primary_key = 'source', 'post_id', 'ngram'
-
     def requires(self):
         return CollectPostNgrams(
             limit=self.limit,
@@ -77,24 +68,24 @@ class CollectPostNgrams(DataPreparationTask):
             format=luigi.format.UTF8)
 
     def run(self):
-        if not db_connector.exists_table(self.word_table):
+        if not self.db_connector.exists_table(self.word_table):
             yield PostWordsToDB()
-        if not db_connector.exists_table(self.stopword_table):
+        if not self.db_connector.exists_table(self.stopword_table):
             yield StopwordsToDb()
 
         ngrams = []
         for n in range(self.n_min, self.n_max + 1):
             query = self._build_query(n)
             print(query)
-            result = db_connector.query(query)
+            result = self.db_connector.query(query)
             ngrams.extend(result)
 
-        df = pd.DataFrame(ngrams, columns=['source', 'post_id', 'ngram'])
-        series = df.pivot_table(index=list(df.columns), aggfunc='size')
-        series_df = pd.DataFrame(series, columns=['count'])
-        series_df.reset_index(inplace=True)
+        df = pd.DataFrame(
+            ngrams,
+            columns=['source', 'post_id', 'n', 'word_index', 'ngram']
+        )
         with self.output().open('w') as output_stream:
-            series_df.to_csv(output_stream, index=False, header=True)
+            df.to_csv(output_stream, index=False, header=True)
 
     def _build_query(self, n):
 
@@ -122,6 +113,8 @@ class CollectPostNgrams(DataPreparationTask):
             -- Do we really want to drop ngrams such as "Museum in Potsdam"?
             SELECT  word{0}.source AS source,
                     word{0}.post_id AS post_id,
+                    {n} AS n,
+                    word{0}.word_index AS word_index,
                     CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS ngram
             FROM    {mult_exp(f'relevant_{self.word_table} AS word{{i}}')}
             WHERE   {mult_join('(word{i}.source, word{i}.post_id) ='
