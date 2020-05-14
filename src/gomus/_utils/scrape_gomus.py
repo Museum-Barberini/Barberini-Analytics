@@ -115,7 +115,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         all_invalid_bookings = None
 
-        def handle_invalid_bookings(invalid_bookings, _, __):
+        def handle_invalid_bookings(invalid_bookings, _):
             nonlocal all_invalid_bookings
             if all_invalid_bookings is None:
                 all_invalid_bookings = invalid_bookings.copy()

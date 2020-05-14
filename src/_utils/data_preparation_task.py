@@ -48,8 +48,7 @@ class DataPreparationTask(luigi.Task):
         """
         Note that this currently only works with lower case identifiers.
         """
-        def log_invalid_values(
-                invalid_values, foreign_key, original_values):
+        def log_invalid_values(invalid_values, foreign_key):
             logger.warning(
                 f"Skipped {len(invalid_values)} out of {len(df)} rows "
                 f"due to foreign key violation: {foreign_key}")
@@ -67,6 +66,8 @@ class DataPreparationTask(luigi.Task):
             columns, foreign_columns = list(columns), list(foreign_columns)
             foreign_key = columns, (foreign_table, foreign_columns)
 
+            # TODO: Discuss whether we actually need these casts. Psycopg2 determines the correct data types indeed!
+            # This kind of casting could do more harm than good by hiding possible type errors.
             foreign_values = [
                 # cast values to string uniformly to prevent mismatching
                 # due to wrong data types
@@ -88,9 +89,9 @@ class DataPreparationTask(luigi.Task):
                 .squeeze()
             valid_values, invalid_values = df[validities], df[~validities]
             if not invalid_values.empty:
-                log_invalid_values(invalid_values, foreign_key, df)
+                log_invalid_values(invalid_values, foreign_key)
                 if invalid_values_handler:
-                    invalid_values_handler(invalid_values, foreign_key, df)
+                    invalid_values_handler(invalid_values, foreign_key)
 
             return valid_values
 
@@ -106,9 +107,9 @@ class DataPreparationTask(luigi.Task):
             in self.db_connector.query(f'''
                 --- CREDITS: https://stackoverflow.com/a/1152321
                 SELECT
-                    array_agg(kcu.column_name) AS columns,
+                    array_agg(DISTINCT kcu.column_name) AS columns,
                     ccu.table_name AS foreign_table_name,
-                    array_agg(ccu.column_name) AS foreign_columns
+                    array_agg(DISTINCT ccu.column_name) AS foreign_columns
                 FROM
                     information_schema.table_constraints AS tc
                 JOIN information_schema.key_column_usage AS kcu

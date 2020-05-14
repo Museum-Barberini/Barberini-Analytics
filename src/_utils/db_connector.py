@@ -106,7 +106,7 @@ class DbConnector:
 
 def db_connector():
     connector = copy.copy(default_connector())
-    connector.database = 'postgres'
+    connector.database = os.environ['POSTGRES_DB']
     return connector
 
 
@@ -133,8 +133,8 @@ def register_array_type(type_name, namespace_name):
             FROM pg_type
             JOIN pg_namespace
                 ON typnamespace = pg_namespace.oid
-            WHERE typname LIKE '{type_name}'
-                AND nspname LIKE '{namespace_name}'
+            WHERE typname ILIKE '{type_name}'
+                AND nspname ILIKE '{namespace_name}'
         ''', only_first=True)
     psycopg2.extensions.register_type(
         psycopg2.extensions.new_array_type(
