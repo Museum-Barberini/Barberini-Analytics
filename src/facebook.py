@@ -81,6 +81,7 @@ class FetchFbPosts(DataPreparationTask):
         df = df.filter(['created_time', 'message'])
         df = fb_post_ids.join(df)
         df.columns = ['page_id', 'post_id', 'post_date', 'text']
+        return df
 
 
 class FetchFbPostPerformance(DataPreparationTask):
