@@ -58,7 +58,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             f'{self.output_dir}/gomus/bookings.csv', format=UTF8)
 
     def run(self):
-        bookings = pd.read_csv(self.input()[0].path)
+        with self.input()[0].open('r') as input_file:
+            bookings = pd.read_csv(input_file)
 
         if self.minimal_mode:
             bookings = bookings.head(5)
