@@ -27,8 +27,7 @@ class TestQueryDb(DatabaseTestCase):
 
     def test_query_db(self):
 
-        self.task = QueryDb()
-        self.task.query = f'SELECT * FROM {self.table}'
+        self.task = QueryDb(query=f'SELECT * FROM {self.table}')
         self.task.output = lambda: \
             luigi.mock.MockTarget(f'output/{self.table}')
 
