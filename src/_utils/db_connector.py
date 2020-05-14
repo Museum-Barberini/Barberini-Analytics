@@ -63,6 +63,14 @@ class DbConnector:
                 "DB access with just one query should only return one result")
         return result
 
+    def _create_connection(self):
+        return psycopg2.connect(
+            host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password
+        )
+
     def _execute_queries(
                 self,
                 queries: List[str],
@@ -75,12 +83,7 @@ class DbConnector:
         Note that this is a generator function so the operation will be only
         commited once the generator has been enumerated.
         """
-        conn = psycopg2.connect(
-            host=self.host,
-            database=self.database,
-            user=self.user,
-            password=self.password
-        )
+        conn = self._create_connection()
         try:
             with conn:
                 with conn.cursor() as cur:
