@@ -19,7 +19,6 @@ class QueryDb(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.db_connector = db_connector
         self.host = self.db_connector.host
         self.database = self.db_connector.database
         self.user = self.db_connector.user
