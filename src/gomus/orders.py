@@ -1,5 +1,4 @@
 import datetime as dt
-import os
 
 import luigi
 import numpy as np
