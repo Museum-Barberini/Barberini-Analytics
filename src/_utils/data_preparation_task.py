@@ -7,7 +7,6 @@ from functools import partial, reduce
 from typing import Callable, Dict, List, Tuple
 
 import luigi
-import psycopg2.extensions
 
 import db_connector
 
