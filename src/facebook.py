@@ -262,6 +262,9 @@ class FetchFbPostComments(FetchFbPostDetails):
             if post_date < self.minimum_relevant_date:
                 continue
 
+            # Grab up to 100 comments for the post (maximum)
+            limit = 100
+
             # 'toplevel' or 'stream' (toplevel doesn't include replies)
             # Using 'toplevel' here allows us to safely
             # set parent to None for all comments returned
@@ -271,8 +274,15 @@ class FetchFbPostComments(FetchFbPostDetails):
             # 'chronological' or 'reverse_chronolocial'
             order = 'chronological'
 
-            url = (f'{API_BASE}/{fb_post_id}/comments?'
-                   f'filter={filt}&order={order}')
+            fields = ','.join([
+                'created_time',
+                'comment_count',
+                'message',
+                'comments'
+                ])
+
+            url = (f'{API_BASE}/{fb_post_id}/comments?limit={limit}'
+                   f'filter={filt}&order={order}&fields={fields}')
 
             response = try_request_multiple_times(url)
             response_data = response.json().get('data')
@@ -284,31 +294,22 @@ class FetchFbPostComments(FetchFbPostDetails):
             for comment in response_data:
                 comment_id = comment.get('id')
 
-                fields = ','.join([
-                    'created_time',
-                    'comment_count',
-                    'message',
-                    'comments'
-                ])
-                comment_url = f'{API_BASE}/{comment_id}?fields={fields}'
-
-                comment_json = try_request_multiple_times(comment_url).json()
-                comment = {
+                comments.append({
                     'comment_id': comment_id,
                     'page_id': page_id,
                     'post_id': post_id,
-                    'post_date': comment_json.get('created_time'),
-                    'message': comment_json.get('message'),
-                    'from_barberini': self.from_barberini(comment_json),
+                    'post_date': comment.get('created_time'),
+                    'message': comment.get('message'),
+                    'from_barberini': self.from_barberini(comment),
                     'parent': None
-                }
-                comments.append(comment)
+                })
 
-                if comment_json.get('comment_count', 0) > 0:
+                if comment.get('comment_count', 0) > 0:
+
                     # Handle each reply for the comment
-                    for reply in comment_json.get('comments').get('data'):
+                    for reply in comment.get('comments').get('data'):
 
-                        reply_comment = {
+                        comments.append({
                             'comment_id': reply.get('id'),
                             'page_id': page_id,
                             'post_id': post_id,
@@ -316,11 +317,16 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'message': reply.get('message'),
                             'from_barberini': self.from_barberini(reply),
                             'parent': comment_id
-                        }
-                        comments.append(reply_comment)
+                        })
 
         df = pd.DataFrame(comments)
-        # df = self.ensure_foreign_keys(df)    left out until !167
+
+        # Posts can appear multiple times, causing comments to
+        # be fetched multiple times as well, causing
+        # primary key violations
+        # See #227
+        df = df.drop_duplicates(subset=['comment_id'], ignore_index=True)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
