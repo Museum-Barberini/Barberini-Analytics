@@ -67,13 +67,10 @@ class FetchBookingsHTML(DataPreparationTask):
                 bookings = bookings.head(5)
 
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
-        try:
-            db_booking_rows = self.db_connector.query(f'''
-                SELECT booking_id FROM gomus_booking
-                WHERE start_datetime < '{today_time}'
-            ''')
-        except UndefinedTable:
-            db_booking_rows = []
+        db_booking_rows = self.db_connector.query(f'''
+            SELECT booking_id FROM gomus_booking
+            WHERE start_datetime < '{today_time}'
+        ''')
 
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
@@ -116,19 +113,14 @@ class FetchOrdersHTML(DataPreparationTask):
 
         query_limit = 'LIMIT 10' if self.minimal_mode else ''
 
-        try:
-            order_ids = self.db_connector.query(f'''
-                SELECT a.order_id
-                FROM gomus_order AS a
-                LEFT OUTER JOIN gomus_order_contains AS b
-                ON a.order_id = b.order_id
-                WHERE ticket IS NULL
-                {query_limit}
-            ''')
-        except UndefinedTable:
-            order_ids = self.db_connector.query(
-                f'SELECT order_id FROM gomus_order {query_limit}'
-            )
+        order_ids = self.db_connector.query(f'''
+            SELECT a.order_id
+            FROM gomus_order AS a
+            LEFT OUTER JOIN gomus_order_contains AS b
+            ON a.order_id = b.order_id
+            WHERE ticket IS NULL
+            {query_limit}
+        ''')
 
         return order_ids
 
