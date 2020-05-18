@@ -19,9 +19,6 @@ from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
 class FillDB(luigi.WrapperTask):
 
     def requires(self):
-        # DEBUG
-        from luigi.notifications import TestNotificationsTask; yield TestNotificationsTask()
-        # BUDEG
         yield FillDBDaily()
         yield FillDBHourly()
 
