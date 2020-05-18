@@ -118,10 +118,11 @@ class FetchOrdersHTML(DataPreparationTask):
 
         try:
             order_ids = self.db_connector.query(f'''
-                SELECT order_id FROM gomus_order
-                WHERE order_id NOT IN (
-                    SELECT order_id FROM gomus_order_contains
-                )
+                SELECT a.order_id
+                FROM gomus_order AS a
+                LEFT OUTER JOIN gomus_order_contains AS b
+                ON a.order_id = b.order_id
+                WHERE ticket IS NULL
                 {query_limit}
             ''')
         except UndefinedTable:
