@@ -2,4 +2,3 @@ id,caption,timestamp,media_type,like_count,comments_count,permalink
 0123456789,"Dies ist eine
 Test Caption",2020-01-02T13:00:02+0000,VIDEO,128,256,https://www.instagram.com/thisisapermalink
 9876543210,"Dös wär ja wüs wänn, da ""Ümläuts"", drin wärn",2020-02-29T23:59:59+0000,IMAGE,512,1024,https://www.instagram.com/thisisanotherpermalink
-P
