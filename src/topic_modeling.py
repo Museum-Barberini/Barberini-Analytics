@@ -220,9 +220,16 @@ class TopicModelingFindTopics(DataPreparationTask):
             # of all text comments.
             total_size = len(text_df)
             topic_sizes = text_df["topic"].value_counts().to_dict()
+            print("=======================")
+            print(topic_sizes)
+            print("----------------------")
             validate_topic = lambda x: x if topic_sizes[x] >= 0.02 * total_size else "other"
             topic_df["topic"] = topic_df["topic"].apply(validate_topic)
             text_df["topic"] = text_df["topic"].apply(validate_topic)
+            print(topic_df)
+            print("-----------------------")
+            print(text_df)
+            print("=========================")
 
             text_dfs.append(text_df)
             topic_dfs.append(topic_df)
