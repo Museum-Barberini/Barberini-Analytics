@@ -63,22 +63,23 @@ class TestDataPreparationTask(DatabaseTestCase):
                     REFERENCES {TABLE_NAME_FOREIGN}
                     ({COLUMN_NAME_FOREIGN}, {COLUMN_NAME_FOREIGN_2})
             )''',
-            f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (
-                0, 'a'
-            )'''
+            f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES
+                (0, 'a'),
+                (1, 'b')
+            '''
         )
         self.assertEnsureForeignKeysOnce(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
             expected_valid=pd.DataFrame(
-                [['0', 'a']],
+                [['0', 'a'], ['1', 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
-                index=[0]),
+                index=[0, 3]),
             expected_invalid=pd.DataFrame(
-                [['0', 'b'], ['1', 'a'], ['1', 'b']],
+                [['0', 'b'], ['1', 'a']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
-                index=[1, 2, 3]),
+                index=[1, 2]),
             expected_foreign_key=(
                 [COLUMN_NAME, COLUMN_NAME_2], (TABLE_NAME_FOREIGN, [
                     COLUMN_NAME_FOREIGN, COLUMN_NAME_FOREIGN_2
