@@ -88,9 +88,13 @@ class CollectPostWords(DataPreparationTask):
 
     post_table = 'post'
 
-    def requires(self):
+    def _requires(self):
+        _requires = super()._requires()
         if not self.standalone:
-            yield PostsToDb()
+            _requires = [PostsToDb(), *_requires]
+        return luigi.task.flatten(_requires)
+
+    def requires(self):
         yield QueryDb(
             query=f'''
                 WITH known_post_ids AS (SELECT post_id FROM {self.table})
