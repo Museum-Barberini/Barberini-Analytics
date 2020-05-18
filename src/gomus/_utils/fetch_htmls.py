@@ -126,11 +126,11 @@ class FetchOrdersHTML(DataPreparationTask):
 
         order_ids = self.db_connector.query(
             f'''
-                select a.order_id
-                from gomus_order as a
-                left outer join gomus_order_contains as b
-                on a.order_id = b.order_id
-                where ticket is null
+                SELECT a.order_id
+                FROM gomus_order as a
+                LEFT OUTER JOIN gomus_order_contains AS b
+                ON a.order_id = b.order_id
+                WHERE ticket IS NULL
                 {query_limit}
             '''
             if order_contains_table_exists else
