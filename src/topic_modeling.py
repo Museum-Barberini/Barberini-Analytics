@@ -36,7 +36,6 @@ class TopicModelingTextsToDb(CsvToDb):
     def requires(self):
         return TopicModelingTextDf()
 
-
 class TopicModelingTopicsToDb(CsvToDb):
 
     table = "topic_modeling_topics"
@@ -63,6 +62,12 @@ class TopicModelingTopicsDf(DataPreparationTask):
         with self.output().open("w") as fp:
             data.to_csv(fp, index=True)
 
+        # delete existing topics data to make sure
+        # there are no inconsistencies after the new
+        # topics data is inserted.
+        db_connector().execute(
+            "TRUNCATE topic_modeling_topics"
+        )
 
 class TopicModelingTextDf(DataPreparationTask):
 
@@ -84,6 +89,14 @@ class TopicModelingTextDf(DataPreparationTask):
         with self.output().open("w") as fp:
             data.to_csv(fp, index=True)
 
+        # delete existing topics data to make sure
+        # there are no inconsistencies after the new
+        # topics data is inserted.
+        db_connector().execute(
+            "TRUNCATE topic_modeling_topics"
+        )
+
+
 
 class TopicModelingFindTopics(DataPreparationTask):
    
@@ -99,10 +112,9 @@ class TopicModelingFindTopics(DataPreparationTask):
         ]
 
     def requires(self):
-        # TODO: add back in
-        # yield AppstoreReviewsToDB()
-        # yield GoogleMapsReviewsToDB()
-        # yield GooglePlaystoreReviewsToDB()
+        yield AppstoreReviewsToDB()
+        yield GoogleMapsReviewsToDB()
+        yield GooglePlaystoreReviewsToDB()
         yield TweetsToDB()
 
     def output(self):
@@ -131,10 +143,12 @@ class TopicModelingFindTopics(DataPreparationTask):
 
         # TODO: use new posts view
         texts = db_connector().query("""
-            SELECT text, source, post_date FROM post
+            SELECT text, source, post_date, post_id 
+            FROM post
+            WHERE source!='Instagram' AND source!='Facebook'
         """)
         docs = [
-            Doc(row[0], row[1], row[2])
+            Doc(row[0], row[1], row[2], row[3])
             for row in texts if row[0] is not None
         ]
         return docs
@@ -254,10 +268,11 @@ class TopicModelingFindTopics(DataPreparationTask):
 
 
 class Doc:
-    def __init__(self, text, source, post_date):
+    def __init__(self, text, source, post_date, post_id):
         self.text = text
         self.source = source
         self.post_date = post_date
+        self.post_id = post_id
         self.tokens = None
         self.topic = None
         self.model_name = None
@@ -285,6 +300,7 @@ class Doc:
 
     def to_dict(self):
         return {
+            "post_id": self.post_id,
             "text": self.text,
             "source": self.source,
             "post_date": self.post_date,
