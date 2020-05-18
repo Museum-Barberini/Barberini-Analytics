@@ -59,9 +59,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         logger.info("creating service...")
         service = self.load_service(credentials)
         logger.info("fetching reviews...")
-        raw_reviews = self.fetch_raw_reviews(service)
+        place_id, raw_reviews = self.fetch_raw_reviews(service)
         logger.info("extracting reviews...")
-        reviews_df = self.extract_reviews(raw_reviews)
+        reviews_df = self.extract_reviews(place_id, raw_reviews)
         logger.info("success! writing...")
 
         with self.output().open('w') as output_file:
@@ -71,7 +71,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     uses oauth2 to authenticate with google, also caches credentials
     requires no login action if you have a valid cache
     """
-
     def load_credentials(self) -> oauth2client.client.Credentials:
         storage = Storage(self.token_cache)
         credentials = storage.get()
@@ -110,7 +109,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     an authenticated user has account(s), an accounts contains locations and a
     location contains reviews (which we need to request one  by one)
     """
-
     def fetch_raw_reviews(self, service, page_size=100):
         # get account identifier
         account_list = service.accounts().list().execute()
@@ -127,6 +125,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 ("ERROR: This user seems to not have access to any google "
                  "location, unable to fetch reviews"))
         location = location_list['locations'][0]['name']
+        place_id = location_list['locations'][0]['locationKey']['placeId']
 
         # get reviews for that location
         reviews = []
@@ -159,9 +158,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     review_list.pop('nextPageToken')
         finally:
             print()
-        return reviews
+        return place_id, reviews
 
-    def extract_reviews(self, raw_reviews) -> pd.DataFrame:
+    def extract_reviews(self, place_id, raw_reviews) -> pd.DataFrame:
         extracted_reviews = []
         for raw in raw_reviews:
             extracted = dict()
@@ -207,4 +206,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     extracted['language'] = "other"
 
             extracted_reviews.append(extracted)
-        return pd.DataFrame(extracted_reviews)
+        df = pd.DataFrame(extracted_reviews)
+        df['place_id'] = place_id
+        return df
