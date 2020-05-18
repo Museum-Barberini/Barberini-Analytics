@@ -71,23 +71,13 @@ class DataPreparationTask(luigi.Task):
                 for column
                 in foreign_columns
             ]
-            # TODO: Discuss whether we actually need these casts. Psycopg2 determines the correct data types indeed!
-            # This kind of casting could do more harm than good by hiding possible type errors.
-            for column in columns:
-                if not isinstance(values[column][0], str):
-                    values[column] = values[column].apply(str)
             foreign_values = pd.DataFrame(
-                [
-                    # cast values to string uniformly to prevent mismatching
-                    # due to wrong data types
-                    [str(value) for value in values]
-                    for values in self.db_connector.query(f'''
-                        SELECT {', '.join(foreign_columns)}
-                        FROM {foreign_table}
-                    ''')
-                ],
+                self.db_connector.query(f'''
+                    SELECT {', '.join(foreign_columns)}
+                    FROM {foreign_table}
+                '''),
                 columns=_foreign_columns
-            )
+            ).astype(dict(zip(_foreign_columns, values.dtypes[columns])))
 
             # Remove all rows from the df where the value does not match any
             # value from the referenced table

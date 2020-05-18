@@ -37,11 +37,11 @@ class TestDataPreparationTask(DatabaseTestCase):
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
             expected_valid=pd.DataFrame(
-                [['0', 'a'], ['0', 'b']],
+                [[0, 'a'], [0, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0, 1]),
             expected_invalid=pd.DataFrame(
-                [['1', 'a'], ['1', 'b']],
+                [[1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[2, 3]),
             expected_foreign_key=(
@@ -73,11 +73,11 @@ class TestDataPreparationTask(DatabaseTestCase):
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
             expected_valid=pd.DataFrame(
-                [['0', 'a'], ['1', 'b']],
+                [[0, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0, 3]),
             expected_invalid=pd.DataFrame(
-                [['0', 'b'], ['1', 'a']],
+                [[0, 'b'], [1, 'a']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[1, 2]),
             expected_foreign_key=(
@@ -109,7 +109,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
             expected_valid=pd.DataFrame(
-                [['0', 'a']],
+                [[0, 'a']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0]),
             expected_foreign_keys=[
@@ -150,11 +150,11 @@ class TestDataPreparationTask(DatabaseTestCase):
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
             expected_valid=pd.DataFrame(
-                [['0', 'a'], ['0', 'b']],
+                [[0, 'a'], [0, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0, 1]),
             expected_invalid=pd.DataFrame(
-                [['1', 'a'], ['1', 'b']],
+                [[1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[2, 3]),
             expected_foreign_key=(
@@ -174,11 +174,11 @@ class TestDataPreparationTask(DatabaseTestCase):
         self.assertEnsureForeignKeysOnce(
             df=pd.DataFrame([[0], [1]], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame(
-                [['0']],
+                [[0]],
                 columns=[COLUMN_NAME],
                 index=[0]),
             expected_invalid=pd.DataFrame(
-                [['1']],
+                [[1]],
                 columns=[COLUMN_NAME],
                 index=[1]),
             expected_foreign_key=(
@@ -199,7 +199,7 @@ class TestDataPreparationTask(DatabaseTestCase):
         self.denyEnsureForeignKeys(
             df=pd.DataFrame([[0], [1]], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame(
-                [['0'], ['1']],
+                [[0], [1]],
                 columns=[COLUMN_NAME],
                 index=[0, 1])
         )
