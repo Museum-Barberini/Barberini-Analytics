@@ -75,7 +75,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
         invalid_values = pd.DataFrame([0], columns=['booking_id'])
 
         def mocked_ensure_foreign_key(df, invalid_handler):
-            invalid_handler(invalid_values, None, None)
+            invalid_handler(invalid_values, None)
             return df
         ensure_foreign_key_mock.side_effect = mocked_ensure_foreign_key
 

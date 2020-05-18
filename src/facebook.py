@@ -163,8 +163,6 @@ class FetchFbPostPerformance(DataPreparationTask):
             response_content = response.json()
 
             post_perf = {
-                'page_id': page_id,
-                'post_id': post_id,
                 'time_stamp': current_timestamp,
             }
 
@@ -204,6 +202,10 @@ class FetchFbPostPerformance(DataPreparationTask):
             post_perf['post_impressions_unique'] = \
                 response_content['data'][6]['values'][0]['value']
 
+            post_perf.update(
+                page_id=page_id,
+                post_id=post_id
+            )
             performances.append(post_perf)
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")

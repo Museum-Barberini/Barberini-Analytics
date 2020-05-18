@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 
+from dateutil import parser as dtparser
 import luigi
 import pandas as pd
 from luigi.format import UTF8
@@ -80,6 +81,17 @@ class IgAudienceGenderAgeToDB(CsvToDb):
 
 
 class FetchIgPosts(DataPreparationTask):
+
+    columns = {
+        'id': str,
+        'caption': str,
+        'timestamp': dtparser.parse,
+        'media_type': str,
+        'like_count': int,
+        'comments_count': int,
+        'permalink': str
+    }
+
     def requires(self):
         return MuseumFacts()
 
@@ -98,15 +110,7 @@ class FetchIgPosts(DataPreparationTask):
 
         all_media = []
 
-        fields = ','.join([
-            'id',
-            'caption',
-            'timestamp',
-            'media_type',
-            'like_count',
-            'comments_count',
-            'permalink'
-        ])
+        fields = ','.join(self.columns.keys())
         # use limit=100 to keep amount of requests small
         # 100 is the maximum value the Graph API will accept
         limit = 100
@@ -144,7 +148,15 @@ class FetchIgPosts(DataPreparationTask):
 
         logger.info("Fetching of Instagram posts complete")
 
-        df = pd.DataFrame([media for media in all_media])
+        df = pd.DataFrame([
+            {
+                column: adapter(media[column])
+                for (column, adapter)
+                in self.columns.items()
+            }
+            for media
+            in all_media
+        ])
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
@@ -190,9 +202,7 @@ class FetchIgPostPerformance(DataPreparationTask):
         fetch_time = dt.datetime.now()
         for i, row in post_df.iterrows():
             # Fetch only insights for less than 2 months old posts
-            post_time = dt.datetime.strptime(
-                row['timestamp'],
-                '%Y-%m-%dT%H:%M:%S+%f')
+            post_time = dtparser.parse(row['timestamp'])
             if post_time.date() < \
                fetch_time.date() - self.timespan:
                 continue
@@ -223,7 +233,7 @@ class FetchIgPostPerformance(DataPreparationTask):
                 video_views = 0  # for non-video posts
 
             performance_df.loc[i] = [
-                row['id'],
+                str(row['id']),  # The type was lost during CSV conversion
                 fetch_time,
                 impressions,
                 reach,
