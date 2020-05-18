@@ -5,6 +5,7 @@ import pandas as pd
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+from query_db import QueryDb
 from .post_words import PostWordsToDb
 from .stopwords import StopwordsToDb
 
@@ -94,20 +95,17 @@ class CollectPostNgrams(DataPreparationTask):
             format=luigi.format.UTF8)
 
     def run(self):
-        ngrams = []
+        dfs = []
         for n in range(self.n_min, self.n_max + 1):
-            query = self._build_query(n)
             logger.info(f"Collecting n={n}-grams ...")
-            result = self.db_connector.query(query)
-            # TODO: Use QueryDb here?
-            ngrams.extend(result)
+            ngram_file = yield QueryDb(query=self._build_query(n))
+            with ngram_file.open('r') as ngram_stream:
+                dfs.append(pd.read_csv(ngram_stream))
 
-        df = pd.DataFrame(
-            ngrams,
-            columns=['source', 'post_id', 'n', 'word_index', 'ngram']
-        )
+        ngrams = pd.concat(dfs)
+
         with self.output().open('w') as output_stream:
-            df.to_csv(output_stream, index=False, header=True)
+            ngrams.to_csv(output_stream, index=False, header=True)
 
     def _build_query(self, n):
 
