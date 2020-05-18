@@ -2,6 +2,7 @@
 USER=$1-run
 BASEDIR=$(dirname "$0")/../..
 PATH=/usr/local/bin:$PATH
+export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
 
 LOGPATH=/var/log/bp-logs
 LOGFILE=$LOGPATH/"$1-`date +%Y-%m-%d`.log"
