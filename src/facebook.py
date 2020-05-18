@@ -51,7 +51,7 @@ class FetchFbPosts(DataPreparationTask):
 
         posts = []
 
-        url = f'{API_BASE}/{page_id}/feed'
+        url = f'{API_BASE}/{page_id}/published_posts?limit=100'
 
         response = try_request_multiple_times(url)
 
@@ -84,8 +84,10 @@ class FetchFbPosts(DataPreparationTask):
 
         with self.output().open('w') as output_file:
             df = pd.DataFrame([post for post in posts])
-            df = df.filter(['created_time', 'message', 'id'])
-            df.columns = ['post_date', 'text', 'fb_post_id']
+            fb_post_ids = df['id'].str.split('_', n=1, expand=True)
+            df = df.filter(['created_time', 'message'])
+            df = fb_post_ids.join(df)
+            df.columns = ['page_id', 'post_id', 'post_date', 'text']
             df.to_csv(output_file, index=False, header=True)
 
 
@@ -117,8 +119,7 @@ class FetchFbPostPerformance(DataPreparationTask):
         access_token = os.getenv('FB_ACCESS_TOKEN')
 
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        earliest_valid_date = (dt.datetime.now()
-                               - self.timespan)
+        minimum_relevant_date = dt.datetime.now() - self.timespan
         performances = []
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
@@ -128,17 +129,18 @@ class FetchFbPostPerformance(DataPreparationTask):
 
         invalid_count = 0
         for index in df.index:
-            post_id = df['fb_post_id'][index]
+            page_id, post_id = df['page_id'][index], df['post_id'][index]
+            fb_post_id = f'{page_id}_{post_id}'
             post_date = dt.datetime.strptime(
                 df['post_date'][index],
                 '%Y-%m-%dT%H:%M:%S+%f')
-            if post_date < earliest_valid_date:
+            if post_date < minimum_relevant_date:
                 continue
 
             logger.info(
-                f"Loading performance data for FB post {str(post_id)}")
+                f"Loading performance data for FB post {fb_post_id}")
 
-            url = f'{API_BASE}/{post_id}/insights'
+            url = f'{API_BASE}/{fb_post_id}/insights'
             metrics = [
                 'post_reactions_by_type_total',
                 'post_activity_by_action_type',
@@ -148,24 +150,23 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'post_impressions',
                 'post_impressions_unique'  # "reach"
             ]
-            request_args = {
-                'params': {'metric': ','.join(metrics)},
-                'headers': {'Authorization': 'Bearer ' + access_token}
-            }
 
-            response = try_request_multiple_times(url, **request_args)
-
+            response = try_request_multiple_times(
+                url,
+                params={'metric': ','.join(metrics)},
+                headers={'Authorization': 'Bearer ' + access_token}
+            )
             if response.status_code == 400:
                 invalid_count += 1
                 continue
-
             response.raise_for_status()  # in case of another error
-
             response_content = response.json()
 
-            post_perf = dict()
-            post_perf['fb_post_id'] = post_id
-            post_perf['time_stamp'] = current_timestamp
+            post_perf = {
+                'page_id': page_id,
+                'post_id': post_id,
+                'time_stamp': current_timestamp,
+            }
 
             # Reactions
             reactions = response_content['data'][0]['values'][0]['value']
@@ -178,9 +179,9 @@ class FetchFbPostPerformance(DataPreparationTask):
 
             # Activity
             activity = response_content['data'][1]['values'][0]['value']
-            post_perf['likes'] = int(activity.get('LIKE', 0))
-            post_perf['shares'] = int(activity.get('SHARE', 0))
-            post_perf['comments'] = int(activity.get('COMMENT', 0))
+            post_perf['likes'] = int(activity.get('like', 0))
+            post_perf['shares'] = int(activity.get('share', 0))
+            post_perf['comments'] = int(activity.get('comment', 0))
 
             # Clicks
             clicks = response_content['data'][2]['values'][0]['value']

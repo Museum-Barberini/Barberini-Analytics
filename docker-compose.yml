@@ -13,6 +13,7 @@ services:
             - /etc/barberini-analytics/secrets/secret_files:/app/secret_files
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
+            - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
         ports:
             - "8082"
         environment:

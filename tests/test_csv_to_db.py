@@ -31,7 +31,7 @@ class TestCsvToDb(DatabaseTestCase):
             )''',
             f'''
                 ALTER TABLE {self.table_name}
-                ADD CONSTRAINT {self.table_name}_primkey PRIMARY KEY (id);
+                ADD PRIMARY KEY (id);
             ''')
 
     def test_adding_data_to_database_existing_table(self):

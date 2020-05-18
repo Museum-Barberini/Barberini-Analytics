@@ -9,10 +9,11 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation_task import DataPreparationTask
+from gomus.customers import GomusToCustomerMappingToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
                                       FetchOrdersHTML)
-from gomus.customers import GomusToCustomerMappingToDB, hash_id
 
 logger = logging.getLogger('luigi-interface')
 
@@ -60,12 +61,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         with self.input()[0].open('r') as input_file:
             bookings = pd.read_csv(input_file)
 
-            if self.minimal_mode:
-                bookings = bookings.head(5)
+        if self.minimal_mode:
+            bookings = bookings.head(5)
 
         bookings.insert(1, 'customer_id', 0)  # new column at second position
         bookings.insert(len(bookings.columns), 'order_date', None)
-        bookings.insert(len(bookings.columns), 'language', "")
+        bookings.insert(len(bookings.columns), 'language', '')
 
         with self.input()[1].open('r') as all_htmls:
             for i, html_path in enumerate(all_htmls):
