@@ -1,126 +1,81 @@
 import csv
-import os
+import logging
 import re
-import time
 
 import dateparser
 import luigi
 import pandas as pd
-import psycopg2
-import requests
 from luigi.format import UTF8
 from lxml import html
 
-from gomus.orders import ExtractOrderData
-from set_db_connection_options import set_db_connection_options
+from data_preparation_task import DataPreparationTask
+from gomus.customers import GomusToCustomerMappingToDB
+from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_customers import hash_id
+from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
+                                      FetchOrdersHTML)
 
-from .extract_bookings import ExtractGomusBookings
+logger = logging.getLogger('luigi-interface')
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
-class GomusScraperTask(luigi.Task):
+class GomusScraperTask(DataPreparationTask):
     base_url = "https://barberini.gomus.de"
 
-    sess_id = os.environ['GOMUS_SESS_ID']
-    cookies = dict(_session_id=sess_id)
-
-    host = None
-    database = None
-    user = None
-    password = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_db_connection_options(self)
-
-    # simply wait for a moment before requesting, as we don't want to
-    # overwhelm the server with our interest in classified information...
-    def polite_get(self, url, cookies):
-        time.sleep(0.5)
-        response = requests.get(url, cookies=cookies)
-        if not response.ok:
-            print(
-                f'Error with HTTP request: Status code {response.status_code}')
-            exit(1)
-        return response
-
     def extract_from_html(self, base_html, xpath):
-        try:
-            return html.tostring(base_html.xpath(
-                xpath)[0], method='text', encoding="unicode")
-        except IndexError:
-            return ""
+        # try:
+        return html.tostring(base_html.xpath(
+            xpath)[0], method='text', encoding="unicode")
+        # except IndexError:
+        #    return ""
 
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
+    columns = luigi.parameter.ListParameter(description="Column names")
+    timespan = luigi.parameter.Parameter(default='_nextYear')
 
     # could take up to an hour to scrape all bookings in the next year
     worker_timeout = 3600
-    columns = luigi.parameter.ListParameter(description="Column names")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def requires(self):
-        return ExtractGomusBookings()
+        yield ExtractGomusBookings(
+            timespan=self.timespan,
+            columns=self.columns)
+        yield FetchBookingsHTML(
+            timespan=self.timespan,
+            base_url=f'{self.base_url}/admin/bookings/',
+            columns=self.columns)
+        # table required for fetch_updated_mail()
+        yield GomusToCustomerMappingToDB()
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/bookings.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/bookings.csv', format=UTF8)
 
     def run(self):
-        bookings = pd.read_csv(self.input().path)
-        bookings['order_date'] = None
-        bookings['language'] = ""
-        row_count = len(bookings.index)
+        with self.input()[0].open('r') as input_file:
+            bookings = pd.read_csv(input_file)
 
-        db_booking_rows = []
+        if self.minimal_mode:
+            bookings = bookings.head(5)
 
-        enhanced_bookings = pd.DataFrame(columns=self.columns)
+        bookings.insert(1, 'customer_id', 0)  # new column at second position
+        bookings.insert(len(bookings.columns), 'order_date', None)
+        bookings.insert(len(bookings.columns), 'language', '')
 
-        try:
-            conn = psycopg2.connect(
-                host=self.host, database=self.database,
-                user=self.user, password=self.password
-            )
-
-            cur = conn.cursor()
-
-            cur.execute("SELECT EXISTS(SELECT * FROM information_schema.tables"
-                        f" WHERE table_name=\'gomus_booking\')")
-            db_booking_rows = []
-
-            if cur.fetchone()[0]:
-                query = (f'SELECT booking_id FROM gomus_booking')
-                cur.execute(query)
-                db_booking_rows = cur.fetchall()
-
-        except psycopg2.DatabaseError as error:
-            print(error)
-            exit(1)
-
-        finally:
-            if conn is not None:
-                conn.close()
-
-        for i, row in bookings.iterrows():
-            booking_id = row['booking_id']
-
-            booking_in_db = False
-            for db_row in db_booking_rows:
-                if db_row[0] == booking_id:
-                    booking_in_db = True
-                    break
-
-            if not booking_in_db:
-
-                booking_url = (self.base_url + "/admin/bookings/"
-                               + str(booking_id))
-                print(
-                    (f"requesting booking details for id: "
-                     f"{str(booking_id)} ({i+1}/{row_count})"))
-                res_details = self.polite_get(booking_url,
-                                              cookies=self.cookies)
-
-                tree_details = html.fromstring(res_details.text)
+        with self.input()[1].open('r') as all_htmls:
+            for i, html_path in enumerate(all_htmls):
+                html_path = html_path.replace('\n', '')
+                with open(html_path,
+                          'r',
+                          encoding='utf-8') as html_file:
+                    res_details = html_file.read()
+                tree_details = html.fromstring(res_details)
 
                 # firefox says the the xpath starts with //body/div[3]/ but we
                 # apparently need div[2] instead
@@ -133,113 +88,212 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 raw_order_date = self.extract_from_html(
                     booking_details,
                     'div[1]/div[2]/small/dl/dd[2]').strip()
-                row['order_date'] = dateparser.parse(raw_order_date)
+                bookings.loc[i, 'order_date'] =\
+                    dateparser.parse(raw_order_date)
 
                 # Language
-                row['language'] = self.extract_from_html(
-                    booking_details, 'div[3]/div[1]/dl[2]/dd[1]').strip()
+                bookings.loc[i, 'language'] = self.extract_from_html(
+                    booking_details,
+                    "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
+                    "/div[1]/dl[2]/dd").strip()
 
-                enhanced_bookings = enhanced_bookings.append(row)
+                try:
+                    customer_details = tree_details.xpath(
+                        '/html/body/div[2]/div[2]/div[3]/'
+                        'div[4]/div[2]/div[2]/div[2]')[0]
+
+                    # Customer E-Mail (not necessarily same as in report)
+                    customer_mail = self.extract_from_html(
+                        customer_details,
+                        'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
+
+                    if re.match(r'^\S+@\S+\.\S+$', customer_mail):
+                        bookings.loc[i, 'customer_id'] = hash_id(customer_mail)
+
+                except IndexError:  # can't find customer mail
+                    bookings.loc[i, 'customer_id'] = 0
+
+        all_invalid_bookings = None
+
+        def handle_invalid_bookings(invalid_bookings, _, __):
+            nonlocal all_invalid_bookings
+            if all_invalid_bookings is None:
+                all_invalid_bookings = invalid_bookings.copy()
+            else:
+                all_invalid_bookings.append(invalid_bookings)
+
+        bookings = self.ensure_foreign_keys(bookings, handle_invalid_bookings)
+        # fetch invalid E-Mail addresses anew
+        for invalid_booking_id in all_invalid_bookings['booking_id']:
+            # Delegate dynamic dependencies in sub-method
+            new_mail = self.fetch_updated_mail(invalid_booking_id)
+            for yielded_task in new_mail:
+                yield yielded_task
 
         with self.output().open('w') as output_file:
-            enhanced_bookings.to_csv(
+            bookings.to_csv(
                 output_file,
                 index=False,
                 header=True,
                 quoting=csv.QUOTE_NONNUMERIC)
 
+    def fetch_updated_mail(self, booking_id):
+        # This would be cleaner to put into an extra function,
+        # but dynamic dependencies only work when yielded from 'run()'
+        logger.info(f"Fetching new mail for booking {booking_id}")
+
+        # First step: Get customer of booking (cannot use customer_id,
+        # since it has been derived from the wrong e-mail address)
+        base_url = 'https://barberini.gomus.de/admin'
+
+        booking_html_task = FetchGomusHTML(
+            url=f'{base_url}/bookings/{booking_id}')
+        yield booking_html_task
+        with booking_html_task.output().open('r') as booking_html_fp:
+            booking_html = html.fromstring(booking_html_fp.read())
+        booking_customer = booking_html.xpath(
+            '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
+            '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
+        gomus_id = int(booking_customer.get('href').split('/')[-1])
+
+        # Second step: Get current e-mail address for customer
+        customer_html_task = FetchGomusHTML(
+            url=f'{base_url}/customers/{gomus_id}')
+        yield customer_html_task
+        with customer_html_task.output().open('r') as customer_html_fp:
+            customer_html = html.fromstring(customer_html_fp.read())
+        customer_email = customer_html.xpath(
+            '//body/div[2]/div[2]/div[3]/div/div[2]/div[1]'
+            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')[0]
+        customer_email = customer_email.text_content().strip()
+
+        # Update customer ID in gomus_customer
+        # and gomus_to_customer_mapping
+        customer_id = hash_id(customer_email)
+        old_customer = self.db_connector.query(
+            query=f'SELECT customer_id FROM gomus_to_customer_mapping '
+                  f'WHERE gomus_id = {gomus_id}',
+            only_first=True)
+        if not old_customer:
+            logger.warning(
+                "Cannot update email address of customer which is not in "
+                "database.\nSkipping ...")
+            return
+        old_customer_id = old_customer[0]
+
+        logger.info(f"Replacing old customer ID {old_customer_id} "
+                    f"with new customer ID {customer_id}")
+
+        # References are updated through foreign key
+        # references via ON UPDATE CASCADE
+        self.db_connector.execute(f'''
+            UPDATE gomus_customer
+            SET customer_id = {customer_id}
+            WHERE customer_id = {old_customer_id}
+        ''')
+
 
 class ScrapeGomusOrderContains(GomusScraperTask):
 
-    worker_timeout = 2000  # seconds ≈ 30 minutes until the task will timeout
+    # 60 minutes until the task will timeout
+    # set to about 800000 for collecting historic data ≈ 7 Days
+    worker_timeout = 3600
 
-    def get_order_ids(self):
-        orders = pd.read_csv(self.input().path)
-        return orders['order_id']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def requires(self):
-        return ExtractOrderData(
-            columns=[
-                'order_id',
-                'order_date',
-                'customer_id',
-                'valid',
-                'paid',
-                'origin'])
-        # this array is kind of unnecessary, but currently
-        # required by ExtractOrderData()
-        # the design of that task requiring a column-array is also
-        # questionable, so this line may change later on
+        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
 
     def output(self):
         return luigi.LocalTarget(
-            'output/gomus/scraped_order_contains.csv', format=UTF8)
+            f'{self.output_dir}/gomus/scraped_order_contains.csv',
+            format=UTF8
+        )
 
     def run(self):
-        order_ids = self.get_order_ids()
 
         order_details = []
 
-        for i in range(len(order_ids)):
-            url = self.base_url + "/admin/orders/" + str(order_ids[i])
-            print(
-                (f"requesting order details for id: "
-                 f"{order_ids[i]} ({i+1} out of {len(order_ids)})"))
-            res_order = self.polite_get(url, self.cookies)
-            tree_order = html.fromstring(res_order.text)
+        with self.input().open('r') as all_htmls:
+            for i, html_path in enumerate(all_htmls):
+                html_path = html_path.replace('\n', '')
+                with open(html_path,
+                          'r',
+                          encoding='utf-8') as html_file:
+                    res_order = html_file.read()
 
-            tree_details = tree_order.xpath(
-                ('//body/div[2]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/'
-                 'div/div/div[2]'))[0]
+                tree_order = html.fromstring(res_order)
 
-            # every other td contains the information of an article in the
-            # order
-            for article in tree_details.xpath(
-                    'table/tbody[1]/tr[position() mod 2 = 1]'):
+                tree_details = tree_order.xpath(
+                    '//body/div[2]/div[2]/div[3]/div[2]/div[2]/'
+                    'div/div[2]/div/div/div/div[2]')[0]
 
-                new_article = dict()
+                # every other td contains the information of an article in the
+                # order
+                for article in tree_details.xpath(
+                        # 'table/tbody[1]/tr[position() mod 2 = 1]'):
+                        'table/tbody[1]/tr'):
 
-                # Workaround for orders like 671144
-                id_xpath = 'td[1]/div|td[1]/a/div|td[1]/a'
-                if len(article.xpath(id_xpath)) == 0:
-                    continue
+                    new_article = dict()
 
-                # excursions have a link there and sometimes no div
-                new_article["article_id"] = int(
-                    self.extract_from_html(
-                        article, id_xpath).strip())
+                    # Workaround for orders like 671144
+                    id_xpath = 'td[1]/div|td[1]/a/div|td[1]/a'
+                    if len(article.xpath(id_xpath)) == 0:
+                        continue
 
-                new_article["order_id"] = order_ids[i]
+                    # excursions have a link there and sometimes no div
+                    new_article["article_id"] = int(
+                        self.extract_from_html(
+                            article, id_xpath).strip())
 
-                new_article["ticket"] = self.extract_from_html(
-                    article, 'td[3]/strong').strip()
+                    new_article['article_type'] = str(
+                        article.xpath(
+                            'td[1]/div/i/@title|td[1]/a/div/'
+                            'i/@title|td[1]/a/i/@title'
+                        )[0])
 
-                infobox_str = html.tostring(
-                    article.xpath('td[2]/div')[0],
-                    method='text',
-                    encoding="unicode")
+                    order_id = int(re.findall(r'(\d+)\.html$', html_path)[0])
+                    new_article['order_id'] = order_id
 
-                # Workaround for orders like 679577
-                raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
-                if not len(raw_date_re) == 0:
-                    raw_date = raw_date_re[0]
-                else:
-                    # we need something to mark an
-                    # invalid / nonexistent date
-                    raw_date = '1.1.1900'
-                new_article["date"] = dateparser.parse(raw_date)
+                    # Workaround for orders like 478531
+                    # if td[3] has no child, we have nowhere to find the ticket
+                    if len(article.xpath('td[3][count(*)>0]')) == 0:
+                        continue
+                    new_article["ticket"] = self.extract_from_html(
+                        article, 'td[3]/strong').strip()
 
-                new_article["quantity"] = int(
-                    self.extract_from_html(article, 'td[4]'))
+                    if new_article["ticket"] == '':
+                        continue
 
-                raw_price = self.extract_from_html(article, 'td[5]')
-                new_article["price"] = float(
-                    raw_price.replace(
-                        ",", ".").replace(
-                        "€", ""))
+                    infobox_str = html.tostring(
+                        article.xpath('td[2]/div')[0],
+                        method='text',
+                        encoding="unicode")
 
-                order_details.append(new_article)
+                    # Workaround for orders like 679577
+                    raw_date_re = re.findall(r'\d.*Uhr', infobox_str)
+                    if not len(raw_date_re) == 0:
+                        raw_date = raw_date_re[0]
+                    else:
+                        # we need something to mark an
+                        # invalid / nonexistent date
+                        raw_date = '1.1.1900'
+                    new_article["date"] = dateparser.parse(raw_date)
+
+                    new_article["quantity"] = int(
+                        self.extract_from_html(article, 'td[4]'))
+
+                    raw_price = self.extract_from_html(article, 'td[5]')
+                    new_article["price"] = float(
+                        raw_price.replace(
+                            ",", ".").replace(
+                            "€", ""))
+
+                    order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
+        df = self.ensure_foreign_keys(df)
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

@@ -7,7 +7,8 @@ import luigi
 import requests
 from bs4 import BeautifulSoup
 
-from gomus._utils.fetch_report_helper import REPORT_IDS_INV
+from data_preparation_task import OUTPUT_DIR
+from gomus._utils.fetch_report_helper import REPORT_IDS
 
 # These lists map directly to various Gomus attributes used for editing
 # the respective reports
@@ -63,7 +64,8 @@ class EditGomusReport(luigi.Task):
 
     # obsoletes output() and requires()
     def output(self):
-        return luigi.LocalTarget(f'output/gomus/edit_report_{self.task_id}')
+        return luigi.LocalTarget(
+            f'{OUTPUT_DIR}/gomus/edit_report_{self.task_id}')
 
     def run(self):
         self.add_to_body(f'_method={METHOD}')
@@ -113,8 +115,7 @@ class EditGomusReport(luigi.Task):
                      f'{only_unique_visitors}'))
 
         else:
-            print("Not implemented report type")
-            raise NotImplementedError
+            raise NotImplementedError("Unimplemented report type")
 
         self.add_to_body(f'report[inform_user]={INFORM_USER}')
 
@@ -134,7 +135,8 @@ class EditGomusReport(luigi.Task):
                 return meta['content']
 
     def get_report_type(self):
-        return REPORT_IDS_INV[self.report].split('_')[0].capitalize()
+        return {v: k for k, v in REPORT_IDS.items()}[self.report].\
+            split('_')[0].capitalize()
 
     def insert_based(self, base, values, add_base=True):
         if add_base:

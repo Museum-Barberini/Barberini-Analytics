@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
+import datetime as dt
 import os
 
 import luigi
 import requests
 from luigi.format import UTF8
 
+from data_preparation_task import OUTPUT_DIR
 from gomus._utils.edit_report import EditGomusReport
 from gomus._utils.fetch_report_helper import (REPORT_IDS, csv_from_excel,
                                               parse_timespan, request_report)
 
 
 class FetchGomusReport(luigi.Task):
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     report = luigi.parameter.Parameter(
         description="The report name (e.g. \'bookings\')")
     suffix = luigi.parameter.OptionalParameter(
@@ -26,12 +29,14 @@ class FetchGomusReport(luigi.Task):
     def output(self):
         for index in self.sheet_indices:
             yield luigi.LocalTarget(
-                f'output/gomus/{self.report_name}.{index}.csv',
-                format=UTF8)
+                f'{OUTPUT_DIR}/gomus/{self.report_name}.{index}.csv',
+                format=UTF8
+            )
 
     def requires(self):
         if REPORT_IDS[f'{self.report_name}'] > 0:  # report refreshable
-            start_time, end_time = parse_timespan(self.suffix.replace('_', ''))
+            start_time, end_time = parse_timespan(
+                self.suffix.replace('_', ''), self.today)
             yield EditGomusReport(
                 report=REPORT_IDS[self.report_name],
                 start_at=start_time,
@@ -40,17 +45,11 @@ class FetchGomusReport(luigi.Task):
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']
 
-        res_content = request_report(
-            args=[
-                '-s',
-                f'{sess_id}',
-                '-t',
-                f'{self.report_name}',
-                '-l'])
+        response_content = request_report(self.report_name, sess_id)
         for index, target in enumerate(self.output()):
             with target.open('w') as target_csv:
                 csv_from_excel(
-                    res_content,
+                    response_content,
                     target_csv,
                     self.sheet_indices[index])
 
@@ -64,14 +63,18 @@ class FetchEventReservations(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/gomus/reservations/reservations_{self.booking_id}.'
-             f'{self.status}.csv'),
-            format=UTF8)
+            (f'{OUTPUT_DIR}/gomus/reservations/'
+             f'reservations_{self.booking_id}.{self.status}.csv'),
+            format=UTF8
+        )
 
     def run(self):
         url = (f'https://barberini.gomus.de/bookings/{self.booking_id}/'
                f'seats.xlsx')
-        res_content = requests.get(url, cookies=dict(
-            _session_id=os.environ['GOMUS_SESS_ID'])).content
+        response = requests.get(url, cookies=dict(
+            _session_id=os.environ['GOMUS_SESS_ID']))
+        response_content = response.content
+
         with self.output().open('w') as target_csv:
-            csv_from_excel(res_content, target_csv, self.status)
+            if response.status_code != 500:
+                csv_from_excel(response_content, target_csv, self.status)

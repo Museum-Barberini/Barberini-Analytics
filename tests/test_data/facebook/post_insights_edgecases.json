@@ -70,6 +70,24 @@
                     "value": 0
                 }
             ]
+        },
+        {
+            "name": "post_impressions",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": 0
+                }
+            ]
+        },
+        {
+            "name": "post_impressions_unique",
+            "period": "lifetime",
+            "values": [
+                {
+                    "value": 0
+                }
+            ]
         }
     ],
     "paging": {

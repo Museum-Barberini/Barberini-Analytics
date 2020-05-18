@@ -1,0 +1,5 @@
+google_maps_review_id,post_date,rating,text,text_english,language,place_id
+id_of_review_without_text,2020-01-01T15:00:00.000Z,5,,,,123def
+id_of_english_review,2020-01-02T16:00:00.000Z,3,"The pictures are not animated","The pictures are not animated",english,123def
+id_of_german_review,2020-01-03T17:00:00.000Z,1,"Die wollten mein schönes Gemälde nicht ausstellen!","They didn't want to display my beautiful painting!",german,123def
+id_of_other_review,2020-01-04T18:00:00.000Z,4,"Я не говорю по русски.","I don't speak Russian.",other,123def

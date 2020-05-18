@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import datetime as dt
 
 import luigi
@@ -8,50 +7,52 @@ from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
 
+from data_preparation_task import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class AbstractDailyEntriesToDB(CsvToDb):
-    columns = [
-        ('id', 'INT'),
-        ('ticket', 'TEXT'),
-        ('datetime', 'TIMESTAMP'),
-        ('count', 'INT'),
-    ]
-
-    primary_key = ('id', 'datetime')
-
-
-class DailyEntriesToDB(AbstractDailyEntriesToDB):
+class DailyEntriesToDB(CsvToDb):
     table = 'gomus_daily_entry'
 
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     def requires(self):
-        return ExtractDailyEntryData(expected=False, columns=self.columns)
+        return ExtractDailyEntryData(
+            expected=False,
+            columns=[col[0] for col in self.columns],
+            today=self.today)
 
 
-class ExpectedDailyEntriesToDB(AbstractDailyEntriesToDB):
+class ExpectedDailyEntriesToDB(CsvToDb):
     table = 'gomus_expected_daily_entry'
 
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
+
     def requires(self):
-        return ExtractDailyEntryData(expected=True, columns=self.columns)
+        return ExtractDailyEntryData(
+            expected=True,
+            columns=[col[0] for col in self.columns],
+            today=self.today)
 
 
-class ExtractDailyEntryData(luigi.Task):
+class ExtractDailyEntryData(DataPreparationTask):
+    today = luigi.parameter.DateParameter(default=dt.datetime.today())
     expected = luigi.parameter.BoolParameter(
         description="Whether to return actual or expected entries")
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
         return FetchGomusReport(
-            report='entries', suffix='_1day', sheet_indices=[
-                0, 1] if not self.expected else [
-                2, 3])
+            report='entries',
+            suffix='_1day',
+            sheet_indices=[0, 1] if not self.expected else [2, 3],
+            today=self.today)
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/gomus/{"expected_" if self.expected else ""}'
-             f'daily_entries.csv'),
-            format=UTF8)
+            f'{self.output_dir}/gomus/{"expected_" if self.expected else ""}'
+            'daily_entries.csv', format=UTF8
+        )
 
     def run(self):
         # get date from first sheet
@@ -69,7 +70,7 @@ class ExtractDailyEntryData(luigi.Task):
         # get remaining data from second sheet
         with next(inputs).open('r') as second_sheet:
             df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
-            entries_df = pd.DataFrame(columns=[col[0] for col in self.columns])
+            entries_df = pd.DataFrame(columns=self.columns)
 
             for index, row in df.iterrows():
                 for i in range(24):
@@ -82,8 +83,7 @@ class ExtractDailyEntryData(luigi.Task):
                     entries_df.at[row_index, 'datetime'] = \
                         dt.datetime.combine(date, time)
 
-                    # Handle different hour formats for expected and actual
-                    # entries
+                    # handle different hour formats for expected/actual entries
                     if self.expected:
                         count_index = str(i) + ':00'
                     else:

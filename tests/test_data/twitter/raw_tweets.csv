@@ -1,4 +1,4 @@
 timestamp,user_id,tweet_id,text,parent_tweet_id,likes,retweets,replies,some_other_value
-2020-01-01 23:59:59,42,1337,Welcome to the exhibition!,,5,4,1,foo
-2020-01-02 00:00:00,43,9999,I am so excited!,1337,1,0,0,foooooo
-2020-01-03 14:00:00,44,8888,Im Müseüms-cäfe hätte ich ein köstliches Grießklößchensüppchenschälchen,,1,2,3,baaar
+2020-01-01 23:59:59,10000000,1234567890123456789,Welcome to the exhibition!,,5,4,1,foo
+2020-01-02 00:00:00,20000000,111111111111111111,I am so excited!,1234567890123456789,1,0,0,foooooo
+2020-01-03 14:00:00,30000000,2222222222222222222,Im Müseüms-cäfe hätte ich ein köstliches Grießklößchensüppchenschälchen,,1,2,3,baaar
