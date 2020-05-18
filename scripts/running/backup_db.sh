@@ -1,6 +1,7 @@
 #!/bin/bash
-BACKUP_DIR='/var/barberini-analytics/db-backups'
+set -e
 
+BACKUP_DIR='/var/barberini-analytics/db-backups'
 case $1 in
     monthly)
         INTERVAL='monthly'
@@ -19,4 +20,4 @@ esac
 BASE_NAME="db_dump_$INTERVAL"
 
 rm "$BACKUP_DIR/$BASE_NAME"*
-docker exec db pg_dump -U postgres barberini > "$BACKUP_DIR/$BASE_NAME-`date +%Y-%m-%d`.sql"
+docker exec db pg_dump -U postgres barberini > "$BACKUP_DIR/$BASE_NAME-$(date +%Y-%m-%d).sql"
