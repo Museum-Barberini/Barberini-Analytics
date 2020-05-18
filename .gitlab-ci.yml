@@ -1,7 +1,7 @@
 image: docker:latest
 
 variables:
-  BARBERINI_ANALYTICS_CONTEXT=CI
+  BARBERINI_ANALYTICS_CONTEXT: CI
 
 # Stages are required a) to priorize jobs and b) to avoid concurrency issues.
 stages:
