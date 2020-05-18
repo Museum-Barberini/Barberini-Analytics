@@ -1,4 +1,5 @@
 import datetime as dt
+
 import luigi
 import numpy as np
 import pandas as pd
@@ -85,19 +86,15 @@ class ExtractOrderData(DataPreparationTask):
     def query_customer_id(self, customer_string):
         if np.isnan(customer_string):
             return 0
-            # if the customer_string is NaN, we set the customer_id to 0
-        else:
-            org_id = int(float(customer_string))
 
+        org_id = int(float(customer_string))
         customer_row = self.db_connector.query(
             f'''
                 SELECT customer_id FROM gomus_to_customer_mapping
                 WHERE gomus_id = {org_id}
             ''',
             only_first=True)
-
         customer_id = customer_row[0] if customer_row else np.nan
-
         return customer_id
 
     def parse_boolean(self, string, bool_string):
