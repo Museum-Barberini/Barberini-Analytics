@@ -33,5 +33,5 @@ class TestGomusVersion(DatabaseTestCase):
         # currently, the version tag is in this particular line in the HTML
         # if this line no. changes, that also means that adjustments to Gomus
         # have been made
-        version_tag = response.text.splitlines()[762]
+        version_tag = response.text.splitlines()[774]
         self.assertEqual(version_tag, EXPECTED_VERSION_TAG)

@@ -13,7 +13,7 @@ ARG INSTALL='apt-get install -y --no-install-recommends'
 
 # Install utilities
 RUN $INSTALL apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
-RUN $INSTALL build-essential curl gnupg iproute2 lsb-release wget
+RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
 # Optional tools for dev experience:
 RUN $INSTALL less nano vim
