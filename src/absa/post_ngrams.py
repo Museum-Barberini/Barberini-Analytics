@@ -130,8 +130,8 @@ class CollectPostNgrams(DataPreparationTask):
                         SELECT word
                         FROM {self.stopword_table}
                     )),
-                -- TODO Discuss:
-                -- Do we really want to drop ngrams such as "Museum in Potsdam"?
+                /* TODO Discuss: Do we really want to drop ngrams such as
+                "van Gogh" that include stopwords ("in") at any place? */
                 known_post_ids AS (
                     SELECT post_id
                     FROM {self.table})
