@@ -6,7 +6,6 @@ import luigi
 import pandas as pd
 import requests
 from luigi.format import UTF8
-from psycopg2.errors import UndefinedTable
 
 from data_preparation_task import DataPreparationTask
 from gomus.orders import OrdersToDB
