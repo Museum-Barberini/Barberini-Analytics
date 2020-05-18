@@ -12,7 +12,7 @@ class StopwordsToDb(CsvToDb):
     def requires(self):
         return LoadStopwords()
 
-    table = 'stopword'
+    table = 'absa.stopword'
 
     columns = [
         ('word', 'TEXT'),

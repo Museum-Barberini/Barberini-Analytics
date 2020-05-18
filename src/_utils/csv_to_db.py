@@ -52,23 +52,25 @@ class CsvToDb(CopyToTable):
     def columns(self):
         if not self._columns:
             def fetch_columns():
+                table_path = self.table_path
                 return self.db_connector.query(f'''
                     SELECT column_name, data_type
-                    FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE table_name = '{self.table}'
+                    FROM information_schema.columns
+                    WHERE (table_schema, table_name)
+                            = ('{table_path[0]}', '{table_path[1]}')
                         AND is_generated = 'NEVER'
                     ORDER BY ordinal_position
                 ''')
             self._columns = fetch_columns()
             if not self._columns:
-                raise UndefinedTable()
+                raise UndefinedTable(self.table)
 
         return self._columns
 
     def copy(self, cursor, file):
         query = self.load_sql_script(
             'copy',
-            self.table,
+            *self.table_path,
             ', '.join([col[0] for col in self.columns]),
             ', '.join(
                 [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
@@ -87,6 +89,18 @@ class CsvToDb(CopyToTable):
         rows = super().rows()
         next(rows)
         return rows
+
+    @property
+    def table_path(self):
+        """
+        Split up self.table into schema and table name.
+        """
+        table = self.table
+        segments = table.split('.')
+        return (
+            '.'.join(segments[:-1]) if segments[:-1] else 'public',
+            segments[-1]
+        )
 
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:

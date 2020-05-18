@@ -3,6 +3,7 @@ import luigi
 from posts import PostsToDb, PostPerformanceToDb
 from gomus.gomus import GomusToDb
 from google_trends.gtrends_values import GtrendsValuesToDB
+from absa.post_ngrams import PostNgramsToDb
 
 
 class FillDB(luigi.WrapperTask):
@@ -21,6 +22,9 @@ class FillDBDaily(luigi.WrapperTask):
 
         # Internal sources
         yield GomusToDb()
+
+        # Analysis tasks
+        yield PostNgramsToDb()
 
 
 class FillDBHourly(luigi.WrapperTask):

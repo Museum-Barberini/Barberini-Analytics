@@ -6,6 +6,7 @@ import regex
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
+from posts import PostsToDb
 from query_db import QueryDb
 
 
@@ -36,7 +37,9 @@ def regex_compile_greedy_lookaround(pattern: str, flags=0) -> regex_type:
         )''')
 
 
-class PostWordsToDB(CsvToDb):
+class PostWordsToDb(CsvToDb):
+
+    table = 'absa.post_word'
 
     limit = luigi.IntParameter(
         default=-1,
@@ -48,12 +51,21 @@ class PostWordsToDB(CsvToDb):
         description="If True, all posts will be shuffled. For debugging and "
                     "exploration purposes. Might impact performance.")
 
-    table = 'post_word'
+    standalone = luigi.BoolParameter(
+        default=False,
+        description="If False, the post database will be updated before the"
+                    "posts will be collected. If True, only posts already in"
+                    "the database will be respected.")
 
     def requires(self):
+        limit = self.limit
+        if self.minimal_mode and limit == -1:
+            limit = 50
         return CollectPostWords(
-            limit=self.limit,
-            shuffle=self.shuffle)
+            table=self.table,
+            limit=limit,
+            shuffle=self.shuffle,
+            standalone=self.standalone)
 
 
 class CollectPostWords(DataPreparationTask):
@@ -68,12 +80,24 @@ class CollectPostWords(DataPreparationTask):
         description="If True, all posts will be shuffled. For debugging and "
                     "exploration purposes. Might impact performance.")
 
+    standalone = luigi.BoolParameter(
+        default=False,
+        description="If False, the post database will be updated before the"
+                    "posts will be collected. If True, only posts already in"
+                    "the database will be respected.")
+
+    post_table = 'post'
+
     def requires(self):
+        if not self.standalone:
+            yield PostsToDb()
         yield QueryDb(
-            query='''
+            query=f'''
+                WITH known_post_ids AS (SELECT post_id FROM {self.table})
                 SELECT source, post_id, text
-                FROM post
+                FROM {self.post_table}
                 WHERE text <> ''
+                AND post_id NOT IN (SELECT * FROM known_post_ids)
             ''',
             limit=self.limit,
             shuffle=self.shuffle)
@@ -99,7 +123,9 @@ class CollectPostWords(DataPreparationTask):
         }
         post_words = pd.Series(words_per_post) \
             .rename_axis(['source', 'post_id', 'word_index']) \
-            .reset_index(name='word')
+            .reset_index(name='word') \
+            if words_per_post else \
+            pd.DataFrame(columns=['word', 'source', 'post_id', 'word_index'])
 
         with self.output().open('w') as words_stream:
             post_words.to_csv(words_stream, index=False, header=True)

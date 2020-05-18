@@ -2,10 +2,12 @@
 
 BEGIN;
 
+    CREATE SCHEMA absa;
+
     CREATE FUNCTION ensure_foreign_key(
-            "table" regclass,
+            "table" text,
             columns text[],
-            reftable regclass,
+            reftable text,
             refcolumns text[]
         ) RETURNS void AS
         $$
@@ -54,11 +56,11 @@ BEGIN;
         $$
         LANGUAGE 'plpgsql' VOLATILE;
 
-    CREATE TABLE stopword (
+    CREATE TABLE absa.stopword (
         word TEXT PRIMARY KEY
     );
 
-    CREATE TABLE post_word (
+    CREATE TABLE absa.post_word (
         source TEXT,
         post_id TEXT,
         word_index INT,
@@ -66,11 +68,11 @@ BEGIN;
         PRIMARY KEY (source, post_id, word_index)
     );
     SELECT ensure_foreign_key(
-        'post_word', array ['source', 'post_id'],
-        'post', array ['source', 'post_id']
+        'absa.post_word', array ['source', 'post_id'],
+        'absa.post', array ['source', 'post_id']
     );
 
-    CREATE TABLE post_ngram (
+    CREATE TABLE absa.post_ngram (
         source TEXT,
         post_id TEXT,
         n INT,
@@ -79,8 +81,8 @@ BEGIN;
         PRIMARY KEY (source, post_id, n, word_index)
     );
     SELECT ensure_foreign_key(
-        'post_ngram', array ['source', 'post_id'],
-        'post', array ['source', 'post_id']
+        'absa.post_ngram', array ['source', 'post_id'],
+        'absa.post', array ['source', 'post_id']
     );
     -- TODO: Too verbose output
 
