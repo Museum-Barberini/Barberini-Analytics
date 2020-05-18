@@ -127,7 +127,7 @@ class FetchOrdersHTML(DataPreparationTask):
         order_ids = self.db_connector.query(
             f'''
                 SELECT a.order_id
-                FROM gomus_order as a
+                FROM gomus_order AS a
                 LEFT OUTER JOIN gomus_order_contains AS b
                 ON a.order_id = b.order_id
                 WHERE ticket IS NULL
