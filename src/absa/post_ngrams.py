@@ -61,17 +61,19 @@ class CollectPostNgrams(DataPreparationTask):
     word_table = 'post_word'
     stopword_table = 'stopword'
 
+    def _requires(self):
+        return luigi.task.flatten([
+            super()._requires(),
+            PostWordsToDB(),
+            StopwordsToDb()
+        ])
+
     def output(self):
         return luigi.LocalTarget(
             'output/post_ngrams.csv',
             format=luigi.format.UTF8)
 
     def run(self):
-        if not self.db_connector.exists_table(self.word_table):
-            yield PostWordsToDB()
-        if not self.db_connector.exists_table(self.stopword_table):
-            yield StopwordsToDb()
-
         ngrams = []
         for n in range(self.n_min, self.n_max + 1):
             query = self._build_query(n)
