@@ -16,7 +16,7 @@ RUN $INSTALL apt-utils 2>&1 | grep -v "debconf: delaying package configuration, 
 RUN $INSTALL build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
 # Optional tools for dev experience:
-RUN $INSTALL nano vim
+RUN $INSTALL less nano vim
 
 # Install postgresql
 RUN wget --quiet --no-check-certificate -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc \

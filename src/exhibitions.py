@@ -42,4 +42,4 @@ class FetchExhibitions(DataPreparationTask):
 
         # To make sure we don't have outdated information in our DB
         # we drop the table exhibitions beforehand
-        self.db_connector.execute(f'DROP TABLE IF EXISTS exhibitions')
+        self.db_connector.execute('DROP TABLE IF EXISTS exhibitions')
