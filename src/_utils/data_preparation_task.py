@@ -57,37 +57,48 @@ class DataPreparationTask(luigi.Task):
                 if sys.stdout.isatty() else
                 "Values not printed for privacy reasons")
 
-        def filter_invalid_values(df, foreign_key):
-            if df.empty:
-                return df
+        def filter_invalid_values(values, foreign_key):
+            if values.empty:
+                return values
 
             columns, (foreign_table, foreign_columns) = foreign_key
             # Convert first component (columns) from tuple to list
             columns, foreign_columns = list(columns), list(foreign_columns)
             foreign_key = columns, (foreign_table, foreign_columns)
 
+            _foreign_columns = [
+                f'{foreign_table}.{column}'
+                for column
+                in foreign_columns
+            ]
             # TODO: Discuss whether we actually need these casts. Psycopg2 determines the correct data types indeed!
             # This kind of casting could do more harm than good by hiding possible type errors.
-            foreign_values = [
-                # cast values to string uniformly to prevent mismatching
-                # due to wrong data types
-                str(value)
-                for values in self.db_connector.query(f'''
-                    SELECT {', '.join(foreign_columns)}
-                    FROM {foreign_table}
-                ''')
-                for value in values]
             for column in columns:
-                if not isinstance(df[column][0], str):
-                    df[column] = df[column].apply(str)
+                if not isinstance(values[column][0], str):
+                    values[column] = values[column].apply(str)
+            foreign_values = pd.DataFrame(
+                [
+                    # cast values to string uniformly to prevent mismatching
+                    # due to wrong data types
+                    [str(value) for value in values]
+                    for values in self.db_connector.query(f'''
+                        SELECT {', '.join(foreign_columns)}
+                        FROM {foreign_table}
+                    ''')
+                ],
+                columns=_foreign_columns
+            )
 
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
-            validities = df[columns] \
-                .isin(foreign_values) \
-                .apply(partial(reduce, operator.and_), axis=1) \
-                .squeeze()
-            valid_values, invalid_values = df[validities], df[~validities]
+            invalid = pd.merge(
+                    values, foreign_values,
+                    left_on=columns, right_on=_foreign_columns,
+                    how='left'
+                )[_foreign_columns] \
+                .isnull() \
+                .apply(partial(reduce, operator.or_), axis=1)
+            valid_values, invalid_values = values[~invalid], values[invalid]
             if not invalid_values.empty:
                 log_invalid_values(invalid_values, foreign_key)
                 if invalid_values_handler:
