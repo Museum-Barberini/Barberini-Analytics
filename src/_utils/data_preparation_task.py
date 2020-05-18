@@ -111,9 +111,15 @@ class DataPreparationTask(luigi.Task):
             ''')
         }
 
-    def iter_verbose(self, iterable, msg, size=None):
+    def iter_verbose(self, iterable, msg, size=None, index_fun=None):
         if not sys.stdout.isatty():
             yield from iterable
+            return
+        if isinstance(msg, str):
+            yield from self.iter_verbose(
+                iterable,
+                msg=lambda: msg, size=size, index_fun=index_fun
+            )
             return
         if size is None:
             size = len(iterable) if hasattr(iterable, '__len__') else None
@@ -126,21 +132,24 @@ class DataPreparationTask(luigi.Task):
         print()
         try:
             for index, item in enumerate(iterable, start=1):
+                if index_fun:
+                    index = index_fun() + 1
                 format_args['index'] = index
                 format_args['item'] = item
-                message = msg.format(**format_args)
+                message = msg().format(**format_args)
                 message = f'\r{message} ... '
                 if size:
                     message += f'({(index - 1) / size :2.1%})'
                 print(message, end=' ', flush=True)
                 yield item
-            print(f'\r{msg.format(**format_args)} ... done.', flush=True)
+            print(f'\r{msg().format(**format_args)} ... done.', flush=True)
         except Exception:
             print(flush=True)
             raise
 
-    def loop_verbose(self, while_fun, item_fun, msg, size=None):
+    def loop_verbose(
+            self, while_fun, item_fun, msg, size=None, index_fun=None):
         def loop():
             while while_fun():
                 yield item_fun()
-        return self.iter_verbose(loop(), msg, size=size)
+        return self.iter_verbose(loop(), msg, size=size, index_fun=index_fun)

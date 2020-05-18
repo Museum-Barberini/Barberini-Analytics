@@ -138,11 +138,12 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         ]
         total_reviews = review_list['totalReviewCount']
 
+        review_counter = 0
         for next_page_token in self.loop_verbose(
                 while_fun=lambda: 'nextPageToken' in review_list,
                 item_fun=lambda: review_list['nextPageToken'],
                 size=total_reviews,
-                # TODO: index and size do not match together
+                index_fun=lambda: review_counter,
                 msg="Fetching Google Maps page {index}/{size}"):
             """
             TODO: optimize by requesting the latest review from DB rather
@@ -152,6 +153,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 parent=location,
                 pageSize=page_size,
                 pageToken=next_page_token).execute()
+            review_counter += len(review_list['reviews'])
             yield from [
                 {**review, 'placeId': place_id}
                 for review
