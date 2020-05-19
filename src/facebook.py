@@ -275,6 +275,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             order = 'chronological'
 
             fields = ','.join([
+                'id',
                 'created_time',
                 'comment_count',
                 'message',
@@ -318,7 +319,6 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'from_barberini': self.from_barberini(reply),
                             'parent': comment_id
                         })
-
         df = pd.DataFrame(comments)
 
         # Posts can appear multiple times, causing comments to
