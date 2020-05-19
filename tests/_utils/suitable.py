@@ -29,12 +29,35 @@ class FixtureTestSuite(unittest.TestSuite):
     methods in order to manage suite-wide fixtures.
     """
 
+    def __init__(self, tests):
+        super().__init__(tests)
+        self._cleanups = []
+
+    def addCleanup(self, function, *args, **kwargs):
+        """Add a function, with arguments, to be called when the test suite is
+        completed. Functions added are called on a LIFO basis and are
+        called after tearDownSuite on test failure or success.
+
+        Cleanup items are called even if setUp fails (unlike tearDown)."""
+        self._cleanups.append((function, args, kwargs))
+
+    def doCleanups(self):
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop(-1)
+            function(*args, **kwargs)
+
     def run(self, result, debug=False):
         self.setUpSuite()
         try:
             return super().run(result, debug)
         finally:
-            self.tearDownSuite()
+            try:
+                self.tearDownSuite()
+            finally:
+                try:
+                    self.doCleanups()
+                finally:
+                    self.result = None
 
     def setUpSuite(self) -> None:
         """
