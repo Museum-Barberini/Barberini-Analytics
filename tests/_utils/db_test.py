@@ -25,8 +25,9 @@ def enforce_luigi_notifications(format='html'):
         email.force_send, email.format = original
 
 
-def is_true(string: str) -> bool:
-    return distutils.util.strtobool(string if string else 'False')
+def check_env(name: str) -> bool:
+    value = os.getenv(name, 'False')
+    return distutils.util.strtobool(value)
 
 
 def _perform_query(query):
@@ -63,7 +64,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
     def send_notifications(self, result):
         if self.wasSuccessful():
             return
-        if not is_true('GITLAB_CI') and is_true('FULL_TEST'):
+        if not check_env('GITLAB_CI') and check_env('FULL_TEST'):
             return
 
         unsuccessful = {
