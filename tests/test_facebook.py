@@ -183,7 +183,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
                                          output_mock,
                                          requests_get_mock):
 
-        _ = self.prepare_post_performance_mocks(
+        self.prepare_post_performance_mocks(
             input_mock,
             output_mock,
             requests_get_mock,
