@@ -27,7 +27,7 @@ def enforce_luigi_notifications(format='html'):
 
 def check_env(name: str) -> bool:
     value = os.getenv(name, 'False')
-    return distutils.util.strtobool(value)
+    return distutils.util.strtobool(value) if value else False
 
 
 def _perform_query(query):
