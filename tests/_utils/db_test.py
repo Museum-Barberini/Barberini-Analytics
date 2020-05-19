@@ -62,15 +62,17 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         self.send_notifications(result)
 
     def send_notifications(self, result):
-        if self.wasSuccessful():
+        if result.wasSuccessful():
             return
-        if not check_env('GITLAB_CI') and check_env('FULL_TEST'):
+        if not (check_env('GITLAB_CI') and check_env('FULL_TEST')):
             return
 
         unsuccessful = {
             'failures': result.failures,
             'errors': result.errors,
-            'unexpected successes': result.unexpectedSuccesses
+            'unexpected successes': [
+                (test, None) for test in result.unexpectedSuccesses
+            ]
         }
         CI_JOB_URL = os.getenv('CI_JOB_URL')
         CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
@@ -88,8 +90,10 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
                     f'''
                     <h2>{label}</h2>
                     <pre><ul>{''.join([
-                        f'<li>{test}</li>'
-                        for test in tests
+                        f"<li>{test}"
+                        f"{f'<br/><details>{err}</details>' if err else ''}"
+                        f"</li>"
+                        for test, err in tests
                     ])}</ul></pre>
                     '''
                     for label, tests in unsuccessful.items()

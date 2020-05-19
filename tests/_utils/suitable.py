@@ -16,8 +16,6 @@ class PluggableTestProgram(unittest.TestProgram):
     def __init__(self, **kwargs):
         self.testSuiteClass = kwargs.pop('testSuiteClass', self.testSuiteClass)
         super().__init__(**kwargs)
-        self._exit = self.exit
-        self.exit = False
 
     testSuiteClass = unittest.TestSuite
 
@@ -31,10 +29,16 @@ class PluggableTestProgram(unittest.TestProgram):
             self.handleUnsuccessfulResult(result)
 
     def runTests(self):
+        _exit = self.exit
+        self.exit = False
         self.test = self.testSuiteClass([self.test])
+
         result = super().runTests()
+
         self.handleResult(self.result)
-        if self._exit:
+
+        self.exit = _exit
+        if self.exit:
             sys.exit(not self.result.wasSuccessful())
         return result
 
