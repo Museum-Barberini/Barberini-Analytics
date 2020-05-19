@@ -1,8 +1,8 @@
 {
 	"Ausstellungen": {
-		"Van Gogh. Stillleben": ["van Gogh", "Gogh", "Stillleben"],
+		"Van Gogh. Stillleben": ["van Gogh", "Gogh", "Stillleben", "Stilleben"],
 		"Monet. Orte": ["Claude Monet", "Seerosen", "Heuhaufen"],
-		"Künstler aus der DDR": ["DDR",
+		"'Künstler aus der DDR'": ["DDR",
 			"Gudrun Brüne", "Hartwig Ebersbach", "Günter Firit", "Albrecht Gehse", "Ulrich Hachulla", "Rolf Händler", "Bernhard Heisig", "Johannes Heisig", "Ralf Kerbach", "Walter Libuda", "Werner Liebmann", "Wolfgang Mattheuer", "Harald Metzkes", "Roland Nicolaus", "Stefan Plenkers", "Arno Rink", "Willi Sitte", "Erika Stürmer-Alex", "Werner Tübke"],
 		"Wege des Barock": ["Barock", "Palazzo Barberini", "Corsini",
 			"Caravaggio", "Narziss"]
