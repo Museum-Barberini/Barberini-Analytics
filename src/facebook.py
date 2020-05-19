@@ -104,6 +104,10 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostDetails(DataPreparationTask):
+    """
+    This abstract class encapsulates common behavior for tasks
+    such as FetchFbPostPerformance and FetchFbPostComments
+    """
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
         description="For how much time posts should be fetched")
@@ -293,16 +297,16 @@ class FetchFbPostComments(FetchFbPostDetails):
 
             # Handle each comment for the post
             for comment in response_data:
-                comment_id = comment.get('id')
+                comment_id = comment.get('id').split('_')[1]
 
                 comments.append({
+                    'post_id': post_id,
                     'comment_id': comment_id,
                     'page_id': page_id,
-                    'post_id': post_id,
                     'post_date': comment.get('created_time'),
-                    'message': comment.get('message'),
-                    'from_barberini': self.from_barberini(comment),
-                    'parent': None
+                    'text': comment.get('message'),
+                    'is_from_museum': self.from_barberini(comment),
+                    'responds_to': None
                 })
 
                 if comment.get('comment_count', 0) > 0:
@@ -311,13 +315,13 @@ class FetchFbPostComments(FetchFbPostDetails):
                     for reply in comment['comments']['data']:
 
                         comments.append({
-                            'comment_id': reply.get('id'),
+                            'comment_id': reply.get('id').split('_')[1],
                             'page_id': page_id,
                             'post_id': post_id,
                             'post_date': reply.get('created_time'),
-                            'message': reply.get('message'),
-                            'from_barberini': self.from_barberini(reply),
-                            'parent': comment_id
+                            'text': reply.get('message'),
+                            'is_from_museum': self.from_barberini(reply),
+                            'responds_to': comment_id
                         })
         df = pd.DataFrame(comments)
 
@@ -325,7 +329,8 @@ class FetchFbPostComments(FetchFbPostDetails):
         # be fetched multiple times as well, causing
         # primary key violations
         # See #227
-        df = df.drop_duplicates(subset=['comment_id'], ignore_index=True)
+        df = df.drop_duplicates(
+            subset=['comment_id', 'post_id'], ignore_index=True)
         df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
