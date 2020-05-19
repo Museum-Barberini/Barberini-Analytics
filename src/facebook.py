@@ -333,10 +333,8 @@ class FetchFbPostComments(FetchFbPostDetails):
 
     @staticmethod
     def from_barberini(comment_json):
-        if comment_json.get('from', dict()) \
-           .get('name') == 'Museum Barberini':
-            return True
-        return False
+        return comment_json.get('from', {}) \
+           .get('name') == 'Museum Barberini'
 
 
 def try_request_multiple_times(url, **kwargs):
