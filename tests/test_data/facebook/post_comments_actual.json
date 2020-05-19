@@ -2,20 +2,20 @@
     "data": [
       {
         "id": "id1",
-        "message": "message1",
+        "message": "messäge1",
         "created_time": "2020-05-01T11:00:00+0000",
         "comment_count": 0
       },
       {
         "id": "id2",
-        "message": "message2",
+        "message": "messäge2",
         "created_time": "2020-05-02T11:00:00+0000",
         "comment_count": 4,
         "comments": {
           "data": [
             {
               "created_time": "2020-05-03T11:00:00+0000",
-              "message": "message3",
+              "message": "messäge3",
               "id": "id3"
             },
             {
@@ -24,12 +24,12 @@
                 "name": "Museum Barberini",
                 "id": "MuB-ID"
               },
-              "message": "message4",
+              "message": "messäge4",
               "id": "id4"
             },
             {
               "created_time": "2020-05-05T11:00:00+0000",
-              "message": "message5",
+              "message": "messäge5",
               "id": "id5"
             },
             {
@@ -38,7 +38,7 @@
                 "name": "Museum Barberini",
                 "id": "MuB-ID"
               },
-              "message": "message6",
+              "message": "messäge6",
               "id": "id6"
             }
           ],
@@ -52,14 +52,14 @@
       },
       {
         "id": "id7",
-        "message": "message7",
+        "message": "messäge7",
         "created_time": "2020-05-07T11:00:00+0000",
         "comment_count": 2,
         "comments": {
           "data": [
             {
               "created_time": "2020-05-08T11:00:00+0000",
-              "message": "message8",
+              "message": "messäge8",
               "id": "id8"
             },
             {
@@ -68,7 +68,7 @@
                 "name": "Museum Barberini",
                 "id": "MuB-ID"
               },
-              "message": "message9",
+              "message": "messäge9",
               "id": "id9"
             }
           ],
