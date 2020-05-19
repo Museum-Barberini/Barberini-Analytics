@@ -308,7 +308,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                 if comment.get('comment_count', 0) > 0:
 
                     # Handle each reply for the comment
-                    for reply in comment.get('comments').get('data'):
+                    for reply in comment['comments']['data']:
 
                         comments.append({
                             'comment_id': reply.get('id'),
