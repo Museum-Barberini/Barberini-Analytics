@@ -6,7 +6,7 @@ import requests
 from db_test import DatabaseTestCase
 
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
-EXPECTED_VERSION_TAG = 'v4.1.3.2 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.3.4 – Premium Edition'
 
 
 class TestGomusVersion(DatabaseTestCase):
@@ -33,5 +33,5 @@ class TestGomusVersion(DatabaseTestCase):
         # currently, the version tag is in this particular line in the HTML
         # if this line no. changes, that also means that adjustments to Gomus
         # have been made
-        version_tag = response.text.splitlines()[762]
+        version_tag = response.text.splitlines()[774]
         self.assertEqual(version_tag, EXPECTED_VERSION_TAG)

@@ -90,7 +90,7 @@ class FetchBookingsHTML(DataPreparationTask):
             if not booking_in_db:
                 booking_url = self.base_url + str(booking_id)
 
-                html_target = yield FetchGomusHTML(booking_url)
+                html_target = yield FetchGomusHTML(url=booking_url)
                 self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:
@@ -145,7 +145,7 @@ class FetchOrdersHTML(DataPreparationTask):
 
             url = self.base_url + str(self.order_ids[i])
 
-            html_target = yield FetchGomusHTML(url)
+            html_target = yield FetchGomusHTML(url=url)
             self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:
