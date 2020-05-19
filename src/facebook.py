@@ -308,7 +308,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                 if comment.get('comment_count', 0) > 0:
 
                     # Handle each reply for the comment
-                    for reply in comment.get('comments').get('data'):
+                    for reply in comment['comments']['data']:
 
                         comments.append({
                             'comment_id': reply.get('id'),
@@ -333,10 +333,8 @@ class FetchFbPostComments(FetchFbPostDetails):
 
     @staticmethod
     def from_barberini(comment_json):
-        if comment_json.get('from', dict()) \
-           .get('name') == 'Museum Barberini':
-            return True
-        return False
+        return comment_json.get('from', {}) \
+           .get('name') == 'Museum Barberini'
 
 
 def try_request_multiple_times(url, **kwargs):
