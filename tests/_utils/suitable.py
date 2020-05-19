@@ -2,6 +2,7 @@
 suitable is a generic extension of unittest. It provides hooks to specify a
 custom TestSuite which implements testUpSuite() and tearDownSuite().
 """
+from contextlib import contextmanager
 import unittest
 import sys
 
@@ -29,18 +30,26 @@ class PluggableTestProgram(unittest.TestProgram):
             self.handleUnsuccessfulResult(result)
 
     def runTests(self):
+        self.test = self.testSuiteClass([self.test])
+        with self._basicRunTests():
+            return_value = super().runTests()
+            self.handleResult(self.result)
+        return return_value
+
+    @contextmanager
+    def _basicRunTests(self):
+        """
+        Run tests like super does. Meanwhile, disable exit to ensure further
+        operations can be executed after the tests have failed.
+        """
         _exit = self.exit
         self.exit = False
-        self.test = self.testSuiteClass([self.test])
 
-        result = super().runTests()
-
-        self.handleResult(self.result)
+        yield
 
         self.exit = _exit
         if self.exit:
             sys.exit(not self.result.wasSuccessful())
-        return result
 
 
 class FixtureTestSuite(unittest.TestSuite):
@@ -67,14 +76,14 @@ class FixtureTestSuite(unittest.TestSuite):
             function(*args, **kwargs)
 
     def run(self, result, debug=False):
-        self.setUpSuite()
         try:
-            return super().run(result, debug)
-        finally:
+            self.setUpSuite()
             try:
-                self.tearDownSuite()
+                return super().run(result, debug)
             finally:
-                self.doCleanups()
+                self.tearDownSuite()
+        finally:
+            self.doCleanups()
 
     def setUpSuite(self) -> None:
         """
