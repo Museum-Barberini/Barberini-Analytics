@@ -131,7 +131,7 @@ class FetchCategoryReservations(DataPreparationTask):
                 ORDER BY start_datetime DESC LIMIT 2
             '''
         else:
-            # Change 3 to 2 tomorrow
+            # TODO: Change 3 to 2 tomorrow
             three_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=3)
             query = (f'SELECT booking_id FROM gomus_booking WHERE '
                      f'category=\'{self.category}\' '
