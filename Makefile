@@ -65,7 +65,7 @@ luigi:
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
-	luigi --module $(LMODULE) $(LTASK)
+	luigi --module $(LMODULE) $(LTASK) $(LARGS)
 
 luigi-clean:
 	rm -rf $(OUTPUT_DIR)
