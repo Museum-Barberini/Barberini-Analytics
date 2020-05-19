@@ -62,6 +62,8 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         self.send_notifications(result)
 
     def send_notifications(self, result):
+        print("DEBUG:::")
+        print(os.environ)
         if result.wasSuccessful():
             return
         if not (check_env('GITLAB_CI') and check_env('FULL_TEST')):
