@@ -6,7 +6,7 @@ from google_maps import GoogleMapsReviewsToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from instagram import IgToDBWrapper, IgPostPerformanceToDB
-from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
+# from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 
 # from gomus.bookings import BookingsToDB
 # from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
@@ -33,8 +33,8 @@ class FillDBDaily(luigi.WrapperTask):
         yield GtrendsValuesToDB()
         yield GooglePlaystoreReviewsToDB()
         yield IgToDBWrapper()
-        yield TweetAuthorsToDB()
-        yield TweetsToDB()
+        # yield TweetAuthorsToDB()
+        # yield TweetsToDB()
 
         # === Gomus ===
         # yield BookingsToDB()
@@ -52,4 +52,4 @@ class FillDBHourly(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDB()
         yield IgPostPerformanceToDB()
-        yield TweetPerformanceToDB()
+        # yield TweetPerformanceToDB()
