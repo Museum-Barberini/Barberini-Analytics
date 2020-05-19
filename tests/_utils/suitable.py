@@ -3,24 +3,40 @@ suitable is a generic extension of unittest. It provides hooks to specify a
 custom TestSuite which implements testUpSuite() and tearDownSuite().
 """
 import unittest
+import sys
 
 
-class DatabaseTestProgram(unittest.TestProgram):
+class PluggableTestProgram(unittest.TestProgram):
     """
     A command-line TestProgram that can be configured with a custom TestSuite
-    class. All existing tests will be wrapped into an instance of
-    self.testSuiteClass.
+    class and hooks for handling the test result. All existing tests will be
+    wrapped into an instance of self.testSuiteClass.
     """
 
     def __init__(self, **kwargs):
         self.testSuiteClass = kwargs.pop('testSuiteClass', self.testSuiteClass)
         super().__init__(**kwargs)
+        self._exit = self.exit
+        self.exit = False
 
     testSuiteClass = unittest.TestSuite
 
+    def handleUnsuccessfulResult(self, result):
+        """
+        Hook method for handling an unsuccessful test result.
+        """
+
+    def handleResult(self, result):
+        if not result.wasSuccessful():
+            self.handleUnsuccessfulResult(result)
+
     def runTests(self):
         self.test = self.testSuiteClass([self.test])
-        return super().runTests()
+        result = super().runTests()
+        self.handleResult(self.result)
+        if self._exit:
+            sys.exit(not self.result.wasSuccessful())
+        return result
 
 
 class FixtureTestSuite(unittest.TestSuite):
@@ -54,10 +70,7 @@ class FixtureTestSuite(unittest.TestSuite):
             try:
                 self.tearDownSuite()
             finally:
-                try:
-                    self.doCleanups()
-                finally:
-                    self.result = None
+                self.doCleanups()
 
     def setUpSuite(self) -> None:
         """
@@ -74,9 +87,11 @@ class FixtureTestSuite(unittest.TestSuite):
         pass
 
 
-def _main(testSuiteClass=FixtureTestSuite):
+def _main(
+        testSuiteClass=FixtureTestSuite,
+        testProgramClass=PluggableTestProgram):
     """
     Main entry point of the suitable module to run the tests.
     """
     unittest.__unittest = True
-    DatabaseTestProgram(module=None, testSuiteClass=testSuiteClass)
+    testProgramClass(module=None, testSuiteClass=testSuiteClass)

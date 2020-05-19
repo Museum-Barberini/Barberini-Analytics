@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+import distutils.util
 import os
 import subprocess as sp
 import unittest
@@ -5,10 +7,26 @@ from queue import Queue
 
 import luigi
 import luigi.mock
+import luigi.notifications
 import psycopg2
 
 import suitable
 from db_connector import db_connector
+
+
+@contextmanager
+def enforce_luigi_notifications(format='html'):
+    email = luigi.notifications.email()
+    original = email.force_send, email.format
+    luigi.notifications.email().format = format
+    try:
+        yield
+    finally:
+        email.force_send, email.format = original
+
+
+def is_true(string: str) -> bool:
+    return distutils.util.strtobool(string if string else 'False')
 
 
 def _perform_query(query):
@@ -31,6 +49,60 @@ def _perform_query(query):
             # Looks as if this connection must not be closed manually (TODO?)
     finally:
         connection.close()
+
+
+class DatabaseTestProgram(suitable.PluggableTestProgram):
+    """
+    A custom test program that sends notifications in certain scenarios.
+    """
+
+    def handleUnsuccessfulResult(self, result):
+        super().handleUnsuccessfulResult(result)
+        self.send_notifications(result)
+
+    def send_notifications(self, result):
+        if self.wasSuccessful():
+            return
+        if not is_true('GITLAB_CI') and is_true('FULL_TEST'):
+            return
+
+        unsuccessful = {
+            'failures': result.failures,
+            'errors': result.errors,
+            'unexpected successes': result.unexpectedSuccesses
+        }
+        CI_JOB_URL = os.getenv('CI_JOB_URL')
+        CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
+        with enforce_luigi_notifications():
+            luigi.notifications.send_error_email(
+                subject=f"🐞 These {len(sum(unsuccessful.values(), []))} tests "
+                        "failed on our nightly CI pipeline you won't believe!",
+                message=f"""
+                <html><body>
+                <p>Hey dev! Sorry to tell you, but the following tests failed
+                in the <a href="{CI_PIPELINE_URL}">latest
+                long-stage CI run tonight</a>:</p>
+
+                {''.join([
+                    f'''
+                    <h2>{label}</h2>
+                    <pre><ul>{''.join([
+                        f'<li>{test}</li>'
+                        for test in tests
+                    ])}</ul></pre>
+                    '''
+                    for label, tests in unsuccessful.items()
+                    if tests
+                ])}
+
+                <p>For more information, please visit the relevant GitLab job
+                log:
+                <br/>
+                <a href="{CI_JOB_URL}">{CI_JOB_URL}</a>
+                </p>
+
+                <p>Happy bug fixing!</p>
+                </body></html>""")
 
 
 class DatabaseTestSuite(suitable.FixtureTestSuite):
@@ -148,4 +220,4 @@ For further information on the CLI, read here:
 https://docs.python.org/3/library/unittest.html#command-line-interface
 """
 if __name__ == '__main__':
-    suitable._main(DatabaseTestSuite)
+    suitable._main(DatabaseTestSuite, DatabaseTestProgram)
