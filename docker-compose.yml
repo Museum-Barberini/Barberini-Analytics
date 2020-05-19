@@ -20,7 +20,10 @@ services:
             - PYTHONIOENCODING=utf-8
             - PYTHONUNBUFFERED=1
             - PYTHONPATH=./src/:./src/_utils/
-            - CONTAINER_USER=${USER}  # used to determine name of gplay_api container
+            # used to determine name of gplay_api container
+            - CONTAINER_USER=${USER}
+            # to control whether email notifications should be sent
+            - LUIGI_EMAIL_FORMAT=${LUIGI_EMAIL_FORMAT}
             - OUTPUT_DIR=output  # default output folder
             # CI specific stuff
             - GITLAB_CI=${GITLAB_CI}
@@ -49,7 +52,8 @@ services:
             - database_network
 
     gplay_api:
-        # consider how the gplay api is called from gplay_reviews.py before renaming the container.
+        # consider how the gplay api is called from gplay_reviews.py before
+        # renaming the container.
         container_name: ${USER}-gplay-api
         build:
             dockerfile: Dockerfile_gplay_api

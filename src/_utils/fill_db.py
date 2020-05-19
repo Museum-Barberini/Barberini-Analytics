@@ -8,12 +8,15 @@ from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from instagram import IgToDBWrapper, IgPostPerformanceToDB
 from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 
-# from gomus.bookings import BookingsToDB
-# from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
+from gomus.bookings import BookingsToDB
+from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
-# from gomus.events import EventsToDB
-# from gomus.order_contains import OrderContainsToDB
-# from gomus.orders import OrdersToDB
+from gomus.events import EventsToDB
+from gomus.order_contains import OrderContainsToDB
+from gomus.orders import OrdersToDB
+
+# TODO remove tomorrow
+import datetime as dt
 
 
 class FillDB(luigi.WrapperTask):
@@ -37,14 +40,32 @@ class FillDBDaily(luigi.WrapperTask):
         yield TweetsToDB()
 
         # === Gomus ===
-        # yield BookingsToDB()
-        # yield CustomersToDB()
+
+        # START TODO: remove this tomorrow
+        yield BookingsToDB(timespan='_1month')
+        yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=1))
+        yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=2))
+        yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=3))
+        yield GomusToCustomerMappingToDB(
+            today=dt.datetime.today()-dt.timedelta(weeks=1))
+        yield GomusToCustomerMappingToDB(
+            today=dt.datetime.today()-dt.timedelta(weeks=2))
+        yield GomusToCustomerMappingToDB(
+            today=dt.datetime.today()-dt.timedelta(weeks=3))
+        yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=1))
+        yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=2))
+        yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=3))
+        # IMPORTANT NOTE : var in gomus/events needs to be reset to 2 weeks
+        # END
+
+        yield BookingsToDB()
+        yield CustomersToDB()
         yield DailyEntriesToDB()
         yield ExpectedDailyEntriesToDB()
-        # yield EventsToDB()
-        # yield GomusToCustomerMappingToDB()
-        # yield OrderContainsToDB()
-        # yield OrdersToDB()
+        yield EventsToDB()
+        yield GomusToCustomerMappingToDB()
+        yield OrderContainsToDB()
+        yield OrdersToDB()
 
 
 class FillDBHourly(luigi.WrapperTask):
