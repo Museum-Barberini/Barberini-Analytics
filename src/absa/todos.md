@@ -1,0 +1,21 @@
+# Fuzzy matching insights
+## levenshtein
+- `Stilleben`: bis 2 i. O., 4 ist `Stadtleben`
+- `Picasso`: bis 2 i.O., 3 ist `hasao`
+- `Barberini`: bis 2 i.O., 3 ist `barbarei`
+- `gogh`: bis 1i.O., 2 ist auch `good` und `noch`, aber auch `van gogh's`
+- `architektur`: mit 4 i.O., findet auch englische und spanische varianten
+- `fassade`: bis 2 ok, findet auch `façade`
+==> Bis 2 geht fast immer
+
+## pg_trgm
+- `fassade`: `façade` liegt bei 0.36
+- `Stilleben`: 0.55, dann `stille`
+- `Picasso`: bis 0.65 echt, dann valide compounds bis 0.35
+  * Idee: längere wörter eher tolerieren?
+- `barberini`: bis 0.8, dann valide compounds, urls und mehr spellings bis 0.31, dann irgendeine `barbara`
+- `gogh`: bis 0.375, dann `go`
+- `architektur`: bis 0.51, dann valide compounds/synonyme bis 0.4, dann `archiv`
+==> bis 0.65 geht immer
+
+**NEXT:** Write a task that attributes these results to each exhibition/post pair
