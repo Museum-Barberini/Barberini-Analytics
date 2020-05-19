@@ -1,7 +1,8 @@
 #!/bin/bash
 # Set up a fresh database and perform a minimal pipeline run on it. Fail if any errors occur.
-
 set -e
+
+export BARBERINI_ANALYTICS_CONTEXT=DEBUG
 
 cd $(dirname "$0")/../..
 
