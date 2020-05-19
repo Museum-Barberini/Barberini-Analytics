@@ -55,6 +55,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=1))
         yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=2))
         yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=3))
+        # IMPORTANT NOTE : var in gomus/events needs to be reset to 2 weeks
         # END
 
         yield BookingsToDB()
