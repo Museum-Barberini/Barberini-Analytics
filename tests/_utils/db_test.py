@@ -15,7 +15,7 @@ from db_connector import db_connector
 
 
 @contextmanager
-def enforce_luigi_notifications(format='html'):
+def enforce_luigi_notifications(format):
     email = luigi.notifications.email()
     original = email.force_send, email.format
     luigi.notifications.email().format = format
@@ -76,7 +76,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         }
         CI_JOB_URL = os.getenv('CI_JOB_URL')
         CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
-        with enforce_luigi_notifications():
+        with enforce_luigi_notifications(format='html'):
             luigi.notifications.send_error_email(
                 subject=f"🐞 These {len(sum(unsuccessful.values(), []))} tests "
                         "failed on our nightly CI pipeline you won't believe!",
