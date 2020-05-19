@@ -217,7 +217,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
         self.task = facebook.FetchFbPostComments(
             timespan=dt.timedelta(days=100000))
         self.task.run()
-        self.maxDiff = None
+
         self.compare_post_performance_mocks(
             output_target,
             'post_comments_expected.csv'
