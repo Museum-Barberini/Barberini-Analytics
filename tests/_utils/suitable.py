@@ -63,11 +63,13 @@ class FixtureTestSuite(unittest.TestSuite):
         self._cleanups = []
 
     def addCleanup(self, function, *args, **kwargs):
-        """Add a function, with arguments, to be called when the test suite is
-        completed. Functions added are called on a LIFO basis and are
-        called after tearDownSuite on test failure or success.
+        """
+        Add a function, with arguments, to be called when the test suite is
+        completed. Functions added are called on a LIFO basis and are called
+        after tearDownSuite on test failure or success.
 
-        Cleanup items are called even if setUp fails (unlike tearDown)."""
+        Cleanup items are called even if setUp fails (unlike tearDown).
+        """
         self._cleanups.append((function, args, kwargs))
 
     def doCleanups(self):
