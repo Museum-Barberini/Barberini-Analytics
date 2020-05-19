@@ -1,16 +1,18 @@
+/** Add missing service-specific museum IDs (!168)
+    In the past, we only fetched posts from these sources for the museum,
+    but we did not note its ID. In migration_011, the missing columns were
+    added, but there it was forgotten to update the existing rows. This is
+    done here.
+  */
+
 BEGIN;
-CREATE TABLE fb_post_comment (
-    comment_id TEXT PRIMARY KEY,
-    page_id TEXT,
-    post_id TEXT,
-    post_date TIMESTAMP,
-    message TEXT,
-    from_barberini BOOLEAN,
-    parent TEXT,
-    -- "parent TEXT REFERENCES fb_post_comment" does not work
-    -- because ensure_foreign_keys would delete values which
-    -- are not yet in the DB, although it would be more semantically precise
-    FOREIGN KEY (page_id, post_id) REFERENCES fb_post
-);
+
+    UPDATE appstore_review
+        SET app_id = '1150432552';
+    UPDATE gplay_review
+        SET app_id = 'com.barberini.museum.barberinidigital';
+
+    UPDATE google_maps_review
+        SET place_id = 'ChIJyV9mg0lfqEcRnbhJji6c17E';
 
 COMMIT;

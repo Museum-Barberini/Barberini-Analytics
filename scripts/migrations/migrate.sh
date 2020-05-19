@@ -39,17 +39,14 @@ do
         # ON_ERROR_STOP makes psql abort when the first error is encountered
         # as well as makes it return a non-zero exit code
         psql -q -v ON_ERROR_STOP=1 -f "$MIGRATION_FILE"
-        EXIT_VAL=$?
-
     else
         chmod +x "$MIGRATION_FILE"
         # Have the migration interpreted by bash, requires shebang
         "$MIGRATION_FILE"
-        EXIT_VAL=$?
     fi
 
     # Check that everything went smoothly
-    if [ $EXIT_VAL -eq 0 ]
+    if [ $? -eq 0 ]
     then
         # Save applied migration
         [ -z "$APPLIED_FILE" ] \
