@@ -41,7 +41,7 @@ class FillDBDaily(luigi.WrapperTask):
 
         # === Gomus ===
 
-        # START remove this tomorrow
+        # START TODO: remove this tomorrow
         yield BookingsToDB(timespan='_1month')
         yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=1))
         yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=2))
