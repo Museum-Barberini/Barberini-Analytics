@@ -309,7 +309,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'responds_to': None
                 })
 
-                if comment.get('comment_count', 0) > 0:
+                if comment.get('comment_count'):
 
                     # Handle each reply for the comment
                     for reply in comment['comments']['data']:
