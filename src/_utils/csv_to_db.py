@@ -51,17 +51,16 @@ class CsvToDb(CopyToTable):
     @property
     def columns(self):
         if not self._columns:
-            def fetch_columns():
-                table_path = self.table_path
-                return self.db_connector.query(f'''
-                    SELECT column_name, data_type
-                    FROM information_schema.columns
-                    WHERE (table_schema, table_name)
-                            = ('{table_path[0]}', '{table_path[1]}')
-                        AND is_generated = 'NEVER'
-                    ORDER BY ordinal_position
-                ''')
-            self._columns = fetch_columns()
+            table_path = self.table_path
+            self._columns = self.db_connector.query(f'''
+                SELECT column_name, data_type
+                FROM information_schema.columns
+                WHERE (table_schema, table_name)
+                        = ('{table_path[0]}', '{table_path[1]}')
+                    AND is_generated = 'NEVER'
+                    AND column_default IS NULL
+                ORDER BY ordinal_position
+            ''')
             if not self._columns:
                 raise UndefinedTable(self.table)
 
