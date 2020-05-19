@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 sudo docker network create database_network
 sudo usermod -aG docker $USER
 echo "Please reboot for user group changes to take effect"
