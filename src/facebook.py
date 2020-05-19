@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import datetime as dt
 import json
 import logging
@@ -129,11 +130,13 @@ class FetchFbPostDetails(DataPreparationTask):
     def requires(self):
         return FetchFbPosts()
 
+    @abstractmethod
     def output(self):
-        raise NotImplementedError("Implemented by subclass")
+        pass
 
+    @abstractmethod
     def run(self):
-        raise NotImplementedError("Implemented by subclass")
+        pass
 
     @staticmethod
     def post_date(df, index):
@@ -258,6 +261,21 @@ class FetchFbPostComments(FetchFbPostDetails):
         if self.minimal_mode:
             df = df.head(5)
 
+        comments = self.fetch_comments(df)
+        df = pd.DataFrame(comments)
+
+        # Posts can appear multiple times, causing comments to
+        # be fetched multiple times as well, causing
+        # primary key violations
+        # See #227
+        df = df.drop_duplicates(
+            subset=['comment_id', 'post_id'], ignore_index=True)
+        df = self.ensure_foreign_keys(df)
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+    def fetch_comments(self, df):
         # Handle each post
         for i in df.index:
             page_id, post_id = df['page_id'][i], df['post_id'][i]
@@ -299,7 +317,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             for comment in response_data:
                 comment_id = comment.get('id').split('_')[1]
 
-                comments.append({
+                yield {
                     'post_id': post_id,
                     'comment_id': comment_id,
                     'page_id': page_id,
@@ -307,14 +325,14 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'text': comment.get('message'),
                     'is_from_museum': self.from_barberini(comment),
                     'responds_to': None
-                })
+                }
 
                 if comment.get('comment_count'):
 
                     # Handle each reply for the comment
                     for reply in comment['comments']['data']:
 
-                        comments.append({
+                        yield {
                             'comment_id': reply.get('id').split('_')[1],
                             'page_id': page_id,
                             'post_id': post_id,
@@ -322,19 +340,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'text': reply.get('message'),
                             'is_from_museum': self.from_barberini(reply),
                             'responds_to': comment_id
-                        })
-        df = pd.DataFrame(comments)
-
-        # Posts can appear multiple times, causing comments to
-        # be fetched multiple times as well, causing
-        # primary key violations
-        # See #227
-        df = df.drop_duplicates(
-            subset=['comment_id', 'post_id'], ignore_index=True)
-        df = self.ensure_foreign_keys(df)
-
-        with self.output().open('w') as output_file:
-            df.to_csv(output_file, index=False, header=True)
+                        }
 
     @staticmethod
     def from_barberini(comment_json):
