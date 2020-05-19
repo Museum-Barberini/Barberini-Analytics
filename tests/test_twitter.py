@@ -1,4 +1,3 @@
-"""
 import datetime as dt
 import pandas as pd
 from unittest.mock import patch
@@ -178,4 +177,3 @@ class TestExtractTweetPerformance(DatabaseTestCase):
         with output_target.open('r') as output_file:
             output = output_file.read()
         self.assertEqual(output, extracted_performance)
-"""
