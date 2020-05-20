@@ -234,16 +234,9 @@ class TopicModelingFindTopics(DataPreparationTask):
             # of all text comments.
             total_size = len(text_df)
             topic_sizes = text_df["topic"].value_counts().to_dict()
-            print("=======================")
-            print(topic_sizes)
-            print("----------------------")
             validate_topic = lambda x: x if topic_sizes[x] >= 0.02 * total_size else "other"
             topic_df["topic"] = topic_df["topic"].apply(validate_topic)
             text_df["topic"] = text_df["topic"].apply(validate_topic)
-            print(topic_df)
-            print("-----------------------")
-            print(text_df)
-            print("=========================")
 
             text_dfs.append(text_df)
             topic_dfs.append(topic_df)
@@ -259,7 +252,7 @@ class TopicModelingFindTopics(DataPreparationTask):
         mgp.fit([doc.tokens for doc in docs], n_terms)
         return mgp
 
-    def top_terms(self, model, n=20, print_it=False):
+    def top_terms(self, model, n=20):
         top_terms = [
             sorted(list(doc_dist.items()), key = lambda x: x[1], reverse=True)[:n]
             for doc_dist in model.cluster_word_distribution
