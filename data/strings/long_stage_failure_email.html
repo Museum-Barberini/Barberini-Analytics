@@ -1,0 +1,32 @@
+<html>
+<body>
+    <p>
+        Hey dev! Sorry to tell you, but the following tests failed in the
+        <a href="{{ CI_PIPELINE_URL }}">latest long-stage CI run tonight</a>:
+    </p>
+
+    {% for label, tests in unsuccessful.items %}
+    <h2>{{ label}} ({{ tests|length }})</h2>
+    <ul>
+        {% for test, error in tests.items %}
+        <li>
+            <pre>{{ test }}</pre>
+            {% if error %}
+            <br/>
+            <details>
+                <pre>{{ error }}</pre>
+            </details>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+
+    <p>
+        For more information, please visit the relevant GitLab job log:
+        <br/>
+        <a href="{{ CI_JOB_URL }}">{{ CI_JOB_URL }}</a>
+    </p>
+
+    <p>Happy bug fixing!</p>
+</body></html>
