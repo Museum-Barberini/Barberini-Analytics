@@ -329,9 +329,9 @@ class FetchFbPostComments(FetchFbPostDetails):
                 comment_id = comment.get('id').split('_')[1]
 
                 yield {
-                    'post_id': post_id,
-                    'comment_id': comment_id,
-                    'page_id': page_id,
+                    'post_id': str(post_id),
+                    'comment_id': str(comment_id),
+                    'page_id': str(page_id),
                     'post_date': comment.get('created_time'),
                     'text': comment.get('message'),
                     'is_from_museum': self.from_barberini(comment),
@@ -339,18 +339,16 @@ class FetchFbPostComments(FetchFbPostDetails):
                 }
 
                 if comment.get('comment_count'):
-
                     # Handle each reply for the comment
                     for reply in comment['comments']['data']:
-
                         yield {
                             'comment_id': reply.get('id').split('_')[1],
-                            'page_id': page_id,
-                            'post_id': post_id,
+                            'page_id': str(page_id),
+                            'post_id': str(post_id),
                             'post_date': reply.get('created_time'),
                             'text': reply.get('message'),
                             'is_from_museum': self.from_barberini(reply),
-                            'responds_to': comment_id
+                            'responds_to': str(comment_id)
                         }
 
     @staticmethod
