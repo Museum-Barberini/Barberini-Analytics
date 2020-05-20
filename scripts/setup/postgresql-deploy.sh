@@ -1,6 +1,7 @@
 #!/bin/bash
 # This file is located under '/etc/letsencrypt/renewal-hooks/deploy' to
 # enable the TLS certificate on the Azure VM to be renewed fully automatically
+set -e
 DOMAIN=barberini-analytics.westeurope.cloudapp.azure.com
 DATA_DIR=/var/barberini-analytics/db-data
 SOFTWARE_DIR=/root/bp-barberini
