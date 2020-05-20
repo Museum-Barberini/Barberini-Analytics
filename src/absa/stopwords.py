@@ -2,7 +2,7 @@ import luigi
 import luigi.format
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 
 # TODO: Introduce a column for the language?

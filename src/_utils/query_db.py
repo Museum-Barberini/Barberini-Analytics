@@ -1,7 +1,7 @@
 import luigi
 import pandas as pd
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 
 class QueryDb(DataPreparationTask):
