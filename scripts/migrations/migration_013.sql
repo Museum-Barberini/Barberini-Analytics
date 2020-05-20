@@ -8,9 +8,6 @@ CREATE TABLE fb_post_comment (
     text TEXT,
     is_from_museum BOOLEAN,
     responds_to TEXT,
-    -- "responds_to TEXT REFERENCES fb_post_comment" does not work
-    -- because ensure_foreign_keys would delete values which
-    -- are not yet in the DB, although it would be more semantically precise
     permalink TEXT
         GENERATED ALWAYS AS (
             'https://www.facebook.com/' || page_id || '/posts/'
