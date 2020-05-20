@@ -1,7 +1,7 @@
 import luigi
 
 from apple_appstore import AppstoreReviewsToDB
-from facebook import FbPostsToDB, FbPostPerformanceToDB
+from facebook import FbPostsToDB, FbPostCommentsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from google_trends.gtrends_values import GtrendsValuesToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
@@ -32,6 +32,7 @@ class FillDBDaily(luigi.WrapperTask):
         # === WWW channels ===
         yield AppstoreReviewsToDB()
         yield FbPostsToDB()
+        yield FbPostCommentsToDB()
         yield GoogleMapsReviewsToDB()
         yield GtrendsValuesToDB()
         yield GooglePlaystoreReviewsToDB()

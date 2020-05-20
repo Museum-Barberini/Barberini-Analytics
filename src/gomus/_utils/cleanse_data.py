@@ -6,7 +6,7 @@ import pandas as pd
 import re
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from gomus._utils.extract_customers import ExtractCustomerData
 from _utils.german_postal_codes import GermanPostalCodes
 

@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 
 class ExhibitionToDB(CsvToDb):
