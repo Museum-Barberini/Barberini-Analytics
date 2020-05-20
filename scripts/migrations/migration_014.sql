@@ -26,4 +26,15 @@ BEGIN;
         PRIMARY KEY (title, start_date, end_date)
     );
 
+    CREATE VIEW exhibition_every_time AS (
+        SELECT DATE(date), title
+        FROM generate_series(
+            (SELECT MIN(start_date) FROM exhibition_time),
+            now(),
+            '1 day'::interval
+        ) date
+        JOIN exhibition_time
+	    ON date BETWEEN start_date AND end_date;
+    );
+
 COMMIT;
