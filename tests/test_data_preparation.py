@@ -118,8 +118,16 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0]),
             expected_foreign_keys=[
-                ([COLUMN_NAME], TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN]),
-                ([COLUMN_NAME_2], TABLE_NAME_FOREIGN_2, [COLUMN_NAME_FOREIGN_2])
+                ([
+                    COLUMN_NAME],
+                    TABLE_NAME_FOREIGN,
+                    [COLUMN_NAME_FOREIGN]
+                ),
+                (
+                    [COLUMN_NAME_2],
+                    TABLE_NAME_FOREIGN_2,
+                    [COLUMN_NAME_FOREIGN_2]
+                )
             ]
         )
 
