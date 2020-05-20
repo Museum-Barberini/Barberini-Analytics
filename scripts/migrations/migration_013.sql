@@ -15,7 +15,7 @@ CREATE TABLE fb_post_comment (
         ) STORED,
 
     FOREIGN KEY (page_id, post_id) REFERENCES fb_post,
-    FOREIGN KEY (post_id, responds_to) REFERENCES fb_post_comment (post_id, comment_id)
+    FOREIGN KEY (post_id, responds_to) REFERENCES fb_post_comment
 );
 
 COMMIT;
