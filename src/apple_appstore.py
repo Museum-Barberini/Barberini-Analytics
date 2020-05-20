@@ -9,7 +9,7 @@ import xmltodict
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
