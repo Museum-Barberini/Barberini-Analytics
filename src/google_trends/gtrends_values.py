@@ -16,11 +16,11 @@ from museum_facts import MuseumFacts
 logger = logging.getLogger('luigi-interface')
 
 
-class GtrendsValuesToDB(luigi.WrapperTask):
+class GtrendsValuesToDb(luigi.WrapperTask):
 
     def requires(self):
         yield GtrendsValuesClearDB()
-        yield GtrendsValuesAddToDB()
+        yield GtrendsValuesAddToDb()
 
 
 class GtrendsValuesClearDB(luigi.Task):
@@ -56,7 +56,7 @@ class GtrendsValuesClearDB(luigi.Task):
             output.write('Done')
 
 
-class GtrendsValuesAddToDB(CsvToDb):
+class GtrendsValuesAddToDb(CsvToDb):
 
     table = 'gtrends_value'
 

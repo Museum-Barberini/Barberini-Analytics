@@ -1,77 +1,77 @@
 import luigi
 
-from apple_appstore import AppstoreReviewsToDB
-from facebook import FbPostsToDB, FbPostCommentsToDB, FbPostPerformanceToDB
-from google_maps import GoogleMapsReviewsToDB
-from google_trends.gtrends_values import GtrendsValuesToDB
-from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
-from instagram import IgToDBWrapper, IgPostPerformanceToDB
-from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
+from apple_appstore import AppstoreReviewsToDb
+from facebook import FbPostsToDb, FbPostCommentsToDb, FbPostPerformanceToDb
+from google_maps import GoogleMapsReviewsToDb
+from google_trends.gtrends_values import GtrendsValuesToDb
+from gplay.gplay_reviews import GooglePlaystoreReviewsToDb
+from instagram import IgToDbWrapper, IgPostPerformanceToDb
+from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
 
-from gomus.bookings import BookingsToDB
-from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
-from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
-from gomus.events import EventsToDB
-from gomus.order_contains import OrderContainsToDB
-from gomus.orders import OrdersToDB
+from gomus.bookings import BookingsToDb
+from gomus.customers import CustomersToDb, GomusToCustomerMappingToDb
+from gomus.daily_entries import DailyEntriesToDb, ExpectedDailyEntriesToDb
+from gomus.events import EventsToDb
+from gomus.order_contains import OrderContainsToDb
+from gomus.orders import OrdersToDb
 
 # TODO remove tomorrow
 import datetime as dt
 
 
-class FillDB(luigi.WrapperTask):
+class FillDb(luigi.WrapperTask):
 
     def requires(self):
-        yield FillDBDaily()
-        yield FillDBHourly()
+        yield FillDbDaily()
+        yield FillDbHourly()
 
 
-class FillDBDaily(luigi.WrapperTask):
+class FillDbDaily(luigi.WrapperTask):
 
     def requires(self):
         # === WWW channels ===
-        yield AppstoreReviewsToDB()
-        yield FbPostsToDB()
-        yield FbPostCommentsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield GtrendsValuesToDB()
-        yield GooglePlaystoreReviewsToDB()
-        yield IgToDBWrapper()
-        yield TweetAuthorsToDB()
-        yield TweetsToDB()
+        yield AppstoreReviewsToDb()
+        yield FbPostsToDb()
+        yield FbPostCommentsToDb()
+        yield GoogleMapsReviewsToDb()
+        yield GtrendsValuesToDb()
+        yield GooglePlaystoreReviewsToDb()
+        yield IgToDbWrapper()
+        yield TweetAuthorsToDb()
+        yield TweetsToDb()
 
         # === Gomus ===
 
         # START TODO: remove this tomorrow
-        yield BookingsToDB(timespan='_1month')
-        yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=1))
-        yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=2))
-        yield CustomersToDB(today=dt.datetime.today()-dt.timedelta(weeks=3))
-        yield GomusToCustomerMappingToDB(
+        yield BookingsToDb(timespan='_1month')
+        yield CustomersToDb(today=dt.datetime.today()-dt.timedelta(weeks=1))
+        yield CustomersToDb(today=dt.datetime.today()-dt.timedelta(weeks=2))
+        yield CustomersToDb(today=dt.datetime.today()-dt.timedelta(weeks=3))
+        yield GomusToCustomerMappingToDb(
             today=dt.datetime.today()-dt.timedelta(weeks=1))
-        yield GomusToCustomerMappingToDB(
+        yield GomusToCustomerMappingToDb(
             today=dt.datetime.today()-dt.timedelta(weeks=2))
-        yield GomusToCustomerMappingToDB(
+        yield GomusToCustomerMappingToDb(
             today=dt.datetime.today()-dt.timedelta(weeks=3))
-        yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=1))
-        yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=2))
-        yield OrdersToDB(today=dt.datetime.today()-dt.timedelta(weeks=3))
+        yield OrdersToDb(today=dt.datetime.today()-dt.timedelta(weeks=1))
+        yield OrdersToDb(today=dt.datetime.today()-dt.timedelta(weeks=2))
+        yield OrdersToDb(today=dt.datetime.today()-dt.timedelta(weeks=3))
         # IMPORTANT NOTE : var in gomus/events needs to be reset to 2 weeks
         # END
 
-        yield BookingsToDB()
-        yield CustomersToDB()
-        yield DailyEntriesToDB()
-        yield ExpectedDailyEntriesToDB()
-        yield EventsToDB()
-        yield GomusToCustomerMappingToDB()
-        yield OrderContainsToDB()
-        yield OrdersToDB()
+        yield BookingsToDb()
+        yield CustomersToDb()
+        yield DailyEntriesToDb()
+        yield ExpectedDailyEntriesToDb()
+        yield EventsToDb()
+        yield GomusToCustomerMappingToDb()
+        yield OrderContainsToDb()
+        yield OrdersToDb()
 
 
-class FillDBHourly(luigi.WrapperTask):
+class FillDbHourly(luigi.WrapperTask):
 
     def requires(self):
-        yield FbPostPerformanceToDB()
-        yield IgPostPerformanceToDB()
-        yield TweetPerformanceToDB()
+        yield FbPostPerformanceToDb()
+        yield IgPostPerformanceToDb()
+        yield TweetPerformanceToDb()

@@ -9,10 +9,10 @@ from xlrd import xldate_as_datetime
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import GomusToCustomerMappingToDB
+from gomus.customers import GomusToCustomerMappingToDb
 
 
-class OrdersToDB(CsvToDb):
+class OrdersToDb(CsvToDb):
     table = 'gomus_order'
 
     today = luigi.parameter.DateParameter(
@@ -32,7 +32,7 @@ class ExtractOrderData(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            GomusToCustomerMappingToDB(),
+            GomusToCustomerMappingToDb(),
             super()._requires()
         ])
 

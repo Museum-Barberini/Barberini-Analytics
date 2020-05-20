@@ -8,7 +8,7 @@ from luigi.format import UTF8
 
 from data_preparation import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import CustomersToDB
+from gomus.customers import CustomersToDb
 
 
 class ExtractGomusBookings(DataPreparationTask):
@@ -19,7 +19,7 @@ class ExtractGomusBookings(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            CustomersToDb(),
             super()._requires()
         ])
 

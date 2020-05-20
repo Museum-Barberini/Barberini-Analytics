@@ -15,7 +15,7 @@ from museum_facts import MuseumFacts
 logger = logging.getLogger('luigi-interface')
 
 
-class AppstoreReviewsToDB(CsvToDb):
+class AppstoreReviewsToDb(CsvToDb):
 
     table = 'appstore_review'
 

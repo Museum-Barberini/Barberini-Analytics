@@ -7,7 +7,7 @@ from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 
 
-class ExhibitionToDB(CsvToDb):
+class ExhibitionsToDb(CsvToDb):
 
     table = 'exhibition'
 

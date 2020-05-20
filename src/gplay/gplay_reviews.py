@@ -12,7 +12,7 @@ from data_preparation import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
-class GooglePlaystoreReviewsToDB(CsvToDb):
+class GooglePlaystoreReviewsToDb(CsvToDb):
 
     table = 'gplay_review'
 
@@ -138,7 +138,7 @@ class FetchGplayReviews(DataPreparationTask):
     def convert_to_right_output_format(self, reviews):
         """
         Make sure that the review dataframe fits the format expected by
-        GooglePlaystoreReviewsToDB. Rename and reorder columns, set data
+        GooglePlaystoreReviewsToDb. Rename and reorder columns, set data
         types explicitly.
         """
 
