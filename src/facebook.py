@@ -310,7 +310,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             response = try_request_multiple_times(url)
             response_data = response.json().get('data')
 
-            logger.info(f"Fetching {len(response_data)} "
+            logger.info(f"Fetched {len(response_data)} "
                         f"comments for post {post_id}")
 
             # Handle each comment for the post
