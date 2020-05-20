@@ -14,14 +14,7 @@ SSL_CERT_DIR := /var/barberini-analytics/db-data
 
 # Start the container luigi. Also start the container db if it is not already running.
 # If the container db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
-startup:
-	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate db;\
-		else\
-	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
-		fi;\
-	fi
+startup: startup-db
 	# Generate custom hostname for better error logs
 	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
 		LUIGI_EMAIL_FORMAT=$$( \
@@ -29,6 +22,15 @@ startup:
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
 		docker-compose -p ${USER} up --build -d luigi gplay_api
+
+startup-db:
+	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
+		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
+	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate db;\
+		else\
+	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
+		fi;\
+	fi
 
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi gplay_api
