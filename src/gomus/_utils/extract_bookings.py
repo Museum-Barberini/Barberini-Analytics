@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import CustomersToDB
 

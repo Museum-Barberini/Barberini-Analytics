@@ -8,7 +8,7 @@ import pandas as pd
 from luigi.format import UTF8
 from lxml import html
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from gomus.customers import GomusToCustomerMappingToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.extract_customers import hash_id
