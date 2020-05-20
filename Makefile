@@ -24,6 +24,10 @@ startup:
 	fi
 	# Generate custom hostname for better error logs
 	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
+		LUIGI_EMAIL_FORMAT=$$( \
+		`# Enabled luigi mails iff we are in production context.`; [[ \
+			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
+				&& echo "html" || echo "none") \
 		docker-compose -p ${USER} up --build -d luigi gplay_api
 
 shutdown:
