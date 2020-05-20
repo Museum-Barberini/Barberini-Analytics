@@ -14,7 +14,7 @@ import db_connector
 db_connector = db_connector.db_connector()
 
 logger = logging.getLogger('luigi-interface')
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 REFERENCING_TABLES = ['fb_post_comment', 'fb_post_performance']
@@ -40,7 +40,7 @@ try:
         with conn.cursor() as cur:
 
             # 1. Decouple performance table from post table
-            logger.debug("Dropping constraints")
+            logger.info("Dropping constraints")
             for table in REFERENCING_TABLES:
                 cur.execute(f'''
                     ALTER TABLE {table}
@@ -48,13 +48,13 @@ try:
                 ''')
 
             # 2. Truncate post table
-            logger.debug("Truncating fb_post")
+            logger.info("Truncating fb_post")
             cur.execute('''
                 TRUNCATE TABLE fb_post
             ''')
 
     # 3. Fetch posts again
-    logger.debug("Fetching posts again")
+    logger.info("Fetching posts again")
     os.environ['OUTPUT_DIR'] = 'output_migration_014'
     sp.run(
         check=True,
@@ -69,7 +69,7 @@ try:
         with conn.cursor() as cur:
 
             # 4. Drop invalidated values
-            logger.debug("Dropping invalid values")
+            logger.info("Dropping invalid values")
             for table in REFERENCING_TABLES:
                 cur.execute(f'''
                     DELETE FROM {table}
@@ -78,7 +78,7 @@ try:
                 ''')
 
             # 5. Reconnect related tables
-            logger.debug("Reconnecting")
+            logger.info("Reconnecting")
             for table in REFERENCING_TABLES:
                 cur.execute(f'''
                     ALTER TABLE {table}
