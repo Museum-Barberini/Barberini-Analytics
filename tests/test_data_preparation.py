@@ -166,23 +166,25 @@ class TestDataPreparationTask(DatabaseTestCase):
     def test_ensure_foreign_keys_self_reference(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME} (
-                {COLUMN_NAME} INT PRIMARY KEY
-                    REFERENCES {TABLE_NAME} ({COLUMN_NAME})
+                {COLUMN_NAME} INT PRIMARY KEY,
+                {COLUMN_NAME_2} INT REFERENCES {TABLE_NAME} ({COLUMN_NAME})
             )''',
-            f'INSERT INTO {TABLE_NAME} VALUES (0)'
+            f'''INSERT INTO {TABLE_NAME} VALUES (0, NULL)'''
         )
         self.assertEnsureForeignKeysOnce(
-            df=pd.DataFrame([[0], [1]], columns=[COLUMN_NAME]),
+            df=pd.DataFrame(
+                [[2, 1], [4, 3], [1, 0]],
+                columns=[COLUMN_NAME, COLUMN_NAME_2]),
             expected_valid=pd.DataFrame(
-                [[0]],
-                columns=[COLUMN_NAME],
-                index=[0]),
+                [[2, 1], [1, 0]],
+                columns=[COLUMN_NAME, COLUMN_NAME_2],
+                index=[0, 2]),
             expected_invalid=pd.DataFrame(
-                [[1]],
-                columns=[COLUMN_NAME],
+                [[4, 3]],
+                columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[1]),
             expected_foreign_key=(
-                [COLUMN_NAME],
+                [COLUMN_NAME_2],
                 (TABLE_NAME, [COLUMN_NAME]))
         )
 

@@ -78,6 +78,11 @@ class DataPreparationTask(luigi.Task):
                 '''),
                 columns=_foreign_columns
             ).astype(dict(zip(_foreign_columns, values.dtypes[columns])))
+            if foreign_table == self.table:
+                new_foreign_values = values[foreign_columns].rename(
+                    columns=dict(zip(foreign_columns, _foreign_columns)))
+                new_foreign_values.reset_index(inplace=True)
+                foreign_values = foreign_values.append(new_foreign_values)
 
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
