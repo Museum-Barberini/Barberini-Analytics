@@ -6,23 +6,23 @@ import pandas as pd
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from db_test import DatabaseTestCase
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchGomusHTML
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
                                        ScrapeGomusOrderContains)
-from task_test import DatabaseTaskTest
 from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 
-class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
-    '''
+class TestEnhanceBookingsWithScraper(DatabaseTestCase):
+    """
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
     It then compares the expected hash (also in the file above)
     with the hash of what our scraper got.
 
     To easily add test cases, use create_test_data_for_bookings.py.
-    '''
+    """
 
     hash_seed = 666
 
@@ -31,12 +31,9 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
-    def test_scrape_bookings(self,
-                             output_mock,
-                             all_htmls_mock,
-                             input_mock,
-                             foreign_key_mock,
-                             new_mail_mock):
+    def test_scrape_bookings(
+            self, output_mock, all_htmls_mock, input_mock,
+            ensure_foreign_key_mock, new_mail_mock):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')
@@ -76,7 +73,11 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
         # Also test that fetch_updated_mail would be called for non-empty
         # invalid_values (actual functionality tested elsewhere)
         invalid_values = pd.DataFrame([0], columns=['booking_id'])
-        foreign_key_mock.side_effect = lambda x: (x, invalid_values)
+
+        def mocked_ensure_foreign_key(df, invalid_handler):
+            invalid_handler(invalid_values, None)
+            return df
+        ensure_foreign_key_mock.side_effect = mocked_ensure_foreign_key
 
         new_mail_mock.return_value = iter([
             FetchGomusHTML(url='test1'),
@@ -133,59 +134,31 @@ class TestEnhanceBookingsWithScraper(DatabaseTaskTest):
         fake_customer_id = 121212
         real_customer_id = 1726152420
 
-        try:
-            # Set up tables. This is unnecessary when the test DB's
-            # schema automatically equals that of the actual DB
-            self.db_connector.execute(
-                '''CREATE TABLE gomus_customer (
-                    customer_id INTEGER
-                )''',
-                '''CREATE TABLE gomus_to_customer_mapping (
-                    gomus_id INTEGER,
-                    customer_id INTEGER
-                )''',
-                '''ALTER TABLE gomus_customer
-                    ADD CONSTRAINT customer_id_primkey
-                    PRIMARY KEY (customer_id)
-                ''',
-                '''ALTER TABLE gomus_to_customer_mapping
-                    ADD CONSTRAINT customer_id_fkey
-                    FOREIGN KEY (customer_id)
-                        REFERENCES gomus_customer (customer_id)
-                    ON UPDATE CASCADE
-                ''')
+        # Insert test values
+        self.db_connector.execute(
+            f'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
+            f'''INSERT INTO gomus_to_customer_mapping VALUES (
+                {gomus_id}, {fake_customer_id})
+            ''')
 
-            # Insert test values
-            self.db_connector.execute(
-                f'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
-                f'''INSERT INTO gomus_to_customer_mapping VALUES (
-                        {gomus_id}, {fake_customer_id})
-                    ''')
+        # Run fetch_updated_mail
+        self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
+        fetch_mail = self.task.fetch_updated_mail(booking_id)
+        for html_task in fetch_mail:
+            html_task.run()
 
-            # Run fetch_updated_mail
-            self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
-            fetch_mail = self.task.fetch_updated_mail(booking_id)
-            for html_task in fetch_mail:
-                html_task.run()
-
-            # Check DB values
-            new_id = self.db_connector.query(
-                f'''
-                    SELECT customer_id
-                    FROM gomus_to_customer_mapping
-                    WHERE gomus_id = {gomus_id}
-                ''',
-                only_first=True)
-            self.assertEqual(new_id[0], real_customer_id)
-
-        finally:
-            # Clear DB again
-            self.db_connector.execute(
-                'DROP TABLE gomus_to_customer_mapping',
-                'DROP TABLE gomus_customer')
+        # Check DB values
+        new_id = self.db_connector.query(
+            f'''
+                SELECT customer_id
+                FROM gomus_to_customer_mapping
+                WHERE gomus_id = {gomus_id}
+            ''',
+            only_first=True)
+        self.assertEqual(new_id[0], real_customer_id)
 
 
-class TestScrapeOrderContains(DatabaseTaskTest):
+class TestScrapeOrderContains(DatabaseTestCase):
 
     hash_seed = 666
 

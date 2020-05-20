@@ -2,8 +2,9 @@
 luigi==2.8.12
 psycopg2==2.8.4
 
-# Tools
+# Testing tools
 coverage==5.0.3
+freezegun==0.1.11
 
 # Data sources
 google-api-python-client==1.7.11
@@ -22,3 +23,7 @@ PyYAML==5.3
 requests==2.23.0
 xlrd==1.2.0
 xmltodict==0.12.0
+stop-words==2018.7.23
+git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
+nltk==3.5
+langdetect==1.0.8

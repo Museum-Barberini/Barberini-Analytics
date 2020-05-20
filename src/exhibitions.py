@@ -5,20 +5,11 @@ import requests
 
 from csv_to_db import CsvToDb
 from data_preparation_task import DataPreparationTask
-from db_connector import db_connector
 
 
 class ExhibitionToDB(CsvToDb):
 
     table = 'exhibition'
-
-    columns = [
-        ('title', 'TEXT'),
-        ('start_date', 'DATE'),
-        ('end_date', 'DATE')
-    ]
-
-    primary_key = ('title', 'start_date')
 
     def requires(self):
         return FetchExhibitions()
@@ -49,7 +40,6 @@ class FetchExhibitions(DataPreparationTask):
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
-        # to make sure we don't have outdated information in our DB
+        # To make sure we don't have outdated information in our DB
         # we drop the table exhibitions beforehand
-        query = (f'DROP TABLE IF EXISTS exhibitions')
-        db_connector.execute(query)
+        self.db_connector.execute('DROP TABLE IF EXISTS exhibitions')

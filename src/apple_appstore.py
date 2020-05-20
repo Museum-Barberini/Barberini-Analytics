@@ -19,25 +19,13 @@ class AppstoreReviewsToDB(CsvToDb):
 
     table = 'appstore_review'
 
-    columns = [
-        ('appstore_review_id', 'TEXT'),
-        ('text', 'TEXT'),
-        ('rating', 'INT'),
-        ('app_version', 'TEXT'),
-        ('vote_count', 'INT'),
-        ('vote_sum', 'INT'),
-        ('title', 'TEXT'),
-        ('post_date', 'TIMESTAMP'),
-        ('country_code', 'TEXT')
-    ]
-
-    primary_key = 'appstore_review_id'
-
     def requires(self):
         return FetchAppstoreReviews()
 
 
 class FetchAppstoreReviews(DataPreparationTask):
+
+    table = 'appstore_review'
 
     def requires(self):
         return MuseumFacts()
@@ -88,7 +76,7 @@ class FetchAppstoreReviews(DataPreparationTask):
         except ValueError:
             ret = pd.DataFrame(columns=[])
 
-        return ret.drop_duplicates(subset=['appstore_review_id'])
+        return ret.drop_duplicates(subset=['app_id', 'appstore_review_id'])
 
     def get_country_codes(self):
         return requests.get('http://country.io/names.json').json().keys()
@@ -120,6 +108,7 @@ class FetchAppstoreReviews(DataPreparationTask):
 
         result = pd.DataFrame(data_list)
         result['country_code'] = country_code
+        result.insert(0, 'app_id', app_id)
 
         return result
 
@@ -138,16 +127,21 @@ class FetchAppstoreReviews(DataPreparationTask):
 
         if isinstance(entries, dict):
             entries = [entries]
-        data = [{'appstore_review_id': item['id'],
-                 'text': self.find_first_conditional_tag(
-                     item['content'],
-                     lambda each: each['@type'] == 'text')['#text'],
-                 'rating': item['im:rating'],
-                 'app_version': item['im:version'],
-                 'vote_count': item['im:voteCount'],
-                 'vote_sum': item['im:voteSum'],
-                 'title': item['title'],
-                 'date': item['updated']} for item in entries]
+        data = [
+            {
+                'appstore_review_id': item['id'],
+                'text': self.find_first_conditional_tag(
+                    item['content'],
+                    lambda each: each['@type'] == 'text')['#text'],
+                'rating': item['im:rating'],
+                'app_version': item['im:version'],
+                'vote_count': item['im:voteCount'],
+                'vote_sum': item['im:voteSum'],
+                'title': item['title'],
+                'date': item['updated']
+            }
+            for item in entries
+        ]
 
         # read <link rel="next"> which contains the link to the next page
         next_page_url = self.find_first_conditional_tag(

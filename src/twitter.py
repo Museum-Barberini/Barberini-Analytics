@@ -15,18 +15,7 @@ from museum_facts import MuseumFacts
 
 class TweetsToDB(CsvToDb):
 
-    table = "tweet"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "TIMESTAMP"),
-        ("is_from_barberini", "BOOL")
-    ]
-
-    primary_key = 'tweet_id'
+    table = 'tweet'
 
     def requires(self):
         return ExtractTweets()
@@ -34,40 +23,15 @@ class TweetsToDB(CsvToDb):
 
 class TweetPerformanceToDB(CsvToDb):
 
-    table = "tweet_performance"
-
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("timestamp", "TIMESTAMP")
-    ]
-
-    primary_key = ('tweet_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            "origin_column": "tweet_id",
-            "target_table": "tweet",
-            "target_column": "tweet_id"
-        }
-    ]
+    table = 'tweet_performance'
 
     def requires(self):
-        return ExtractTweetPerformance(foreign_keys=self.foreign_keys)
+        return ExtractTweetPerformance(table=self.table)
 
 
 class TweetAuthorsToDB(CsvToDb):
 
-    table = "tweet_author"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("user_name", "TEXT")
-    ]
-
-    primary_key = "user_id"
+    table = 'tweet_author'
 
     def requires(self):
         return LoadTweetAuthors()
@@ -129,11 +93,11 @@ class ExtractTweetPerformance(DataPreparationTask):
     def run(self):
         with self.input().open('r') as input_file:
             df = pd.read_csv(input_file)
+
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
-
-        df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

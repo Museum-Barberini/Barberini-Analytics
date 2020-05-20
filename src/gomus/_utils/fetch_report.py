@@ -45,17 +45,11 @@ class FetchGomusReport(luigi.Task):
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']
 
-        res_content = request_report(
-            args=[
-                '-s',
-                f'{sess_id}',
-                '-t',
-                f'{self.report_name}',
-                '-l'])
+        response_content = request_report(self.report_name, sess_id)
         for index, target in enumerate(self.output()):
             with target.open('w') as target_csv:
                 csv_from_excel(
-                    res_content,
+                    response_content,
                     target_csv,
                     self.sheet_indices[index])
 
@@ -79,8 +73,8 @@ class FetchEventReservations(luigi.Task):
                f'seats.xlsx')
         response = requests.get(url, cookies=dict(
             _session_id=os.environ['GOMUS_SESS_ID']))
-        res_content = response.content
+        response_content = response.content
 
         with self.output().open('w') as target_csv:
             if response.status_code != 500:
-                csv_from_excel(res_content, target_csv, self.status)
+                csv_from_excel(response_content, target_csv, self.status)

@@ -1,4 +1,4 @@
-fb_post_id,time_stamp,react_like,react_love,react_wow,react_haha,react_sorry,react_anger,likes,shares,comments,video_clicks,link_clicks,other_clicks,negative_feedback,paid_impressions,post_impressions,post_impressions_unique
-1234567890_0987654321,2020-01-01 00:00:05,3,9,27,78,98,10,690,420,666,112,334,556,1,10000000,101010,202020
-0987654321_1234567890,2020-01-01 00:00:05,3,9,27,78,98,10,690,420,666,112,334,556,1,10000000,101010,202020
-7894561230_0123456789,2020-01-01 00:00:05,3,9,27,78,98,10,690,420,666,112,334,556,1,10000000,101010,202020
+time_stamp,react_like,react_love,react_wow,react_haha,react_sorry,react_anger,likes,shares,comments,video_clicks,link_clicks,other_clicks,negative_feedback,paid_impressions,post_impressions,post_impressions_unique,page_id,post_id
+2020-01-01 00:00:05,3,9,27,78,98,10,690,420,666,112,334,556,1,10000000,101010,202020,1234567890,987654321
+2020-01-01 00:00:05,3,9,27,78,98,10,690,420,666,112,334,556,1,10000000,101010,202020,987654321,1234567890
+2020-01-01 00:00:05,3,9,27,78,98,10,690,420,666,112,334,556,1,10000000,101010,202020,7894561230,123456789

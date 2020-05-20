@@ -4,26 +4,32 @@
 
 FROM ubuntu:18.04
 WORKDIR /gplay_api
-RUN apt-get update && apt-get install -y git
 
-# clone google play api repo
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update
+ARG INSTALL='apt-get install -y'
+
+# Install utilities
+RUN $INSTALL apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
+RUN $INSTALL curl git
+
+# Clone google-play-api repo
 RUN git clone https://github.com/facundoolano/google-play-api.git
 WORKDIR google-play-api
 
-# set google play api to a commit that is known to work. If the repo
+# Set google play api to a commit that is known to work. If the repo
 # gets updated it may be wise to set the commit hash below to the new HEAD.
 RUN git reset 6d0e649a1f50ef26721f911032292f87e4f1383c --hard
 
-# install node.js and npm
+# Install node.js and npm
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt-get install -y nodejs
-RUN apt-get install -y npm
+RUN $INSTALL nodejs
 
-# install google-play-api with npm
+# Install google-play-api with npm
 RUN npm install
 
-# the server runs on port 3000
+# The server runs on port 3000
 EXPOSE 3000
-
-# the server should start when the container is started
+# The server should start when the container is started
 CMD npm start
