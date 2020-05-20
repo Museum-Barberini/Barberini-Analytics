@@ -6,7 +6,7 @@ BEGIN;
     
     CREATE TABLE exhibition(
         title TEXT PRIMARY KEY,
-        picture_URL TEXT,
+        picture_url TEXT,
         special TEXT  -- NULL (exhibition), 'closing day', or 'presentation'
             GENERATED ALWAYS AS (
                 CASE
