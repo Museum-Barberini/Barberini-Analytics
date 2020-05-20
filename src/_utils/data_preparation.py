@@ -129,11 +129,7 @@ class DataPreparationTask(luigi.Task):
                         kcu_foreign.column_name AS foreign_column_name
                     FROM
                         information_schema.referential_constraints rc
-                    JOIN (
-                            SELECT *
-                            FROM information_schema.key_column_usage
-                            ORDER BY ordinal_position
-                        ) kcu
+                    JOIN information_schema.key_column_usage kcu
                         ON kcu.constraint_name = rc.constraint_name
                     JOIN information_schema.key_column_usage kcu_foreign
                         ON kcu_foreign.constraint_name

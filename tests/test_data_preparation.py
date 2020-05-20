@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pandas as pd
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from db_test import DatabaseTestCase
 
 TABLE_NAME = 'test_table'
