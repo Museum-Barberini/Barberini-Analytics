@@ -83,6 +83,7 @@ class DataPreparationTask(luigi.Task):
                     columns=dict(zip(foreign_columns, _foreign_columns)))
                 new_foreign_values.reset_index(inplace=True, drop=True)
                 foreign_values = foreign_values.append(new_foreign_values)
+                print("there")
                 print(foreign_values)
                 print(foreign_values.columns)
                 print(foreign_values.dtypes)
@@ -92,6 +93,7 @@ class DataPreparationTask(luigi.Task):
                 print(values.columns)
                 print(values.dtypes)
 
+            print("here:" + foreign_table)
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
             invalid = pd.merge(
