@@ -5,7 +5,6 @@ import logging
 import os
 import sys
 
-from dateutil import parser as dtparser
 import luigi
 import pandas as pd
 import requests
@@ -249,16 +248,6 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
 class FetchFbPostComments(FetchFbPostDetails):
 
-    columns = {
-        'post_id': str,
-        'comment_id': str,
-        'page_id': str,
-        'post_date': dtparser.parse,
-        'text': str,
-        'is_from_museum': bool,
-        'responds_to': str
-    }
-
     def output(self):
         return luigi.LocalTarget(
             f'{self.output_dir}/facebook/fb_post_comments.csv',
@@ -273,15 +262,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             df = df.head(5)
 
         comments = self.fetch_comments(df)
-        df = pd.DataFrame([
-            {
-                column: adapter(comment[column])
-                for (column, adapter)
-                in self.columns.items()
-            }
-            for comment
-            in comments
-        ])
+        df = pd.DataFrame(comments)
 
         # Posts can appear multiple times, causing comments to
         # be fetched multiple times as well, causing
@@ -289,6 +270,14 @@ class FetchFbPostComments(FetchFbPostDetails):
         # See #227
         df = df.drop_duplicates(
             subset=['comment_id', 'post_id'], ignore_index=True)
+        df = df.astype({
+            'post_id': str,
+            'comment_id': str,
+            'page_id': str
+        })
+
+        df['responds_to'] = df['responds_to'].apply(
+            lambda x: str(x) if x else None)
 
         df = self.ensure_foreign_keys(df)
 
