@@ -1,9 +1,8 @@
 import logging
 import pandas as pd
-import operator
 import os
 import sys
-from functools import partial, reduce
+from functools import reduce
 from typing import Callable, Dict, List, Tuple
 
 import luigi
