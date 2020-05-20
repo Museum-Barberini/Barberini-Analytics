@@ -276,6 +276,8 @@ class FetchFbPostComments(FetchFbPostDetails):
             'page_id': str
         })
 
+        # only convert 'responds_to' to string if it exists,
+        # since otherwise it would result in a string "None"
         df['responds_to'] = df['responds_to'].apply(
             lambda x: str(x) if x else None)
 
