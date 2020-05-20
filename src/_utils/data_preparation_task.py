@@ -137,8 +137,9 @@ class DataPreparationTask(luigi.Task):
                 msg=lambda: msg, size=size, index_fun=index_fun
             )
             return
-        if size is None:
-            size = len(iterable) if hasattr(iterable, '__len__') else None
+        size = size if size \
+            else len(iterable) if hasattr(iterable, '__len__') \
+            else None
         format_args = {
             'item': str(None),
             'index': 0
@@ -147,9 +148,16 @@ class DataPreparationTask(luigi.Task):
             format_args['size'] = size
         print()
         try:
-            for index, item in enumerate(iterable, start=1):
-                if index_fun:
-                    index = index_fun() + 1
+            iterable = iter(iterable)
+            index = 0
+            item = next(iterable)
+            while True:
+                index = index_fun() + 1 if index_fun else index + 1
+                forth = yield item
+                item = iterable.send(forth) \
+                    if hasattr(iterable, 'send') \
+                    else next(iterable)
+
                 format_args['index'] = index
                 format_args['item'] = item
                 message = msg().format(**format_args)
@@ -163,9 +171,13 @@ class DataPreparationTask(luigi.Task):
             print(flush=True)
             raise
 
-    def loop_verbose(
-            self, while_fun, item_fun, msg, size=None, index_fun=None):
+    def loop_verbose(self, msg, size=None):
+        index = 0
+
         def loop():
-            while while_fun():
-                yield item_fun()
-        return self.iter_verbose(loop(), msg, size=size, index_fun=index_fun)
+            nonlocal index
+            while True:
+                next_index = yield index
+                index = next_index if next_index else index + 1
+        return self.iter_verbose(
+            loop(), msg, size=size, index_fun=lambda: index)

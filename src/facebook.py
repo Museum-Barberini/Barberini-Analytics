@@ -61,10 +61,10 @@ class FetchFbPosts(DataPreparationTask):
         response_content = response.json()
         yield from response_content['data']
 
-        for url in self.loop_verbose(
-                    while_fun=lambda: 'next' in response_content['paging'],
-                    item_fun=lambda: response_content['paging']['next'],
-                    msg="Fetching facebook page {index}"):
+        log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
+        while 'next' in response_content['paging']:
+            url = response_content['paging']['next']
+            next(log_loop)
             response = try_request_multiple_times(url)
             response_content = response.json()
             yield from response_content['data']
