@@ -22,6 +22,29 @@ from twitter import TweetsToDB
 logger = logging.getLogger('luigi-interface')
 
 
+"""
+Flow of control
+--------------
+
+            TopicModeling()
+            |             |
+            |             |
+TopicModelingTextsToDb   TopicModelingTopicsToDb
+            |             |
+            |             |
+TopicModelingTextsDf     TopicModelingTopicsDf
+            |             |
+            |             |
+        TopicModelingFindTopics()
+                  |
+                  |
+      TopicModelingPreprocessCorpus()
+                  |
+                  |
+       TopicModelingCreateCorpus()
+"""
+
+
 class TopicModeling(luigi.WrapperTask):
 
     def requires(self):
@@ -36,6 +59,7 @@ class TopicModelingTextsToDb(CsvToDb):
     def requires(self):
         return TopicModelingTextDf()
 
+
 class TopicModelingTopicsToDb(CsvToDb):
 
     table = "topic_modeling_topics"
@@ -45,6 +69,13 @@ class TopicModelingTopicsToDb(CsvToDb):
 
 
 class TopicModelingTopicsDf(DataPreparationTask):
+    """
+    This task's main purpose is to provide a
+    single output target that can be used a
+    CsvToDb task.
+    The the task also deletes existing data to 
+    ensure consistency.
+    """
 
     def requires(self):
         return TopicModelingFindTopics()
@@ -57,10 +88,10 @@ class TopicModelingTopicsDf(DataPreparationTask):
 
     def run(self):
 
-        with next(self.input()).open("r") as fp:
-            data = pd.read_csv(fp)
-        with self.output().open("w") as fp:
-            data.to_csv(fp, index=True)
+        with list(self.input())[0].open("r") as topics_file:
+            data = pd.read_csv(topics_file)
+        with self.output().open("w") as output_file:
+            data.to_csv(output_file, index=True)
 
         # delete existing topics data to make sure
         # there are no inconsistencies after the new
@@ -70,6 +101,13 @@ class TopicModelingTopicsDf(DataPreparationTask):
         )
 
 class TopicModelingTextDf(DataPreparationTask):
+    """
+    This task's only purpose is to provide a
+    single output target that can be used a
+    CsvToDb task.
+    The the task also deletes existing data to 
+    ensure consistency.
+    """
 
     def requires(self):
         return TopicModelingFindTopics()
@@ -82,12 +120,10 @@ class TopicModelingTextDf(DataPreparationTask):
 
     def run(self):
         
-        input_files = self.input()
-        next(input_files)
-        with next(input_files).open("r") as fp:
-            data = pd.read_csv(fp)
-        with self.output().open("w") as fp:
-            data.to_csv(fp, index=True)
+        with list(self.input())[1].open("r") as text_file:
+            data = pd.read_csv(text_file)
+        with self.output().open("w") as output_file:
+            data.to_csv(output_file, index=True)
 
         # delete existing topics data to make sure
         # there are no inconsistencies after the new
@@ -95,7 +131,6 @@ class TopicModelingTextDf(DataPreparationTask):
         db_connector().execute(
             "TRUNCATE topic_modeling_texts"
         )
-
 
 
 class TopicModelingFindTopics(DataPreparationTask):
@@ -112,10 +147,7 @@ class TopicModelingFindTopics(DataPreparationTask):
         ]
 
     def requires(self):
-        yield AppstoreReviewsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield GooglePlaystoreReviewsToDB()
-        yield TweetsToDB()
+        return TopicModelingPreprocessCorpus()
 
     def output(self):
         yield luigi.LocalTarget(
@@ -129,69 +161,21 @@ class TopicModelingFindTopics(DataPreparationTask):
 
     def run(self):
 
-        docs = self.build_corpus()
-        docs = self.preprocess(docs)
-        topic_df, text_df = self.find_topics(docs)
+        with self.input().open("rb") as corpus_file:
+            corpus = pickle.load(corpus_file)
+
+        terms_df, texts_df = self.find_topics(corpus)
 
         output_files = self.output()
-        with next(output_files).open("w") as topic_file:
-            topic_df.to_csv(topic_file, index=False)
-        with next(output_files).open("w") as text_file:
-            text_df.to_csv(text_file, index=False)
+        with next(output_files).open("w") as terms_file:
+            topic_df.to_csv(terms_file, index=False)
+        with next(output_files).open("w") as texts_file:
+            text_df.to_csv(texts_file, index=False)
 
-    def build_corpus(self):
-
-        # TODO: use new posts view
-        texts = db_connector().query("""
-            SELECT text, source, post_date, post_id 
-            FROM post
-            WHERE NOT is_promotion AND text IS NOT NULL
-        """)
-        docs = [
-            Doc(row[0], row[1], row[2], row[3])
-            for row in texts if row[0] is not None
-        ]
-        return docs
-
-    def preprocess(self, docs):
-        
-        for doc in docs:
-            # remove leading "None" (introduced by DB export)
-            doc.text = doc.text.replace("None ", "", 1)
-            doc.tokens = doc.text.lower()
-            doc.guess_language()
-            doc.tokens = word_tokenize(doc.tokens)
-            doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
-            # keep only alphabetical tokens
-            doc.tokens = [token for token in doc.tokens if token.isalpha()]
-            # remove single-digit tokens
-            doc.tokens = [token for token in doc.tokens if len(token) > 1]
-
-        # consider only german docs
-        docs = [doc for doc in docs if doc.language == "de"]
-
-        # stemming
-        #stemmer = nltk.stem.cistem.Cistem()
-        #for doc in docs:
-        #    doc.tokens = [stemmer.stem(token) for token in doc.tokens]
-        
-        # remove tokens that appear only once
-        tokens = defaultdict(lambda: 0)
-        for doc in docs:
-            for token in doc.tokens:
-                tokens[token] += 1
-        for doc in docs:
-            for token in doc.tokens:
-                if tokens[token] == 1:
-                    doc.tokens.remove(token)
-                    
-        # remove docs with less than three tokens
-        docs = [doc for doc in docs if not doc.too_short()]
-                
-        return docs
 
     def find_topics(self, docs):
         # TODO: don't hardcode the years
+        # Maybe one task per model
         models = ["all", "2020", "2019", "2018", "2017", "2016"]
 
         text_dfs = []
@@ -260,6 +244,107 @@ class TopicModelingFindTopics(DataPreparationTask):
         return top_terms
 
 
+class TopicModelingPreprocessCorpus(DataPreparationTask):
+   
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stop_words = [
+            *get_stop_words("german"),
+            *get_stop_words("english"),
+            *["http", "https", "www", "com", "de", "google", "translated", 
+              "twitter", "fur", "uber", "html", "barberini", 
+              "museumbarberini", "museum", "ausstellung", "ausstellungen",
+              "potsdam", "mal"]
+        ]
+
+    def requires(self):
+        return TopicModelingCreateCorpus()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f"{self.output_dir}/topic_modeling/corpus_preprocessed.pkl",
+            format=luigi.format.Nop  # output is binary file
+        )
+
+    def run(self):
+
+        with self.input().open("rb") as corpus_file:
+            corpus = pickle.load(corpus_file)
+
+        corpus = self.preprocess(corpus)
+
+        with self.output().open("w") as output_file:
+            pickle.dump(corpus, output_file)
+
+    def preprocess(self, docs):
+        
+        for doc in docs:
+            # remove leading "None" (introduced by DB export)
+            doc.text = doc.text.replace("None ", "", 1)
+            doc.tokens = doc.text.lower()
+            doc.guess_language()
+            doc.tokens = word_tokenize(doc.tokens)
+            # remove stop words
+            doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
+            # keep only alphabetical tokens
+            doc.tokens = [token for token in doc.tokens if token.isalpha()]
+            # remove single-digit tokens
+            doc.tokens = [token for token in doc.tokens if len(token) > 1]
+
+        # consider only german docs
+        docs = [doc for doc in docs if doc.language == "de"]
+
+        # stemming
+        #stemmer = nltk.stem.cistem.Cistem()
+        #for doc in docs:
+        #    doc.tokens = [stemmer.stem(token) for token in doc.tokens]
+        
+        # remove tokens that appear only once
+        tokens = defaultdict(lambda: 0)
+        for doc in docs:
+            for token in doc.tokens:
+                tokens[token] += 1
+        for doc in docs:
+            for token in doc.tokens:
+                if tokens[token] == 1:
+                    doc.tokens.remove(token)
+                    
+        # remove docs with less than three tokens
+        docs = [doc for doc in docs if not doc.too_short()]
+                
+        return docs
+
+
+class TopicModelingCreateCorpus(DataPreparationTask):
+
+    def requires(self):
+        yield AppstoreReviewsToDB()
+        yield GoogleMapsReviewsToDB()
+        yield GooglePlaystoreReviewsToDB()
+        yield TweetsToDB()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f"{self.output_dir}/topic_modeling/corpus.pkl",
+            format=luigi.format.Nop  # output is binary file
+        )
+
+    def run(self):
+
+        texts = db_connector().query("""
+            SELECT text, source, post_date, post_id 
+            FROM post
+            WHERE NOT is_promotion AND text IS NOT NULL
+        """)
+        corpus = [
+            Doc(row[0], row[1], row[2], row[3])
+            for row in texts if row[0] is not None
+        ]
+
+        with self.output().open("w") as output_file:
+            pickle.dump(corpus, output_file)
+
+
 class Doc:
     def __init__(self, text, source, post_date, post_id):
         self.text = text
@@ -288,8 +373,8 @@ class Doc:
             self.language = langdetect.detect(self.text)
         except langdetect.lang_detect_exception.LangDetectException as e:
             # langdetect can not handle emoji-only and link-only texts
-            logger.warning(f"langdetect error: {e}")
-            logger.info(f"Warning was raised for doc {self.to_dict()}")
+            logger.warning(f"langdetect failed for one Doc. Error: {e}")
+            logger.info(f"Failure happened for Doc {self.to_dict()}")
 
     def to_dict(self):
         return {
