@@ -68,10 +68,6 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b', 1)
             '''
         )
-        """
-        TODO: Commit to MR.
-        Write tests for null references.
-        """;""""""
         self.assertEnsureForeignKeysOnce(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
@@ -118,8 +114,8 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0]),
             expected_foreign_keys=[
-                ([
-                    COLUMN_NAME],
+                (
+                    [COLUMN_NAME],
                     TABLE_NAME_FOREIGN,
                     [COLUMN_NAME_FOREIGN]
                 ),
@@ -226,6 +222,49 @@ class TestDataPreparationTask(DatabaseTestCase):
         self.denyEnsureForeignKeys(
             df=pd.DataFrame([], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame([], columns=[COLUMN_NAME])
+        )
+
+    def test_ensure_foreign_keys_null_reference(self):
+        self.db_connector.execute(
+            f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
+                {COLUMN_NAME_FOREIGN} TEXT,
+                {COLUMN_NAME_FOREIGN_2} TEXT,
+                PRIMARY KEY ({COLUMN_NAME_FOREIGN}, {COLUMN_NAME_FOREIGN_2})
+            )''',
+            f'''CREATE TABLE {TABLE_NAME} (
+                {COLUMN_NAME} TEXT,
+                {COLUMN_NAME_2} TEXT,
+                FOREIGN KEY ({COLUMN_NAME}, {COLUMN_NAME_2})
+                    REFERENCES {TABLE_NAME_FOREIGN}
+                    ({COLUMN_NAME_FOREIGN}, {COLUMN_NAME_FOREIGN_2})
+            )''',
+            f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (
+                'a', 'A'
+            )'''
+        )
+        self.assertEnsureForeignKeysOnce(
+            df=pd.DataFrame(
+                [
+                    ['a', 'A'], ['a', 'b'], [None, 'A'], [None, 'B'],
+                    ['a', None], ['b', None], [None, None]
+                ],
+                columns=[COLUMN_NAME, COLUMN_NAME_2]),
+            expected_valid=pd.DataFrame(
+                [
+                    ['a', 'A'], [None, 'A'], [None, 'B'],
+                    ['a', None], ['b', None], [None, None]
+                ],
+                columns=[COLUMN_NAME, COLUMN_NAME_2],
+                index=[0, 2, 3, 4, 5, 6]),
+            expected_invalid=pd.DataFrame(
+                [['a', 'b']],
+                columns=[COLUMN_NAME, COLUMN_NAME_2],
+                index=[1]),
+            expected_foreign_key=(
+                [COLUMN_NAME, COLUMN_NAME_2],
+                TABLE_NAME_FOREIGN,
+                [COLUMN_NAME_FOREIGN, COLUMN_NAME_FOREIGN_2]
+            )
         )
 
     def assertEnsureForeignKeys(
