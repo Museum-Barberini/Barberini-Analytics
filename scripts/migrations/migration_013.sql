@@ -4,13 +4,14 @@ BEGIN;
 
     CREATE SCHEMA absa;
 
-    CREATE FUNCTION ensure_foreign_key(
-            "table" text,
+    CREATE PROCEDURE ensure_foreign_key(
+            "table" regclass,
             columns text[],
             reftable text,
             refcolumns text[]
-        ) RETURNS void AS
-        $$
+        )
+        LANGUAGE plpgsql
+        AS $$
         DECLARE
             key TEXT := (
                 SELECT string_agg(col, ', ')
@@ -31,7 +32,9 @@ BEGIN;
                 FUNCTION foreign_key_trigger()
                     RETURNS "trigger" AS
                     $BODY$ BEGIN
-                        -- Disabled due to performance reasons (O(n²)) ☹
+                        -- If reftable is invalid, this will raise an error
+                        PERFORM CAST(''%2$s'' AS regclass);
+                        -- Disabled due to performance reasons (O(n²)) 😢
                         /*IF (SELECT (%3$s)) NOT IN (SELECT (%4$s) FROM %2$s)
                         THEN
                             RAISE EXCEPTION ''Foreign key violation: Key (%%=%%) \
@@ -47,14 +50,9 @@ BEGIN;
                     FOR EACH ROW
                     EXECUTE PROCEDURE foreign_key_trigger();
                 ',
-                "table",
-                reftable,
-                newkey,
-                refkey,
-                key);
+                "table", reftable, newkey, refkey, key);
         END;
-        $$
-        LANGUAGE 'plpgsql' VOLATILE;
+        $$;
 
     CREATE TABLE absa.stopword (
         word TEXT PRIMARY KEY
@@ -67,9 +65,9 @@ BEGIN;
         word TEXT,
         PRIMARY KEY (source, post_id, word_index)
     );
-    SELECT ensure_foreign_key(
+    CALL ensure_foreign_key(
         'absa.post_word', array ['source', 'post_id'],
-        'absa.post', array ['source', 'post_id']
+        'post', array ['source', 'post_id']
     );
 
     CREATE TABLE absa.post_ngram (
@@ -80,10 +78,9 @@ BEGIN;
         ngram TEXT,
         PRIMARY KEY (source, post_id, n, word_index)
     );
-    SELECT ensure_foreign_key(
+    CALL ensure_foreign_key(
         'absa.post_ngram', array ['source', 'post_id'],
-        'absa.post', array ['source', 'post_id']
+        'post', array ['source', 'post_id']
     );
-    -- TODO: Too verbose output
 
 COMMIT;
