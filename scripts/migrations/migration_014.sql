@@ -4,7 +4,7 @@ BEGIN;
 
     DROP TABLE exhibition;
     
-    CREATE TABLE exhibition(
+    CREATE TABLE exhibition (
         title TEXT PRIMARY KEY,
         picture_url TEXT,
         special TEXT  -- NULL (exhibition), 'closing day', or 'presentation'
@@ -21,7 +21,7 @@ BEGIN;
         ) STORED
     );
 
-    CREATE TABLE exhibition_time(
+    CREATE TABLE exhibition_time (
         title TEXT REFERENCES exhibition,
         start_date DATE,
         end_date DATE,
