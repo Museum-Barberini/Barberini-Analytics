@@ -21,6 +21,7 @@ from twitter import TweetsToDB
 
 logger = logging.getLogger('luigi-interface')
 
+# TODO: add migration script
 
 """
 Flow of control
@@ -168,9 +169,9 @@ class TopicModelingFindTopics(DataPreparationTask):
 
         output_files = self.output()
         with next(output_files).open("w") as terms_file:
-            topic_df.to_csv(terms_file, index=False)
+            terms_df.to_csv(terms_file, index=False)
         with next(output_files).open("w") as texts_file:
-            text_df.to_csv(texts_file, index=False)
+            texts_df.to_csv(texts_file, index=False)
 
 
     def find_topics(self, docs):
