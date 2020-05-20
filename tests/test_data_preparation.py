@@ -45,16 +45,16 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[2, 3]),
             expected_foreign_key=(
-                [COLUMN_NAME],
-                (TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN]))
+                [COLUMN_NAME], TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN]
+            )
         )
 
     def test_ensure_foreign_keys_multiple_columns(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
-                {COLUMN_NAME_FOREIGN} INT,
                 {COLUMN_NAME_FOREIGN_2} TEXT,
-                PRIMARY KEY ({COLUMN_NAME_FOREIGN}, {COLUMN_NAME_FOREIGN_2})
+                {COLUMN_NAME_FOREIGN} INT,
+                PRIMARY KEY ({COLUMN_NAME_FOREIGN_2}, {COLUMN_NAME_FOREIGN})
             )''',
             f'''CREATE TABLE {TABLE_NAME} (
                 {COLUMN_NAME} INT,
@@ -64,10 +64,14 @@ class TestDataPreparationTask(DatabaseTestCase):
                     ({COLUMN_NAME_FOREIGN}, {COLUMN_NAME_FOREIGN_2})
             )''',
             f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES
-                (0, 'a'),
-                (1, 'b')
+                ('a', 0),
+                ('b', 1)
             '''
         )
+        """
+        TODO: Commit to MR.
+        Write tests for null references.
+        """;""""""
         self.assertEnsureForeignKeysOnce(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
@@ -81,9 +85,10 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[1, 2]),
             expected_foreign_key=(
-                [COLUMN_NAME, COLUMN_NAME_2], (TABLE_NAME_FOREIGN, [
-                    COLUMN_NAME_FOREIGN, COLUMN_NAME_FOREIGN_2
-                ]))
+                [COLUMN_NAME, COLUMN_NAME_2],
+                TABLE_NAME_FOREIGN,
+                [COLUMN_NAME_FOREIGN, COLUMN_NAME_FOREIGN_2]
+            )
         )
 
     def test_ensure_foreign_keys_multiple_constraints(self):
@@ -113,14 +118,8 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[0]),
             expected_foreign_keys=[
-                (
-                    [COLUMN_NAME],
-                    (TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN])
-                ),
-                (
-                    [COLUMN_NAME_2],
-                    (TABLE_NAME_FOREIGN_2, [COLUMN_NAME_FOREIGN_2])
-                )
+                ([COLUMN_NAME], TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN]),
+                ([COLUMN_NAME_2], TABLE_NAME_FOREIGN_2, [COLUMN_NAME_FOREIGN_2])
             ]
         )
 
@@ -158,8 +157,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[2, 3]),
             expected_foreign_key=(
-                [COLUMN_NAME],
-                (TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN])
+                [COLUMN_NAME], TABLE_NAME_FOREIGN, [COLUMN_NAME_FOREIGN]
             )
         )
 
@@ -184,8 +182,8 @@ class TestDataPreparationTask(DatabaseTestCase):
                 columns=[COLUMN_NAME, COLUMN_NAME_2],
                 index=[1]),
             expected_foreign_key=(
-                [COLUMN_NAME_2],
-                (TABLE_NAME, [COLUMN_NAME]))
+                [COLUMN_NAME_2], TABLE_NAME, [COLUMN_NAME]
+            )
         )
 
     def test_ensure_foreign_keys_no_foreign_keys(self):
