@@ -145,7 +145,7 @@ class TopicModelingFindTopics(DataPreparationTask):
         texts = db_connector().query("""
             SELECT text, source, post_date, post_id 
             FROM post
-            WHERE is_promotion AND text IS NOT NULL
+            WHERE NOT is_promotion AND text IS NOT NULL
         """)
         docs = [
             Doc(row[0], row[1], row[2], row[3])
