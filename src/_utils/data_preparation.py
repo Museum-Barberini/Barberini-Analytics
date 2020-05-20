@@ -155,6 +155,13 @@ class DataPreparationTask(luigi.Task):
             ''')
         }
 
+    """
+    Iterate over an iterable, but as a side effect, print progress updates
+    to the console if appropriate.
+    Neglecting any outputs, this method is equivalent to:
+        def iter_verbose(self, iterable):
+            return iterable
+    """
     def iter_verbose(self, iterable, msg, size=None, index_fun=None):
         if not sys.stdout.isatty():
             yield from iterable
@@ -199,6 +206,11 @@ class DataPreparationTask(luigi.Task):
             print(flush=True)
             raise
 
+    """
+    Stream an infinite generator that prints progress updates to the console
+    if appropriate. Use next() to increment the progress or .send() to specify
+    the current index.
+    """
     def loop_verbose(self, msg, size=None):
         index = 0
 
