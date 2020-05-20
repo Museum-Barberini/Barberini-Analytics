@@ -1,3 +1,7 @@
+from collections import ChainMap
+from contextlib import contextmanager
+import distutils.util
+import logging
 import os
 import subprocess as sp
 import unittest
@@ -5,10 +9,30 @@ from queue import Queue
 
 import luigi
 import luigi.mock
+import luigi.notifications
 import psycopg2
 
 import suitable
 from db_connector import db_connector
+
+
+logger = logging.getLogger('luigi-interface')
+
+
+@contextmanager
+def enforce_luigi_notifications(format):
+    email = luigi.notifications.email()
+    original = email.force_send, email.format
+    luigi.notifications.email().format = format
+    try:
+        yield
+    finally:
+        email.force_send, email.format = original
+
+
+def check_env(name: str) -> bool:
+    value = os.getenv(name, 'False')
+    return distutils.util.strtobool(value) if value else False
 
 
 def _perform_query(query):
@@ -33,14 +57,80 @@ def _perform_query(query):
         connection.close()
 
 
+class DatabaseTestProgram(suitable.PluggableTestProgram):
+    """
+    A custom test program that sends notifications in certain scenarios.
+    """
+
+    def handleUnsuccessfulResult(self, result):
+        super().handleUnsuccessfulResult(result)
+        self.send_notifications(result)
+
+    def send_notifications(self, result):
+        if result.wasSuccessful():
+            return
+        if not (check_env('GITLAB_CI') and check_env('FULL_TEST')):
+            return
+        logger.info("Sending error email...")
+
+        unsuccessful = {
+            'Failures': dict(result.failures),
+            'Errors': dict(result.errors),
+            'Unexpected successes': {
+                test: None for test in result.unexpectedSuccesses
+            }
+        }
+        CI_JOB_URL = os.getenv('CI_JOB_URL')
+        CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
+
+        with enforce_luigi_notifications(format='html'):
+            django_renderer = self.load_django_renderer()
+            luigi.notifications.send_error_email(
+                subject=f"🐞 These {len(ChainMap({}, *unsuccessful.values()))} "
+                        "tests failed on our nightly CI pipeline you won't "
+                        "believe!",
+                message=django_renderer(
+                    'data/strings/long_stage_failure_email.html',
+                    context=dict(
+                        CI_JOB_URL=CI_JOB_URL,
+                        CI_PIPELINE_URL=CI_PIPELINE_URL,
+                        unsuccessful={
+                            label: {
+                                # This string conversion is crucial because
+                                # otherwise, django will treat the TestCase
+                                # instance as a callable and run it again o.O
+                                str(test): error
+                                for test, error
+                                in tests.items()
+                            }
+                            for label, tests
+                            in unsuccessful.items()
+                            if tests
+                        })))
+
+    def load_django_renderer(self):
+        import django
+        from django.conf import settings
+        from django.template.loader import render_to_string
+
+        settings.configure(TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [os.getcwd()],
+        }])
+        django.setup()
+        return render_to_string
+
+
 class DatabaseTestSuite(suitable.FixtureTestSuite):
     """
-    A custom test suite that provides a database template for all tests."
+    A custom test suite that provides a database template for all tests.
     """
 
     def setUpSuite(self):
         super().setUpSuite()
+        self.setup_database_template()
 
+    def setup_database_template(self):
         self.db_name = f'barberini_test_template{id(self)}'
         # avoid accidental access to production database
         os.environ['POSTGRES_DB'] = ''
@@ -48,27 +138,22 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
 
         # set up template database
         _perform_query(f'CREATE DATABASE {self.db_name}')
+        self.addCleanup(_perform_query, f'DROP DATABASE {self.db_name}')
         sp.run(
             './scripts/migrations/migrate.sh',
             check=True,
             env=dict(os.environ, POSTGRES_DB=self.db_name))
-
-    def tearDownSuite(self):
-        try:
-            _perform_query(f'DROP DATABASE {self.db_name}')
-        finally:
-            super().tearDownSuite()
 
 
 class DatabaseTestCase(unittest.TestCase):
 
     def setUp(self):
         super().setUp()
-        self.setUpDatabase()
-        self.setUpLuigi()
-        self.setUpFileSystem()
+        self.setup_database()
+        self.setup_luigi()
+        self.setup_filesystem()
 
-    def setUpDatabase(self):
+    def setup_database(self):
         # Generate "unique" database name
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
@@ -86,7 +171,7 @@ class DatabaseTestCase(unittest.TestCase):
             _perform_query,
             f'DROP DATABASE {self.db_connector.database}')
 
-    def setUpLuigi(self):
+    def setup_luigi(self):
         """
         Clear luigi task cache to avoid reusing old task instances.
         For reference, see also luigi.test.helpers.LuigiTestCase.
@@ -100,7 +185,7 @@ class DatabaseTestCase(unittest.TestCase):
             lambda: luigi.task_register.Register._set_reg(_stashed_reg),
             lambda: luigi.task_register.Register.clear_instance_cache())
 
-    def setUpFileSystem(self):
+    def setup_filesystem(self):
         self.dirty_file_paths = []
         self.addCleanup(lambda: [
             os.remove(file) for file in self.dirty_file_paths])
@@ -151,4 +236,4 @@ For further information on the CLI, read here:
 https://docs.python.org/3/library/unittest.html#command-line-interface
 """
 if __name__ == '__main__':
-    suitable._main(DatabaseTestSuite)
+    suitable._main(DatabaseTestSuite, DatabaseTestProgram)

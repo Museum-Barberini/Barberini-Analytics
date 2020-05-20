@@ -4,6 +4,7 @@ psycopg2==2.8.4
 
 # Testing tools
 coverage==5.0.3
+django==3.0.6
 freezegun==0.1.11
 
 # Data sources
