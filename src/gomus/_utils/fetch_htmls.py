@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 

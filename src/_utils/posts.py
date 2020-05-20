@@ -1,7 +1,7 @@
 import luigi
 
 from apple_appstore import AppstoreReviewsToDB
-from facebook import FbPostsToDB, FbPostPerformanceToDB
+from facebook import FbPostsToDB, FbPostCommentsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from instagram import IgToDBWrapper, IgPostPerformanceToDB
@@ -18,6 +18,7 @@ class PostsToDb(luigi.WrapperTask):
     def requires(self):
         yield AppstoreReviewsToDB()
         yield FbPostsToDB()
+        yield FbPostCommentsToDB()
         yield GoogleMapsReviewsToDB()
         yield GooglePlaystoreReviewsToDB()
         yield IgToDBWrapper()
