@@ -71,8 +71,8 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
             return
         if not (check_env('GITLAB_CI') and check_env('FULL_TEST')):
             return
-
         logger.info("Sending error email...")
+
         unsuccessful = {
             'Failures': dict(result.failures),
             'Errors': dict(result.errors),
@@ -96,6 +96,9 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
                         CI_PIPELINE_URL=CI_PIPELINE_URL,
                         unsuccessful={
                             label: {
+                                # This string conversion is crucial because
+                                # otherwise, django will treat the TestCase
+                                # instance as a callable and run it again o.O
                                 str(test): error
                                 for test, error
                                 in tests.items()
