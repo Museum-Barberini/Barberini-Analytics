@@ -20,15 +20,6 @@ class QueryDb(DataPreparationTask):
         description="If True, all posts will be shuffled. For debugging and "
                     "exploration purposes. Might impact performance.")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.host = self.db_connector.host
-        self.database = self.db_connector.database
-        self.user = self.db_connector.user
-        self.password = self.db_connector.password
-
-    host = database = user = password = None
-
     def build_query(self):
         query = self.query
         if self.shuffle:
