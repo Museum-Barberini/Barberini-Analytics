@@ -83,6 +83,7 @@ class DataPreparationTask(luigi.Task):
                     columns=dict(zip(foreign_columns, _foreign_columns)))
                 new_foreign_values.reset_index(inplace=True, drop=True)
                 foreign_values = foreign_values.append(new_foreign_values)
+                '''
                 print("there")
                 print(foreign_values)
                 print(foreign_values.columns)
@@ -92,18 +93,22 @@ class DataPreparationTask(luigi.Task):
                 print(values.dropna()[columns])
                 print(values.columns)
                 print(values.dtypes)
+                '''
 
             print("here:" + foreign_table)
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
-            invalid = pd.merge(
-                    values.dropna(), foreign_values,
+            valid = pd.merge(
+                    values, foreign_values,
                     left_on=columns, right_on=_foreign_columns,
                     how='left'
-                )[_foreign_columns] \
-                .isnull() \
-                .apply(partial(reduce, operator.or_), axis=1)
-            valid_values, invalid_values = values[~invalid], values[invalid]
+                ) \
+                .apply(
+                    lambda row:
+                        row[columns].isnull().any() or not row[_foreign_columns].isnull().all(),
+                    axis=1)
+            print("valid:" + str(valid))
+            valid_values, invalid_values = values[valid], values[~valid]
             if not invalid_values.empty:
                 log_invalid_values(invalid_values, foreign_key)
                 if invalid_values_handler:
