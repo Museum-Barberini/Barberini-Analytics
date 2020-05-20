@@ -1,3 +1,5 @@
+-- Revise exhibition schema (!183)
+
 BEGIN;
 
     DROP TABLE exhibition;
@@ -15,7 +17,7 @@ BEGIN;
                 END
             ) STORED,
         short_title TEXT GENERATED ALWAYS AS (
-            coalesce(((regexp_match(title, '.*?\S(?=\s*[\.\/-] )'))[1]), title)
+            coalesce((regexp_match(title, '.*?\S(?=\s*[\.\/-] )'))[1], title)
         ) STORED
     );
 
@@ -26,14 +28,15 @@ BEGIN;
         PRIMARY KEY (title, start_date, end_date)
     );
 
-    CREATE VIEW exhibition_every_time AS (
+    -- This maps every single day to the present exhibition(s)
+    CREATE VIEW exhibition_day AS (
         SELECT DATE(date), title
         FROM generate_series(
             (SELECT MIN(start_date) FROM exhibition_time),
             now(),
             '1 day'::interval
         ) date
-        JOIN exhibition_time
+        LEFT JOIN exhibition_time
 	    ON date BETWEEN start_date AND end_date;
     );
 
