@@ -1,5 +1,7 @@
+from collections import ChainMap
 from contextlib import contextmanager
 import distutils.util
+import logging
 import os
 import subprocess as sp
 import unittest
@@ -12,6 +14,9 @@ import psycopg2
 
 import suitable
 from db_connector import db_connector
+
+
+logger = logging.getLogger('luigi-interface')
 
 
 @contextmanager
@@ -67,48 +72,50 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         if not (check_env('GITLAB_CI') and check_env('FULL_TEST')):
             return
 
+        logger.info("Sending error email...")
         unsuccessful = {
-            'failures': result.failures,
-            'errors': result.errors,
-            'unexpected successes': [
-                (test, None) for test in result.unexpectedSuccesses
-            ]
+            'Failures': dict(result.failures),
+            'Errors': dict(result.errors),
+            'Unexpected successes': {
+                test: None for test in result.unexpectedSuccesses
+            }
         }
         CI_JOB_URL = os.getenv('CI_JOB_URL')
         CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
+
         with enforce_luigi_notifications(format='html'):
+            django_renderer = self.load_django_renderer()
             luigi.notifications.send_error_email(
-                subject=f"🐞 These {len(sum(unsuccessful.values(), []))} tests "
-                        "failed on our nightly CI pipeline you won't believe!",
-                message=f"""
-                <html><body>
-                <p>Hey dev! Sorry to tell you, but the following tests failed
-                in the <a href="{CI_PIPELINE_URL}">latest
-                long-stage CI run tonight</a>:</p>
+                subject=f"🐞 These {len(ChainMap({}, *unsuccessful.values()))} "
+                        "tests failed on our nightly CI pipeline you won't "
+                        "believe!",
+                message=django_renderer(
+                    'data/strings/long_stage_failure_email.html',
+                    context=dict(
+                        CI_JOB_URL=CI_JOB_URL,
+                        CI_PIPELINE_URL=CI_PIPELINE_URL,
+                        unsuccessful={
+                            label: {
+                                str(test): error
+                                for test, error
+                                in tests.items()
+                            }
+                            for label, tests
+                            in unsuccessful.items()
+                            if tests
+                        })))
 
-                {''.join([
-                    f'''
-                    <h2>{label}</h2>
-                    <pre><ul>{''.join([
-                        f"<li>{test}"
-                        f"{f'<br/><details>{err}</details>' if err else ''}"
-                        f"</li>"
-                        for test, err in tests
-                    ])}</ul></pre>
-                    '''
-                    for label, tests in unsuccessful.items()
-                    if tests
-                ])}
+    def load_django_renderer(self):
+        import django
+        from django.conf import settings
+        from django.template.loader import render_to_string
 
-                <p>For more information, please visit the relevant GitLab job
-                log:
-                <br/>
-                <a href="{CI_JOB_URL}">{CI_JOB_URL}</a>
-                </p>
-
-                <p>Happy bug fixing!</p>
-                </body></html>""")
-
+        settings.configure(TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [os.getcwd()],
+        }])
+        django.setup()
+        return render_to_string
 
 class DatabaseTestSuite(suitable.FixtureTestSuite):
     """
