@@ -137,10 +137,17 @@ class DataPreparationTask(luigi.Task):
                         ) kcu
                         ON kcu.constraint_name = rc.constraint_name
                     JOIN information_schema.key_column_usage kcu_foreign
-                        ON kcu_foreign.constraint_name = rc.unique_constraint_name
-                        AND kcu_foreign.ordinal_position = kcu.position_in_unique_constraint
+                        ON kcu_foreign.constraint_name
+                            = rc.unique_constraint_name
+                        AND kcu_foreign.ordinal_position
+                            = kcu.position_in_unique_constraint
                     WHERE kcu.table_name = '{self.table}'
-                    GROUP BY rc.constraint_name, kcu_foreign.table_name, kcu.ordinal_position, kcu.column_name, kcu_foreign.column_name
+                    GROUP BY
+                        rc.constraint_name,
+                        kcu_foreign.table_name,
+                        kcu.ordinal_position,
+                        kcu.column_name,
+                        kcu_foreign.column_name
                     ORDER BY kcu.ordinal_position
                 )
                 SELECT
