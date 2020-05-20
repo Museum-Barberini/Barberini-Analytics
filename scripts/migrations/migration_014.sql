@@ -37,7 +37,7 @@ BEGIN;
             '1 day'::interval
         ) date
         LEFT JOIN exhibition_time
-	    ON date BETWEEN start_date AND end_date;
+	    ON date BETWEEN start_date AND end_date
     );
 
 COMMIT;
