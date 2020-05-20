@@ -120,6 +120,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         django.setup()
         return render_to_string
 
+
 class DatabaseTestSuite(suitable.FixtureTestSuite):
     """
     A custom test suite that provides a database template for all tests.
