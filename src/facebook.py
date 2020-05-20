@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import datetime as dt
 import json
 import logging
@@ -18,6 +19,8 @@ logger = logging.getLogger('luigi-interface')
 API_VER = 'v6.0'
 API_BASE = f'https://graph.facebook.com/{API_VER}'
 
+# ======= ToDB Tasks =======
+
 
 class FbPostsToDB(CsvToDb):
 
@@ -33,6 +36,16 @@ class FbPostPerformanceToDB(CsvToDb):
 
     def requires(self):
         return FetchFbPostPerformance(table=self.table)
+
+
+class FbPostCommentsToDB(CsvToDb):
+
+    table = 'fb_post_comment'
+
+    def requires(self):
+        return FetchFbPostComments(table=self.table)
+
+# ======= FetchTasks =======
 
 
 class FetchFbPosts(DataPreparationTask):
@@ -91,7 +104,11 @@ class FetchFbPosts(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
 
-class FetchFbPostPerformance(DataPreparationTask):
+class FetchFbPostDetails(DataPreparationTask):
+    """
+    This abstract class encapsulates common behavior for tasks
+    such as FetchFbPostPerformance and FetchFbPostComments
+    """
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
         description="For how much time posts should be fetched")
@@ -99,6 +116,10 @@ class FetchFbPostPerformance(DataPreparationTask):
     # Override the default timeout of 10 minutes to allow
     # FetchFbPostPerformance to take up to 20 minutes.
     worker_timeout = 1200
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.minimum_relevant_date = dt.datetime.now() - self.timespan
 
     def _requires(self):
         return luigi.task.flatten([
@@ -109,17 +130,30 @@ class FetchFbPostPerformance(DataPreparationTask):
     def requires(self):
         return FetchFbPosts()
 
+    @abstractmethod
+    def output(self):
+        pass
+
+    @abstractmethod
+    def run(self):
+        pass
+
+    @staticmethod
+    def post_date(df, index):
+        return dt.datetime.strptime(
+            df['post_date'][index],
+            '%Y-%m-%dT%H:%M:%S+%f')
+
+
+class FetchFbPostPerformance(FetchFbPostDetails):
+
     def output(self):
         return luigi.LocalTarget(
             f'{self.output_dir}/facebook/fb_post_performances.csv',
-            format=UTF8
-        )
+            format=UTF8)
 
     def run(self):
-        access_token = os.getenv('FB_ACCESS_TOKEN')
-
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        minimum_relevant_date = dt.datetime.now() - self.timespan
         performances = []
         with self.input().open('r') as csv_in:
             df = pd.read_csv(csv_in)
@@ -131,17 +165,14 @@ class FetchFbPostPerformance(DataPreparationTask):
         for index in df.index:
             page_id, post_id = df['page_id'][index], df['post_id'][index]
             fb_post_id = f'{page_id}_{post_id}'
-            post_date = dt.datetime.strptime(
-                df['post_date'][index],
-                '%Y-%m-%dT%H:%M:%S+%f')
-            if post_date < minimum_relevant_date:
+            post_date = self.post_date(df, index)
+            if post_date < self.minimum_relevant_date:
                 continue
 
             logger.info(
                 f"Loading performance data for FB post {fb_post_id}")
 
-            url = f'{API_BASE}/{fb_post_id}/insights'
-            metrics = [
+            metrics = ','.join([
                 'post_reactions_by_type_total',
                 'post_activity_by_action_type',
                 'post_clicks_by_type',
@@ -149,13 +180,11 @@ class FetchFbPostPerformance(DataPreparationTask):
                 'post_impressions_paid',
                 'post_impressions',
                 'post_impressions_unique'  # "reach"
-            ]
+            ])
+            url = f'{API_BASE}/{fb_post_id}/insights?metric={metrics}'
 
-            response = try_request_multiple_times(
-                url,
-                params={'metric': ','.join(metrics)},
-                headers={'Authorization': 'Bearer ' + access_token}
-            )
+            response = try_request_multiple_times(url)
+
             if response.status_code == 400:
                 invalid_count += 1
                 continue
@@ -215,6 +244,117 @@ class FetchFbPostPerformance(DataPreparationTask):
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
+
+
+class FetchFbPostComments(FetchFbPostDetails):
+
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/facebook/fb_post_comments.csv',
+            format=UTF8)
+
+    def run(self):
+        with self.input().open() as fb_post_file:
+            df = pd.read_csv(fb_post_file)
+        comments = []
+
+        if self.minimal_mode:
+            df = df.head(5)
+
+        comments = self.fetch_comments(df)
+        df = pd.DataFrame(comments)
+
+        # Posts can appear multiple times, causing comments to
+        # be fetched multiple times as well, causing
+        # primary key violations
+        # See #227
+        df = df.drop_duplicates(
+            subset=['comment_id', 'post_id'], ignore_index=True)
+        df = df.astype({
+            'post_id': str,
+            'comment_id': str,
+            'page_id': str
+        })
+
+        # only convert 'responds_to' to string if it exists,
+        # since otherwise it would result in a string "None"
+        df['responds_to'] = df['responds_to'].apply(
+            lambda x: str(x) if x else None)
+
+        df = self.ensure_foreign_keys(df)
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+    def fetch_comments(self, df):
+        # Handle each post
+        for i in df.index:
+            page_id, post_id = df['page_id'][i], df['post_id'][i]
+            fb_post_id = f'{page_id}_{post_id}'
+            post_date = self.post_date(df, i)
+            if post_date < self.minimum_relevant_date:
+                continue
+
+            # Grab up to 100 comments for the post (maximum)
+            limit = 100
+
+            # 'toplevel' or 'stream' (toplevel doesn't include replies)
+            # Using 'toplevel' here allows us to safely
+            # set parent to None for all comments returned
+            # by the first query
+            filt = 'toplevel'
+
+            # 'chronological' or 'reverse_chronolocial'
+            order = 'chronological'
+
+            fields = ','.join([
+                'id',
+                'created_time',
+                'comment_count',
+                'message',
+                'comments'
+                ])
+
+            url = (f'{API_BASE}/{fb_post_id}/comments?limit={limit}'
+                   f'filter={filt}&order={order}&fields={fields}')
+
+            response = try_request_multiple_times(url)
+            response_data = response.json().get('data')
+
+            logger.info(f"Fetched {len(response_data)} "
+                        f"comments for post {post_id}")
+
+            # Handle each comment for the post
+            for comment in response_data:
+                comment_id = comment.get('id').split('_')[1]
+
+                yield {
+                    'post_id': str(post_id),
+                    'comment_id': str(comment_id),
+                    'page_id': str(page_id),
+                    'post_date': comment.get('created_time'),
+                    'text': comment.get('message'),
+                    'is_from_museum': self.from_barberini(comment),
+                    'responds_to': None
+                }
+
+                if comment.get('comment_count'):
+                    # Handle each reply for the comment
+                    for reply in comment['comments']['data']:
+                        yield {
+                            'comment_id': reply.get('id').split('_')[1],
+                            'page_id': str(page_id),
+                            'post_id': str(post_id),
+                            'post_date': reply.get('created_time'),
+                            'text': reply.get('message'),
+                            'is_from_museum': self.from_barberini(reply),
+                            'responds_to': str(comment_id)
+                        }
+
+    @staticmethod
+    def from_barberini(comment_json):
+        return comment_json.get('from', {}) \
+           .get('name') == 'Museum Barberini'
 
 
 def try_request_multiple_times(url, **kwargs):
