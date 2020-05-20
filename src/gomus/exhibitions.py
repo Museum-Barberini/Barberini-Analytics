@@ -7,7 +7,7 @@ from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 
 
-class ExhibitionToDB(CsvToDb):
+class ExhibitionsToDb(CsvToDb):
 
     table = 'exhibition'
 
@@ -32,10 +32,14 @@ class FetchExhibitions(DataPreparationTask):
         df = pd.DataFrame(columns=['title', 'start_at', 'end_at'])
         for exhibition in response_content['exhibitions']:
             for time in exhibition['time_frames']:
-                df = df.append({'title': exhibition['title'],
-                                'start_at': time['start_at'].split('T')[0],
-                                'end_at': time['end_at'].split('T')[0]},
-                               ignore_index=True)
+                df = df.append(
+                    {
+                        'title': exhibition['title'],
+                        'start_at': time['start_at'].split('T')[0],
+                        'end_at': time['end_at'].split('T')[0]
+                    },
+                    ignore_index=True
+                )
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

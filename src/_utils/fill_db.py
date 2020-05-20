@@ -11,6 +11,7 @@ from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
+from gomus.exhibitions import ExhibitionsToDb
 from gomus.events import EventsToDB
 from gomus.order_contains import OrderContainsToDB
 from gomus.orders import OrdersToDB
@@ -62,6 +63,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield BookingsToDB()
         yield CustomersToDB()
         yield DailyEntriesToDB()
+        yield ExhibitionsToDb()
         yield ExpectedDailyEntriesToDB()
         yield EventsToDB()
         yield GomusToCustomerMappingToDB()
