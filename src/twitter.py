@@ -1,12 +1,11 @@
 import datetime as dt
 from pytz import utc
-import tzlocal
-import json
 
 import luigi
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
+import tzlocal
 
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
