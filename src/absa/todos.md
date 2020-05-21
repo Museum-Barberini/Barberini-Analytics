@@ -19,3 +19,14 @@
 ==> bis 0.65 geht immer
 
 **NEXT:** Write a task that attributes these results to each exhibition/post pair
+
+## Some queries
+
+- SELECT text, word, SIMILARITY(word, 'Architektur') s from post NATURAL join absa.post_word order by s desc limit 1000;
+- with (select text, SIMILARITY(word, 'Architektur') s from post NATURAL join absa.post_word)
+  SELECT text, word,  where s >= 0.65 order by s desc limit 1000;
+- select text from absa.post_word natural join post, SIMILARITY(word, 'barberini') s
+  where s >= 0.65;
+- select * from absa.target_aspect natural join absa.target_aspect_word;
+- SELECT text, w1.word, levenshtein(w1.word, 'gogh') s from post NATURAL join absa.post_word w1 join absa.post_word w0 on w0.post_id = w1.post_id where w1.word_index - 1 = w0.word_index and w0.word like 'van' order by s asc limit 1000;
+- 
