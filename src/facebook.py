@@ -3,7 +3,6 @@ import datetime as dt
 import json
 import logging
 import os
-import sys
 
 import luigi
 import pandas as pd
@@ -62,46 +61,39 @@ class FetchFbPosts(DataPreparationTask):
             facts = json.load(facts_file)
         page_id = facts['ids']['facebook']['pageId']
 
-        posts = []
+        posts = self.fetch_posts(page_id)
+        df = self.transform_posts(posts)
 
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
+
+    def fetch_posts(self, page_id):
         url = f'{API_BASE}/{page_id}/published_posts?limit=100'
 
         response = try_request_multiple_times(url)
-
         response_content = response.json()
-        for post in (response_content['data']):
-            posts.append(post)
+        yield from response_content['data']
 
-        logger.info("Fetching facebook posts ...")
-        page_count = 0
-        while ('next' in response_content['paging']):
-            page_count = page_count + 1
+        log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
+        while 'next' in response_content['paging']:
             url = response_content['paging']['next']
+            next(log_loop)
             response = try_request_multiple_times(url)
-
             response_content = response.json()
-            for post in (response_content['data']):
-                posts.append(post)
-            if sys.stdout.isatty():
-                print(f"\rFetched facebook page {page_count}",
-                      end='',
-                      flush=True)
+            yield from response_content['data']
 
             if self.minimal_mode:
                 response_content['paging'].pop('next')
 
-        if sys.stdout.isatty():
-            print()
-
         logger.info("Fetching of facebook posts completed")
 
-        with self.output().open('w') as output_file:
-            df = pd.DataFrame([post for post in posts])
-            fb_post_ids = df['id'].str.split('_', n=1, expand=True)
-            df = df.filter(['created_time', 'message'])
-            df = fb_post_ids.join(df)
-            df.columns = ['page_id', 'post_id', 'post_date', 'text']
-            df.to_csv(output_file, index=False, header=True)
+    def transform_posts(self, posts):
+        df = pd.DataFrame(posts)
+        fb_post_ids = df['id'].str.split('_', n=1, expand=True)
+        df = df.filter(['created_time', 'message'])
+        df = fb_post_ids.join(df)
+        df.columns = ['page_id', 'post_id', 'post_date', 'text']
+        return df
 
 
 class FetchFbPostDetails(DataPreparationTask):
@@ -162,14 +154,16 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             df = df.head(5)
 
         invalid_count = 0
-        for index in df.index:
+        for index in self.iter_verbose(
+                df.index,
+                msg="Fetching performance data for FB post {index}/{size}"):
             page_id, post_id = df['page_id'][index], df['post_id'][index]
             fb_post_id = f'{page_id}_{post_id}'
             post_date = self.post_date(df, index)
             if post_date < self.minimum_relevant_date:
                 continue
 
-            logger.info(
+            logger.debug(
                 f"Loading performance data for FB post {fb_post_id}")
 
             metrics = ','.join([

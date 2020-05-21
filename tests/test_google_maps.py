@@ -49,9 +49,13 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
         location_name = 'mylocation'
         place_id = 'abc456'
         all_reviews = [
-            "Wow!",
-            "The paintings are not animated",
-            "Van Gogh is dead"]
+            {'text': text, 'placeId': place_id}
+            for text in [
+                "Wow!",
+                "The paintings are not animated",
+                "Van Gogh is dead"
+            ]
+        ]
         page_size = 2
         page_token = None
         latest_page_token = None
@@ -99,11 +103,9 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
         reviews_list_mock.execute.side_effect = reviews_list_execute
 
         # ----- Execute code under test ----
-        result_place_id, result_reviews = self.task.fetch_raw_reviews(
-            service, page_size)
+        result_reviews = list(self.task.fetch_raw_reviews(service, page_size))
 
         # ----- Inspect result ------
-        self.assertEqual(place_id, result_place_id)
         self.assertSequenceEqual(all_reviews, result_reviews)
         locations.list.assert_called_once_with(parent=account_name)
         reviews.list.assert_called_with(
@@ -117,13 +119,12 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
                     'r',
                     encoding='utf-8'
                 ) as raw_reviews_file:
-            raw_reviews = json.load(raw_reviews_file,)
+            raw_reviews = json.load(raw_reviews_file)
         expected_extracted_reviews = pd.read_csv(
             'tests/test_data/google_maps/expected_extracted_reviews.csv')
 
         # ----- Execute code under test ----
-        actual_extracted_reviews = self.task.extract_reviews(
-            '123def', raw_reviews)
+        actual_extracted_reviews = self.task.extract_reviews(raw_reviews)
 
         # ----- Inspect result ------
         pd.testing.assert_frame_equal(
