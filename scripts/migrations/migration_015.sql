@@ -1,3 +1,10 @@
+/** Revise posts schema (!186)
+  * Add column role to tweet_author (#236)
+  * Revise and unify is_from_barberini (#236)
+  * Integrate facebook comments into views (#239)
+  * Fix bugs in performance views (#223, #238)
+  */
+
 BEGIN;
 
     -- Drop old views
@@ -13,7 +20,8 @@ BEGIN;
 
     -- Revise fb_post_comment schema
     ALTER TABLE fb_post_comment
-        RENAME COLUMN responds_to TO response_to,
+        RENAME COLUMN responds_to TO response_to;
+    ALTER TABLE fb_post_comment
         ADD COLUMN fb_post_comment_id TEXT
             GENERATED ALWAYS AS (
                 post_id || '_' || comment_id
