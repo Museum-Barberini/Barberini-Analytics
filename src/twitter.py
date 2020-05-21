@@ -62,7 +62,6 @@ class ExtractTweets(DataPreparationTask):
             'text',
             'response_to',
             'post_date']
-        df['is_from_barberini'] = df['user_id'] == self.museum_user_id()
         df = df.drop_duplicates()
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
@@ -72,11 +71,6 @@ class ExtractTweets(DataPreparationTask):
             f'{self.output_dir}/twitter/tweets.csv',
             format=UTF8
         )
-
-    def museum_user_id(self):
-        with self.input()[0].open('r') as facts_file:
-            facts = json.load(facts_file)
-        return facts['ids']['twitter']['userId']
 
 
 class ExtractTweetPerformance(DataPreparationTask):
