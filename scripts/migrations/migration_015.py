@@ -55,7 +55,7 @@ try:
 
     # 3. Fetch posts again
     logger.info("Fetching posts again")
-    os.environ['OUTPUT_DIR'] = 'output_migration_014'
+    os.environ['OUTPUT_DIR'] = 'output_migration_015'
     sp.run(
         check=True,
         args='''make
