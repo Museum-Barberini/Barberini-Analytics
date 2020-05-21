@@ -42,6 +42,15 @@ class DbConnector:
             query=f'SELECT EXISTS({query})',
             only_first=True)[0])
 
+    def exists_table(self, table: str) -> bool:
+        """
+        Check if the given table is present in the database.
+        """
+        return self.exists(f'''
+                SELECT * FROM information_schema.tables
+                WHERE LOWER(table_name) = LOWER('{table}')
+            ''')
+
     def query(self, query: str, only_first: bool = False) -> List[Tuple]:
         """
         Execute a query and return a list of results.
@@ -63,6 +72,22 @@ class DbConnector:
             raise AssertionError(
                 "DB access with just one query should only return one result")
         return result
+
+    def query_with_header(self, query: str) -> List[Tuple]:
+        """
+        Execute a query and return two values of which the first is the list
+        of fetched rows and the second is the list of column names.
+        """
+        all_results = self._execute_query(
+            query=query,
+            result_function=lambda cursor:
+                (cursor.fetchall(), [desc[0] for desc in cursor.description])
+        )
+        results = next(all_results)
+        if next(all_results, results) is not results:
+            raise AssertionError(
+                "DB access with just one query should only return one table")
+        return results
 
     def _create_connection(self):
         return psycopg2.connect(

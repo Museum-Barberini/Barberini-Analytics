@@ -1,43 +1,28 @@
--- Revise exhibition schema (!183)
+-- Add simple word and n-gram tables for ABSA (!135)
 
 BEGIN;
 
-    DROP TABLE exhibition;
-    
-    CREATE TABLE exhibition (
-        title TEXT PRIMARY KEY,
-        picture_url TEXT,
-        special TEXT  -- NULL (exhibition), 'closing day', or 'presentation'
-            GENERATED ALWAYS AS (
-                CASE
-                    WHEN title = 'Schließtag / Closing Day'
-                        THEN 'closing day'
-                    WHEN title = 'Präsentationen zwischen den Ausstellungen'
-                        THEN 'presentation'
-                END
-            ) STORED,
-        short_title TEXT GENERATED ALWAYS AS (
-            coalesce((regexp_match(title, '.*?\S(?=\s*[\.\/-] )'))[1], title)
-        ) STORED
+    CREATE SCHEMA absa;
+
+    CREATE TABLE absa.stopword (
+        word TEXT PRIMARY KEY
     );
 
-    CREATE TABLE exhibition_time (
-        title TEXT REFERENCES exhibition,
-        start_date DATE,
-        end_date DATE,
-        PRIMARY KEY (title, start_date, end_date)
+    CREATE TABLE absa.post_word (
+        source TEXT,
+        post_id TEXT,
+        word_index INT,
+        word TEXT,
+        PRIMARY KEY (source, post_id, word_index)
     );
 
-    -- This maps every single day to the present exhibition(s)
-    CREATE VIEW exhibition_day AS (
-        SELECT DATE(date), title
-        FROM generate_series(
-            (SELECT MIN(start_date) FROM exhibition_time),
-            now(),
-            '1 day'::interval
-        ) date
-        LEFT JOIN exhibition_time
-	    ON date BETWEEN start_date AND end_date
+    CREATE TABLE absa.post_ngram (
+        source TEXT,
+        post_id TEXT,
+        n INT,
+        word_index INT,
+        ngram TEXT,
+        PRIMARY KEY (source, post_id, n, word_index)
     );
 
 COMMIT;
