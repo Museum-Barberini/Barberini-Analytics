@@ -99,7 +99,7 @@ BEGIN;
                     shares,
                     permalink
                 FROM fb_post_all
-                NATURAL LEFT JOIN fb_post_rich
+                NATURAL RIGHT JOIN fb_post_rich
             ) UNION (
                 SELECT
                     'Instagram' AS source,
