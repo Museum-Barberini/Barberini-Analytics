@@ -7,7 +7,7 @@ BEGIN;
     CREATE TABLE exhibition (
         title TEXT PRIMARY KEY,
         picture_url TEXT,
-        special TEXT  -- NULL (exhibition), 'closing day', or 'presentation'
+        special TEXT  -- if not NULL, row is not a regular exhibition
             GENERATED ALWAYS AS (
                 CASE
                     WHEN title = 'Schließtag / Closing Day'
