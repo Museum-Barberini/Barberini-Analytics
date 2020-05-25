@@ -6,6 +6,7 @@ import luigi
 from gomus.bookings import BookingsToDB
 from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
 from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
+from gomus.exhibitions import ExhibitionTimesToDb
 from gomus.events import EventsToDB
 from gomus.order_contains import OrderContainsToDB
 from gomus.orders import OrdersToDB
@@ -38,6 +39,7 @@ class GomusToDb(luigi.WrapperTask):
         # END
 
         yield DailyEntriesToDB()
+        yield ExhibitionTimesToDb()
         yield ExpectedDailyEntriesToDB()
 
         if not self.light_mode:
