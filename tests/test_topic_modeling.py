@@ -2,6 +2,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 import pickle
+import pandas as pd
 import luigi
 
 from luigi.mock import MockTarget
@@ -77,5 +78,81 @@ class TestCreateCorpus(DatabaseTestCase):
         self.assertIsInstance(corpus[1], Doc)
 
 
-class TestPreprocessing(DatabaseTestCase):
-    pass
+class TestPreprocessing(TestCase):
+
+    @patch.object(TopicModelingPreprocessCorpus, 'input')
+    @patch.object(TopicModelingPreprocessCorpus, 'output')
+    def test_preprocessing(self, output_mock, input_mock):
+
+        output_target = MockTarget('corpus_out', format=luigi.format.Nop)
+        input_target = MockTarget('corpus_in', format=luigi.format.Nop)
+        output_mock.return_value = output_target
+        input_mock.return_value = input_target
+
+        with input_target.open('w') as fp:
+            pickle.dump(
+                [
+                    Doc('Ich bin der erste Post über ein Kulturinstitut in der Landeshauptstadt'),
+                    Doc('Ich bin der 2 Post über mit Bezug zur Landeshauptstadt. toll '),
+                    Doc('Trallala noch ein Post 2 zum Museum'),
+                    Doc('noch weitere Posts zum weitere testen. Barberini toll'),
+                    Doc('this document is in english')
+                ],
+                fp
+            )
+
+        task = TopicModelingPreprocessCorpus()
+        task.run()
+
+        with output_target.open("r") as fp:
+            output = pickle.load(fp)
+
+        self.assertEqual(len(output), 2)
+        self.assertEqual(output[0].tokens, ['post', 'landeshauptstadt', 'toll'])
+        self.assertEqual(output[1].tokens, ['weitere', 'weitere', 'toll'])
+
+
+class TestFindTopics(TestCase):
+
+    @patch.object(TopicModelingFindTopics, 'output')
+    @patch.object(TopicModelingPreprocessCorpus, 'output')
+    def test_find_topics(self, input_mock, output_mock):
+
+        input_target = MockTarget('corpus_in', format=luigi.format.Nop)
+        output_target_topics = MockTarget('topics_out', format=luigi.format.UTF8)
+        output_target_texts = MockTarget('texts_out', format=luigi.format.UTF8)
+        input_mock.return_value = input_target
+        output_mock.return_value = iter([output_target_topics, output_target_texts]) 
+
+        with input_target.open('w') as fp:
+            pickle.dump(
+                [
+                    Doc('text1', 'source1', datetime(2019, 8, 30, 0, 0), 'id1', ['A']),
+                    Doc('text2', 'source1', datetime(2019, 8, 30, 0, 0), 'id1', ['B']),
+                    Doc('text3', 'source1', datetime(2018, 8, 30, 0, 0), 'id1', ['A']),
+                    Doc('text4', 'source1', datetime(2018, 8, 30, 0, 0), 'id1', ['C']),
+                    Doc('text5', 'source2', datetime(2019, 8, 30, 0, 0), 'id1', ['A']),
+                    Doc('text6', 'source2', datetime(2018, 8, 30, 0, 0), 'id1', ['B']),
+                    Doc('text7', 'source2', datetime(2019, 8, 30, 0, 0), 'id1', ['B']),
+                    Doc('text8', 'source3', datetime(2019, 8, 30, 0, 0), 'id1', ['C']),
+                    Doc('text9', 'source3', datetime(2021, 8, 30, 0, 0), 'id1', ['A']),
+                    Doc('text10', 'source3',datetime(2021, 8, 30, 0, 0), 'id1', ['B'])
+                ]
+                ,
+                fp
+            )
+
+        task = TopicModelingFindTopics()
+        task.run()
+
+        # TODO: check format of output data frames
+        with output_target_texts.open('r') as fp:
+            texts = pd.read_csv(fp)
+
+        self.assertEqual(len(texts), 20)
+        
+        with output_target_topics.open('r') as fp:
+            topics = pd.read_csv(fp)
+
+        self.asserEqual(sum(topics['count']), 20)
+
