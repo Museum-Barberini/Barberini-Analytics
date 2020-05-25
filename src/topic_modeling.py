@@ -22,6 +22,8 @@ from twitter import TweetsToDB
 logger = logging.getLogger('luigi-interface')
 
 # TODO: add migration script
+# TODO: add minimal mode
+
 
 """
 Flow of control
@@ -136,17 +138,6 @@ class TopicModelingTextDf(DataPreparationTask):
 
 class TopicModelingFindTopics(DataPreparationTask):
    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.stop_words = [
-            *get_stop_words("german"),
-            *get_stop_words("english"),
-            *["http", "https", "www", "com", "de", "google", "translated", 
-              "twitter", "fur", "uber", "html", "barberini", 
-              "museumbarberini", "museum", "ausstellung", "ausstellungen",
-              "potsdam", "mal"]
-        ]
-
     def requires(self):
         return TopicModelingPreprocessCorpus()
 
@@ -175,9 +166,10 @@ class TopicModelingFindTopics(DataPreparationTask):
 
 
     def find_topics(self, docs):
-        # TODO: don't hardcode the years
-        # Maybe one task per model
-        models = ["all", "2020", "2019", "2018", "2017", "2016"]
+        # one model per year
+        models = {'all'}
+        for doc in docs:
+            models.add(str(doc.post_date.year))
 
         text_dfs = []
         topic_dfs = []
@@ -347,12 +339,12 @@ class TopicModelingCreateCorpus(DataPreparationTask):
 
 
 class Doc:
-    def __init__(self, text, source, post_date, post_id):
+    def __init__(self, text, source=None, post_date=None, post_id=None, tokens=None):
         self.text = text
         self.source = source
         self.post_date = post_date
         self.post_id = post_id
-        self.tokens = None
+        self.tokens = tokens 
         self.topic = None
         self.model_name = None
         self.language = None
