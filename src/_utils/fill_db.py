@@ -24,7 +24,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield GomusToDb()
 
         # Analysis tasks
-        yield PostNgramsToDb()
+        # yield PostNgramsToDb()
 
 
 class FillDBHourly(luigi.WrapperTask):
