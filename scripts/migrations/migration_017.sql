@@ -8,25 +8,7 @@
 BEGIN;
 
     -- Drop old views
-    DROP VIEW tweet_rich, social_media_post, post;
-
-
-    -- Revise twitter schema
-    ALTER TABLE tweet_author
-        ADD COLUMN role TEXT;
-
-    ALTER TABLE tweet
-        DROP COLUMN is_from_barberini;
-
-    -- Revise fb_post_comment schema
-    ALTER TABLE fb_post_comment
-        RENAME COLUMN responds_to TO response_to;
-    ALTER TABLE fb_post_comment
-        ADD COLUMN fb_post_comment_id TEXT
-            GENERATED ALWAYS AS (
-                post_id || '_' || comment_id
-            ) STORED;
-
+    DROP VIEW fb_post_all, social_media_post, post;
 
     -- Create new views
     CREATE VIEW fb_post_all AS
@@ -37,7 +19,8 @@ BEGIN;
             post_date,
             text,
             TRUE AS is_from_museum,
-            NULL AS response_to
+            NULL AS response_to,
+	    false as is_comment
         FROM fb_post
     ) UNION (
         SELECT
@@ -46,47 +29,18 @@ BEGIN;
             post_date,
             text,
             is_from_museum,
-            response_to
+            response_to,
+	    true as is_comment
         FROM fb_post_comment
-    );
-
-    CREATE OR REPLACE VIEW fb_post_rich AS (
-        SELECT *
-        FROM fb_post_performance AS p1
-        NATURAL JOIN (
-            SELECT page_id, post_id, MAX(timestamp) AS timestamp
-            FROM fb_post_performance
-            GROUP BY page_id, post_id) AS p2
-        NATURAL RIGHT JOIN fb_post
-    );
-    CREATE OR REPLACE VIEW ig_post_rich AS (
-        SELECT *
-        FROM ig_post_performance AS p1
-        NATURAL JOIN (
-            SELECT ig_post_id, MAX(timestamp) AS timestamp
-            FROM ig_post_performance
-            GROUP BY ig_post_id) AS p2
-        NATURAL RIGHT JOIN ig_post
-    );
-    CREATE VIEW tweet_rich AS (
-        SELECT *, (author_role = 'official') IS true AS is_from_museum
-        FROM tweet_performance AS p1
-        NATURAL JOIN (
-            SELECT tweet_id, MAX(timestamp) AS timestamp
-            FROM tweet_performance
-            GROUP BY tweet_id) AS p2
-        NATURAL RIGHT JOIN tweet
-        NATURAL LEFT JOIN (
-			SELECT user_id, user_name, role AS author_role
-			FROM tweet_author
-		) tweet_author
     );
 
     CREATE VIEW social_media_post AS (
         WITH _social_media_post AS (
             (
                 SELECT
-                    'Facebook' AS source,
+                    CASE WHEN is_comment THEN 'Facebook Comment'
+		         ELSE 'Facebook Post'
+		    END AS source,
                     fb_post_id AS post_id,
                     text,
                     post_date,
@@ -184,5 +138,6 @@ BEGIN;
             permalink
         FROM social_media_post
     );
+
 
 COMMIT;

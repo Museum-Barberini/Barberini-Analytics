@@ -270,9 +270,9 @@ class FetchFbPostComments(FetchFbPostDetails):
             'page_id': str
         })
 
-        # only convert 'responds_to' to string if it exists,
+        # only convert 'response_to' to string if it exists,
         # since otherwise it would result in a string "None"
-        df['responds_to'] = df['responds_to'].apply(
+        df['response_to'] = df['response_to'].apply(
             lambda x: str(x) if x else None)
 
         df = self.ensure_foreign_keys(df)
@@ -329,7 +329,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'post_date': comment.get('created_time'),
                     'text': comment.get('message'),
                     'is_from_museum': self.from_barberini(comment),
-                    'responds_to': None
+                    'response_to': None
                 }
 
                 if comment.get('comment_count'):
@@ -342,7 +342,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'post_date': reply.get('created_time'),
                             'text': reply.get('message'),
                             'is_from_museum': self.from_barberini(reply),
-                            'responds_to': str(comment_id)
+                            'response_to': str(comment_id)
                         }
 
     @staticmethod
