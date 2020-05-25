@@ -69,7 +69,7 @@ BEGIN;
         NATURAL RIGHT JOIN ig_post
     );
     CREATE VIEW tweet_rich AS (
-        SELECT *, (author_role ILIKE 'official%') IS true AS is_from_museum
+        SELECT *, (author_role = 'official') IS true AS is_from_museum
         FROM tweet_performance AS p1
         NATURAL JOIN (
             SELECT tweet_id, MAX(timestamp) AS timestamp
