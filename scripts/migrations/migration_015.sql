@@ -17,7 +17,7 @@ BEGIN;
                 END
             ) STORED,
         short_title TEXT GENERATED ALWAYS AS (
-            coalesce((regexp_match(title, '.*?\S(?=\s*[\.\/-] )'))[1], title)
+            COALESCE((regexp_match(title, '.*?\S(?=\s*[\.\/-] )'))[1], title)
         ) STORED
     );
 
