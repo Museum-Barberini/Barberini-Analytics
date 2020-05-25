@@ -13,7 +13,7 @@ from luigi.format import UTF8
 
 from apple_appstore import AppstoreReviewsToDB
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from db_connector import db_connector
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
