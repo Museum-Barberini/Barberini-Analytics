@@ -93,13 +93,14 @@ BEGIN;
                     NULL AS media_type,
                     response_to,
                     NULL AS user_id,
-                    TRUE AS is_from_museum,
+                    is_from_museum,
                     likes,
                     comments,
                     shares,
                     permalink
                 FROM fb_post_all
-                NATURAL RIGHT JOIN fb_post_rich
+                NATURAL LEFT JOIN fb_post_rich
+
             ) UNION (
                 SELECT
                     'Instagram' AS source,
