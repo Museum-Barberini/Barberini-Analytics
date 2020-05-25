@@ -37,7 +37,7 @@ services:
         stdin_open: true
         tty: true
         networks:
-            - database_network
+            - barberini_analytics_database_network
 
     barberini_analytics_db:
         container_name: barberini_analytics_db
@@ -50,7 +50,7 @@ services:
         volumes:
             - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
         networks:
-            - database_network
+            - barberini_analytics_database_network
 
     gplay_api:
         # consider how the gplay api is called from gplay_reviews.py before
@@ -60,8 +60,8 @@ services:
             dockerfile: Dockerfile_gplay_api
             context: .
         networks:
-            - database_network
+            - barberini_analytics_database_network
 
 networks:
-    database_network:
+    barberini_analytics_database_network:
         external: true
