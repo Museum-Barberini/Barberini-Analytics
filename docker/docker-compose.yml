@@ -9,7 +9,7 @@ services:
         hostname: ${HOSTNAME}
         build: .
         volumes:
-            - .:/app
+            - ..:/app
             - /etc/barberini-analytics/secrets/secret_files:/app/secret_files
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
