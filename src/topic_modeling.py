@@ -21,8 +21,7 @@ from twitter import TweetsToDB
 
 logger = logging.getLogger('luigi-interface')
 
-# TODO: add migration script
-
+# TODO: refactor to make code look pretty
 
 '''
 Flow of control
