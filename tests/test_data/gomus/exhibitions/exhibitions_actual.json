@@ -3,7 +3,7 @@
         {
             "id": 1,
             "museum_id": 1,
-            "title": "Eine tolle Ausstellung.",
+            "title": "Eine tolle Ausstellung. hier",
             "sub_title": "mit Untertitel",
             "description": "Hier steht eine Beschreibung zur Ausstellung.",
             "featured": true,
@@ -12,7 +12,12 @@
                     "start_at": "2005-05-05T05:00:00+01:00",
                     "end_at": "2006-06-06T06:06:00+02:00"
                 }
-            ]
+            ],
+            "picture": {
+                "title": "Emil Nolde. Schwertlilien 1907",
+                "description": null,
+                "original": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Child_scribble_age_1y10m.jpg/220px-Child_scribble_age_1y10m.jpg"
+            }
         },
         {
             "id": 2,
