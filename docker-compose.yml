@@ -4,8 +4,8 @@
 version: "3.7"
 
 services:
-    luigi:
-        container_name: ${USER}-luigi
+    barberini_analytics_luigi:
+        container_name: ${USER}-barberini_analytics_luigi
         hostname: ${HOSTNAME}
         build: .
         volumes:

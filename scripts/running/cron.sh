@@ -17,7 +17,7 @@ echo "======================================================================="
 echo "Starting $1 run at [$(date +"%Y-%m-%d %H:%M")]"
 make -C $BASEDIR startup USER=$USER
 docker-compose -p $USER -f $BASEDIR/docker-compose.yml exec -T \
-    luigi /app/scripts/running/fill_db.sh $1
+    barberini_analytics_luigi /app/scripts/running/fill_db.sh $1
 make -C $BASEDIR shutdown USER=$USER
 echo "Ending $1 run at [$(date +"%Y-%m-%d %H:%M")]"
 echo "======================================================================="

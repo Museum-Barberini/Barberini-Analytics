@@ -21,7 +21,7 @@ startup: startup-db
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
-		docker-compose -p ${USER} up --build -d luigi gplay_api
+		docker-compose -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 
 startup-db:
 	if [[ $$(docker-compose ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
@@ -33,18 +33,18 @@ startup-db:
 	fi
 
 shutdown:
-	docker-compose -p ${USER} rm -sf luigi gplay_api
+	docker-compose -p ${USER} rm -sf barberini_analytics_luigi gplay_api
 
 shutdown-db:
 	docker-compose rm -sf barberini_analytics_db
 
 connect:
-	docker-compose -p ${USER} exec luigi ${SHELL}
+	docker-compose -p ${USER} exec barberini_analytics_luigi ${SHELL}
 
-# runs a command in the luigi container
+# runs a command in the barberini_analytics_luigi container
 # example: sudo make docker-do do='make luigi'
 docker-do:
-	docker exec -i "${USER}-luigi" bash -c "$(do)"
+	docker exec -i "${USER}-barberini_analytics_luigi" bash -c "$(do)"
 
 docker-clean-cache:
 	docker-compose -p ${USER} build --no-cache
