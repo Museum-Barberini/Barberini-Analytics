@@ -103,7 +103,7 @@ BEGIN;
             ) UNION (
                 SELECT
                     'Instagram' AS source,
-                    ig_post_id AS review_id,
+                    ig_post_id AS post_id,
                     text,
                     post_date,
                     media_type,
