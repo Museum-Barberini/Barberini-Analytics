@@ -5,7 +5,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 from gomus._utils.cleanse_data import CleansePostalCodes
 from gomus._utils.extract_customers import hash_id

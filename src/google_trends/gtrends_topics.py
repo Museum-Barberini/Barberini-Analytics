@@ -2,7 +2,7 @@ import json
 import luigi
 import random
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from museum_facts import MuseumFacts
 
 

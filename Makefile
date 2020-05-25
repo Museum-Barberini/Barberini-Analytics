@@ -14,7 +14,16 @@ SSL_CERT_DIR := /var/barberini-analytics/db-data
 
 # Start the container luigi. Also start the container db if it is not already running.
 # If the container db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
-startup:
+startup: startup-db
+	# Generate custom hostname for better error logs
+	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
+		LUIGI_EMAIL_FORMAT=$$( \
+		`# Enabled luigi mails iff we are in production context.`; [[ \
+			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
+				&& echo "html" || echo "none") \
+		docker-compose -p ${USER} up --build -d luigi gplay_api
+
+startup-db:
 	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
 	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate db;\
@@ -22,9 +31,6 @@ startup:
 	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
 		fi;\
 	fi
-	# Generate custom hostname for better error logs
-	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
-		docker-compose -p ${USER} up --build -d luigi gplay_api
 
 shutdown:
 	docker-compose -p ${USER} rm -sf luigi gplay_api
@@ -65,7 +71,7 @@ luigi:
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
-	luigi --module $(LMODULE) $(LTASK)
+	luigi --module $(LMODULE) $(LTASK) $(LARGS)
 
 luigi-clean:
 	rm -rf $(OUTPUT_DIR)
