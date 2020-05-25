@@ -335,7 +335,7 @@ class TopicModelingCreateCorpus(DataPreparationTask):
         texts = db_connector().query("""
             SELECT text, source, post_date, post_id 
             FROM post
-            WHERE NOT is_promotion AND text IS NOT NULL
+            WHERE NOT is_from_museum AND text IS NOT NULL
         """)
         corpus = [
             Doc(row[0], row[1], row[2], row[3])
