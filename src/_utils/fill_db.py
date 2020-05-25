@@ -3,7 +3,7 @@ import luigi
 from posts import PostsToDb, PostPerformanceToDb
 from gomus.gomus import GomusToDb
 from google_trends.gtrends_values import GtrendsValuesToDB
-from absa.post_ngrams import PostNgramsToDb
+# from absa.post_ngrams import PostNgramsToDb
 
 
 class FillDB(luigi.WrapperTask):
