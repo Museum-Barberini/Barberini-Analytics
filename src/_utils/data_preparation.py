@@ -87,6 +87,7 @@ class DataPreparationTask(luigi.Task):
                     foreign_values,
                     left_on=columns, right_on=_foreign_columns,
                     how='left'
+                ).drop_duplicates(
                 ).set_index(
                     values.index
                 ).apply(
