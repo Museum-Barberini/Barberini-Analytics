@@ -1,4 +1,4 @@
-post_id,comment_id,page_id,post_date,text,is_from_museum,responds_to
+post_id,comment_id,page_id,post_date,text,is_from_museum,response_to
 987654321,di9,1234567890,2020-05-01T11:00:00+0000,messäge1,False,
 987654321,di8,1234567890,2020-05-02T11:00:00+0000,messäge2,False,
 987654321,di7,1234567890,2020-05-03T11:00:00+0000,messäge3,False,di8
