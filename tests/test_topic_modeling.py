@@ -4,6 +4,7 @@ from datetime import datetime
 import pickle
 import pandas as pd
 import luigi
+import sys, os
 
 from luigi.mock import MockTarget
 
@@ -51,9 +52,10 @@ class TestCreateCorpus(DatabaseTestCase):
 
     @patch.object(TopicModelingCreateCorpus, 'output')
     def test_create_corpus(self, output_mock):
+
+        # -------- SET UP MOCK DATA ------------
         output_target = MockTarget('corpus_out', format=luigi.format.Nop)
         output_mock.return_value = output_target
-
         db_connector().execute('''
             INSERT INTO tweet(user_id,tweet_id,text,response_to,post_date)
             VALUES (\'user_id\', \'tweet_id\', \'tweet text\', NULL, \'2020-05-24 10:56:21\')
@@ -65,11 +67,12 @@ class TestCreateCorpus(DatabaseTestCase):
                    ('post2','comment2','2018-05-24 10:56:21','text2',true,NULL)
         ''')
 
+        # ------- RUN TASK UNDER TEST --------
         task = TopicModelingCreateCorpus()
-        task.requires = MagicMock(return_value=None)
-
+        task.requires = MagicMock(return_value=None) # don't run any other tasks
         task.run()
 
+        # ------- INSPECT OUTPUT -------
         with output_target.open("r") as fp:
             corpus = pickle.load(fp)
 
@@ -84,11 +87,11 @@ class TestPreprocessing(TestCase):
     @patch.object(TopicModelingPreprocessCorpus, 'output')
     def test_preprocessing(self, output_mock, input_mock):
 
+        # -------- SET UP MOCK DATA ------------
         output_target = MockTarget('corpus_out', format=luigi.format.Nop)
         input_target = MockTarget('corpus_in', format=luigi.format.Nop)
         output_mock.return_value = output_target
         input_mock.return_value = input_target
-
         with input_target.open('w') as fp:
             pickle.dump(
                 [
@@ -101,12 +104,13 @@ class TestPreprocessing(TestCase):
                 fp
             )
 
+        # ------- RUN TASK UNDER TEST --------
         task = TopicModelingPreprocessCorpus()
         task.run()
 
+        # ------- INSPECT OUTPUT -------
         with output_target.open("r") as fp:
             output = pickle.load(fp)
-
         self.assertEqual(len(output), 2)
         self.assertEqual(output[0].tokens, ['post', 'landeshauptstadt', 'toll'])
         self.assertEqual(output[1].tokens, ['weitere', 'weitere', 'toll'])
@@ -118,6 +122,7 @@ class TestFindTopics(TestCase):
     @patch.object(TopicModelingPreprocessCorpus, 'output')
     def test_find_topics(self, input_mock, output_mock):
 
+        # -------- SET UP MOCK DATA ------------
         input_target = MockTarget('corpus_in', format=luigi.format.Nop)
         output_target_topics = MockTarget('topics_out', format=luigi.format.UTF8)
         output_target_texts = MockTarget('texts_out', format=luigi.format.UTF8)
@@ -127,32 +132,46 @@ class TestFindTopics(TestCase):
         with input_target.open('w') as fp:
             pickle.dump(
                 [
-                    Doc('text1', 'source1', datetime(2019, 8, 30, 0, 0), 'id1', ['A']),
-                    Doc('text2', 'source1', datetime(2019, 8, 30, 0, 0), 'id1', ['B']),
-                    Doc('text3', 'source1', datetime(2018, 8, 30, 0, 0), 'id1', ['A']),
-                    Doc('text4', 'source1', datetime(2018, 8, 30, 0, 0), 'id1', ['C']),
-                    Doc('text5', 'source2', datetime(2019, 8, 30, 0, 0), 'id1', ['A']),
-                    Doc('text6', 'source2', datetime(2018, 8, 30, 0, 0), 'id1', ['B']),
-                    Doc('text7', 'source2', datetime(2019, 8, 30, 0, 0), 'id1', ['B']),
-                    Doc('text8', 'source3', datetime(2019, 8, 30, 0, 0), 'id1', ['C']),
-                    Doc('text9', 'source3', datetime(2021, 8, 30, 0, 0), 'id1', ['A']),
-                    Doc('text10', 'source3',datetime(2021, 8, 30, 0, 0), 'id1', ['B'])
-                ]
-                ,
+                    Doc('text1', 'source1', datetime(2019, 8, 30, 0, 0), 'id1', ['A', 'A']),
+                    Doc('text2', 'source1', datetime(2019, 8, 30, 0, 0), 'id1', ['B', 'B']),
+                    Doc('text3', 'source1', datetime(2018, 8, 30, 0, 0), 'id1', ['A', 'A']),
+                    Doc('text4', 'source1', datetime(2018, 8, 30, 0, 0), 'id1', ['C', 'C']),
+                    Doc('text5', 'source2', datetime(2019, 8, 30, 0, 0), 'id1', ['A', 'A']),
+                    Doc('text6', 'source2', datetime(2018, 8, 30, 0, 0), 'id1', ['B', 'B']),
+                    Doc('text7', 'source2', datetime(2019, 8, 30, 0, 0), 'id1', ['B', 'B']),
+                    Doc('text8', 'source3', datetime(2019, 8, 30, 0, 0), 'id1', ['C', 'C']),
+                    Doc('text9', 'source3', datetime(2021, 8, 30, 0, 0), 'id1', ['A', 'A']),
+                    Doc('text10', 'source3',datetime(2021, 8, 30, 0, 0), 'id1', ['B', 'B'])
+                ],
                 fp
             )
 
-        task = TopicModelingFindTopics()
-        task.run()
+        # ------- RUN TASK UNDER TEST --------
+        # suppress messages printed during training
+        with open(os.devnull, 'w') as null_file:
+            sys.stdout = null_file
 
-        # TODO: check format of output data frames
+            task = TopicModelingFindTopics()
+            task.run()
+        # stop suppressing messages
+        sys.stdout = sys.__stdout__
+
+        # ------- INSPECT OUTPUT -------
+        # validate dataframe with topic predictions
         with output_target_texts.open('r') as fp:
             texts = pd.read_csv(fp)
-
         self.assertEqual(len(texts), 20)
+        self.assertEqual(list(texts.columns),
+            ['post_id', 'text', 'source', 'post_date', 'topic', 'model_name'])
+        for model in ['all', '2018', '2019', '2021']:
+            self.assertIn(model, list(texts['model_name']))
         
+        # validate dataframe with term counts
         with output_target_topics.open('r') as fp:
             topics = pd.read_csv(fp)
-
-        self.asserEqual(sum(topics['count']), 20)
+        self.assertEqual(sum(topics['count']), 40)
+        self.assertEqual(list(topics.columns),
+            ['topic', 'term', 'count', 'model'])
+        for model in ['all', '2018', '2019', '2021']:
+            self.assertIn(model, list(topics['model']))
 
