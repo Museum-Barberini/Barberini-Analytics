@@ -39,8 +39,8 @@ services:
         networks:
             - database_network
 
-    db:
-        container_name: db
+    barberini_analytics_db:
+        container_name: barberini_analytics_db
         image: postgres
         restart: always
         ports:
