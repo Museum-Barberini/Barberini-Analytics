@@ -4,12 +4,12 @@
 version: "3.7"
 
 services:
-    luigi:
-        container_name: ${USER}-luigi
+    barberini_analytics_luigi:
+        container_name: ${USER}-barberini_analytics_luigi
         hostname: ${HOSTNAME}
         build: .
         volumes:
-            - .:/app
+            - ..:/app
             - /etc/barberini-analytics/secrets/secret_files:/app/secret_files
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
@@ -37,10 +37,10 @@ services:
         stdin_open: true
         tty: true
         networks:
-            - database_network
+            - barberini_analytics_database_network
 
-    db:
-        container_name: db
+    barberini_analytics_db:
+        container_name: barberini_analytics_db
         image: postgres
         restart: always
         ports:
@@ -50,7 +50,7 @@ services:
         volumes:
             - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
         networks:
-            - database_network
+            - barberini_analytics_database_network
 
     gplay_api:
         # consider how the gplay api is called from gplay_reviews.py before
@@ -60,8 +60,8 @@ services:
             dockerfile: Dockerfile_gplay_api
             context: .
         networks:
-            - database_network
+            - barberini_analytics_database_network
 
 networks:
-    database_network:
+    barberini_analytics_database_network:
         external: true
