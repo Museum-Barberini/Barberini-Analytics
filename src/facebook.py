@@ -350,8 +350,13 @@ class FetchFbPostComments(FetchFbPostDetails):
                                 'is_from_museum': self.from_barberini(reply),
                                 'response_to': str(comment_id)
                             }
-                    except Exception:
-                        print(f"Failed to retrieve comments for: {comment.get('id')}")
+                    except KeyError:
+                        # Sometimes, replies become unavailable. In this case,
+                        # the Graph API returns the true 'comment_count',
+                        # but does not provide a 'comments' field anyway
+                        logger.warning(
+                            f"Failed to retrieve replies for comment "
+                            f"{comment.get('id')}")
 
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
