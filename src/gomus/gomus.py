@@ -1,6 +1,3 @@
-# TODO remove tomorrow
-import datetime as dt
-
 import luigi
 
 from gomus.bookings import BookingsToDB
@@ -21,23 +18,6 @@ class GomusToDb(luigi.WrapperTask):
     )
 
     def requires(self):
-        # START TODO: remove this tomorrow
-        yield BookingsToDB(timespan='_1month')
-        yield CustomersToDB(today=dt.datetime.today() - dt.timedelta(weeks=1))
-        yield CustomersToDB(today=dt.datetime.today() - dt.timedelta(weeks=2))
-        yield CustomersToDB(today=dt.datetime.today() - dt.timedelta(weeks=3))
-        yield GomusToCustomerMappingToDB(
-            today=dt.datetime.today() - dt.timedelta(weeks=1))
-        yield GomusToCustomerMappingToDB(
-            today=dt.datetime.today() - dt.timedelta(weeks=2))
-        yield GomusToCustomerMappingToDB(
-            today=dt.datetime.today() - dt.timedelta(weeks=3))
-        yield OrdersToDB(today=dt.datetime.today() - dt.timedelta(weeks=1))
-        yield OrdersToDB(today=dt.datetime.today() - dt.timedelta(weeks=2))
-        yield OrdersToDB(today=dt.datetime.today() - dt.timedelta(weeks=3))
-        # IMPORTANT NOTE : var in gomus/events needs to be reset to 2 weeks
-        # END
-
         yield DailyEntriesToDB()
         yield ExhibitionTimesToDb()
         yield ExpectedDailyEntriesToDB()
