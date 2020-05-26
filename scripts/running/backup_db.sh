@@ -20,4 +20,4 @@ esac
 BASE_NAME="db_dump_$INTERVAL"
 
 rm -f "$BACKUP_DIR/$BASE_NAME"*
-docker exec db pg_dump -U postgres barberini > "$BACKUP_DIR/$BASE_NAME-$(date +%Y-%m-%d).sql"
+docker exec barberini_analytics_db pg_dump -U postgres barberini > "$BACKUP_DIR/$BASE_NAME-$(date +%Y-%m-%d).sql"
