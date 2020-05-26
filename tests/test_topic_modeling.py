@@ -1,15 +1,15 @@
+import os
+import pickle
+import sys
+from datetime import datetime
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-from datetime import datetime
-import pickle
-import pandas as pd
+
 import luigi
-import sys, os
-
-from luigi.mock import MockTarget
-
+import pandas as pd
 from db_connector import db_connector
 from db_test import DatabaseTestCase
+from luigi.mock import MockTarget
 from topic_modeling import *
 
 
@@ -174,4 +174,3 @@ class TestFindTopics(TestCase):
             ['topic', 'term', 'count', 'model'])
         for model in ['all', '2018', '2019', '2021']:
             self.assertIn(model, list(topics['model']))
-

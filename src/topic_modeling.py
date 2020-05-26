@@ -1,16 +1,12 @@
-import luigi
-from stop_words import get_stop_words
-import pickle
-import pandas as pd
-import numpy as np
-from gsdmm import MovieGroupProcess
-from nltk.tokenize import word_tokenize, MWETokenizer
-import nltk
-from collections import defaultdict
-import langdetect
 import logging
-from luigi.format import UTF8
+import pickle
+from collections import defaultdict
 
+import langdetect
+import luigi
+import nltk
+import numpy as np
+import pandas as pd
 from apple_appstore import AppstoreReviewsToDB
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
@@ -18,11 +14,13 @@ from db_connector import db_connector
 from facebook import FbPostCommentsToDB
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
+from gsdmm import MovieGroupProcess
+from luigi.format import UTF8
+from nltk.tokenize import MWETokenizer, word_tokenize
+from stop_words import get_stop_words
 from twitter import TweetsToDB
 
 logger = logging.getLogger('luigi-interface')
-
-# TODO: refactor to make code look pretty
 
 '''
 Flow of control
