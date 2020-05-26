@@ -205,6 +205,8 @@ class TopicModelingFindTopics(DataPreparationTask):
         for doc in docs:
             models.add(str(doc.post_date.year))
 
+        # accumulate topic predictions and important terms
+        # for the different models in these variables.
         text_dfs = []
         topic_dfs = []
 
@@ -213,6 +215,7 @@ class TopicModelingFindTopics(DataPreparationTask):
                 doc for doc in docs if doc.in_year(model_name)]
 
             if model_name == 'all':
+                # allow for more topics if all posts are used
                 model = self.train_mgp(docs_in_timespan, K=12)
             else:
                 model = self.train_mgp(docs_in_timespan, K=10)
@@ -223,7 +226,7 @@ class TopicModelingFindTopics(DataPreparationTask):
             # cols: text,source,post_date,topic,model_name
             text_df = pd.DataFrame([doc.to_dict() for doc in docs_in_timespan])
 
-            # topic,term,count,model
+            # cols: topic,term,count,model
             out = []
             for i, topic_terms in enumerate(self.top_terms(model)):
                 for term in topic_terms:
