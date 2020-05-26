@@ -281,6 +281,8 @@ class FetchFbPostComments(FetchFbPostDetails):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_comments(self, df):
+        invalid_count = 0
+
         # Handle each post
         for i in df.index:
             page_id, post_id = df['page_id'][i], df['post_id'][i]
@@ -313,6 +315,9 @@ class FetchFbPostComments(FetchFbPostDetails):
                    f'filter={filt}&order={order}&fields={fields}')
 
             response = try_request_multiple_times(url)
+            if response.status_code == 400:
+                invalid_count += 1
+                continue
             response_data = response.json().get('data')
 
             logger.info(f"Fetched {len(response_data)} "
@@ -344,6 +349,9 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'is_from_museum': self.from_barberini(reply),
                             'response_to': str(comment_id)
                         }
+
+        if invalid_count:
+            logger.warning(f"Skipped {invalid_count} posts")
 
     @staticmethod
     def from_barberini(comment_json):
