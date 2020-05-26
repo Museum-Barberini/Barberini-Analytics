@@ -110,9 +110,6 @@ dmypy.json
 *.Rproj*
 .Rproj.user
 
-# node.js
-package-lock.json
-
 # pbiviz
 .tmp/
 webpack.statistics.dev.html
