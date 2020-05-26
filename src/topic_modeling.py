@@ -43,6 +43,16 @@ TopicModelingTextsDf     TopicModelingTopicsDf
                   |
                   |
        TopicModelingCreateCorpus()
+
+Minimal Mode
+------------
+The topic modeling does not need to be adapted for the
+minimal mode. Other tasks only fetch few posts in minimal
+runs. Therefore the topic modeling is also very fast in
+the minimal runs.
+This only applies if the minimal run uses
+a fresh test database.
+
 '''
 
 
@@ -327,8 +337,6 @@ class TopicModelingCreateCorpus(DataPreparationTask):
             FROM post
             WHERE NOT is_from_museum AND text IS NOT NULL
         '''
-        if self.minimal_mode:
-            query += 'LIMIT 200'
         texts = db_connector().query(query)
         corpus = [
             Doc(row[0], row[1], row[2], row[3])
