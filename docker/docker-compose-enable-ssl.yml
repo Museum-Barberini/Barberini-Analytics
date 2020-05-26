@@ -4,7 +4,7 @@
 version: "3.7"
 
 services:
-    db:
+    barberini_analytics_db:
         # -c provides the postgres instance inside the container
         # with configuration options, equal to setting them in
         # a 'postgresql.conf' file
