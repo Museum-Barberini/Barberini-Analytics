@@ -304,10 +304,15 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             pickle.dump(corpus, output_corpus)
 
     def preprocess(self, docs):
+        
+        # remove leading 'None' (introduced by DB export)
+        for doc in docs:
+            doc.text = doc.text.replace('None ', '', 1)
+
+        # consider only german docs
+        docs = [doc for doc in docs if doc.guess_language() == 'de']
 
         for doc in docs:
-            # remove leading 'None' (introduced by DB export)
-            doc.text = doc.text.replace('None ', '', 1)
             doc.tokens = doc.text.lower()
             doc.tokens = word_tokenize(doc.tokens)
             # remove stop words
@@ -319,9 +324,6 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             # remove single-digit tokens
             doc.tokens = [token for token in doc.tokens
                           if len(token) > 1]
-
-        # consider only german docs
-        docs = [doc for doc in docs if doc.guess_language() == 'de']
 
         # remove tokens that appear only once
         tokens = defaultdict(lambda: 0)
