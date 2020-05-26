@@ -338,17 +338,20 @@ class FetchFbPostComments(FetchFbPostDetails):
                 }
 
                 if comment.get('comment_count'):
-                    # Handle each reply for the comment
-                    for reply in comment['comments']['data']:
-                        yield {
-                            'comment_id': reply.get('id').split('_')[1],
-                            'page_id': str(page_id),
-                            'post_id': str(post_id),
-                            'post_date': reply.get('created_time'),
-                            'text': reply.get('message'),
-                            'is_from_museum': self.from_barberini(reply),
-                            'response_to': str(comment_id)
-                        }
+                    try:
+                        # Handle each reply for the comment
+                        for reply in comment['comments']['data']:
+                            yield {
+                                'comment_id': reply.get('id').split('_')[1],
+                                'page_id': str(page_id),
+                                'post_id': str(post_id),
+                                'post_date': reply.get('created_time'),
+                                'text': reply.get('message'),
+                                'is_from_museum': self.from_barberini(reply),
+                                'response_to': str(comment_id)
+                            }
+                    except Exception:
+                        print(f"Failed to retrieve comments for: {comment.get('id')}")
 
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
