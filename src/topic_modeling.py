@@ -4,8 +4,6 @@ from collections import defaultdict
 
 import langdetect
 import luigi
-import nltk
-import numpy as np
 import pandas as pd
 from apple_appstore import AppstoreReviewsToDB
 from csv_to_db import CsvToDb
@@ -16,7 +14,7 @@ from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from gsdmm import MovieGroupProcess
 from luigi.format import UTF8
-from nltk.tokenize import MWETokenizer, word_tokenize
+from nltk.tokenize import word_tokenize
 from stop_words import get_stop_words
 from twitter import TweetsToDB
 
@@ -64,7 +62,7 @@ class TopicModeling(luigi.WrapperTask):
 
 class TopicModelingTextsToDb(CsvToDb):
     """
-    The table topic_modeling_texts assigns one 
+    The table topic_modeling_texts assigns one
     topic to each text comment for each model
     (if the text comment is withing the timespan
     the model was constructed for).
@@ -79,7 +77,7 @@ class TopicModelingTextsToDb(CsvToDb):
 class TopicModelingTopicsToDb(CsvToDb):
     """
     The table topic_modeling_topics contains the
-    most frequent terms for each topic for each 
+    most frequent terms for each topic for each
     model.
     """
 
@@ -89,14 +87,12 @@ class TopicModelingTopicsToDb(CsvToDb):
         return TopicModelingTopicsDf()
 
 
-# TODO: maybe remove code duplication between the two
-# ...Df Tasks.
 class TopicModelingTopicsDf(DataPreparationTask):
     '''
     This task's main purpose is to provide a
     single output target that can be used by
     the downstream task TopicModelingTopicsToDb.
-    The task also deletes existing data to 
+    The task also deletes existing data to
     ensure consistency.
     '''
 
@@ -123,12 +119,13 @@ class TopicModelingTopicsDf(DataPreparationTask):
             'TRUNCATE topic_modeling_topics'
         )
 
+
 class TopicModelingTextDf(DataPreparationTask):
     '''
     This task's only purpose is to provide a
     single output target that can be used by
     the downstream task TopicModelingTextsToDb.
-    The task also deletes existing data to 
+    The task also deletes existing data to
     ensure consistency.
     '''
 
@@ -142,7 +139,7 @@ class TopicModelingTextDf(DataPreparationTask):
         )
 
     def run(self):
-        
+
         with list(self.input())[1].open('r') as text_file:
             data = pd.read_csv(text_file)
         with self.output().open('w') as output_file:
@@ -159,12 +156,12 @@ class TopicModelingTextDf(DataPreparationTask):
 class TopicModelingFindTopics(DataPreparationTask):
     """
     Train a series of topic models and generate predictions.
-    For each year we train one model. We use the model to 
+    For each year we train one model. We use the model to
     generate predictions only for the posts in the year
     the model was trained for. There is also one model that
     takes into account all posts.
 
-    The algorithm we use is the 'Gibbs Sampling algorithm for the 
+    The algorithm we use is the 'Gibbs Sampling algorithm for the
     Dirichlet Multinomial Mixture model' (GSDMM). This algorithms
     is designed specifically for short text topic modeling. Link to the paper:
     http://dbgroup.cs.tsinghua.edu.cn/wangjy/papers/KDD14-GSDMM.pdf
@@ -195,7 +192,6 @@ class TopicModelingFindTopics(DataPreparationTask):
             terms_df.to_csv(terms_file, index=False)
         with next(output_files).open('w') as texts_file:
             texts_df.to_csv(texts_file, index=False)
-
 
     def find_topics(self, docs):
         # one model per year
@@ -237,24 +233,15 @@ class TopicModelingFindTopics(DataPreparationTask):
             topic_df = pd.DataFrame(out)
 
             # name topics
-            get_title = lambda x: self.top_terms(model)[x][0][0]
-            topic_df['topic'] = topic_df['topic'].apply(get_title)
-            text_df['topic'] = text_df['topic'].apply(get_title)
-
-            # Small topics are bundled in topic 'other'.
-            # A topic is considered small if it contains less than 2 percent 
-            # of all text comments.
-            total_size = len(text_df)
-            topic_sizes = text_df['topic'].value_counts().to_dict()
-            validate_topic = lambda x: x if topic_sizes[x] >= 0.02 * total_size else 'other'
-            topic_df['topic'] = topic_df['topic'].apply(validate_topic)
-            text_df['topic'] = text_df['topic'].apply(validate_topic)
+            topic_df['topic'] = topic_df['topic'].apply(
+                lambda x: self.top_terms(model)[x][0][0])
+            text_df['topic'] = text_df['topic'].apply(
+                lambda x: self.top_terms(model)[x][0][0])
 
             text_dfs.append(text_df)
             topic_dfs.append(topic_df)
 
         return pd.concat(topic_dfs), pd.concat(text_dfs)
-
 
     def train_mgp(self, docs, K=10, alpha=0.1, beta=0.1, n_iters=30):
         vocab = set(x for doc in docs for x in doc.tokens)
@@ -265,10 +252,12 @@ class TopicModelingFindTopics(DataPreparationTask):
         return mgp
 
     def top_terms(self, model, n=20):
-        top_terms = [
-            sorted(list(doc_dist.items()), key = lambda x: x[1], reverse=True)[:n]
-            for doc_dist in model.cluster_word_distribution
-        ]
+        top_terms = []
+        for doc_distribution in model.cluster_word_distribution:
+            terms = list(doc_distribution.items())
+            terms = sorted(terms, key=lambda x: x[1], reverse=True)
+            terms = terms[:n]
+            top_terms.append(terms)
         return top_terms
 
 
@@ -283,14 +272,14 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
     - discarding Docs with less than three tokens
     - removing tokens that appear only once in the entire corpus
     """
-   
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stop_words = [
             *get_stop_words('german'),
             *get_stop_words('english'),
-            *['http', 'https', 'www', 'com', 'de', 'google', 'translated', 
-              'twitter', 'fur', 'uber', 'html', 'barberini', 
+            *['http', 'https', 'www', 'com', 'de', 'google', 'translated',
+              'twitter', 'fur', 'uber', 'html', 'barberini',
               'museumbarberini', 'museum', 'ausstellung', 'ausstellungen',
               'potsdam', 'mal']
         ]
@@ -315,18 +304,21 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             pickle.dump(corpus, output_corpus)
 
     def preprocess(self, docs):
-        
+
         for doc in docs:
             # remove leading 'None' (introduced by DB export)
             doc.text = doc.text.replace('None ', '', 1)
             doc.tokens = doc.text.lower()
             doc.tokens = word_tokenize(doc.tokens)
             # remove stop words
-            doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
+            doc.tokens = [token for token in doc.tokens
+                          if token not in self.stop_words]
             # keep only alphabetical tokens
-            doc.tokens = [token for token in doc.tokens if token.isalpha()]
+            doc.tokens = [token for token in doc.tokens
+                          if token.isalpha()]
             # remove single-digit tokens
-            doc.tokens = [token for token in doc.tokens if len(token) > 1]
+            doc.tokens = [token for token in doc.tokens
+                          if len(token) > 1]
 
         # consider only german docs
         docs = [doc for doc in docs if doc.guess_language() == 'de']
@@ -340,10 +332,10 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             for token in doc.tokens:
                 if tokens[token] == 1:
                     doc.tokens.remove(token)
-                    
+
         # remove very short docs
         docs = [doc for doc in docs if not doc.too_short()]
-                
+
         return docs
 
 
@@ -374,7 +366,7 @@ class TopicModelingCreateCorpus(DataPreparationTask):
     def run(self):
 
         texts = db_connector().query('''
-            SELECT text, source, post_date, post_id 
+            SELECT text, source, post_date, post_id
             FROM post
             WHERE NOT is_from_museum AND text IS NOT NULL
         ''')
@@ -394,12 +386,13 @@ class Doc:
     Twitter, Google Play, ..
     """
 
-    def __init__(self, text, source=None, post_date=None, post_id=None, tokens=None):
+    def __init__(self, text, source=None, post_date=None,
+                 post_id=None, tokens=None):
         self.text = text
         self.source = source
         self.post_date = post_date
         self.post_id = post_id
-        self.tokens = tokens 
+        self.tokens = tokens
         self.topic = None
         self.model_name = None
         self.language = None
