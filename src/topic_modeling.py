@@ -15,6 +15,7 @@ from apple_appstore import AppstoreReviewsToDB
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 from db_connector import db_connector
+from facebook import FbPostCommentsToDB
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from twitter import TweetsToDB
@@ -64,6 +65,12 @@ class TopicModeling(luigi.WrapperTask):
 
 
 class TopicModelingTextsToDb(CsvToDb):
+    """
+    The table topic_modeling_texts assigns one 
+    topic to each text comment for each model
+    (if the text comment is withing the timespan
+    the model was constructed for).
+    """
 
     table = 'topic_modeling_texts'
 
@@ -72,6 +79,11 @@ class TopicModelingTextsToDb(CsvToDb):
 
 
 class TopicModelingTopicsToDb(CsvToDb):
+    """
+    The table topic_modeling_topics contains the
+    most frequent terms for each topic for each 
+    model.
+    """
 
     table = 'topic_modeling_topics'
 
@@ -79,12 +91,14 @@ class TopicModelingTopicsToDb(CsvToDb):
         return TopicModelingTopicsDf()
 
 
+# TODO: maybe remove code duplication between the two
+# ...Df Tasks.
 class TopicModelingTopicsDf(DataPreparationTask):
     '''
     This task's main purpose is to provide a
-    single output target that can be used a
-    CsvToDb task.
-    The the task also deletes existing data to 
+    single output target that can be used by
+    the downstream task TopicModelingTopicsToDb.
+    The task also deletes existing data to 
     ensure consistency.
     '''
 
@@ -114,9 +128,9 @@ class TopicModelingTopicsDf(DataPreparationTask):
 class TopicModelingTextDf(DataPreparationTask):
     '''
     This task's only purpose is to provide a
-    single output target that can be used a
-    CsvToDb task.
-    The the task also deletes existing data to 
+    single output target that can be used by
+    the downstream task TopicModelingTextsToDb.
+    The task also deletes existing data to 
     ensure consistency.
     '''
 
@@ -145,7 +159,19 @@ class TopicModelingTextDf(DataPreparationTask):
 
 
 class TopicModelingFindTopics(DataPreparationTask):
-   
+    """
+    Train a series of topic models and generate predictions.
+    For each year we train one model. We use the model to 
+    generate predictions only for the posts in the year
+    the model was trained for. There is also one model that
+    takes into account all posts.
+
+    The algorithm we use is the 'Gibbs Sampling algorithm for the 
+    Dirichlet Multinomial Mixture model' (GSDMM). This algorithms
+    is designed specifically for short text topic modeling. Link to the paper:
+    http://dbgroup.cs.tsinghua.edu.cn/wangjy/papers/KDD14-GSDMM.pdf
+    """
+
     def requires(self):
         return TopicModelingPreprocessCorpus()
 
@@ -246,6 +272,16 @@ class TopicModelingFindTopics(DataPreparationTask):
 
 
 class TopicModelingPreprocessCorpus(DataPreparationTask):
+    """
+    Preprocess a corpus of Doc instances with
+    - lowercasing
+    - tokenization
+    - removing single-character tokens and non-alphabetic tokens
+    - stop word removal
+    - removing non-german Docs
+    - discarding Docs with less than three tokens
+    - removing tokens that appear only once in the entire corpus
+    """
    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -269,13 +305,13 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
 
     def run(self):
 
-        with self.input().open('rb') as corpus_file:
-            corpus = pickle.load(corpus_file)
+        with self.input().open('rb') as input_corpus:
+            corpus = pickle.load(input_corpus)
 
         corpus = self.preprocess(corpus)
 
-        with self.output().open('w') as output_file:
-            pickle.dump(corpus, output_file)
+        with self.output().open('w') as output_corpus:
+            pickle.dump(corpus, output_corpus)
 
     def preprocess(self, docs):
         
@@ -283,7 +319,6 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             # remove leading 'None' (introduced by DB export)
             doc.text = doc.text.replace('None ', '', 1)
             doc.tokens = doc.text.lower()
-            doc.guess_language()
             doc.tokens = word_tokenize(doc.tokens)
             # remove stop words
             doc.tokens = [token for token in doc.tokens if token not in self.stop_words]
@@ -293,13 +328,8 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             doc.tokens = [token for token in doc.tokens if len(token) > 1]
 
         # consider only german docs
-        docs = [doc for doc in docs if doc.language == 'de']
+        docs = [doc for doc in docs if doc.guess_language() == 'de']
 
-        # stemming
-        #stemmer = nltk.stem.cistem.Cistem()
-        #for doc in docs:
-        #    doc.tokens = [stemmer.stem(token) for token in doc.tokens]
-        
         # remove tokens that appear only once
         tokens = defaultdict(lambda: 0)
         for doc in docs:
@@ -310,19 +340,29 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
                 if tokens[token] == 1:
                     doc.tokens.remove(token)
                     
-        # remove docs with less than three tokens
+        # remove very short docs
         docs = [doc for doc in docs if not doc.too_short()]
                 
         return docs
 
 
 class TopicModelingCreateCorpus(DataPreparationTask):
+    """
+    Create a corpus of posts. The corpus is a collection
+    of Doc instances. The class Doc is defined below.
+
+    The corpus consists of all posts from the view
+    post that were not authored by the museum and
+    where the text is not null.
+    """
 
     def requires(self):
+        # make sure that the most recent posts are available
         yield AppstoreReviewsToDB()
         yield GoogleMapsReviewsToDB()
         yield GooglePlaystoreReviewsToDB()
         yield TweetsToDB()
+        yield FbPostCommentsToDB()
 
     def output(self):
         return luigi.LocalTarget(
@@ -332,12 +372,11 @@ class TopicModelingCreateCorpus(DataPreparationTask):
 
     def run(self):
 
-        query = '''
+        texts = db_connector().query('''
             SELECT text, source, post_date, post_id 
             FROM post
             WHERE NOT is_from_museum AND text IS NOT NULL
-        '''
-        texts = db_connector().query(query)
+        ''')
         corpus = [
             Doc(row[0], row[1], row[2], row[3])
             for row in texts if row[0] is not None
@@ -348,6 +387,12 @@ class TopicModelingCreateCorpus(DataPreparationTask):
 
 
 class Doc:
+    """
+    This helper class represents individual text documents.
+    In our case a text document is a post on e.g. Facebook,
+    Twitter, Google Play, ..
+    """
+
     def __init__(self, text, source=None, post_date=None, post_id=None, tokens=None):
         self.text = text
         self.source = source
@@ -372,7 +417,7 @@ class Doc:
 
     def guess_language(self):
         try:
-            self.language = langdetect.detect(self.text)
+            return langdetect.detect(self.text)
         except langdetect.lang_detect_exception.LangDetectException as e:
             # langdetect can not handle emoji-only and link-only texts
             logger.warning(f'langdetect failed for one Doc. Error: {e}')

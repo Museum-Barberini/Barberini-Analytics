@@ -18,16 +18,16 @@ class TestDoc(TestCase):
     def test_guess_language(self):
 
         doc = Doc('english text goes here')
-        doc.guess_language()
-        self.assertEqual(doc.language, 'en')
+        lang = doc.guess_language()
+        self.assertEqual(lang, 'en')
 
         doc = Doc('hier ist ein deutscher Text')
-        doc.guess_language()
-        self.assertEqual(doc.language, 'de')
+        lang = doc.guess_language()
+        self.assertEqual(lang, 'de')
 
         doc = Doc('https://blablabla.de')
-        doc.guess_language()
-        self.assertIsNone(doc.language)
+        lang = doc.guess_language()
+        self.assertIsNone(lang)
 
     def test_too_short(self):
 
