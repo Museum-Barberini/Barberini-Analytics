@@ -391,5 +391,7 @@ def try_request_multiple_times(url, **kwargs):
 
     # cause clear error instead of trying
     # to process the invalid response
-    response.raise_for_status()
+    # (except if we tried to access a foreign object)
+    if not response.ok and not response.status_code == 400:
+        response.raise_for_status()
     return response
