@@ -34,7 +34,7 @@ RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev python3-wheel
 RUN $INSTALL libpq-dev
 
 # Install python packages
-COPY requirements.txt /app
+COPY ./requirements.txt /app
 RUN pip3 install -r requirements.txt
 
 # Install node.js
@@ -47,7 +47,7 @@ RUN $INSTALL nodejs
 # copying of that folder, using [npm install -g], and manipulating the PATH
 # variable failed. Don't touch this unless you absolutely know what you do!
 WORKDIR /
-COPY package*.json /
+COPY ./package*.json /
 RUN npm install
 RUN npm audit fix
 WORKDIR /app

@@ -6,7 +6,7 @@
 
 SHELL := /bin/bash
 SSL_CERT_DIR := /var/barberini-analytics/db-data
-
+DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
 
 # ------ For use outside of containers ------
 
@@ -21,25 +21,25 @@ startup: startup-db
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
-		docker-compose -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 
 startup-db:
-	if [[ $$(docker-compose ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
+	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
+	 		$(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
 		else\
-	 		docker-compose -f docker-compose.yml up --build -d --no-recreate barberini_analytics_db;\
+	 		$(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
 		fi;\
 	fi
 
 shutdown:
-	docker-compose -p ${USER} rm -sf barberini_analytics_luigi gplay_api
+	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
 
 shutdown-db:
-	docker-compose rm -sf barberini_analytics_db
+	$(DOCKER_COMPOSE) rm -sf db
 
 connect:
-	docker-compose -p ${USER} exec barberini_analytics_luigi ${SHELL}
+	$(DOCKER_COMPOSE) -p ${USER} exec barberini_analytics_luigi ${SHELL}
 
 # runs a command in the barberini_analytics_luigi container
 # example: sudo make docker-do do='make luigi'
@@ -47,7 +47,7 @@ docker-do:
 	docker exec -i "${USER}-barberini_analytics_luigi" bash -c "$(do)"
 
 docker-clean-cache:
-	docker-compose -p ${USER} build --no-cache
+	$(DOCKER_COMPOSE) -p ${USER} build --no-cache
 
 
 # ------ For use inside the Luigi container ------

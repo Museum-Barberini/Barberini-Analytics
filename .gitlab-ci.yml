@@ -14,7 +14,7 @@ build:
   tags:
     - barberini
   script:
-    - docker build -t test .
+    - docker build -t test ./docker
 
 coverage:
   stage: test
