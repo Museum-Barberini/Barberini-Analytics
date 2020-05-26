@@ -36,7 +36,7 @@ shutdown:
 	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
 
 shutdown-db:
-	$(DOCKER_COMPOSE) rm -sf db
+	$(DOCKER_COMPOSE) rm -sf barberini_analytics_db
 
 connect:
 	$(DOCKER_COMPOSE) -p ${USER} exec barberini_analytics_luigi ${SHELL}
