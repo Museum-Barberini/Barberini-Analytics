@@ -3,20 +3,22 @@
 # https://github.com/facundoolano/google-play-api)
 
 FROM ubuntu:18.04
-WORKDIR /gplay_api
+WORKDIR /
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 
 RUN apt-get update
+RUN apt-get upgrade -y --no-install-recommends apt-utils
+
 ARG INSTALL='apt-get install -y'
 
 # Install utilities
-RUN $INSTALL apt-utils 2>&1 | grep -v "debconf: delaying package configuration, since apt-utils is not installed"
 RUN $INSTALL curl git
 
 # Clone google-play-api repo
-RUN git clone https://github.com/facundoolano/google-play-api.git
-WORKDIR google-play-api
+RUN git clone https://github.com/facundoolano/google-play-api.git 2>&1
+WORKDIR /google-play-api
 
 # Set google play api to a commit that is known to work. If the repo
 # gets updated it may be wise to set the commit hash below to the new HEAD.
