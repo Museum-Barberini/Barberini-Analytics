@@ -6,7 +6,7 @@ BASEDIR=$(dirname "$0")/../..
 PATH="/usr/local/bin:$PATH"
 export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
 
-LOGPATH="/var/log/bp-logs"
+LOGPATH="/var/log/barberini-analytics"
 LOGFILE=$LOGPATH/"$1-$(date +%Y-%m-%d).log"
 
 # Delete 2 weeks old log
