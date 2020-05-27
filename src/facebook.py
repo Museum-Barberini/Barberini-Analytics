@@ -235,6 +235,8 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
         df = pd.DataFrame(performances)
         df = self.ensure_foreign_keys(df)
+        print(df)
+        print(df.apply(lambda row: row['page_id'] + '_' + row['post_id'], axis=1))
         df = self.ensure_performance_change(
             df,
             'fb_post_id',
