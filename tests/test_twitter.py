@@ -167,7 +167,7 @@ class TestExtractTweetPerformance(DatabaseTestCase):
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))
 
-        task = ExtractTweetPerformance(table='tweet_performance')
+        task = ExtractTweetPerformance()
         task.run()
 
         with output_target.open('r') as output_file:

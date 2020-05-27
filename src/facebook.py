@@ -68,16 +68,23 @@ class FetchFbPosts(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_posts(self, page_id):
-        url = f'{API_BASE}/{page_id}/published_posts?limit=100'
+        limit = 100
+        url = f'{API_BASE}/{page_id}/published_posts?limit={limit}'
 
         response = try_request_multiple_times(url)
         response_content = response.json()
         yield from response_content['data']
 
-        log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
+        # log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
+        # This is currently buggy as it only prints out every second iteration
+        # Replaced with logger.info for now
+        i = 1
         while 'next' in response_content['paging']:
+            logger.info(f"Fetched approx. {i * limit} Facebook posts")
+            i += 1
             url = response_content['paging']['next']
-            next(log_loop)
+
+            # next(log_loop)
             response = try_request_multiple_times(url)
             response_content = response.json()
             yield from response_content['data']
@@ -235,8 +242,9 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
         df = pd.DataFrame(performances)
         df = self.ensure_foreign_keys(df)
-        print(df)
-        print(df.apply(lambda row: row['page_id'] + '_' + row['post_id'], axis=1))
+        df['fb_post_id'] = df.apply(
+            lambda row: str(row['page_id']) + '_' + str(row['post_id']),
+            axis=1)
         df = self.ensure_performance_change(
             df,
             'fb_post_id',
@@ -257,6 +265,8 @@ class FetchFbPostPerformance(FetchFbPostDetails):
              'post_impressions',
              'post_impressions_unique']
         )
+
+        df = df.drop(labels='fb_post_id', axis=1)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

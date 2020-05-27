@@ -65,6 +65,10 @@ class DataPreparationTask(luigi.Task):
                 return find_latest_performance(
                     latest_performances[half_index + 1:], search_id)
 
+        if not self.table:
+            # This is the case for tests
+            return df
+
         # Read latest performance data from DB
         latest_performances = self.db_connector.query(
             f'''
@@ -176,6 +180,7 @@ class DataPreparationTask(luigi.Task):
                 Tuple[List[str], str, List[str]]
             ]:
         if not self.table:
+            # This is the case for tests
             return {}
 
         return {

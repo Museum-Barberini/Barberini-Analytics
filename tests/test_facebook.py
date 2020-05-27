@@ -167,8 +167,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
 
         with freeze_time('2020-01-01 00:00:05'):
             self.task = facebook.FetchFbPostPerformance(
-                timespan=dt.timedelta(days=100000),
-                table='fb_post_performance')
+                timespan=dt.timedelta(days=100000))
             self.task.run()
 
         self.compare_post_performance_mocks(
@@ -199,8 +198,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
                     re.escape(
                         "invalid literal for int() with base 10: '4.4'")):
                 self.task = facebook.FetchFbPostPerformance(
-                    timespan=dt.timedelta(days=100000),
-                    table='fb_post_performance')
+                    timespan=dt.timedelta(days=100000))
                 self.task.run()
 
     @patch('facebook.requests.get')
