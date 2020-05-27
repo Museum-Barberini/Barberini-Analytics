@@ -8,6 +8,7 @@ from db_test import DatabaseTestCase
 TABLE_NAME = 'test_table'
 COLUMN_NAME = 'test_column'
 COLUMN_NAME_2 = 'test_column_2'
+
 TABLE_NAME_FOREIGN = 'test_table_foreign'
 TABLE_NAME_FOREIGN_2 = 'test_table_foreign_2'
 COLUMN_NAME_FOREIGN = 'test_column_foreign'
@@ -307,3 +308,39 @@ class TestDataPreparationTask(DatabaseTestCase):
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_not_called()
+
+    def test_ensure_performance_change(self):
+        self.db_connector.execute(
+            f'''CREATE TABLE {TABLE_NAME} (
+                {COLUMN_NAME} TEXT,
+                {COLUMN_NAME_2} INT,
+                timestamp TIMESTAMP,
+                PRIMARY KEY ({COLUMN_NAME}, timestamp)
+            )''',
+            f'''INSERT INTO {TABLE_NAME} VALUES
+                ('0', 1, '2020-05-01 00:00:00'),
+                ('0', 2, '2020-05-02 00:00:00'),
+                ('1', 2, '2020-05-01 00:00:00'),
+                ('1', 2, '2020-05-02 00:00:00'),
+                ('2', 4, '2020-05-01 00:00:00')
+            '''
+        )
+
+        df = pd.DataFrame([
+            ['0', 3, '2020-05-03 00:00:00'],
+            ['1', 2, '2020-05-03 00:00:00'],
+            ['2', 3, '2020-05-03 00:00:00']],
+            columns=[COLUMN_NAME, COLUMN_NAME_2, 'timestamp'])
+
+        expected_df = pd.DataFrame([
+            ['0', 3, '2020-05-03 00:00:00'],
+            ['2', 3, '2020-05-03 00:00:00']],
+            columns=[COLUMN_NAME, COLUMN_NAME_2, 'timestamp'])
+
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        actual_df = self.task.ensure_performance_change(
+            df,
+            COLUMN_NAME,
+            [COLUMN_NAME_2])
+
+        pd.testing.assert_frame_equal(expected_df, actual_df)

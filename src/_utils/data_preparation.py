@@ -84,20 +84,21 @@ class DataPreparationTask(luigi.Task):
         )
 
         # For each new entry, check against most recent
-        # performance data -> only keep if it changed
-        to_keep = pd.DataFrame(columns=df.columns)
+        # performance data -> drop if it didn't change
+        org_count = df[key_column].count()
+
         for i, row in df.iterrows():
             latest_performance = find_latest_performance(
                 latest_performances, str(row[key_column]))
-            if not latest_performance or \
-                    latest_performance != tuple(
-                        row[performance_columns].tolist()):
-                to_keep.loc[i] = row
-        org_count = df[key_column].count()
-        logger.info(f"Discarded {org_count - to_keep[key_column].count()} "
+            if latest_performance and \
+                latest_performance == tuple(
+                    row[performance_columns].tolist()):
+                df.drop(axis=0, index=i, inplace=True)
+
+        logger.info(f"Discarded {org_count - df[key_column].count()} "
                     f"unchanged performance values out of {org_count} "
                     f"for {self.table}")
-        return to_keep.reset_index(drop=True)
+        return df.reset_index(drop=True)
 
     def ensure_foreign_keys(
                 self,
