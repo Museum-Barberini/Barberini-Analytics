@@ -304,7 +304,7 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
             pickle.dump(corpus, output_corpus)
 
     def preprocess(self, docs):
-        
+
         # remove leading 'None' (introduced by DB export)
         for doc in docs:
             doc.text = doc.text.replace('None ', '', 1)
