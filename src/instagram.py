@@ -246,6 +246,15 @@ class FetchIgPostPerformance(DataPreparationTask):
             print()
 
         performance_df = self.ensure_foreign_keys(performance_df)
+        performance_df = self.ensure_performance_change(
+            performance_df,
+            'ig_post_id',
+            ['impressions',
+             'reach',
+             'engagement',
+             'saved',
+             'video_views']
+        )
 
         with self.output().open('w') as output_file:
             performance_df.to_csv(output_file, index=False, header=True)

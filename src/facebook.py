@@ -235,6 +235,26 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
         df = pd.DataFrame(performances)
         df = self.ensure_foreign_keys(df)
+        df = self.ensure_performance_change(
+            df,
+            'fb_post_id',
+            ['react_like',
+             'react_love',
+             'react_wow',
+             'react_haha',
+             'react_sorry',
+             'react_anger',
+             'likes',
+             'shares',
+             'comments',
+             'video_clicks',
+             'link_clicks',
+             'other_clicks',
+             'negative_feedback',
+             'paid_impressions',
+             'post_impressions',
+             'post_impressions_unique']
+        )
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

@@ -91,6 +91,13 @@ class ExtractTweetPerformance(DataPreparationTask):
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
         df = self.ensure_foreign_keys(df)
+        df = self.ensure_performance_change(
+            df,
+            'tweet_id',
+            ['likes',
+             'retweets',
+             'replies']
+        )
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

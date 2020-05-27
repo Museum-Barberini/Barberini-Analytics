@@ -35,6 +35,66 @@ class DataPreparationTask(luigi.Task):
     def output_dir(self):
         return OUTPUT_DIR
 
+    def ensure_performance_change(
+            self,
+            df,
+            key_column,
+            performance_columns,
+            timestamp_column='timestamp'):
+
+        def find_latest_performance(latest_performances, search_id):
+            # Assumption: 'latest_performances' is ordered
+            # according to the id -> binary search
+            if not latest_performances:
+                return None
+            no_of_entries = len(latest_performances)
+            if no_of_entries == 1:
+                if latest_performances[0][0] == search_id:
+                    return latest_performances[0][1:]
+                else:  # search_id was not found
+                    return None
+
+            half_index = no_of_entries // 2
+            half_id = latest_performances[half_index][0]
+            if half_id == search_id:
+                return latest_performances[half_index][1:]
+            if half_id > search_id:
+                return find_latest_performance(
+                    latest_performances[:half_index], search_id)
+            else:  # half_id < search_id
+                return find_latest_performance(
+                    latest_performances[half_index + 1:], search_id)
+
+        # Read latest performance data from DB
+        latest_performances = self.db_connector.query(
+            f'''
+            SELECT {key_column},{','.join(performance_columns)}
+            FROM {self.table} AS p1
+                NATURAL JOIN (
+                    SELECT {key_column}, MAX({timestamp_column}) AS timestamp
+                    FROM {self.table}
+                    GROUP BY {key_column}
+                ) AS p2
+            ORDER BY {key_column} ASC
+            '''
+        )
+
+        # For each new entry, check against most recent
+        # performance data -> only keep if it changed
+        to_keep = pd.DataFrame(columns=df.columns)
+        for i, row in df.iterrows():
+            latest_performance = find_latest_performance(
+                latest_performances, str(row[key_column]))
+            if not latest_performance or \
+                    latest_performance != tuple(
+                        row[performance_columns].tolist()):
+                to_keep.loc[i] = row
+        org_count = df[key_column].count()
+        logger.info(f"Discarded {org_count - to_keep[key_column].count()} "
+                    f"unchanged performance values out of {org_count} "
+                    f"for {self.table}")
+        return to_keep.reset_index(drop=True)
+
     def ensure_foreign_keys(
                 self,
                 df: pd.DataFrame,
