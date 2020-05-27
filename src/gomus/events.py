@@ -1,16 +1,20 @@
 import csv
 import datetime as dt
+import logging
 
 import luigi
 import pandas as pd
+import requests
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
+from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDB
-from gomus._utils.extract_customers import hash_id
+
+logger = logging.getLogger('luigi-interface')
 
 
 class EventsToDB(CsvToDb):
@@ -31,14 +35,7 @@ class ExtractEventData(DataPreparationTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.events_df = None
-        self.categories = [
-            "Öffentliche Führung",
-            "Event",
-            "Gespräch",
-            "Kinder-Workshop",
-            "Konzert",
-            "Lesung",
-            "Vortrag"]
+        self.categories = self.get_categories()
 
     def _requires(self):
         return luigi.task.flatten([
@@ -111,6 +108,34 @@ class ExtractEventData(DataPreparationTask):
 
     def float_to_datetime(self, string):
         return xldate_as_datetime(float(string), 0).date()
+
+    @staticmethod
+    def get_categories():
+        try:
+            url = 'https://barberini.gomus.de/api/v4/events/categories'
+            response = requests.get(url)
+            response.raise_for_status()
+            response_json = response.json()
+            categories = [
+                category.get('name')
+                for category in response_json.get('categories')]
+        except requests.HTTPError as e:
+            # Fetch Error and log instead of raising since this
+            # is performed during __init__, which means that scheduling
+            # the whole pipeline could fail if an error was raised here
+            logger.error(f"Unable to fetch event categories!"
+                         f"Using manual list as fallback. Error: {e}")
+            categories = [
+                "Event",
+                "Gespräch",
+                "Kinder-Workshop",
+                "Konzert",
+                "Lesung",
+                "Öffentliche Führung",
+                "Vortrag"
+            ]
+        categories.sort()
+        return categories
 
 
 class FetchCategoryReservations(DataPreparationTask):

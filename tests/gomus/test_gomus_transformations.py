@@ -307,15 +307,8 @@ class TestEventTransformation(GomusTransformationTest):
             ExtractEventData,
             *args, **kwargs)
 
-        self.categories = [
-            "Öffentliche Führung",
-            "Event",
-            "Gespräch",
-            "Kinder-Workshop",
-            "Konzert",
-            "Lesung",
-            "Vortrag"]
-
+        self.categories = ExtractEventData.get_categories()
+        self.maxDiff = None  # TODO: remove
         self.test_data_path += 'events/'
 
     # Provide mock booking IDs to be found by querying
