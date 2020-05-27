@@ -281,6 +281,8 @@ class FetchFbPostComments(FetchFbPostDetails):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_comments(self, df):
+        invalid_count = 0
+
         # Handle each post
         for i in df.index:
             page_id, post_id = df['page_id'][i], df['post_id'][i]
@@ -313,6 +315,9 @@ class FetchFbPostComments(FetchFbPostDetails):
                    f'filter={filt}&order={order}&fields={fields}')
 
             response = try_request_multiple_times(url)
+            if response.status_code == 400:
+                invalid_count += 1
+                continue
             response_data = response.json().get('data')
 
             logger.info(f"Fetched {len(response_data)} "
@@ -333,17 +338,28 @@ class FetchFbPostComments(FetchFbPostDetails):
                 }
 
                 if comment.get('comment_count'):
-                    # Handle each reply for the comment
-                    for reply in comment['comments']['data']:
-                        yield {
-                            'comment_id': reply.get('id').split('_')[1],
-                            'page_id': str(page_id),
-                            'post_id': str(post_id),
-                            'post_date': reply.get('created_time'),
-                            'text': reply.get('message'),
-                            'is_from_museum': self.from_barberini(reply),
-                            'response_to': str(comment_id)
-                        }
+                    try:
+                        # Handle each reply for the comment
+                        for reply in comment['comments']['data']:
+                            yield {
+                                'comment_id': reply.get('id').split('_')[1],
+                                'page_id': str(page_id),
+                                'post_id': str(post_id),
+                                'post_date': reply.get('created_time'),
+                                'text': reply.get('message'),
+                                'is_from_museum': self.from_barberini(reply),
+                                'response_to': str(comment_id)
+                            }
+                    except KeyError:
+                        # Sometimes, replies become unavailable. In this case,
+                        # the Graph API returns the true 'comment_count',
+                        # but does not provide a 'comments' field anyway
+                        logger.warning(
+                            f"Failed to retrieve replies for comment "
+                            f"{comment.get('id')}")
+
+        if invalid_count:
+            logger.warning(f"Skipped {invalid_count} posts")
 
     @staticmethod
     def from_barberini(comment_json):
@@ -383,5 +399,7 @@ def try_request_multiple_times(url, **kwargs):
 
     # cause clear error instead of trying
     # to process the invalid response
-    response.raise_for_status()
+    # (except if we tried to access a foreign object)
+    if not response.ok and not response.status_code == 400:
+        response.raise_for_status()
     return response
