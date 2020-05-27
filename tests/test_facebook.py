@@ -98,7 +98,7 @@ class TestFacebookPost(DatabaseTestCase):
             return facebook.requests.Response.raise_for_status(error_mock)
 
         mock_response = MagicMock(
-            raise_for_status=error_raiser)
+            ok=False, raise_for_status=error_raiser)
 
         requests_get_mock.return_value = mock_response
 
