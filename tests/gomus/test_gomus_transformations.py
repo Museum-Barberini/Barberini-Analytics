@@ -9,6 +9,7 @@ from db_test import DatabaseTestCase
 from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
+                          get_categories,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
@@ -307,7 +308,7 @@ class TestEventTransformation(GomusTransformationTest):
             ExtractEventData,
             *args, **kwargs)
 
-        self.categories = ExtractEventData.get_categories()
+        self.categories = get_categories()
         self.test_data_path += 'events/'
 
     # Provide mock booking IDs to be found by querying
