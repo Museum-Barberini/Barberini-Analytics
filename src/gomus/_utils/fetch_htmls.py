@@ -1,12 +1,13 @@
 import datetime as dt
-import luigi
 import os
+import time
+
+import luigi
 import pandas as pd
 import requests
-import time
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from gomus.orders import OrdersToDB
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
@@ -64,19 +65,11 @@ class FetchBookingsHTML(DataPreparationTask):
             if self.minimal_mode:
                 bookings = bookings.head(5)
 
-        db_booking_rows = []
-
-        bookings_table_exists = self.db_connector.exists('''
-            SELECT * FROM information_schema.tables
-            WHERE table_name='gomus_booking'
-        ''')
-
         today_time = dt.datetime.today() - dt.timedelta(weeks=5)
-        if bookings_table_exists:
-            db_booking_rows = self.db_connector.query(f'''
-                SELECT booking_id FROM gomus_booking
-                WHERE start_datetime < '{today_time}'
-            ''')
+        db_booking_rows = self.db_connector.query(f'''
+            SELECT booking_id FROM gomus_booking
+            WHERE start_datetime < '{today_time}'
+        ''')
 
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
@@ -90,7 +83,7 @@ class FetchBookingsHTML(DataPreparationTask):
             if not booking_in_db:
                 booking_url = self.base_url + str(booking_id)
 
-                html_target = yield FetchGomusHTML(booking_url)
+                html_target = yield FetchGomusHTML(url=booking_url)
                 self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:
@@ -119,22 +112,14 @@ class FetchOrdersHTML(DataPreparationTask):
 
         query_limit = 'LIMIT 10' if self.minimal_mode else ''
 
-        order_contains_table_exists = self.db_connector.exists('''
-            SELECT * FROM information_schema.tables
-            WHERE table_name='gomus_order_contains'
+        order_ids = self.db_connector.query(f'''
+            SELECT a.order_id
+            FROM gomus_order AS a
+            LEFT OUTER JOIN gomus_order_contains AS b
+            ON a.order_id = b.order_id
+            WHERE ticket IS NULL
+            {query_limit}
         ''')
-
-        order_ids = self.db_connector.query(
-            f'''
-                SELECT a.order_id
-                FROM gomus_order AS a
-                LEFT OUTER JOIN gomus_order_contains AS b
-                ON a.order_id = b.order_id
-                WHERE ticket IS NULL
-                {query_limit}
-            '''
-            if order_contains_table_exists else
-            f'SELECT order_id FROM gomus_order {query_limit}')
 
         return order_ids
 
@@ -145,7 +130,7 @@ class FetchOrdersHTML(DataPreparationTask):
 
             url = self.base_url + str(self.order_ids[i])
 
-            html_target = yield FetchGomusHTML(url)
+            html_target = yield FetchGomusHTML(url=url)
             self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:

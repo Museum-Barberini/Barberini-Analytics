@@ -9,7 +9,7 @@ import xmltodict
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
@@ -45,32 +45,21 @@ class FetchAppstoreReviews(DataPreparationTask):
         country_codes = sorted(self.get_country_codes())
         if self.minimal_mode:
             random_num = random.randint(0, len(country_codes) - 2)
-
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 
-        print()
-        try:
-            for index, country_code in enumerate(country_codes, start=1):
-                print(
-                    f"\rFetching appstore reviews for {country_code} "
-                    f"({100. * (index - 1) / len(country_codes)}%)",
-                    end='',
-                    flush=True)
-                try:
-                    data_for_country = self.fetch_for_country(country_code)
-                    # check if there's data for given
-                    # country code before appending
-                    if not data_for_country.empty:
-                        data.append(data_for_country)
-                except requests.HTTPError as error:
-                    if error.response.status_code == 400:
-                        # not all countries are available
-                        pass
-                    else:
-                        raise
-        finally:
-            print()
+        for country_code in self.iter_verbose(
+                country_codes, msg='Fetching appstore reviews for {item}'):
+            try:
+                data_for_country = self.fetch_for_country(country_code)
+                if not data_for_country.empty:
+                    data.append(data_for_country)
+            except requests.HTTPError as error:
+                if error.response.status_code == 400:
+                    # not all countries are available
+                    pass
+                else:
+                    raise
         try:
             ret = pd.concat(data)
         except ValueError:

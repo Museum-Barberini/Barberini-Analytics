@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 sudo apt install default-jre
 sudo apt-get install graphviz
 curl https://jdbc.postgresql.org/download/postgresql-42.2.9.jar --output postgresql.jar
