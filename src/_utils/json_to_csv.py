@@ -1,7 +1,7 @@
 import csv
 import json
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 
 class JsonToCsv(DataPreparationTask):

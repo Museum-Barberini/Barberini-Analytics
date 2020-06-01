@@ -1,36 +1,37 @@
 import datetime as dt
 import json
-import unittest
+import re
 from unittest.mock import MagicMock, patch
 
+from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 from requests.exceptions import HTTPError
 
+from db_test import DatabaseTestCase
 import facebook
-from task_test import DatabaseTaskTest
+
+FB_TEST_DATA = 'tests/test_data/facebook'
 
 
-class TestFacebookPost(DatabaseTaskTest):
+class TestFacebookPost(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
     @patch.object(facebook.MuseumFacts, 'output')
-    def test_post_transformation(self,
-                                 fact_mock,
-                                 output_mock,
-                                 requests_get_mock):
+    def test_post_transformation(
+            self, fact_mock, output_mock, requests_get_mock):
         fact_target = MockTarget('facts_in', format=UTF8)
         fact_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
-        with open('tests/test_data/facebook/post_actual.json',
+        with open(f'{FB_TEST_DATA}/post_actual.json',
                   'r',
                   encoding='utf-8') as data_in:
             input_data = data_in.read()
 
-        with open('tests/test_data/facebook/post_expected.csv',
+        with open(f'{FB_TEST_DATA}/post_expected.csv',
                   'r',
                   encoding='utf-8') as data_out:
             expected_data = data_out.read()
@@ -46,7 +47,7 @@ class TestFacebookPost(DatabaseTaskTest):
         facebook.FetchFbPosts().run()
 
         with output_target.open('r') as output_data:
-            self.assertEqual(output_data.read(), expected_data)
+            self.assertEqual(expected_data, output_data.read())
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -57,11 +58,11 @@ class TestFacebookPost(DatabaseTaskTest):
         output_target = MockTarget('post_out', format=UTF8)
         output_mock.return_value = output_target
 
-        with open('tests/test_data/facebook/post_next.json', 'r') \
+        with open(f'{FB_TEST_DATA}/post_next.json', 'r') \
                 as next_data_in:
             next_data = next_data_in.read()
 
-        with open('tests/test_data/facebook/post_previous.json', 'r') \
+        with open(f'{FB_TEST_DATA}/post_previous.json', 'r') \
                 as previous_data_in:
             previous_data = previous_data_in.read()
 
@@ -97,7 +98,7 @@ class TestFacebookPost(DatabaseTaskTest):
             return facebook.requests.Response.raise_for_status(error_mock)
 
         mock_response = MagicMock(
-            raise_for_status=error_raiser)
+            ok=False, raise_for_status=error_raiser)
 
         requests_get_mock.return_value = mock_response
 
@@ -107,61 +108,72 @@ class TestFacebookPost(DatabaseTaskTest):
             facebook.FetchFbPosts().run()
 
 
-class TestFacebookPostPerformance(unittest.TestCase):
+class TestFacebookPostPerformance(DatabaseTestCase):
 
-    @patch('facebook.requests.get')
-    @patch.object(facebook.FetchFbPostPerformance, 'output')
-    @patch.object(facebook.FetchFbPostPerformance, 'input')
-    def test_post_performance_transformation(self,
-                                             input_mock,
-                                             output_mock,
-                                             requests_get_mock):
-
+    def prepare_post_performance_mocks(
+            self,
+            input_mock,
+            output_mock,
+            requests_get_mock,
+            actual_json):
         input_target = MockTarget('posts_in', format=UTF8)
         input_mock.return_value = input_target
         output_target = MockTarget('insights_out', format=UTF8)
         output_mock.return_value = output_target
 
         with input_target.open('w') as posts_target:
-            with open('tests/test_data/facebook/post_expected.csv',
+            with open(f'{FB_TEST_DATA}/post_expected_single.csv',
                       'r',
                       encoding='utf-8') as posts_input:
                 posts_target.write(posts_input.read())
 
-        with open('tests/test_data/facebook/post_insights_actual.json',
+        with open(f'{FB_TEST_DATA}/{actual_json}',
                   'r',
                   encoding='utf-8') as json_in:
-            input_insights = json_in.read()
+            input_json = json_in.read()
 
         def mock_json():
-            return json.loads(input_insights)
+            return json.loads(input_json)
 
         mock_response = MagicMock(ok=True, json=mock_json)
         requests_get_mock.return_value = mock_response
 
-        class MockDatetime(dt.datetime):
-            @classmethod
-            def now(cls):
-                return cls(2020, 1, 1, 0, 0, 5)
+        return output_target
 
-        tmp_datetime = dt.datetime
-
-        # Ensure dt.datetime is reset in any case
-        try:
-            dt.datetime = MockDatetime
-            facebook.FetchFbPostPerformance(
-                timespan=dt.timedelta(days=100000)).run()
-
-        finally:
-            dt.datetime = tmp_datetime
-
-        with open('tests/test_data/facebook/post_insights_expected.csv',
+    def compare_post_performance_mocks(
+            self,
+            output_target,
+            expected_csv):
+        with open(f'{FB_TEST_DATA}/{expected_csv}',
                   'r',
                   encoding='utf-8') as csv_out:
             expected_insights = csv_out.read()
 
         with output_target.open('r') as output_data:
-            self.assertEqual(output_data.read(), expected_insights)
+            self.assertEqual(expected_insights, output_data.read())
+
+    @patch('facebook.requests.get')
+    @patch.object(facebook.FetchFbPostPerformance, 'output')
+    @patch.object(facebook.FetchFbPostPerformance, 'input')
+    def test_post_performance_transformation(
+            self, input_mock, output_mock, requests_get_mock):
+
+        output_target = self.prepare_post_performance_mocks(
+            input_mock,
+            output_mock,
+            requests_get_mock,
+            'post_insights_actual.json'
+        )
+
+        with freeze_time('2020-01-01 00:00:05'):
+            self.task = facebook.FetchFbPostPerformance(
+                timespan=dt.timedelta(days=100000))
+            self.task.run()
+
+        self.compare_post_performance_mocks(
+            output_target,
+            'post_insights_expected.csv'
+        )
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostPerformance, 'output')
@@ -170,33 +182,43 @@ class TestFacebookPostPerformance(unittest.TestCase):
                                          input_mock,
                                          output_mock,
                                          requests_get_mock):
-        input_target = MockTarget('posts_in', format=UTF8)
-        input_mock.return_value = input_target
-        output_target = MockTarget('insights_out', format=UTF8)
-        output_mock.return_value = output_target
 
-        with input_target.open('w') as posts_target:
-            with open('tests/test_data/facebook/post_expected.csv',
-                      'r',
-                      encoding='utf-8') as posts_input:
-                posts_target.write(posts_input.read())
+        self.prepare_post_performance_mocks(
+            input_mock,
+            output_mock,
+            requests_get_mock,
+            'post_insights_edgecases.json'
+        )
 
-        with open('tests/test_data/facebook/post_insights_edgecases.json',
-                  'r',
-                  encoding='utf-8') as json_in:
-            edge_insights = json_in.read()
+        with freeze_time('2020-01-01 00:00:05'):
+            # The current edge case test data should cause the interpretation
+            # to fail at a very specific point (processing "react_anger")
+            with self.assertRaisesRegex(
+                    ValueError,
+                    re.escape(
+                        "invalid literal for int() with base 10: '4.4'")):
+                self.task = facebook.FetchFbPostPerformance(
+                    timespan=dt.timedelta(days=100000))
+                self.task.run()
 
-        def mock_json():
-            return json.loads(edge_insights)
+    @patch('facebook.requests.get')
+    @patch.object(facebook.FetchFbPostComments, 'output')
+    @patch.object(facebook.FetchFbPostComments, 'input')
+    def test_post_comments_transformation(
+            self, input_mock, output_mock, requests_get_mock):
 
-        mock_response = MagicMock(ok=True, json=mock_json)
-        requests_get_mock.return_value = mock_response
+        output_target = self.prepare_post_performance_mocks(
+            input_mock,
+            output_mock,
+            requests_get_mock,
+            'post_comments_actual.json'
+        )
 
-        # The current edge case test data should cause the interpretation to
-        # fail at a very specific point (processing "react_anger")
-        with self.assertRaises(ValueError) as cm:
-            facebook.FetchFbPostPerformance().run()
+        self.task = facebook.FetchFbPostComments(
+            timespan=dt.timedelta(days=100000))
+        self.task.run()
 
-        error = cm.exception
-        self.assertEqual(str(error),
-                         'invalid literal for int() with base 10: \'4.4\'')
+        self.compare_post_performance_mocks(
+            output_target,
+            'post_comments_expected.csv'
+        )

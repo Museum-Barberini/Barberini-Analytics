@@ -1,0 +1,67 @@
+# Extension files:
+#       docker-compose-enable-ssl.yml
+
+version: "3.7"
+
+services:
+    barberini_analytics_luigi:
+        container_name: ${USER}-barberini_analytics_luigi
+        hostname: ${HOSTNAME}
+        build: .
+        volumes:
+            - ..:/app
+            - /etc/barberini-analytics/secrets/secret_files:/app/secret_files
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+            - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
+        ports:
+            - "8082"
+        environment:
+            - PYTHONIOENCODING=utf-8
+            - PYTHONUNBUFFERED=1
+            - PYTHONPATH=./src/:./src/_utils/
+            # used to determine name of gplay_api container
+            - CONTAINER_USER=${USER}
+            # to control whether email notifications should be sent
+            - LUIGI_EMAIL_FORMAT=${LUIGI_EMAIL_FORMAT}
+            - OUTPUT_DIR=output  # default output folder
+            # CI variables provided by GitLab. See:
+            # http://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+            - GITLAB_CI=${GITLAB_CI}
+            - CI_PIPELINE_URL=${CI_PIPELINE_URL}
+            - CI_JOB_URL=${CI_JOB_URL}
+        env_file:
+            - /etc/barberini-analytics/secrets/keys.env
+            - /etc/barberini-analytics/secrets/database.env
+            - /etc/barberini-analytics/secrets/smtp.env
+        stdin_open: true
+        tty: true
+        networks:
+            - barberini_analytics_database_network
+
+    barberini_analytics_db:
+        container_name: barberini_analytics_db
+        image: postgres
+        restart: always
+        ports:
+            - "5432:5432"
+        env_file:
+            - /etc/barberini-analytics/secrets/database.env
+        volumes:
+            - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
+        networks:
+            - barberini_analytics_database_network
+
+    gplay_api:
+        # consider how the gplay api is called from gplay_reviews.py before
+        # renaming the container.
+        container_name: ${USER}-gplay-api
+        build:
+            dockerfile: Dockerfile_gplay_api
+            context: .
+        networks:
+            - barberini_analytics_database_network
+
+networks:
+    barberini_analytics_database_network:
+        external: true

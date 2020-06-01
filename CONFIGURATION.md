@@ -15,9 +15,12 @@ For Google Trends, the facts file contains the value `ids.google.knowledgeId`. I
 
 ## Email alerts
 
-Email alerts will be sent if any task in the luigi pipeline fails. To set up these alerts, edit the `/etc/secrets/smtp.env` file and update the following variables:
+Email alerts will be sent if any task in the luigi pipeline fails. To set up these alerts, edit the `/etc/barberini-analytics/secrets/smtp.env` file and update the following variables:
 
 - `SMTP_HOST`
 - `SMTP_PORT`
 - `SMTP_USERNAME`
 - `SMTP_PASSWORD`
+
+## TLS Encryption
+One might want to encrypt their connection to the Database, so that sensitive information is not sent in the clear via the Internet. To do this, we recommend using [LetsEncrypt](https://letsencrypt.org/), since it's free and fairly easy to set up. To allow for automatic certificate deployment, please check `scripts/setup/postgresql-deploy.sh`.

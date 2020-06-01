@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 from gomus.customers import CustomersToDB
 
@@ -28,7 +28,9 @@ class ExtractGomusBookings(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'output/gomus/bookings_prepared.csv', format=UTF8)
+            f'{self.output_dir}/gomus/bookings_prepared.csv',
+            format=UTF8
+        )
 
     def run(self):
         with next(self.input()).open('r') as bookings_file:
@@ -71,7 +73,7 @@ class ExtractGomusBookings(DataPreparationTask):
 
         bookings.columns = tuple(columns_reduced)
 
-        bookings, _ = self.ensure_foreign_keys(bookings)
+        bookings = self.ensure_foreign_keys(bookings)
 
         with self.output().open('w') as output_file:
             bookings.to_csv(output_file, header=True, index=False)

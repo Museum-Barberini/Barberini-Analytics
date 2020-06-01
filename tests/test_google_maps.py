@@ -1,15 +1,15 @@
 import warnings
 from unittest.mock import MagicMock
 import json
-import pandas as pd
 
 import googleapiclient.discovery
+import pandas as pd
 
+from db_test import DatabaseTestCase
 from google_maps import FetchGoogleMapsReviews
-from task_test import DatabaseTaskTest
 
 
-class TestFetchGoogleMapsReviews(DatabaseTaskTest):
+class TestFetchGoogleMapsReviews(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -47,10 +47,15 @@ class TestFetchGoogleMapsReviews(DatabaseTaskTest):
         # ----- Set up test parameters -----
         account_name = 'myaccount'
         location_name = 'mylocation'
+        place_id = 'abc456'
         all_reviews = [
-            "Wow!",
-            "The paintings are not animated",
-            "Van Gogh is dead"]
+            {'text': text, 'placeId': place_id}
+            for text in [
+                "Wow!",
+                "The paintings are not animated",
+                "Van Gogh is dead"
+            ]
+        ]
         page_size = 2
         page_token = None
         latest_page_token = None
@@ -69,7 +74,12 @@ class TestFetchGoogleMapsReviews(DatabaseTaskTest):
         locations_list_mock = MagicMock()
         locations.list.return_value = locations_list_mock
         locations_list_mock.execute.return_value = {
-            'locations': [{'name': location_name}]
+            'locations': [{
+                'name': location_name,
+                'locationKey': {
+                    'placeId': place_id
+                }
+            }]
         }
 
         reviews = MagicMock()
@@ -93,10 +103,10 @@ class TestFetchGoogleMapsReviews(DatabaseTaskTest):
         reviews_list_mock.execute.side_effect = reviews_list_execute
 
         # ----- Execute code under test ----
-        result = self.task.fetch_raw_reviews(service, page_size)
+        result_reviews = list(self.task.fetch_raw_reviews(service, page_size))
 
         # ----- Inspect result ------
-        self.assertSequenceEqual(all_reviews, result)
+        self.assertSequenceEqual(all_reviews, result_reviews)
         locations.list.assert_called_once_with(parent=account_name)
         reviews.list.assert_called_with(
             parent=location_name,
@@ -105,10 +115,11 @@ class TestFetchGoogleMapsReviews(DatabaseTaskTest):
 
     def test_extract_reviews(self):
         with open(
-            'tests/test_data/google_maps/raw_reviews.json',
-                'r',
-                encoding='utf-8') as raw_reviews_file:
-            raw_reviews = json.load(raw_reviews_file,)
+                    'tests/test_data/google_maps/raw_reviews.json',
+                    'r',
+                    encoding='utf-8'
+                ) as raw_reviews_file:
+            raw_reviews = json.load(raw_reviews_file)
         expected_extracted_reviews = pd.read_csv(
             'tests/test_data/google_maps/expected_extracted_reviews.csv')
 

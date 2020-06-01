@@ -5,18 +5,20 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 from luigi.parameter import UnknownParameterException
 
-from gomus.customers import ExtractCustomerData, ExtractGomusToCustomerMapping
+from db_test import DatabaseTestCase
+from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
+                          get_categories,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
 from gomus._utils.extract_bookings import ExtractGomusBookings
+from gomus._utils.extract_customers import ExtractCustomerData
 from gomus._utils.fetch_report import FetchEventReservations
-from task_test import DatabaseTaskTest
 
 
-class GomusTransformationTest(DatabaseTaskTest):
+class GomusTransformationTest(DatabaseTestCase):
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns
@@ -83,7 +85,9 @@ class TestCustomerTransformation(GomusTransformationTest):
             'type',
             'register_date',
             'annual_ticket',
-            'valid_mail'],
+            'valid_mail',
+            'cleansed_postal_code',
+            'cleansed_country'],
             ExtractCustomerData,
             *args, **kwargs)
 
@@ -146,20 +150,14 @@ class TestOrderTransformation(GomusTransformationTest):
     def setUp(self):
         super().setUp()
         self.db_connector.execute(
-            '''CREATE TABLE gomus_to_customer_mapping (
-                gomus_id INTEGER,
-                customer_id INTEGER
-            )''',
+            '''
+                INSERT INTO gomus_customer
+                VALUES (100)
+            ''',
             '''
                 INSERT INTO gomus_to_customer_mapping
                 VALUES (117899, 100)
-            '''
-        )
-
-    def tearDown(self):
-        self.db_connector.execute(
-            'DROP TABLE gomus_to_customer_mapping')
-        super().tearDown()
+            ''')
 
     @patch.object(ExtractOrderData, 'output')
     @patch.object(ExtractOrderData, 'input')
@@ -310,37 +308,19 @@ class TestEventTransformation(GomusTransformationTest):
             ExtractEventData,
             *args, **kwargs)
 
-        self.categories = [
-            "Öffentliche Führung",
-            "Event",
-            "Gespräch",
-            "Kinder-Workshop",
-            "Konzert",
-            "Lesung",
-            "Vortrag"]
-
+        self.categories = get_categories()
         self.test_data_path += 'events/'
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
         super().setUp()
-        self.db_connector.execute(
-            '''CREATE TABLE gomus_booking (
-                booking_id INTEGER,
-                category VARCHAR(255),
-                start_datetime TIMESTAMP
-            )''',
-            f'''INSERT INTO gomus_booking VALUES (
-                0,
-                'Öffentliche Führung',
-                '{dt.datetime.today()}')
-            '''
-        )
-
-    def tearDown(self):
-        self.db_connector.execute(
-            'DROP TABLE gomus_booking')
-        super().tearDown()
+        self.db_connector.execute(f'''INSERT INTO gomus_booking VALUES (
+            0,  DEFAULT,
+            'Öffentliche Führung',
+            DEFAULT, DEFAULT, DEFAULT,
+            DEFAULT, DEFAULT, DEFAULT,
+            '{dt.datetime.today()}',
+            DEFAULT, DEFAULT)''')
 
     @patch.object(ExtractEventData, 'output')
     @patch.object(ExtractEventData, 'input')

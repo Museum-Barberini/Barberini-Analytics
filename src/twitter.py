@@ -1,31 +1,20 @@
 import datetime as dt
-import json
+from pytz import utc
 
 import luigi
-import os
 import pandas as pd
 import twitterscraper as ts
 from luigi.format import UTF8
+import tzlocal
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
 class TweetsToDB(CsvToDb):
 
-    table = "tweet"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("tweet_id", "TEXT"),
-        ("text", "TEXT"),
-        ("response_to", "TEXT"),
-        ("post_date", "DATE"),
-        ("is_from_barberini", "BOOL")
-    ]
-
-    primary_key = 'tweet_id'
+    table = 'tweet'
 
     def requires(self):
         return ExtractTweets()
@@ -33,40 +22,15 @@ class TweetsToDB(CsvToDb):
 
 class TweetPerformanceToDB(CsvToDb):
 
-    table = "tweet_performance"
-
-    columns = [
-        ("tweet_id", "TEXT"),
-        ("likes", "INT"),
-        ("retweets", "INT"),
-        ("replies", "INT"),
-        ("timestamp", "TIMESTAMP")
-    ]
-
-    primary_key = ('tweet_id', 'timestamp')
-
-    foreign_keys = [
-        {
-            "origin_column": "tweet_id",
-            "target_table": "tweet",
-            "target_column": "tweet_id"
-        }
-    ]
+    table = 'tweet_performance'
 
     def requires(self):
-        return ExtractTweetPerformance(foreign_keys=self.foreign_keys)
+        return ExtractTweetPerformance(table=self.table)
 
 
 class TweetAuthorsToDB(CsvToDb):
 
-    table = "tweet_author"
-
-    columns = [
-        ("user_id", "TEXT"),
-        ("user_name", "TEXT")
-    ]
-
-    primary_key = "user_id"
+    table = 'tweet_author'
 
     def requires(self):
         return LoadTweetAuthors()
@@ -97,18 +61,15 @@ class ExtractTweets(DataPreparationTask):
             'text',
             'response_to',
             'post_date']
-        df['is_from_barberini'] = df['user_id'] == self.museum_user_id()
         df = df.drop_duplicates()
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
     def output(self):
-        return luigi.LocalTarget("output/twitter/tweets.csv", format=UTF8)
-
-    def museum_user_id(self):
-        with self.input()[0].open('r') as facts_file:
-            facts = json.load(facts_file)
-        return facts['ids']['twitter']['userId']
+        return luigi.LocalTarget(
+            f'{self.output_dir}/twitter/tweets.csv',
+            format=UTF8
+        )
 
 
 class ExtractTweetPerformance(DataPreparationTask):
@@ -125,21 +86,23 @@ class ExtractTweetPerformance(DataPreparationTask):
     def run(self):
         with self.input().open('r') as input_file:
             df = pd.read_csv(input_file)
+
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
-
-        df, _ = self.ensure_foreign_keys(df)
+        df = self.ensure_foreign_keys(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
     def output(self):
         return luigi.LocalTarget(
-            "output/twitter/tweet_performance.csv", format=UTF8)
+            f'{self.output_dir}/twitter/tweet_performance.csv',
+            format=UTF8
+        )
 
 
-class FetchTwitter(luigi.Task):
+class FetchTwitter(DataPreparationTask):
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
@@ -148,12 +111,13 @@ class FetchTwitter(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'output/twitter/raw_tweets.csv'),
-            format=UTF8)
+            f'{self.output_dir}/twitter/raw_tweets.csv',
+            format=UTF8
+        )
 
     def run(self):
         timespan = self.timespan
-        if os.environ['MINIMAL'] == 'True':
+        if self.minimal_mode:
             timespan = dt.timedelta(days=0)
 
         tweets = ts.query_tweets(
@@ -173,6 +137,13 @@ class FetchTwitter(luigi.Task):
                 'retweets',
                 'replies'])
         df = df.drop_duplicates(subset=["tweet_id"])
+
+        # timestamp is utc by default
+        df['timestamp'] = df['timestamp'].apply(
+            lambda utc_dt:
+            utc.localize(utc_dt, is_dst=None).astimezone(
+                tzlocal.get_localzone()))
+
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 

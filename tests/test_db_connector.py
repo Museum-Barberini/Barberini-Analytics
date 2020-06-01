@@ -1,12 +1,13 @@
 import os
-import psycopg2
 import time
 
+import psycopg2
+
 from db_connector import DbConnector
-from task_test import DatabaseTaskTest
+from db_test import DatabaseTestCase
 
 
-class TestDbConnector(DatabaseTaskTest):
+class TestDbConnector(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -39,18 +40,22 @@ class TestDbConnector(DatabaseTaskTest):
                 ''')
 
     def tearDown(self):
-        self.connection.set_isolation_level(0)
-        with self.connection as conn:
-            with conn.cursor() as cur:
-                cur.execute(f'DROP TABLE {self.temp_table}')
-        self.connection.close()
-
-        super().tearDown()
+        try:
+            self.connection.close()
+        finally:
+            super().tearDown()
 
     def test_query(self):
 
-        res = self.connector.query(f'SELECT * FROM {self.temp_table}')
-        self.assertEqual(res, [(1, 2), (3, 4)])
+        rows = self.connector.query(f'SELECT * FROM {self.temp_table}')
+        self.assertEqual(rows, [(1, 2), (3, 4)])
+
+    def test_query_with_header(self):
+
+        rows, columns = self.connector.query_with_header(
+            f'SELECT * FROM {self.temp_table}')
+        self.assertEqual([(1, 2), (3, 4)], rows)
+        self.assertSequenceEqual(['col1', 'col2'], columns)
 
     def test_execute(self):
 
@@ -100,6 +105,20 @@ class TestDbConnector(DatabaseTaskTest):
             WHERE col1 = 10
         ''')
 
+        self.assertFalse(exists)
+
+    def test_exists_table_case_true(self):
+
+        exists = self.connector.exists_table(self.temp_table)
+        self.assertTrue(exists)
+
+    def test_exists_table_case_false(self):
+
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'DROP TABLE {self.temp_table}')
+
+        exists = self.connector.exists_table(self.temp_table)
         self.assertFalse(exists)
 
     def test_error_is_raised_on_bad_table_name(self):
