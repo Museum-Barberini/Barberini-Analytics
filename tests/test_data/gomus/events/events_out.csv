@@ -1,6 +1,4 @@
 event_id,booking_id,customer_id,reservation_count,order_date,status,category
-1001,1000,908131457,10,1899-12-31,Gebucht,Öffentliche Führung
-1003,1002,-1641723203,15,1900-01-01,Storniert,Öffentliche Führung
 2001,2000,-1699354973,20,1900-01-02,Gebucht,Event
 2003,2002,-1743279147,25,1900-01-03,Storniert,Event
 3001,3000,-624498276,30,1900-01-04,Gebucht,Gespräch
@@ -13,3 +11,5 @@ event_id,booking_id,customer_id,reservation_count,order_date,status,category
 6003,6002,222989177,65,1900-01-11,Storniert,Lesung
 7001,7000,-107558958,70,1900-01-12,Gebucht,Vortrag
 7003,7002,-972559974,75,1900-01-13,Storniert,Vortrag
+1001,1000,908131457,10,1899-12-31,Gebucht,Öffentliche Führung
+1003,1002,-1641723203,15,1900-01-01,Storniert,Öffentliche Führung
