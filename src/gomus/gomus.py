@@ -1,3 +1,6 @@
+# TODO remove this 
+import datetime as dt
+
 import luigi
 
 from gomus.bookings import BookingsToDB
@@ -14,10 +17,23 @@ class GomusToDb(luigi.WrapperTask):
     light_mode = luigi.BoolParameter(
         description=("If enabled, expensive tasks won't be run"
                      " (activate this when the go~mus servers have stress)"),
-        default=True  # currently, the go~mus servers do have stress
+        default=False
     )
 
     def requires(self):
+
+        # START TODO: remove this tomorrow
+        yield BookingsToDB(timespan='_1month')
+        yield CustomersToDB(today=dt.datetime.today() - dt.timedelta(weeks=1))
+        yield CustomersToDB(today=dt.datetime.today() - dt.timedelta(weeks=2))
+        yield GomusToCustomerMappingToDB(
+            today=dt.datetime.today() - dt.timedelta(weeks=1))
+        yield GomusToCustomerMappingToDB(
+            today=dt.datetime.today() - dt.timedelta(weeks=2))
+        yield OrdersToDB(today=dt.datetime.today() - dt.timedelta(weeks=1))
+        yield OrdersToDB(today=dt.datetime.today() - dt.timedelta(weeks=2))
+        # END
+
         yield DailyEntriesToDB()
         yield ExhibitionTimesToDb()
         yield ExpectedDailyEntriesToDB()

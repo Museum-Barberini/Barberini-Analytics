@@ -22,6 +22,7 @@ REPORT_IDS = {
     'entries_1day': 1262,
 
     'bookings_7days': 0,
+    'bookings_1month': -3,
     'bookings_nextYear': -5,
     'bookings_nextWeek': -6,
     'bookings_all': -11,
@@ -35,6 +36,8 @@ def parse_timespan(timespan, today=dt.datetime.today()):
     if timespan == '7days':
         # grab everything from yesterday till a week before
         start_time = end_time - dt.timedelta(weeks=1)
+    elif timespan == '1month':
+         start_time = end_time - dt.timedelta(days=30)
     elif timespan == '1year':
         start_time = end_time - dt.timedelta(days=365)
     elif timespan == '1day':
