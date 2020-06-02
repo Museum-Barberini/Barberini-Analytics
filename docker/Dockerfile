@@ -16,8 +16,8 @@ ARG INSTALL='apt-get install -qq --no-install-recommends'
 # Install utilities
 RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
-# Optional tools for dev experience:
-RUN $INSTALL less nano vim
+# Optional tools for dev experience
+RUN $INSTALL bash-completion less nano vim
 
 # Install postgresql
 RUN wget --quiet --no-check-certificate -O - \
@@ -58,7 +58,13 @@ RUN pip3 install -r requirements.txt
 
 # Install required nltk resource
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
-RUN python3 -c "import nltk; nltk.download('punkt')"
+
+# Enable bash completion for dev experience
+RUN cat /etc/bash.bashrc | stdbuf -o`wc -c < /etc/bash.bashrc` python3 -c \
+  'import regex, sys; print(regex.sub(\
+    r"(?<=# enable bash completion in interactive shells\n(?:#.*\n)*)#(.*)",\
+    r"\1",\
+    sys.stdin.read()))' > /etc/bash.bashrc
 
 # Clean up everything
 RUN apt-get clean all
