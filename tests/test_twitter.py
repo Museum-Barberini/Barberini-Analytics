@@ -118,10 +118,10 @@ class TestExtractTweetPerformance(DatabaseTestCase):
     def test_extract_tweet_performance(self, output_mock, raw_tweets_mock):
         self.db_connector.execute(
             f'''
-            INSERT INTO tweet VALUES
-                (null, 1234567890123456789, null, null, '2020-01-01 00:00'),
-                (null, 111111111111111111, null, null, '2020-01-01 00:00'),
-                (null, 2222222222222222222, null, null, '2020-01-01 00:00')
+            INSERT INTO tweet (tweet_id) VALUES
+                ('1234567890123456789'),
+                ('111111111111111111'),
+                ('2222222222222222222')
             '''
         )
         output_target = MockTarget('perform_extracted_out', format=UTF8)
