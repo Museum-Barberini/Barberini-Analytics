@@ -18,6 +18,8 @@ from db_connector import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
+logging.basicConfig(level=logging.INFO)
+
 
 @contextmanager
 def enforce_luigi_notifications(format):
@@ -155,9 +157,13 @@ class DatabaseTestCase(unittest.TestCase):
 
     def setup_database(self):
         # Generate "unique" database name
+        outer_db = os.environ['POSTGRES_DB']
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
             id=id(self))
+        self.addCleanup(
+            lambda: os.environ['POSTGRES_DB'].update(POSTGRES_DB=outer_db)
+        )
         # Create database
         _perform_query(f'''
                 CREATE DATABASE {os.environ['POSTGRES_DB']}
@@ -205,7 +211,8 @@ class DatabaseTestCase(unittest.TestCase):
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
 
-    def run_task(self, task: luigi.Task):
+    @staticmethod
+    def run_task(task: luigi.Task):
         """
         Run task and all its dependencies synchronously.
         This is probably some kind of reinvention of the wheel,
