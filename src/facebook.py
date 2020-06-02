@@ -164,7 +164,8 @@ class FetchFbPostPerformance(FetchFbPostDetails):
         for index in self.iter_verbose(
                 df.index,
                 msg="Fetching performance data for FB post {index}/{size}"):
-            page_id, post_id = df['page_id'][index], df['post_id'][index]
+            page_id, post_id = \
+                str(df['page_id'][index]), str(df['post_id'][index])
             fb_post_id = f'{page_id}_{post_id}'
             post_date = self.post_date(df, index)
             if post_date < self.minimum_relevant_date:
@@ -193,7 +194,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             response_content = response.json()
 
             post_perf = {
-                'time_stamp': current_timestamp,
+                'timestamp': current_timestamp,
             }
 
             # Reactions
@@ -241,10 +242,15 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             logger.warning(f"Skipped {invalid_count} posts")
 
         df = pd.DataFrame(performances)
+
+        # For some reason, all except the first set of performance
+        # values get inserted twice into the performances list.
+        # This could be due to a bug in iter_verbose, though it's uncertain.
+        # TODO: Investigate and fix the root cause, this is a workaround
+        df.drop_duplicates(subset='post_id', inplace=True, ignore_index=True)
+
         df = self.filter_fkey_violations(df)
         df = self.condense_performance_values(df)
-
-        df = df.drop(labels='fb_post_id', axis=1)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

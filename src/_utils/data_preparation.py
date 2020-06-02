@@ -1,11 +1,11 @@
 import logging
-import pandas as pd
 import os
 import sys
 from functools import reduce
 from typing import Callable, Dict, List, Tuple
 
 import luigi
+import pandas as pd
 
 import db_connector
 
@@ -71,29 +71,6 @@ class DataPreparationTask(luigi.Task):
                 for row in db_columns
                 if row[0] not in key_columns and row[0] != timestamp_column]
 
-        def find_latest_performance(latest_performances, search_id):
-            # Assumption: 'latest_performances' is ordered
-            # according to the id -> binary search
-            if not latest_performances:
-                return None
-            no_of_entries = len(latest_performances)
-            if no_of_entries == 1:
-                if latest_performances[0][0] == search_id:
-                    return latest_performances[0][1:]
-                else:  # search_id was not found
-                    return None
-
-            half_index = no_of_entries // 2
-            half_id = latest_performances[half_index][0]
-            if half_id == search_id:
-                return latest_performances[half_index][1:]
-            if half_id > search_id:
-                return find_latest_performance(
-                    latest_performances[:half_index], search_id)
-            else:  # half_id < search_id
-                return find_latest_performance(
-                    latest_performances[half_index + 1:], search_id)
-
         if not self.table:
             # This is the case for tests
             return df
@@ -116,28 +93,44 @@ class DataPreparationTask(luigi.Task):
 
         # For each new entry, check against most recent
         # performance data -> drop if it didn't change
-        org_count = df[key_columns].count()
-        to_drop = []
-        print(latest_performances)
         latest_performance_df = pd.DataFrame(
             latest_performances, columns=[*key_columns, *performance_columns])
-        print(latest_performance_df)
 
-        print(latest_performance_df.columns)
-        print(df.columns)
+        new_suffix = '_new'
+        old_suffix = '_old'
+        merge_result = pd.merge(
+            df,
+            latest_performance_df,
+            how='left',  # keep all new data + preserve index
+            on=key_columns,
+            suffixes=(new_suffix, old_suffix))
 
-        """
-        for i, row in df.iterrows():
-            latest_performance = find_latest_performance(
-                latest_performances, str(row[key_column]))
-            if latest_performance and \
-                latest_performance == tuple(
-                    row[performance_columns].tolist()):
+        org_count = df[key_columns[0]].count()
+        to_drop = []
+        new_columns = [
+            f'{perf_col}{new_suffix}'
+            for perf_col in performance_columns]
+        old_columns = [
+            f'{perf_col}{old_suffix}'
+            for perf_col in performance_columns]
+
+        for i, row in merge_result.iterrows():
+            new_values = row[new_columns]
+            old_values = row[old_columns]
+
+            # Cut off suffixes to enable Series comparison
+            new_values.index = [
+                label[:-(len(new_suffix))]
+                for label in new_values.index]
+            old_values.index = [
+                label[:-(len(old_suffix))]
+                for label in old_values.index]
+
+            if new_values.equals(old_values):
                 to_drop.append(i)
-        """
-        logger.info(f"Discarded {org_count - df[key_columns].count()} "
-                    f"unchanged performance values out of {org_count} "
-                    f"for {self.table}")
+
+        logger.info(f"Discard {len(to_drop)} unchanged performance "
+                    f"values out of {org_count} for {self.table}")
         return df.drop(index=to_drop).reset_index(drop=True)
 
     def filter_fkey_violations(
