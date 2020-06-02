@@ -77,7 +77,7 @@ class FetchFbPosts(DataPreparationTask):
 
         # log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
         # This is currently buggy as it only prints out every second iteration
-        # Replaced with logger.info for now
+        # Replaced with logger.info for now (TODO: Fix loop_verbose)
         i = 1
         while 'next' in response_content['paging']:
             logger.info(f"Fetched approx. {i * limit} Facebook posts")
