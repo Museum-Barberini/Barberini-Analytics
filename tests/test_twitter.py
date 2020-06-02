@@ -117,7 +117,7 @@ class TestExtractTweetPerformance(DatabaseTestCase):
     @patch.object(ExtractTweetPerformance, 'output')
     def test_extract_tweet_performance(self, output_mock, raw_tweets_mock):
         self.db_connector.execute(
-            f'''
+            '''
             INSERT INTO tweet (tweet_id) VALUES
                 ('1234567890123456789'),
                 ('111111111111111111'),

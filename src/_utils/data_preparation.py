@@ -144,7 +144,6 @@ class DataPreparationTask(luigi.Task):
                     ], None] = None
             ) -> pd.DataFrame:
 
-
         """
         Note that this currently only works with lower case identifiers.
         """

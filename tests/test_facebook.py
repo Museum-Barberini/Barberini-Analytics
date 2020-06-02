@@ -158,7 +158,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
     def test_post_performance_transformation(
             self, input_mock, output_mock, requests_get_mock):
         self.db_connector.execute(
-            f'''
+            '''
             INSERT INTO fb_post (page_id, post_id) VALUES
                 (1234567890, 987654321)
             '''
