@@ -122,7 +122,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             else:
                 all_invalid_bookings.append(invalid_bookings)
 
-        bookings = self.ensure_foreign_keys(bookings, handle_invalid_bookings)
+        bookings = self.filter_fkey_violations(bookings, handle_invalid_bookings)
         # fetch invalid E-Mail addresses anew
         if all_invalid_bookings is not None:
             for invalid_booking_id in all_invalid_bookings['booking_id']:
@@ -294,7 +294,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
-        df = self.ensure_foreign_keys(df)
+        df = self.filter_fkey_violations(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)

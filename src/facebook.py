@@ -241,11 +241,11 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             logger.warning(f"Skipped {invalid_count} posts")
 
         df = pd.DataFrame(performances)
-        df = self.ensure_foreign_keys(df)
+        df = self.filter_fkey_violations(df)
         df['fb_post_id'] = df.apply(
             lambda row: str(row['page_id']) + '_' + str(row['post_id']),
             axis=1)
-        df = self.ensure_performance_change(
+        df = self.condense_performance_values(
             df,
             'fb_post_id',
             ['react_like',
@@ -307,7 +307,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         df['response_to'] = df['response_to'].apply(
             lambda x: str(x) if x else None)
 
-        df = self.ensure_foreign_keys(df)
+        df = self.filter_fkey_violations(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

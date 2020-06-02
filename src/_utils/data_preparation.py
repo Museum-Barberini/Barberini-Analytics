@@ -35,7 +35,7 @@ class DataPreparationTask(luigi.Task):
     def output_dir(self):
         return OUTPUT_DIR
 
-    def ensure_performance_change(
+    def condense_performance_values(
             self,
             df,
             key_column,
@@ -100,7 +100,7 @@ class DataPreparationTask(luigi.Task):
                     f"for {self.table}")
         return df.reset_index(drop=True)
 
-    def ensure_foreign_keys(
+    def filter_fkey_violations(
                 self,
                 df: pd.DataFrame,
                 invalid_values_handler: Callable[[

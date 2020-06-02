@@ -17,7 +17,7 @@ COLUMN_NAME_FOREIGN_2 = 'test_column_foreign_2'
 
 class TestDataPreparationTask(DatabaseTestCase):
 
-    def test_ensure_foreign_keys_one_column(self):
+    def test_filter_fkey_violations_one_column(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY,
@@ -50,7 +50,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_multiple_columns(self):
+    def test_filter_fkey_violations_multiple_columns(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN_2} TEXT,
@@ -88,7 +88,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_multiple_constraints(self):
+    def test_filter_fkey_violations_multiple_constraints(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -128,7 +128,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             ]
         )
 
-    def test_ensure_foreign_keys_one_of_multiple_constraints(self):
+    def test_filter_fkey_violations_one_of_multiple_constraints(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -166,7 +166,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_self_reference(self):
+    def test_filter_fkey_violations_self_reference(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME} (
                 {COLUMN_NAME} INT PRIMARY KEY,
@@ -191,7 +191,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_no_foreign_keys(self):
+    def test_filter_fkey_violations_no_foreign_keys(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -209,7 +209,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 index=[0, 1])
         )
 
-    def test_ensure_foreign_keys_empty_df(self):
+    def test_filter_fkey_violations_empty_df(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -225,7 +225,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             expected_valid=pd.DataFrame([], columns=[COLUMN_NAME])
         )
 
-    def test_ensure_foreign_keys_null_reference(self):
+    def test_filter_fkey_violations_null_reference(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} TEXT,
@@ -278,7 +278,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             actual_foreign_keys.append(foreign_key)
         handle_invalid_values = MagicMock(side_effect=handle_invalid_values)
 
-        actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
+        actual_df = self.task.filter_fkey_violations(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         self.assertEqual(
@@ -295,7 +295,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             self.assertEqual(expected_foreign_key, foreign_key)
         handle_invalid_values = MagicMock(side_effect=handle_invalid_values)
 
-        actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
+        actual_df = self.task.filter_fkey_violations(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_called_once()
@@ -304,12 +304,12 @@ class TestDataPreparationTask(DatabaseTestCase):
         self.task = DataPreparationTask(table=TABLE_NAME)
         handle_invalid_values = MagicMock()
 
-        actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
+        actual_df = self.task.filter_fkey_violations(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_not_called()
 
-    def test_ensure_performance_change(self):
+    def test_condense_performance_values(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME} (
                 {COLUMN_NAME} TEXT,
@@ -338,7 +338,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             columns=[COLUMN_NAME, COLUMN_NAME_2, 'timestamp'])
 
         self.task = DataPreparationTask(table=TABLE_NAME)
-        actual_df = self.task.ensure_performance_change(
+        actual_df = self.task.condense_performance_values(
             df,
             COLUMN_NAME,
             [COLUMN_NAME_2])
