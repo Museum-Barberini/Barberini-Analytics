@@ -114,19 +114,20 @@ class DataPreparationTask(luigi.Task):
             f'{perf_col}{old_suffix}'
             for perf_col in performance_columns]
 
-        for i, row in merge_result.iterrows():
-            new_values = row[new_columns]
-            old_values = row[old_columns]
+        new_values = merge_result[new_columns]
+        old_values = merge_result[old_columns]
 
-            # Cut off suffixes to enable Series comparison
-            new_values.index = [
-                label[:-(len(new_suffix))]
-                for label in new_values.index]
-            old_values.index = [
-                label[:-(len(old_suffix))]
-                for label in old_values.index]
+        # Cut off suffixes to enable Series comparison
+        new_values.columns = [
+            label[:-(len(new_suffix))]
+            for label in new_values.columns]
+        old_values.columns = [
+            label[:-(len(old_suffix))]
+            for label in old_values.columns]
 
-            if new_values.equals(old_values):
+        for i, new_row in new_values.iterrows():
+            old_row = old_values.loc[i].astype(object)
+            if new_row.equals(old_row):
                 to_drop.append(i)
 
         logger.info(f"Discard {len(to_drop)} unchanged performance "
