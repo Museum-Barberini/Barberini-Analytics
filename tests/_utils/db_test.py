@@ -158,11 +158,9 @@ class DatabaseTestCase(unittest.TestCase):
 
     def setup_database(self):
         # Generate "unique" database name
-        outer_db = os.getenv('POSTGRES_DB')
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
             id=id(self))
-        self.addCleanup(lambda: os.environ.update(POSTGRES_DB=outer_db))
         # Create database
         _perform_query(f'''
                 CREATE DATABASE {os.environ['POSTGRES_DB']}
@@ -210,7 +208,6 @@ class DatabaseTestCase(unittest.TestCase):
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
 
-    @staticmethod
     def run_task(task: luigi.Task):
         """
         Run task and all its dependencies synchronously.
