@@ -107,15 +107,12 @@ class DataPreparationTask(luigi.Task):
 
         org_count = df[key_columns[0]].count()
         to_drop = []
-        new_columns = [
+        new_values = merge_result[[
             f'{perf_col}{new_suffix}'
-            for perf_col in performance_columns]
-        old_columns = [
+            for perf_col in performance_columns]]
+        old_values = merge_result[[
             f'{perf_col}{old_suffix}'
-            for perf_col in performance_columns]
-
-        new_values = merge_result[new_columns]
-        old_values = merge_result[old_columns]
+            for perf_col in performance_columns]]
 
         # Cut off suffixes to enable Series comparison
         new_values.columns = [
@@ -126,6 +123,9 @@ class DataPreparationTask(luigi.Task):
             for label in old_values.columns]
 
         for i, new_row in new_values.iterrows():
+            # The dtypes of the DataFrames get messed up
+            # sometimes, so we cast to object for safety
+            new_row = new_row.astype(object)
             old_row = old_values.loc[i].astype(object)
             if new_row.equals(old_row):
                 to_drop.append(i)
