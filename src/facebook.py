@@ -242,10 +242,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
         df = pd.DataFrame(performances)
         df = self.filter_fkey_violations(df)
-        df['fb_post_id'] = df.apply(
-            lambda row: str(row['page_id']) + '_' + str(row['post_id']),
-            axis=1)
-        df = self.condense_performance_values(df, 'fb_post_id')
+        df = self.condense_performance_values(df)
 
         df = df.drop(labels='fb_post_id', axis=1)
 

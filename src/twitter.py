@@ -91,7 +91,7 @@ class ExtractTweetPerformance(DataPreparationTask):
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
         df = self.filter_fkey_violations(df)
-        df = self.condense_performance_values(df, 'tweet_id')
+        df = self.condense_performance_values(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

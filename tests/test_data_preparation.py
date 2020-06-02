@@ -338,6 +338,6 @@ class TestDataPreparationTask(DatabaseTestCase):
             columns=[COLUMN_NAME, COLUMN_NAME_2, 'timestamp'])
 
         self.task = DataPreparationTask(table=TABLE_NAME)
-        actual_df = self.task.condense_performance_values(df, COLUMN_NAME)
+        actual_df = self.task.condense_performance_values(df)
 
         pd.testing.assert_frame_equal(expected_df, actual_df)

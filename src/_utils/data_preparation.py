@@ -38,10 +38,26 @@ class DataPreparationTask(luigi.Task):
     def condense_performance_values(
             self,
             df,
-            key_column,
             timestamp_column='timestamp'):
 
+        def get_key_columns():
+            primary_key_columns = self.db_connector.query(
+                f'''
+                SELECT a.attname, format_type(a.atttypid, a.atttypmod)
+                    AS data_type
+                FROM   pg_index i
+                JOIN   pg_attribute a ON a.attrelid = i.indrelid
+                                    AND a.attnum = ANY(i.indkey)
+                WHERE  i.indrelid = '{self.table}'::regclass
+                AND    i.indisprimary
+                ''')
+            return [
+                row[0]
+                for row in primary_key_columns
+                if row[0] != timestamp_column]
+
         def get_performance_columns():
+            nonlocal key_columns
             # This simply returns all columns except the key
             # and timestamp columns of the target table
             db_columns = self.db_connector.query(
@@ -53,7 +69,7 @@ class DataPreparationTask(luigi.Task):
             return [
                 row[0]
                 for row in db_columns
-                if row[0] != key_column and row[0] != timestamp_column]
+                if row[0] not in key_columns and row[0] != timestamp_column]
 
         def find_latest_performance(latest_performances, search_id):
             # Assumption: 'latest_performances' is ordered
@@ -83,25 +99,34 @@ class DataPreparationTask(luigi.Task):
             return df
 
         # Read latest performance data from DB
+        key_columns = get_key_columns()
         performance_columns = get_performance_columns()
+        query_keys = ','.join(key_columns)
         latest_performances = self.db_connector.query(
             f'''
-            SELECT {key_column},{','.join(performance_columns)}
+            SELECT {query_keys},{','.join(performance_columns)}
             FROM {self.table} AS p1
                 NATURAL JOIN (
-                    SELECT {key_column}, MAX({timestamp_column}) AS timestamp
+                    SELECT {query_keys}, MAX({timestamp_column}) AS timestamp
                     FROM {self.table}
-                    GROUP BY {key_column}
+                    GROUP BY {query_keys}
                 ) AS p2
-            ORDER BY {key_column} ASC
             '''
         )
 
         # For each new entry, check against most recent
         # performance data -> drop if it didn't change
-        org_count = df[key_column].count()
-
+        org_count = df[key_columns].count()
         to_drop = []
+        print(latest_performances)
+        latest_performance_df = pd.DataFrame(
+            latest_performances, columns=[*key_columns, *performance_columns])
+        print(latest_performance_df)
+
+        print(latest_performance_df.columns)
+        print(df.columns)
+
+        """
         for i, row in df.iterrows():
             latest_performance = find_latest_performance(
                 latest_performances, str(row[key_column]))
@@ -109,8 +134,8 @@ class DataPreparationTask(luigi.Task):
                 latest_performance == tuple(
                     row[performance_columns].tolist()):
                 to_drop.append(i)
-
-        logger.info(f"Discarded {org_count - df[key_column].count()} "
+        """
+        logger.info(f"Discarded {org_count - df[key_columns].count()} "
                     f"unchanged performance values out of {org_count} "
                     f"for {self.table}")
         return df.drop(index=to_drop).reset_index(drop=True)
