@@ -123,7 +123,7 @@ class DataPreparationTask(luigi.Task):
                 label[:-len(new_suffix)]
                 for label in new_values.index]
             old_values.index = [
-                label[:-(len(old_suffix))]
+                label[:-len(old_suffix)]
                 for label in old_values.index]
 
             if new_values.equals(old_values):
