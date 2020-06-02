@@ -6,7 +6,7 @@ from luigi.contrib.postgres import CopyToTable
 from psycopg2.errors import UndefinedTable
 
 import db_connector
-from data_preparation_task import minimal_mode
+from data_preparation import minimal_mode
 
 logger = logging.getLogger('luigi-interface')
 

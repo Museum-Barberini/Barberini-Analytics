@@ -2,7 +2,7 @@ import csv
 import json
 import jstyleson
 
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 
 class JsonToCsv(DataPreparationTask):

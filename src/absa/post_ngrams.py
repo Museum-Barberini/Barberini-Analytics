@@ -4,7 +4,7 @@ import luigi.format
 import pandas as pd
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from query_db import QueryDb
 from .post_words import PostWordsToDb
 from .stopwords import StopwordsToDb
@@ -91,7 +91,7 @@ class CollectPostNgrams(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/post_ngrams.csv',
+            'output/absa/post_ngrams.csv',
             format=luigi.format.UTF8)
 
     def run(self):

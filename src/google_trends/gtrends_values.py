@@ -7,7 +7,7 @@ import psycopg2
 from luigi.contrib.external_program import ExternalProgramTask
 
 from csv_to_db import CsvToDb
-from data_preparation_task import OUTPUT_DIR
+from data_preparation import OUTPUT_DIR
 from db_connector import db_connector
 from google_trends.gtrends_topics import GtrendsTopics
 from json_converters import JsonToCsv

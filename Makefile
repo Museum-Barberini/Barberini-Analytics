@@ -6,42 +6,48 @@
 
 SHELL := /bin/bash
 SSL_CERT_DIR := /var/barberini-analytics/db-data
-
+DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
 
 # ------ For use outside of containers ------
 
 # --- To manage docker ---
 
-# Start the container luigi. Also start the container db if it is not already running.
-# If the container db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
-startup:
-	if [[ $$(docker-compose ps --filter status=running --services) != "db" ]]; then\
-		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-	 		docker-compose -f docker-compose.yml -f docker-compose-enable-ssl.yml up --build -d --no-recreate db;\
-		else\
-	 		docker-compose -f docker-compose.yml up --build -d --no-recreate db;\
-		fi;\
-	fi
+# Start the container luigi. Also start the container barberini_analytics_db if it is not already running.
+# If the container barberini_analytics_db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
+startup: startup-db
 	# Generate custom hostname for better error logs
 	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
-		docker-compose -p ${USER} up --build -d luigi gplay_api
+		LUIGI_EMAIL_FORMAT=$$( \
+		`# Enabled luigi mails iff we are in production context.`; [[ \
+			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
+				&& echo "html" || echo "none") \
+		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+
+startup-db:
+	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
+		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
+	 		$(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
+		else\
+	 		$(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
+		fi;\
+	fi
 
 shutdown:
-	docker-compose -p ${USER} rm -sf luigi gplay_api
+	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
 
 shutdown-db:
-	docker-compose rm -sf db
+	$(DOCKER_COMPOSE) rm -sf barberini_analytics_db
 
 connect:
-	docker-compose -p ${USER} exec luigi ${SHELL}
+	$(DOCKER_COMPOSE) -p ${USER} exec barberini_analytics_luigi ${SHELL}
 
-# runs a command in the luigi container
+# runs a command in the barberini_analytics_luigi container
 # example: sudo make docker-do do='make luigi'
 docker-do:
-	docker exec -i "${USER}-luigi" bash -c "$(do)"
+	docker exec -i "${USER}-barberini_analytics_luigi" bash -c "$(do)"
 
 docker-clean-cache:
-	docker-compose -p ${USER} build --no-cache
+	$(DOCKER_COMPOSE) -p ${USER} build --no-cache
 
 
 # ------ For use inside the Luigi container ------
@@ -71,7 +77,7 @@ luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	MINIMAL=True make luigi
+	POSTGRES_DB=barberini_test MINIMAL=True make luigi
 
 # TODO: Custom output folder per test and minimal?
 output-folder:
@@ -108,19 +114,19 @@ db = barberini
 # default database for db-do
 # opens a psql shell inside the database container
 db-psql:
-	docker exec -it db psql -U postgres -d "$(db)"
+	docker exec -it barberini_analytics_db psql -U postgres -d "$(db)"
 
 # runs a command for the database in the container
 # example: sudo make db-do do='\\d'
 db-do:
-	docker exec -it db psql -U postgres -a "$(db)" -c "$(do)"
+	docker exec -it barberini_analytics_db psql -U postgres -a "$(db)" -c "$(do)"
 
 db-backup:
-	docker exec db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec barberini_analytics_db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 # Restore the database from a dump/backup
 db-restore:
-	docker exec -i db psql -U postgres barberini < $(dump)
+	docker exec -i barberini_analytics_db psql -U postgres barberini < $(dump)
 
 db-schema-report:
-	docker exec db pg_dump -U postgres -d barberini -s
+	docker exec barberini_analytics_db pg_dump -U postgres -d barberini -s

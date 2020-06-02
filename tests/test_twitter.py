@@ -9,8 +9,11 @@ from luigi.mock import MockTarget
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
 from db_test import DatabaseTestCase
 
+import unittest  # only needed for unittest.skip
 
-class TextFetchTwitter(DatabaseTestCase):
+
+@unittest.skip('Skipped while Twitterscraper is broken')
+class TestFetchTwitter(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
@@ -50,9 +53,8 @@ class TextFetchTwitter(DatabaseTestCase):
 class TestExtractTweets(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
-    @patch.object(ExtractTweets, 'museum_user_id')
     @patch.object(ExtractTweets, 'output')
-    def test_extract_tweets(self, output_mock, user_id_mock, raw_tweets_mock):
+    def test_extract_tweets(self, output_mock, raw_tweets_mock):
         output_target = MockTarget('extracted_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -68,12 +70,9 @@ class TestExtractTweets(DatabaseTestCase):
                 encoding='utf-8') as data_out:
             extracted_tweets = data_out.read()
 
-        user_id = 10000000
-
         self.install_mock_target(
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))
-        user_id_mock.return_value = user_id
 
         task = ExtractTweets()
         task.run()

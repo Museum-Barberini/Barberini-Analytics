@@ -9,7 +9,7 @@ import pandas as pd
 from oauth2client.file import Storage
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 
 logger = logging.getLogger('luigi-interface')
 
@@ -138,13 +138,14 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         ]
         total_reviews = review_list['totalReviewCount']
 
+        log_loop = self.loop_verbose(
+            msg="Fetching Google Maps page {index}/{size}",
+            size=total_reviews)
+        next(log_loop)
         review_counter = 0
-        for next_page_token in self.loop_verbose(
-                while_fun=lambda: 'nextPageToken' in review_list,
-                item_fun=lambda: review_list['nextPageToken'],
-                size=total_reviews,
-                index_fun=lambda: review_counter,
-                msg="Fetching Google Maps page {index}/{size}"):
+        while 'nextPageToken' in review_list:
+            next_page_token = review_list['nextPageToken']
+            log_loop.send(review_counter)
             """
             TODO: optimize by requesting the latest review from DB rather
             than fetching more pages once that one is found

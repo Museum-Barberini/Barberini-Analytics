@@ -5,7 +5,7 @@ import pandas as pd
 import regex
 
 from csv_to_db import CsvToDb
-from data_preparation_task import DataPreparationTask
+from data_preparation import DataPreparationTask
 from posts import PostsToDb
 from query_db import QueryDb
 
