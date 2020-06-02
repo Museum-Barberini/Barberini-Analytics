@@ -14,12 +14,20 @@ class DbConnector:
 
     def __init__(self, host, user, database, password):
         super().__init__()
-        # crucial to avoid unintended access to default postgres database
-        assert database, "Database was not specified"
         self.host = host
         self.user = user
         self.database = database
         self.password = password
+
+    @property
+    def database(self):
+        return self.__database
+
+    @database.setter
+    def database(self, database):
+        # crucial to avoid unintended access to default postgres database
+        assert database, "Database was not specified"
+        self.__database = database
 
     def execute(self, *queries: List[str]) -> List[Tuple]:
         """
