@@ -144,8 +144,6 @@ class DataPreparationTask(luigi.Task):
                     ], None] = None
             ) -> pd.DataFrame:
 
-        if not self.table:
-            raise RuntimeError("Table not set in filter_fkey_violations")
 
         """
         Note that this currently only works with lower case identifiers.
@@ -218,6 +216,9 @@ class DataPreparationTask(luigi.Task):
                 str,
                 Tuple[List[str], str, List[str]]
             ]:
+        if not self.table:
+            return {}
+
         return {
             constraint_name: (columns, foreign_table, foreign_columns)
             for [constraint_name, columns, foreign_table, foreign_columns]
