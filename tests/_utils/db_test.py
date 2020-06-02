@@ -18,8 +18,6 @@ from db_connector import db_connector
 
 logger = logging.getLogger('luigi-interface')
 
-logging.basicConfig(level=logging.INFO)
-
 
 @contextmanager
 def enforce_luigi_notifications(format):
@@ -157,7 +155,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def setup_database(self):
         # Generate "unique" database name
-        outer_db = os.environ['POSTGRES_DB']
+        outer_db = os.getenv('POSTGRES_DB')
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
             id=id(self))
