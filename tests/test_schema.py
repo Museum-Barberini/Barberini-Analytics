@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess as sp
 
-from db_test import DatabaseTestCase, db_connector, _perform_query
+from db_test import DatabaseTestCase, _perform_query
 
 logger = logging.getLogger('luigi-interface')
 
@@ -57,7 +57,7 @@ class TestSchema(DatabaseTestCase):
     def test_post_sources(self):
 
         sources = [
-            source for [source] in self.db_connector.query(f'''
+            source for [source] in self.db_connector.query('''
                 SELECT DISTINCT(source)
                 FROM post
             ''')]
@@ -75,7 +75,7 @@ class TestSchema(DatabaseTestCase):
     def test_post_unique(self):
 
         invalid_sources = {
-            source for [source, post_id, count] in self.db_connector.query(f'''
+            source for [source, post_id, count] in self.db_connector.query('''
                 SELECT source, post_id, COUNT(*)
                 FROM post
                 GROUP BY source, post_id
