@@ -63,7 +63,7 @@ luigi-scheduler:
 	${SHELL} -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
 luigi-restart-scheduler:
-	killall luigid
+	killall luigid || true
 	make luigi-scheduler
 	
 luigi:
