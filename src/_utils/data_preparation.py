@@ -71,10 +71,6 @@ class DataPreparationTask(luigi.Task):
                 for row in db_columns
                 if row[0] not in key_columns and row[0] != timestamp_column]
 
-        if not self.table:
-            # This is the case for tests
-            return df
-
         # Read latest performance data from DB
         key_columns = get_key_columns()
         performance_columns = get_performance_columns()
@@ -215,10 +211,6 @@ class DataPreparationTask(luigi.Task):
                 str,
                 Tuple[List[str], str, List[str]]
             ]:
-        if not self.table:
-            # This is the case for tests
-            return {}
-
         return {
             constraint_name: (columns, foreign_table, foreign_columns)
             for [constraint_name, columns, foreign_table, foreign_columns]
