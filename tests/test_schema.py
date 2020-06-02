@@ -19,10 +19,11 @@ class TestSchema(DatabaseTestCase):
     @classmethod
     def tearDownClass(cls):
         try:
-            os.environ['POSTGRES_DB'] = None
+            os.environ['POSTGRES_DB'] = ''
             _perform_query(f'DROP DATABASE {cls.db_name}')
         finally:
-            return super().tearDownClass()
+            result = super().tearDownClass()
+        return result
 
     @classmethod
     def setup_minimal_database(cls):
