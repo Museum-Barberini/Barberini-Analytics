@@ -84,7 +84,8 @@ class DataPreparationTask(luigi.Task):
             SELECT {query_keys},{','.join(performance_columns)}
             FROM {self.table} AS p1
                 NATURAL JOIN (
-                    SELECT {query_keys}, MAX({timestamp_column}) AS timestamp
+                    SELECT {query_keys}, MAX({timestamp_column})
+                        AS {timestamp_column}
                     FROM {self.table}
                     GROUP BY {query_keys}
                 ) AS p2
