@@ -2,11 +2,7 @@
 
 BEGIN;
 
-    -- Drop old views
-    DROP VIEW fb_post_all, social_media_post, post;
-
-    -- Create new views
-    CREATE VIEW fb_post_all AS
+    CREATE OR REPLACE VIEW fb_post_all AS
     (
         SELECT
             fb_post_id AS post_id,
@@ -15,7 +11,7 @@ BEGIN;
             text,
             TRUE AS is_from_museum,
             NULL AS response_to,
-	    FALSE AS is_comment
+        FALSE AS is_comment
         FROM fb_post
     ) UNION (
         SELECT
@@ -25,18 +21,18 @@ BEGIN;
             text,
             is_from_museum,
             response_to,
-	    TRUE AS is_comment
+        TRUE AS is_comment
         FROM fb_post_comment
     );
 
-    CREATE VIEW social_media_post AS (
+    CREATE OR REPLACE VIEW social_media_post AS (
         WITH _social_media_post AS (
             (
                 SELECT
                     CASE WHEN is_comment
                         THEN 'Facebook Comment'
-		                ELSE 'Facebook Post'
-		            END AS source,
+                        ELSE 'Facebook Post'
+                    END AS source,
                     fb_post_id AS post_id,
                     text,
                     post_date,
@@ -85,54 +81,5 @@ BEGIN;
         SELECT *, (response_to IS NOT NULL) is_response
         FROM _social_media_post
     );
-
-    CREATE VIEW post AS
-    (
-        SELECT
-            source,
-            review_id AS post_id,
-            'App Review' AS context,
-            text,
-            post_date,
-            rating,
-            FALSE AS is_from_museum,
-            FALSE AS is_response,
-            likes,
-            CAST(NULL AS int) AS comments,
-            CAST(NULL AS int) AS shares,
-            permalink
-        FROM app_review
-    ) UNION (
-        SELECT
-            source,
-            review_id AS post_id,
-            'Museum Review' AS context,
-            text,
-            post_date,
-            rating,
-            FALSE AS is_from_museum,
-            FALSE AS is_response,
-            NULL AS likes,
-            NULL AS comments,
-            NULL AS shares,
-            permalink
-        FROM museum_review
-    ) UNION (
-        SELECT
-            source,
-            post_id,
-            'Social Media' AS context,
-            text,
-            post_date,
-            NULL AS rating,
-            is_from_museum,
-            is_response,
-            likes,
-            comments,
-            shares,
-            permalink
-        FROM social_media_post
-    );
-
 
 COMMIT;
