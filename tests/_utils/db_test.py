@@ -208,7 +208,7 @@ class DatabaseTestCase(unittest.TestCase):
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
 
-    def run_task(task: luigi.Task):
+    def run_task(self, task: luigi.Task):
         """
         Run task and all its dependencies synchronously.
         This is probably some kind of reinvention of the wheel,
