@@ -55,7 +55,7 @@ class FetchGplayReviews(DataPreparationTask):
             random_num = random.randint(0, len(language_codes) - 2)
             language_codes = list({
                 *language_codes[random_num:random_num + 2],
-                'de'
+                'de'  # make sure we do not get zero reviews
             })
 
         reviews_nested = [
