@@ -87,18 +87,19 @@ class DataPreparationTask(luigi.Task):
         # performance data -> drop if it didn't change
         org_count = df[key_column].count()
 
+        to_drop = []
         for i, row in df.iterrows():
             latest_performance = find_latest_performance(
                 latest_performances, str(row[key_column]))
             if latest_performance and \
                 latest_performance == tuple(
                     row[performance_columns].tolist()):
-                df.drop(axis=0, index=i, inplace=True)
+                to_drop.append(i)
 
         logger.info(f"Discarded {org_count - df[key_column].count()} "
                     f"unchanged performance values out of {org_count} "
                     f"for {self.table}")
-        return df.reset_index(drop=True)
+        return df.drop(index=to_drop).reset_index(drop=True)
 
     def filter_fkey_violations(
                 self,
