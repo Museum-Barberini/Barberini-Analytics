@@ -120,7 +120,7 @@ class DataPreparationTask(luigi.Task):
 
             # Cut off suffixes to enable Series comparison
             new_values.index = [
-                label[:-(len(new_suffix))]
+                label[:-len(new_suffix)]
                 for label in new_values.index]
             old_values.index = [
                 label[:-(len(old_suffix))]
