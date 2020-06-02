@@ -5,7 +5,8 @@ from facebook import FbPostsToDB, FbPostCommentsToDB, FbPostPerformanceToDB
 from google_maps import GoogleMapsReviewsToDB
 from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
 from instagram import IgToDBWrapper, IgPostPerformanceToDB
-from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
+# TODO: disabled while twitterscraper is broken
+# from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
 
 
 class PostsToDb(luigi.WrapperTask):
@@ -22,8 +23,9 @@ class PostsToDb(luigi.WrapperTask):
         yield GoogleMapsReviewsToDB()
         yield GooglePlaystoreReviewsToDB()
         yield IgToDBWrapper()
-        yield TweetAuthorsToDB()
-        yield TweetsToDB()
+        # TODO: disabled while twitterscraper is broken
+        # yield TweetAuthorsToDB()
+        # yield TweetsToDB()
 
         if self.fetch_performance:
             yield PostPerformanceToDb()
@@ -34,4 +36,5 @@ class PostPerformanceToDb(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDB()
         yield IgPostPerformanceToDB()
-        yield TweetPerformanceToDB()
+        # TODO: disabled while twitterscraper is broken
+        # yield TweetPerformanceToDB()
