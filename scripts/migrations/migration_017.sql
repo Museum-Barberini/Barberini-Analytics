@@ -1,9 +1,4 @@
-/** Revise posts schema (!186)
-  * Add column role to tweet_author (#236)
-  * Revise and unify is_from_barberini (#236)
-  * Integrate facebook comments into views (#239)
-  * Fix bugs in performance views (#223, #238)
-  */
+-- Differentiate between FB posts and FB comments (!188)
 
 BEGIN;
 
@@ -20,7 +15,7 @@ BEGIN;
             text,
             TRUE AS is_from_museum,
             NULL AS response_to,
-	    false as is_comment
+	    FALSE AS is_comment
         FROM fb_post
     ) UNION (
         SELECT
@@ -30,7 +25,7 @@ BEGIN;
             text,
             is_from_museum,
             response_to,
-	    true as is_comment
+	    TRUE AS is_comment
         FROM fb_post_comment
     );
 
@@ -38,9 +33,10 @@ BEGIN;
         WITH _social_media_post AS (
             (
                 SELECT
-                    CASE WHEN is_comment THEN 'Facebook Comment'
-		         ELSE 'Facebook Post'
-		    END AS source,
+                    CASE WHEN is_comment
+                        THEN 'Facebook Comment'
+		                ELSE 'Facebook Post'
+		            END AS source,
                     fb_post_id AS post_id,
                     text,
                     post_date,
@@ -54,7 +50,6 @@ BEGIN;
                     permalink
                 FROM fb_post_all
                 NATURAL LEFT JOIN fb_post_rich
-
             ) UNION (
                 SELECT
                     'Instagram' AS source,
