@@ -19,7 +19,7 @@ class TestSchema(DatabaseTestCase):
     @classmethod
     def tearDownClass(cls):
         try:
-            os.environ['POSTGRES_DB'] = ''
+            os.environ['POSTGRES_DB_TEMPLATE'] = cls.outer_template_name
             _perform_query(f'DROP DATABASE {cls.db_name}')
         finally:
             result = super().tearDownClass()
@@ -27,10 +27,11 @@ class TestSchema(DatabaseTestCase):
 
     @classmethod
     def setup_minimal_database(cls):
-        os.environ.update(POSTGRES_DB=cls.db_name)
+        cls.outer_template_name = os.getenv('POSTGRES_DB_TEMPLATE')
+        os.environ.update(POSTGRES_DB_TEMPLATE=cls.db_name)
         _perform_query(f'''
-            CREATE DATABASE {os.environ['POSTGRES_DB']}
-            TEMPLATE {os.environ['POSTGRES_DB_TEMPLATE']}
+            CREATE DATABASE {os.environ['POSTGRES_DB_TEMPLATE']}
+            TEMPLATE {cls.outer_template_name}
         ''')
         logger.info("Fetching posts in minimal pipeline mode")
         sp.run(
@@ -43,6 +44,7 @@ class TestSchema(DatabaseTestCase):
             '''.split(),
             env=dict(
                 os.environ,
+                POSTGRES_DB=cls.db_name,
                 MINIMAL=str(True),
                 OUTPUT_DIR=f'output_{cls.db_name}'
             )
@@ -51,13 +53,6 @@ class TestSchema(DatabaseTestCase):
             ALTER DATABASE {cls.db_name}
             SET default_transaction_read_only = true;
         ''')
-
-    def setup_database(self):
-        # Do nothing here, database has been prepared in setUpClass
-        pass
-
-        # Instantiate connector
-        self.db_connector = db_connector()
 
     def test_post_sources(self):
 
