@@ -161,9 +161,7 @@ class DatabaseTestCase(unittest.TestCase):
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
             id=id(self))
-        self.addCleanup(
-            lambda: os.environ['POSTGRES_DB'].update(POSTGRES_DB=outer_db)
-        )
+        self.addCleanup(lambda: os.environ.update(POSTGRES_DB=outer_db))
         # Create database
         _perform_query(f'''
                 CREATE DATABASE {os.environ['POSTGRES_DB']}
