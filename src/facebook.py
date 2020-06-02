@@ -245,26 +245,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
         df['fb_post_id'] = df.apply(
             lambda row: str(row['page_id']) + '_' + str(row['post_id']),
             axis=1)
-        df = self.condense_performance_values(
-            df,
-            'fb_post_id',
-            ['react_like',
-             'react_love',
-             'react_wow',
-             'react_haha',
-             'react_sorry',
-             'react_anger',
-             'likes',
-             'shares',
-             'comments',
-             'video_clicks',
-             'link_clicks',
-             'other_clicks',
-             'negative_feedback',
-             'paid_impressions',
-             'post_impressions',
-             'post_impressions_unique']
-        )
+        df = self.condense_performance_values(df, 'fb_post_id')
 
         df = df.drop(labels='fb_post_id', axis=1)
 

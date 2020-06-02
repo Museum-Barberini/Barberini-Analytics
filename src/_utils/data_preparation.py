@@ -39,8 +39,21 @@ class DataPreparationTask(luigi.Task):
             self,
             df,
             key_column,
-            performance_columns,
             timestamp_column='timestamp'):
+
+        def get_performance_columns():
+            # This simply returns all columns except the key
+            # and timestamp columns of the target table
+            db_columns = self.db_connector.query(
+                f'''
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = \'{self.table}\'
+                ''')
+            return [
+                row[0]
+                for row in db_columns
+                if row[0] != key_column and row[0] != timestamp_column]
 
         def find_latest_performance(latest_performances, search_id):
             # Assumption: 'latest_performances' is ordered
@@ -70,6 +83,7 @@ class DataPreparationTask(luigi.Task):
             return df
 
         # Read latest performance data from DB
+        performance_columns = get_performance_columns()
         latest_performances = self.db_connector.query(
             f'''
             SELECT {key_column},{','.join(performance_columns)}
