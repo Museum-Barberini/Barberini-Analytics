@@ -37,7 +37,7 @@ def parse_timespan(timespan, today=dt.datetime.today()):
         # grab everything from yesterday till a week before
         start_time = end_time - dt.timedelta(weeks=1)
     elif timespan == '1month':
-         start_time = end_time - dt.timedelta(days=30)
+        start_time = end_time - dt.timedelta(days=30)
     elif timespan == '1year':
         start_time = end_time - dt.timedelta(days=365)
     elif timespan == '1day':
