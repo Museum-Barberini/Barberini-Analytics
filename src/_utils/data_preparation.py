@@ -71,6 +71,9 @@ class DataPreparationTask(luigi.Task):
                 for row in db_columns
                 if row[0] not in key_columns and row[0] != timestamp_column]
 
+        if not self.table:
+            raise RuntimeError("Table not set in condense_performance_values")
+
         # Read latest performance data from DB
         key_columns = get_key_columns()
         performance_columns = get_performance_columns()
@@ -140,6 +143,10 @@ class DataPreparationTask(luigi.Task):
                         pd.DataFrame
                     ], None] = None
             ) -> pd.DataFrame:
+
+        if not self.table:
+            raise RuntimeError("Table not set in filter_fkey_violations")
+
         """
         Note that this currently only works with lower case identifiers.
         """
