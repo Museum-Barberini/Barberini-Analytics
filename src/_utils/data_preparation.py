@@ -119,10 +119,10 @@ class DataPreparationTask(luigi.Task):
 
         # Cut off suffixes to enable Series comparison
         new_values.columns = [
-            label[:-(len(new_suffix))]
+            label[:-len(new_suffix)]
             for label in new_values.columns]
         old_values.columns = [
-            label[:-(len(old_suffix))]
+            label[:-len(old_suffix)]
             for label in old_values.columns]
 
         for i, new_row in new_values.iterrows():
