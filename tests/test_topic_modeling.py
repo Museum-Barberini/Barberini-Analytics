@@ -125,7 +125,7 @@ class TestPreprocessing(DatabaseTestCase):
             output[1].tokens, ['weitere', 'weitere', 'toll'])
 
 
-class TestFindTopics(TestCase):
+class TestFindTopics(DatabaseTestCase):
 
     @patch.object(TopicModelingFindTopics, 'output')
     @patch.object(TopicModelingPreprocessCorpus, 'output')
