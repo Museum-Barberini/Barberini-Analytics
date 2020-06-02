@@ -85,9 +85,12 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
 
         with enforce_luigi_notifications(format='html'):
             django_renderer = self.load_django_renderer()
+            unsuccessful_count = len(ChainMap({}, *unsuccessful.values()))
             luigi.notifications.send_error_email(
-                subject=f"🐞 These {len(ChainMap({}, *unsuccessful.values()))} "
-                        "tests failed on our nightly CI pipeline you won't "
+                subject=f"\N{bug}" f'''{"This 1 test"
+                            if unsuccessful_count == 1
+                            else f"These {unsuccessful_count} tests"}'''
+                        "failed on our nightly CI pipeline you won't "
                         "believe!",
                 message=django_renderer(
                     'data/strings/long_stage_failure_email.html',
@@ -155,9 +158,11 @@ class DatabaseTestCase(unittest.TestCase):
 
     def setup_database(self):
         # Generate "unique" database name
+        outer_db = os.getenv('POSTGRES_DB')
         os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
             clazz=self.__class__.__name__.lower(),
             id=id(self))
+        self.addCleanup(lambda: os.environ.update(POSTGRES_DB=outer_db))
         # Create database
         _perform_query(f'''
                 CREATE DATABASE {os.environ['POSTGRES_DB']}
@@ -205,7 +210,8 @@ class DatabaseTestCase(unittest.TestCase):
             with mock_target.open('r') as input_file:
                 output_file.write(input_file.read())
 
-    def run_task(self, task: luigi.Task):
+    @staticmethod
+    def run_task(task: luigi.Task):
         """
         Run task and all its dependencies synchronously.
         This is probably some kind of reinvention of the wheel,
