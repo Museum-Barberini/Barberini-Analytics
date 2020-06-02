@@ -19,7 +19,7 @@ from gomus._utils.fetch_report import FetchEventReservations
 
 
 class GomusTransformationTest(DatabaseTestCase):
-    def __init__(self, columns, task, *args, **kwargs):
+    def __init__(self, columns, task, table, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns
         self.task = task
@@ -118,7 +118,7 @@ class TestCustomerTransformation(GomusTransformationTest):
             output_mock,
             'customers_in.csv')
 
-        self.execute_task()
+        self.execute_task(table='gomus_to_customer_mapping')
 
         self.check_result(
             output_target,
@@ -170,7 +170,7 @@ class TestOrderTransformation(GomusTransformationTest):
             output_mock,
             'orders_in.csv')
 
-        self.execute_task()
+        self.execute_task(table='gomus_order')
 
         self.check_result(output_target, 'orders_out.csv')
 
@@ -214,7 +214,7 @@ class TestBookingTransformation(GomusTransformationTest):
             output_mock,
             'bookings_in.csv')
 
-        self.execute_task()
+        self.execute_task(table='gomus_booking')
 
         self.check_result(
             output_target,
@@ -228,7 +228,7 @@ class TestBookingTransformation(GomusTransformationTest):
             output_mock,
             'bookings_empty_in.csv')
 
-        self.execute_task()
+        self.execute_task(table='gomus_booking')
 
         self.check_result(
             output_target,
@@ -335,7 +335,7 @@ class TestEventTransformation(GomusTransformationTest):
 
         output_target = self.prepare_output_target(output_mock)
 
-        self.execute_task()
+        self.execute_task(table='gomus_event')
 
         self.check_result(
             output_target,
@@ -349,7 +349,7 @@ class TestEventTransformation(GomusTransformationTest):
             output_mock,
             'events_empty_in.csv')
 
-        self.execute_task()
+        self.execute_task(table='gomus_event')
 
         self.check_result(
             output_target,
