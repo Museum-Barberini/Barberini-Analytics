@@ -1,13 +1,24 @@
 {
+	"'Allgemein'":
+		/*
+		Diese Kategorie ist wichtig, damit allgemeine Nennungen des Museums
+		nicht fälschlicherweise mit Hashtags wie #monetbarberini assoziert
+		werden.
+		*/
+		["Barberini", "Museum Barberini"],
 	"Ausstellungen": {
-		"Van Gogh. Stillleben": ["van Gogh", "Gogh", "Stillleben", "Stilleben"],
-		"Monet. Orte": ["Claude Monet", "Seerosen", "Heuhaufen"],
+		"Picasso": ["Pablo Picasso", "#picassobarberini"],
+		"Van Gogh": ["van Gogh", "Gogh", "Stillleben", "Stilleben", "#vangoghbarberini", "#vangogh"],
+		"Monet": ["Claude Monet", "Seerosen", "Heuhaufen", "#claudemonet", "#monetbarberini"],
 		"'Künstler aus der DDR'": ["DDR",
 			"Gudrun Brüne", "Hartwig Ebersbach", "Günter Firit", "Albrecht Gehse", "Ulrich Hachulla", "Rolf Händler", "Bernhard Heisig", "Johannes Heisig", "Ralf Kerbach", "Walter Libuda", "Werner Liebmann", "Wolfgang Mattheuer", "Harald Metzkes", "Roland Nicolaus", "Stefan Plenkers", "Arno Rink", "Willi Sitte", "Erika Stürmer-Alex", "Werner Tübke"],
 		"Wege des Barock": ["Barock", "Palazzo Barberini", "Corsini",
-			"Caravaggio", "Narziss"]
+			"Caravaggio", "Narziss", "#barockbarberini"],
+		"Gerhard Richter": []
 	},
-	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone"],
+	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp"],
 	"Ticketsystem": ["ticket", "Ticketkauf", "Onlineshop"],
-	"Gebäude": ["Architektur", "Räumlichkeiten", "Treppen", "Aufzug", "Fahrstuhl", "Fassade", "Etage", "Geschoss"]
+	"Gebäude": ["Architektur", "Räume", "Räumlichkeiten", "Treppen", "Aufzug", "Fahrstuhl", "Fassade", "Etage", "Geschoss"],
+	"Gastronomie": ["Café", "essen", "Kaffee", "Kuchen"],
+	"Corona": ["covid-19", "Coronavirus", "sars-cov-2", "#closedbutopen", "#flattenthecurve", "#museumfromhome"]
 }
