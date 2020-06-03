@@ -416,8 +416,8 @@ class Doc:
             return langdetect.detect(self.text)
         except langdetect.lang_detect_exception.LangDetectException as e:
             # langdetect can not handle emoji-only and link-only texts
-            logger.warning(f'langdetect failed for one Doc. Error: {e}')
-            logger.info(f'Failure happened for Doc {self.to_dict()}')
+            logger.debug(f'langdetect failed for one Doc. Error: {e}')
+            logger.debug(f'Failure happened for Doc {self.to_dict()}')
 
     def to_dict(self):
         return {
