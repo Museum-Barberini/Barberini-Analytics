@@ -13,7 +13,7 @@ class PostAspectsToDb(CsvToDb):
     table = 'absa.post_aspect'
 
     def requires(self):
-        return CollectPostAspects()
+        return CollectPostAspects(table=self.table)
 
 
 class CollectPostAspects(MergeCsv):
@@ -24,8 +24,8 @@ class CollectPostAspects(MergeCsv):
     """
 
     def requires(self):
-        yield CollectPostAspectsTrigram()
-        yield CollectPostAspectsLevenshtein()
+        yield CollectPostAspectsTrigram(table=self.table)
+        yield CollectPostAspectsLevenshtein(table=self.table)
 
     def output(self):
         return luigi.LocalTarget(
@@ -48,20 +48,23 @@ class CollectPostAspectsAlgorithm(QueryDb):
     @property
     def query(self):
         return f'''
-            WITH best_matches AS (
-                SELECT
-                    source, post_id, word_index,
-                    {self.aggregate_query} {self.match_name}
-                FROM
-                    absa.post_word
-                        NATURAL JOIN post,
-                    absa.target_aspect_word,
-                    {self.value_query} {self.match_name}
-                WHERE
-                    {self.filter_query}
-                GROUP BY
-                    source, post_id, word_index
-            )
+            WITH
+                known_post_ids AS (SELECT post_id FROM {self.table}),
+                best_matches AS (
+                    SELECT
+                        source, post_id, word_index,
+                        {self.aggregate_query} {self.match_name}
+                    FROM
+                        absa.post_word
+                            NATURAL JOIN post,
+                        absa.target_aspect_word,
+                        {self.value_query} {self.match_name}
+                    WHERE
+                        post_id NOT IN (SELECT * FROM known_post_ids)
+                        AND {self.filter_query}
+                    GROUP BY
+                        source, post_id, word_index
+                )
             SELECT DISTINCT
                 source, post_id, word_index, aspect_id,
                 MIN(target_aspect_word.word) AS aspect_word,  -- just any
