@@ -16,7 +16,7 @@ ARG INSTALL='apt-get install -qq --no-install-recommends'
 # Install utilities
 RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
-# Optional tools for dev experience
+# Optional tools for best dev convenience
 RUN $INSTALL bash-completion less nano vim
 
 # Install postgresql
@@ -59,7 +59,10 @@ RUN pip3 install -r requirements.txt
 # Install required nltk resource
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
 
-# Enable bash completion for dev experience
+# Enable bash completion for best dev convenience
+# The following command uncomments a section in the bash.bashrc file which is
+# responsible for activating the application-specific autocomplete feature of
+# bash.
 RUN cat /etc/bash.bashrc | stdbuf -o`wc -c < /etc/bash.bashrc` python3 -c \
   'import regex, sys; print(regex.sub(\
     r"(?<=# enable bash completion in interactive shells\n(?:#.*\n)*)#(.*)",\
