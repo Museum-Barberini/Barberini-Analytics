@@ -7,8 +7,8 @@ ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN (apt-get upgrade -y --no-install-recommends apt-utils 3>&2 2>&1 1>&3 | \
-  (grep -v 'debconf: .*apt-utils is not installed' || true)) 3>&2 2>&1 1>&3
+RUN apt-get upgrade -y --no-install-recommends apt-utils 2>&1 \
+  | grep -v 'debconf: .*apt-utils is not installed'
 
 ARG INSTALL='apt-get install -qq --no-install-recommends'
 
