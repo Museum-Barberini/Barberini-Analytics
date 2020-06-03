@@ -23,6 +23,7 @@ id_*
 __pycache__/
 *.py[cod]
 *$py.class
+*.exe
 
 ## Distribution / packaging
 .Python
