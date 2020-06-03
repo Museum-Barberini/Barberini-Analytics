@@ -8,6 +8,7 @@ from db_test import DatabaseTestCase
 TABLE_NAME = 'test_table'
 COLUMN_NAME = 'test_column'
 COLUMN_NAME_2 = 'test_column_2'
+
 TABLE_NAME_FOREIGN = 'test_table_foreign'
 TABLE_NAME_FOREIGN_2 = 'test_table_foreign_2'
 COLUMN_NAME_FOREIGN = 'test_column_foreign'
@@ -16,7 +17,7 @@ COLUMN_NAME_FOREIGN_2 = 'test_column_foreign_2'
 
 class TestDataPreparationTask(DatabaseTestCase):
 
-    def test_ensure_foreign_keys_one_column(self):
+    def test_filter_fkey_violations_one_column(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY,
@@ -32,7 +33,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 0, 'z'
             )'''
         )
-        self.assertEnsureForeignKeysOnce(
+        self.assertFilterFkeyViolationsOnce(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -49,7 +50,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_multiple_columns(self):
+    def test_filter_fkey_violations_multiple_columns(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN_2} TEXT,
@@ -68,7 +69,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b', 1)
             '''
         )
-        self.assertEnsureForeignKeysOnce(
+        self.assertFilterFkeyViolationsOnce(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -87,7 +88,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_multiple_constraints(self):
+    def test_filter_fkey_violations_multiple_constraints(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -105,7 +106,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)''',
             f'''INSERT INTO {TABLE_NAME_FOREIGN_2} VALUES ('a')'''
         )
-        self.assertEnsureForeignKeys(
+        self.assertFilterFkeyViolations(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -127,7 +128,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             ]
         )
 
-    def test_ensure_foreign_keys_one_of_multiple_constraints(self):
+    def test_filter_fkey_violations_one_of_multiple_constraints(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -148,7 +149,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b')
             '''
         )
-        self.assertEnsureForeignKeysOnce(
+        self.assertFilterFkeyViolationsOnce(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -165,7 +166,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_self_reference(self):
+    def test_filter_fkey_violations_self_reference(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME} (
                 {COLUMN_NAME} INT PRIMARY KEY,
@@ -173,7 +174,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'''INSERT INTO {TABLE_NAME} VALUES (0, NULL)'''
         )
-        self.assertEnsureForeignKeysOnce(
+        self.assertFilterFkeyViolationsOnce(
             df=pd.DataFrame(
                 [[2, 1], [4, 3], [1, 0]],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -190,7 +191,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def test_ensure_foreign_keys_no_foreign_keys(self):
+    def test_filter_fkey_violations_no_foreign_keys(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -208,7 +209,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 index=[0, 1])
         )
 
-    def test_ensure_foreign_keys_empty_df(self):
+    def test_filter_fkey_violations_empty_df(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
@@ -224,7 +225,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             expected_valid=pd.DataFrame([], columns=[COLUMN_NAME])
         )
 
-    def test_ensure_foreign_keys_null_reference(self):
+    def test_filter_fkey_violations_null_reference(self):
         self.db_connector.execute(
             f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
                 {COLUMN_NAME_FOREIGN} TEXT,
@@ -242,7 +243,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 'a', 'A'
             )'''
         )
-        self.assertEnsureForeignKeysOnce(
+        self.assertFilterFkeyViolationsOnce(
             df=pd.DataFrame(
                 [
                     ['a', 'A'], ['a', 'b'], [None, 'A'], [None, 'B'],
@@ -267,7 +268,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
-    def assertEnsureForeignKeys(
+    def assertFilterFkeyViolations(
             self, df, expected_valid, expected_foreign_keys):
         self.task = DataPreparationTask(table=TABLE_NAME)
 
@@ -277,7 +278,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             actual_foreign_keys.append(foreign_key)
         handle_invalid_values = MagicMock(side_effect=handle_invalid_values)
 
-        actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
+        actual_df = self.task.filter_fkey_violations(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         self.assertEqual(
@@ -285,7 +286,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             handle_invalid_values.call_count)
         self.assertCountEqual(expected_foreign_keys, actual_foreign_keys)
 
-    def assertEnsureForeignKeysOnce(
+    def assertFilterFkeyViolationsOnce(
             self, df, expected_valid, expected_invalid, expected_foreign_key):
         self.task = DataPreparationTask(table=TABLE_NAME)
 
@@ -294,7 +295,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             self.assertEqual(expected_foreign_key, foreign_key)
         handle_invalid_values = MagicMock(side_effect=handle_invalid_values)
 
-        actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
+        actual_df = self.task.filter_fkey_violations(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_called_once()
@@ -303,7 +304,98 @@ class TestDataPreparationTask(DatabaseTestCase):
         self.task = DataPreparationTask(table=TABLE_NAME)
         handle_invalid_values = MagicMock()
 
-        actual_df = self.task.ensure_foreign_keys(df, handle_invalid_values)
+        actual_df = self.task.filter_fkey_violations(df, handle_invalid_values)
 
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_not_called()
+
+    def test_condense_performance_values(self):
+        timestamp_column = 'timestamp_name'
+        self.db_connector.execute(
+            f'''CREATE TABLE {TABLE_NAME} (
+                {COLUMN_NAME} TEXT,
+                {COLUMN_NAME_2} INT,
+                {timestamp_column} TIMESTAMP,
+                PRIMARY KEY ({COLUMN_NAME}, {timestamp_column})
+            )''',
+            f'''INSERT INTO {TABLE_NAME} VALUES
+                ('0', 1, '2020-05-01 00:00:00'),
+                ('0', 2, '2020-05-02 00:00:00'),
+                ('1', 2, '2020-05-01 00:00:00'),
+                ('1', 2, '2020-05-02 00:00:00'),
+                ('2', 4, '2020-05-01 00:00:00')
+            '''
+        )
+
+        df = pd.DataFrame([
+            ['0', 3, '2020-05-03 00:00:00'],
+            ['1', 2, '2020-05-03 00:00:00'],
+            ['2', 3, '2020-05-03 00:00:00']],
+            columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
+
+        expected_df = pd.DataFrame([
+            ['0', 3, '2020-05-03 00:00:00'],
+            ['2', 3, '2020-05-03 00:00:00']],
+            columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
+
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        actual_df = self.task.condense_performance_values(
+            df,
+            timestamp_column=timestamp_column)
+
+        pd.testing.assert_frame_equal(expected_df, actual_df)
+
+    def test_input_df_is_unchanged_filter_fkey_violations(self):
+        self.db_connector.execute(
+            f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
+                {COLUMN_NAME_FOREIGN} INT PRIMARY KEY,
+                {COLUMN_NAME_FOREIGN_2} TEXT
+            )''',
+            f'''CREATE TABLE {TABLE_NAME} (
+                {COLUMN_NAME} INT
+                    REFERENCES {TABLE_NAME_FOREIGN}
+                    ({COLUMN_NAME_FOREIGN}),
+                {COLUMN_NAME_2} TEXT
+            )''',
+            f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (
+                0, 'z'
+            )'''
+        )
+
+        df = pd.DataFrame(
+            [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
+            columns=[COLUMN_NAME, COLUMN_NAME_2])
+        df_copy = df.copy()
+
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        self.task.filter_fkey_violations(df)
+        pd.testing.assert_frame_equal(df, df_copy)
+
+    def test_input_df_is_unchanged_condense_performance_values(self):
+        timestamp_column = 'timestamp'
+        self.db_connector.execute(
+            f'''CREATE TABLE {TABLE_NAME} (
+                {COLUMN_NAME} TEXT,
+                {COLUMN_NAME_2} INT,
+                {timestamp_column} TIMESTAMP,
+                PRIMARY KEY ({COLUMN_NAME}, timestamp)
+            )''',
+            f'''INSERT INTO {TABLE_NAME} VALUES
+                ('0', 1, '2020-05-01 00:00:00'),
+                ('0', 2, '2020-05-02 00:00:00'),
+                ('1', 2, '2020-05-01 00:00:00'),
+                ('1', 2, '2020-05-02 00:00:00'),
+                ('2', 4, '2020-05-01 00:00:00')
+            '''
+        )
+
+        df = pd.DataFrame([
+            ['0', 3, '2020-05-03 00:00:00'],
+            ['1', 2, '2020-05-03 00:00:00'],
+            ['2', 3, '2020-05-03 00:00:00']],
+            columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
+
+        df_copy = df.copy()
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        self.task.condense_performance_values(df)
+        pd.testing.assert_frame_equal(df, df_copy)
