@@ -47,18 +47,6 @@ class CollectPostAspectsAlgorithm(QueryDb):
 
     @property
     def query(self):
-        """ return f'''
-            SELECT DISTINCT
-                source, post_id, word_index, aspect_id,
-                aspect_word.word AS aspect_word,
-                '{self.algorithm}' AS algorithm
-            FROM
-                absa.post_word post_word
-                    NATURAL JOIN post,
-                absa.target_aspect_word aspect_word
-                    NATURAL JOIN absa.target_aspect,
-                {self.inner_query}
-        ''' """
         return f'''
             WITH best_matches AS (
                 SELECT
@@ -120,13 +108,6 @@ class CollectPostAspectsLevenshtein(CollectPostAspectsAlgorithm):
     algorithm = 'levenshtein'
 
     threshold = 2 / 9
-
-    """
-    inner_query = f'''
-        levenshtein(post_word.word, target_aspect_word.word) diff
-        WHERE diff::real / length(post_word.word) <= {threshold}
-    '''
-    """
 
     @property
     def aggregate_query(self):
