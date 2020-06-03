@@ -14,10 +14,11 @@ class GomusToDb(luigi.WrapperTask):
     light_mode = luigi.BoolParameter(
         description=("If enabled, expensive tasks won't be run"
                      " (activate this when the go~mus servers have stress)"),
-        default=True  # currently, the go~mus servers do have stress
+        default=False
     )
 
     def requires(self):
+
         yield DailyEntriesToDB()
         yield ExhibitionTimesToDb()
         yield ExpectedDailyEntriesToDB()

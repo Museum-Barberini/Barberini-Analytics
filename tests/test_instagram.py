@@ -126,7 +126,8 @@ class TestInstagram(DatabaseTestCase):
                     column[0]
                     for column
                     in instagram.IgPostPerformanceToDB().columns],
-                timespan=dt.timedelta(days=100000))
+                timespan=dt.timedelta(days=100000),
+                table='ig_post_performance')
             self.task.run()
 
     @patch('instagram.try_request_multiple_times')
