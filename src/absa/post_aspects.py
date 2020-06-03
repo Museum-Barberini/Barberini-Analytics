@@ -2,7 +2,7 @@ import luigi
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from data_preparation import MergeCsv
+from data_preparation import ConcatCsv
 from query_db import QueryDb
 from .post_words import PostWordsToDb
 from .target_aspects import TargetAspectsToDb
@@ -16,7 +16,7 @@ class PostAspectsToDb(CsvToDb):
         return CollectPostAspects(table=self.table)
 
 
-class CollectPostAspects(MergeCsv):
+class CollectPostAspects(ConcatCsv):
     """
     TODO: Drop topological ancestors ("Ausstellungen" if there is
     also "Ausstellungen/van Gogh")
