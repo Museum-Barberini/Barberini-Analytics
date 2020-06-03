@@ -73,7 +73,7 @@ class ExtractEventData(DataPreparationTask):
                         "Storniert" if i % 2 else "Gebucht",
                         category)
 
-        self.events_df = self.ensure_foreign_keys(self.events_df)
+        self.events_df = self.filter_fkey_violations(self.events_df)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
