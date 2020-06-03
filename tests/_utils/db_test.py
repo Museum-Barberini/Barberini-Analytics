@@ -213,9 +213,10 @@ class DatabaseTestCase(unittest.TestCase):
     @staticmethod
     def run_task(task: luigi.Task):
         """
-        Run task and all its dependencies synchronously.
+        Run the task and all its dependencies synchronously.
         This is probably some kind of reinvention of the wheel,
         but I don't know how to do this better.
+        Note that this approach does not support dynamic dependencies.
         """
         all_tasks = Queue()
         all_tasks.put(task)
@@ -231,6 +232,26 @@ class DatabaseTestCase(unittest.TestCase):
                 all_tasks.put(next_requirement)
         for requirement in list(dict.fromkeys(requirements)):
             requirement.run()
+
+    @staticmethod
+    def run_task_externally(task_class: luigi.task_register.Register):
+        """
+        Run the task and all its dependencies in an external process.
+        In contrast to run_task(), this isolates the execution from all
+        installed mocking stuff, coverage detection etc. Also, luigi's
+        native scheduler is used.
+        """
+        sp.run(
+            check=True,
+            args=f'''make
+                luigi-restart-scheduler
+                luigi-clean
+                luigi-task
+                    LMODULE={task_class.__module__}
+                    LTASK={task_class.__name__}
+                luigi-clean
+            '''.split()
+        )
 
 
 """
