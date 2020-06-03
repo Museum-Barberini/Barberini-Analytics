@@ -93,7 +93,7 @@ class FetchAppstoreReviews(DataPreparationTask):
 
         if not data_list:
             # no reviews for the given country code
-            logger.warning(f"Empty data for country {country_code}")
+            logger.debug(f"Empty data for country {country_code}")
 
         result = pd.DataFrame(data_list)
         result['country_code'] = country_code

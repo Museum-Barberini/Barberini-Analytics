@@ -27,7 +27,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
     hash_seed = 666
 
     @patch.object(EnhanceBookingsWithScraper, 'fetch_updated_mail')
-    @patch.object(EnhanceBookingsWithScraper, 'ensure_foreign_keys')
+    @patch.object(EnhanceBookingsWithScraper, 'filter_fkey_violations')
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')

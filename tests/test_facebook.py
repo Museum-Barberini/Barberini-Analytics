@@ -157,7 +157,12 @@ class TestFacebookPostPerformance(DatabaseTestCase):
     @patch.object(facebook.FetchFbPostPerformance, 'input')
     def test_post_performance_transformation(
             self, input_mock, output_mock, requests_get_mock):
-
+        self.db_connector.execute(
+            '''
+            INSERT INTO fb_post (page_id, post_id) VALUES
+                (1234567890, 987654321)
+            '''
+        )
         output_target = self.prepare_post_performance_mocks(
             input_mock,
             output_mock,
@@ -167,7 +172,8 @@ class TestFacebookPostPerformance(DatabaseTestCase):
 
         with freeze_time('2020-01-01 00:00:05'):
             self.task = facebook.FetchFbPostPerformance(
-                timespan=dt.timedelta(days=100000))
+                timespan=dt.timedelta(days=100000),
+                table='fb_post_performance')
             self.task.run()
 
         self.compare_post_performance_mocks(
@@ -198,7 +204,8 @@ class TestFacebookPostPerformance(DatabaseTestCase):
                     re.escape(
                         "invalid literal for int() with base 10: '4.4'")):
                 self.task = facebook.FetchFbPostPerformance(
-                    timespan=dt.timedelta(days=100000))
+                    timespan=dt.timedelta(days=100000),
+                    table='fb_post_performance')
                 self.task.run()
 
     @patch('facebook.requests.get')
@@ -215,7 +222,8 @@ class TestFacebookPostPerformance(DatabaseTestCase):
         )
 
         self.task = facebook.FetchFbPostComments(
-            timespan=dt.timedelta(days=100000))
+            timespan=dt.timedelta(days=100000),
+            table='fb_post_comments')
         self.task.run()
 
         self.compare_post_performance_mocks(
