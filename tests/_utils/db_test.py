@@ -236,7 +236,7 @@ class DatabaseTestCase(unittest.TestCase):
         """
         We need to bypass MockFileSystem for accessing the file from node.js
         """
-        
+
         with open(mock_target.path, 'w') as output_file:
             self.dirty_file_paths.append(mock_target.path)
             with mock_target.open('r') as input_file:
