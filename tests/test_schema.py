@@ -28,7 +28,7 @@ class TestSchema(DatabaseTestCase):
     @classmethod
     def setup_minimal_database(cls):
         cls.outer_template_name = os.getenv('POSTGRES_DB_TEMPLATE')
-        os.environ.update(POSTGRES_DB_TEMPLATE=cls.db_name)
+        os.environ['POSTGRES_DB_TEMPLATE'] = cls.db_name
         _perform_query(f'''
             CREATE DATABASE {os.environ['POSTGRES_DB_TEMPLATE']}
             TEMPLATE {cls.outer_template_name}
