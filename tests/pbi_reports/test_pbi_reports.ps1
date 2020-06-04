@@ -51,7 +51,7 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
 }
 
 
-$reports = Get-ChildItem power_bi/*.pbi?
+$reports = Get-ChildItem power_bi/*.pbit
 $tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
 mkdir -Force output/test_pbi | Out-Null
 
