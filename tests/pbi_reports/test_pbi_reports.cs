@@ -29,6 +29,8 @@ namespace MuseumBarberini.Analytics.Tests
 
         public bool HasFailed { get; private set; }
 
+        public string ResultReason { get; private set; }
+
         protected static Bitmap[] FailureIcons = Directory.GetFiles(
                 Path.Combine(Directory.GetCurrentDirectory(), "tests/pbi_reports"),
                 "pbi_failure*.bmp"
@@ -59,16 +61,22 @@ namespace MuseumBarberini.Analytics.Tests
             });
 
         public void Check()
-            => _logExceptions(() => _check(
-                handlePass: () => {
-                    System.Threading.Thread.Sleep(LoadDelay);
-                    _check(
-                        handlePass: () => HasPassed = true,
-                        handleFail: () => HasFailed = false
-                    );
-                },
-                handleFail: () => HasFailed = true
-            ));
+            => _logExceptions(() => {
+                void handleFail(string reason) {
+                    HasFailed = true;
+                    ResultReason = reason;
+                }
+                _check(
+                    handlePass: () => {
+                        System.Threading.Thread.Sleep(LoadDelay);
+                        _check(
+                            handlePass: () => HasPassed = true,
+                            handleFail: handleFail
+                        );
+                    },
+                    handleFail: handleFail
+                );
+            });
         
         public void Stop()
             => _logExceptions(() => {
@@ -84,9 +92,9 @@ namespace MuseumBarberini.Analytics.Tests
             return $"PBI Report Test: {Path.GetFileName(Report)}";
         }
 
-        private void _check(Action handlePass, Action handleFail) {
+        private void _check(Action handlePass, Action<string> handleFail) {
             if (Process.HasExited) {
-                handleFail();
+                handleFail("Power BI has unexpectedly terminated");
                 return;
             }
 
@@ -96,11 +104,11 @@ namespace MuseumBarberini.Analytics.Tests
             if (windows.Count == 1 && windows[0].Title.EndsWith(" - Power BI Desktop"))
                 handlePass();
             else if (!windows.Any(window => string.IsNullOrWhiteSpace(window.Title)))
-                handleFail();
+                handleFail("Power BI did not open any valid window");
             else if (FailureIcons.Any(icon =>
                 windows.Any(window =>
                     window.DisplaysIcon(icon))))
-                handleFail();
+                handleFail("Power BI showed an error while loading the report");
         }
 
         private void _logExceptions(Action action) {

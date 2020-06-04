@@ -39,6 +39,9 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
                 return
             } elseif ($test.HasFailed) {
                 Write-Error "❌ FAILED: $test"
+                if ($test.ResultReason) {
+                    Write-Error $test.ResultReason
+                }
                 $global:failures++
                 return
             }
