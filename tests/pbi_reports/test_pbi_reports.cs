@@ -45,19 +45,21 @@ namespace MuseumBarberini.Analytics.Tests
             LoadDelay = loadDelay;
         }
 
-        public void Start() {
-            Process = new Process {
-                StartInfo = {
-                    FileName = Desktop,
-                    Arguments = $"\"{Report}\""
-                }
-            };
-            Process.Start();
+        public void Start()
+            => _logExceptions(() => {
+                Process = new Process {
+                    StartInfo = {
+                        FileName = Desktop,
+                        Arguments = $"\"{Report}\""
+                    }
+                };
+                Process.Start();
 
-            Snapshot = new PbiProcessSnapshot(Process);
-        }
+                Snapshot = new PbiProcessSnapshot(Process);
+            });
 
-        public void Check() => _check(
+        public void Check()
+            => _logExceptions(() => _check(
                 handlePass: () => {
                     System.Threading.Thread.Sleep(LoadDelay);
                     _check(
@@ -66,20 +68,17 @@ namespace MuseumBarberini.Analytics.Tests
                     );
                 },
                 handleFail: () => HasFailed = true
-            );
+            ));
         
-        public void Stop() {
-            Process.Kill();
-        }
+        public void Stop()
+            => _logExceptions(() => {
+                Process.Kill();
+            });
 
-        public void SaveResults(string path) {
-            try {
+        public void SaveResults(string path)
+            => _logExceptions(() => {
                 Snapshot.SaveArtifacts(Path.Combine(path, Path.GetFileNameWithoutExtension(Report)));
-            } catch (Exception e) {
-                Console.Error.WriteLine(e);
-                throw;
-            }
-        }
+            });
 
         public override string ToString() {
             return $"PBI Report Test: {Path.GetFileName(Report)}";
@@ -102,6 +101,15 @@ namespace MuseumBarberini.Analytics.Tests
                 windows.Any(window =>
                     window.DisplaysIcon(icon))))
                 handleFail();
+        }
+
+        private void _logExceptions(Action action) {
+            try {
+                action();
+            } catch (Exception ex) {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
     }
 
