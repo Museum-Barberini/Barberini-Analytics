@@ -8,7 +8,6 @@ stages:
   - build
   - test
   - analyze
-  - test-frontend
 
 build:
   stage: build
@@ -46,7 +45,7 @@ minimal-mining-pipeline:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
 test-pbi-reports:
-  stage: test-frontend
+  stage: test
   only:
     variables:
       - $FULL_TEST
