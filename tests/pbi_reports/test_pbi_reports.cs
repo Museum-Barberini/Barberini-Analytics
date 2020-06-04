@@ -23,17 +23,26 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public string Desktop { get; }
 
+        public TimeSpan LoadDelay { get; }
+
         public bool HasPassed { get; private set; }
 
         public bool HasFailed { get; private set; }
 
+        protected static Bitmap[] FailureIcons = Directory.GetFiles(
+                Path.Combine(Directory.GetCurrentDirectory(), "tests/pbi_reports"),
+                "pbi_failure*.bmp"
+            ).Select(file => new Bitmap(file)
+            ).ToArray();
+
         protected Process Process { get; private set; }
         
         protected PbiProcessSnapshot Snapshot { get; private set; }
-
-        public PbiReportTestCase(string report, string desktop) {
+        
+        public PbiReportTestCase(string report, string desktop, TimeSpan loadDelay) {
             Report = report;
             Desktop = desktop;
+            LoadDelay = loadDelay;
         }
 
         public void Start() {
@@ -44,33 +53,55 @@ namespace MuseumBarberini.Analytics.Tests
                 }
             };
             Process.Start();
-            
-            Console.WriteLine("Am I printed?");
+
             Snapshot = new PbiProcessSnapshot(Process);
         }
 
-        public void Check() {
+        public void Check() => _check(
+                handlePass: () => {
+                    System.Threading.Thread.Sleep(LoadDelay);
+                    _check(
+                        handlePass: () => HasPassed = true,
+                        handleFail: () => HasFailed = false
+                    );
+                },
+                handleFail: () => HasFailed = true
+            );
+        
+        public void Stop() {
+            Process.Kill();
+        }
+
+        public void SaveResults(string path) {
+            try {
+                Snapshot.SaveArtifacts(Path.Combine(path, Path.GetFileNameWithoutExtension(Report)));
+            } catch (Exception e) {
+                Console.Error.WriteLine(e);
+                throw;
+            }
+        }
+
+        public override string ToString() {
+            return $"PBI Report Test: {Path.GetFileName(Report)}";
+        }
+
+        private void _check(Action handlePass, Action handleFail) {
             if (Process.HasExited) {
-                HasFailed = true;
+                handleFail();
                 return;
             }
 
             Snapshot.Update();
 
             var windows = Snapshot.Windows.ToList();
-            Console.WriteLine("windows={0}", windows.Select(win => win.Title));
             if (windows.Count == 1 && windows[0].Title.EndsWith(" - Power BI Desktop"))
-                HasPassed = true;
+                handlePass();
             else if (!windows.Any(window => string.IsNullOrWhiteSpace(window.Title)))
-                HasFailed = true;
-        }
-
-        public void Stop() {
-            Process.Kill();
-        }
-
-        public void SaveResults(string path) {
-            Snapshot.SaveArtifacts(Path.Combine(path, Path.GetFileNameWithoutExtension(Report)));
+                handleFail();
+            else if (FailureIcons.Any(icon =>
+                windows.Any(window =>
+                    window.DisplaysIcon(icon))))
+                handleFail();
         }
     }
 
@@ -95,16 +126,21 @@ namespace MuseumBarberini.Analytics.Tests
         }
 
         public void SaveArtifacts(string path) {
+            Directory.CreateDirectory(path);
+
             foreach (var (window, index) in Windows.Select((window, index) => (window, index))) {
+                if (!window.IsVisible) continue;
+
                 var label = new StringBuilder("window");
                 label.AppendFormat("_{0}", index);
                 if (!string.IsNullOrWhiteSpace(window.Title))
                     label.AppendFormat("_{0}", window.Title);
                 label.Append(".png");
-                
-                var screenshot = window.RecordScreenshot();
-                
-                screenshot.Save(Path.Combine(path, label.ToString()));
+
+                Console.WriteLine($"Creating screenshot {label}");
+                var screenshot = window.Screenshot;
+
+                screenshot?.Save(Path.Combine(path, label.ToString()));
             }
         }
 
@@ -171,8 +207,12 @@ namespace MuseumBarberini.Analytics.Tests
             public int Bottom;
         }
 
-        public PbiWindowSnapshot(HWND hwnd) {
+        public PbiWindowSnapshot(HWND hwnd) : this() {
             Hwnd = hwnd;
+        }
+
+        private PbiWindowSnapshot() {
+            _screenshot = new Lazy<Bitmap>(RecordScreenshot);
         }
 
         public HWND Hwnd { get; }
@@ -182,6 +222,10 @@ namespace MuseumBarberini.Analytics.Tests
         public bool IsVisible { get; private set; }
 
         public RECT Bounds { get; private set; }
+
+        public Bitmap Screenshot => _screenshot.Value;
+
+        private readonly Lazy<Bitmap> _screenshot;
 
         public static PbiWindowSnapshot Create(HWND hwnd) {
             var window = new PbiWindowSnapshot(hwnd);
@@ -195,7 +239,33 @@ namespace MuseumBarberini.Analytics.Tests
             Bounds = GetWindowBounds();
         }
 
-        public Bitmap RecordScreenshot() {
+        public bool DisplaysIcon(Bitmap icon) {
+            var screenshot = Screenshot;
+            if (screenshot is null)
+                return false;
+
+            var positions = FindBitmapsEntry(
+                screenshot,
+                ConvertToPixelFormat(icon, screenshot.PixelFormat)
+            );
+            return positions.Any();
+        }
+
+        private RECT GetWindowBounds() {
+            if (!GetWindowRect(new HandleRef(null, Hwnd), out var rect))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            return rect;
+        }
+
+        private string GetWindowTitle()
+        {
+            var length = GetWindowTextLength(Hwnd);
+            var title = new StringBuilder(length);
+            GetWindowText(Hwnd, title, length + 1);
+            return title.ToString();
+        }
+
+        private Bitmap RecordScreenshot() {
             var bmp = new Bitmap(Bounds.Right - Bounds.Left, Bounds.Bottom - Bounds.Top, PixelFormat.Format32bppArgb);
             using (var gfxBmp = Graphics.FromImage(bmp)) {
                 IntPtr hdcBitmap;
@@ -225,18 +295,125 @@ namespace MuseumBarberini.Analytics.Tests
             return bmp;
         }
 
-        private RECT GetWindowBounds() {
-            if (!GetWindowRect(new HandleRef(null, Hwnd), out var rect))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            return rect;
-        }
+        private static Bitmap ConvertToPixelFormat(Bitmap bitmap, PixelFormat pixelFormat) {
+            var newBitmap = new Bitmap(bitmap.Width, bitmap.Height, pixelFormat);
 
-        private string GetWindowTitle()
+            using (var graphic = Graphics.FromImage(newBitmap))
+            {
+                graphic.DrawImage(bitmap, new Rectangle(0, 0, newBitmap.Width, newBitmap.Height));
+            }
+
+            return newBitmap;
+        }
+        
+        /// <remarks>
+        /// Credits: https://stackoverflow.com/a/29333957. Edited.
+        /// </remarks>
+        private static IEnumerable<Point> FindBitmapsEntry(Bitmap sourceBitmap, Bitmap searchingBitmap)
         {
-            var length = GetWindowTextLength(Hwnd);
-            var title = new StringBuilder(length);
-            GetWindowText(Hwnd, title, length + 1);
-            return title.ToString();
+            #region Arguments check
+
+            if (sourceBitmap == null || searchingBitmap == null)
+                throw new ArgumentNullException();
+
+            if (sourceBitmap.PixelFormat != searchingBitmap.PixelFormat)
+                throw new ArgumentException("Pixel formats aren't equal");
+
+            if (sourceBitmap.Width < searchingBitmap.Width || sourceBitmap.Height < searchingBitmap.Height)
+                yield break; // Size of searchingBitmap bigger then sourceBitmap"
+
+            #endregion
+
+            var pixelFormatSize = Image.GetPixelFormatSize(sourceBitmap.PixelFormat) / 8;
+
+
+            // Copy sourceBitmap to byte array
+            var sourceBitmapData = sourceBitmap.LockBits(new Rectangle(0, 0, sourceBitmap.Width, sourceBitmap.Height),
+                ImageLockMode.ReadOnly, sourceBitmap.PixelFormat);
+            var sourceBitmapBytesLength = sourceBitmapData.Stride * sourceBitmap.Height;
+            var sourceBytes = new byte[sourceBitmapBytesLength];
+            Marshal.Copy(sourceBitmapData.Scan0, sourceBytes, 0, sourceBitmapBytesLength);
+            sourceBitmap.UnlockBits(sourceBitmapData);
+
+            // Copy searchingBitmap to byte array
+            var serchingBitmapData =
+                searchingBitmap.LockBits(new Rectangle(0, 0, searchingBitmap.Width, searchingBitmap.Height),
+                    ImageLockMode.ReadOnly, searchingBitmap.PixelFormat);
+            var serchingBitmapBytesLength = serchingBitmapData.Stride * searchingBitmap.Height;
+            var searchingBytes = new byte[serchingBitmapBytesLength];
+            Marshal.Copy(serchingBitmapData.Scan0, searchingBytes, 0, serchingBitmapBytesLength);
+            searchingBitmap.UnlockBits(serchingBitmapData);
+
+            var pointsList = new List<Point>();
+
+            // Seqrching entries
+            // minimazing serching zone
+            // sourceBitmap.Height - serchingBitmap.Height + 1
+            for (var mainY = 0; mainY < sourceBitmap.Height - searchingBitmap.Height + 1; mainY++)
+            {
+                var sourceY = mainY * sourceBitmapData.Stride;
+
+                for (var mainX = 0; mainX < sourceBitmap.Width - searchingBitmap.Width + 1; mainX++)
+                {
+                    // mainY & mainX - pixel coordinates of sourceBitmap
+                    // sourceY + sourceX = pointer in array sourceBitmap bytes
+                    var sourceX = mainX * pixelFormatSize;
+
+                    var isEqual = true;
+                    for (var c = 0; c < pixelFormatSize; c++)
+                    {
+                        // through the bytes in pixel
+                        if (sourceBytes[sourceX + sourceY + c] == searchingBytes[c])
+                            continue;
+                        isEqual = false;
+                        break;
+                    }
+
+                    if (!isEqual)
+                        continue;
+
+                    var isStop = false;
+
+                    // find fist equalation and now we go deeper) 
+                    for (var secY = 0; secY < searchingBitmap.Height; secY++)
+                    {
+                        var searchY = secY * serchingBitmapData.Stride;
+
+                        var sourceSecY = (mainY + secY) * sourceBitmapData.Stride;
+
+                        for (var secX = 0; secX < searchingBitmap.Width; secX++)
+                        {
+                            // secX & secY - coordinates of serchingBitmap
+                            // searchX + searchY = pointer in array serchingBitmap bytes
+
+                            var serchX = secX * pixelFormatSize;
+
+                            var sourceSecX = (mainX + secX) * pixelFormatSize;
+
+                            for (var c = 0; c < pixelFormatSize; c++)
+                            {// through the bytes in pixel
+                                if (sourceBytes[sourceSecX + sourceSecY + c] == searchingBytes[serchX + searchY + c])
+                                    continue;
+
+                                // not equal - abort iteration
+                                isStop = true;
+                                break;
+                            }
+
+                            if (isStop)
+                                break;
+                        }
+
+                        if (isStop)
+                            break;
+                    }
+
+                    if (!isStop) // hit
+                    {
+                        yield return new Point(mainX, mainY);
+                    }
+                }
+            }
         }
 
 #region DllImports

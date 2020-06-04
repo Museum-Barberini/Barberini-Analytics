@@ -1,6 +1,6 @@
 #requires -Version 5
 
-$DotNetCodeDomLocation = 'microsoft.codedom.providers.dotnetcompilerplatform.2.0.1'
+$DotNetCodeDomLocation = 'nuget/microsoft.codedom.providers.dotnetcompilerplatform.2.0.1'
 Add-Type -Path "$DotNetCodeDomLocation\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll"
 
 # using Invoke-Expression moves this class definition to runtime, so it will work after the add-type and the ps5 class interface implementation will succeed

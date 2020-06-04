@@ -9,6 +9,7 @@ if (!$?) {
 $pbi = "C:\Users\Christoph\AppData\Local\Microsoft\WindowsApps\PBIDesktopStore.exe"
 $timeout = [timespan]::FromSeconds(300)
 $interval = [timespan]::FromSeconds(10)
+$loadDelay = [timespan]::FromSeconds(20)
 
 
 $runs = $passes = $failures = $errors = 0
@@ -23,26 +24,26 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
             $elapsed = (Get-Date) - ($startTime)
             if ($elapsed -gt $timeout) {
                 Write-Error "⚠ TIMEOUT: $test"
-                $errors++
+                $global:errors++
                 return
             }
 
             Write-Progress -Id 2 -Activity "Testing report" -CurrentOperation "Waiting for report file to load... ($i)"
             Start-Sleep -Seconds $interval.Seconds
-            $test.Check
+            $test.Check()
 
             if ($test.HasPassed) {
                 Write-Output "✅ PASS: $test"
-                $passes++
+                $global:passes++
                 return
             } elseif ($test.HasFailed) {
                 Write-Error "❌ FAILED:"
-                $failures++
+                $global:failures++
                 return
             }
         }
     } finally {
-        $test.SaveResults("test_pbi")
+        $test.SaveResults("output/test_pbi")
         Write-Progress -Id 2 -Activity "Testing report" -CurrentOperation "Closing report file"
         $test.Stop()
         Write-Progress -Id 2 -Completed "Testing report"
@@ -51,7 +52,8 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
 
 
 $reports = Get-ChildItem power_bi/*.pbi?
-$tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi)}
+$tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
+mkdir -Force output/test_pbi | Out-Null
 
 foreach ($test in $tests) {
     Write-Progress -Id 1 -Activity "Testing Power BI reports" -CurrentOperation $test -PercentComplete (($runs++).Length / $tests.Length)
@@ -60,5 +62,9 @@ foreach ($test in $tests) {
 
 Write-Progress -Id 1 -Completed "Testing Power BI reports"
 Write-Output "Power BI Test summary: $passes passes, $failures failures, $errors errors."
+$unknown = $runs - ($passes + $failures + $errors)
+if ($unknown) {
+    Write-Error "Warning: $unknown tests have an unknown result!"
+}
 
-exit !!($failures + $errors)
+exit !($failures + $errors)
