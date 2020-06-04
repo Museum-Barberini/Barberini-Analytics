@@ -2,15 +2,17 @@
 
 A suite of data analytics tools to create an awesome dashboard for the Museum Barberini, Potsdam, in order to help them analyze and assess customer, advertising, and social media data!  
 
-## Installation
+## Backend
 
-### Requirements
+### Installation
+
+#### Requirements
 
 - UNIX system (preferred Ubuntu; does not work well with WSL)
 
 Please note that these instructions are optimized for Ubuntu, amd64. If you use a different configuration, you may need to adapt the toolchain installation (see `install_toolchain.sh`).
 
-### Actual installation
+#### Actual installation
 
 1. Clone the repository using git
 
@@ -32,20 +34,20 @@ Please note that these instructions are optimized for Ubuntu, amd64. If you use 
    ./scripts/setup/setup_docker.sh
    ```
 
-### Schedule regular DB updates
+#### Schedule regular DB updates
 
 Run `sudo scripts/setup/setup_cron.sh`. If you cloned the repository in a different folder than `/root/bp-barberini`, you may want to adapt the paths in `scripts/setup/.crontab` first. If no crontab exists before, create it using `crontab -e`.
 
-### Configuration
+#### Configuration
 
 See `CONFIGURATION.md`.
 
 
-## Usage
+### Usage
 
-### Controlling the pipeline
+#### Controlling the pipeline
 
-#### Open the luigi webinterface
+##### Open the luigi webinterface
 
 ```bash
  make docker-do do='make luigi-scheduler'
@@ -53,13 +55,13 @@ See `CONFIGURATION.md`.
 
 This will also start a webserver on http://localhost:8082 where you can trace all running tasks.
 
-#### Running the pipeline manually
+##### Running the pipeline manually
 
 ```bash
  make docker-do do='make luigi'
 ```
 
-#### Accessing the docker containers
+##### Accessing the docker containers
 
 Have a look at our beautiful `Makefile`! To access the luigi docker, do:
 
@@ -72,6 +74,21 @@ Close the session by executing:
 ```bash
 make shutdown
 ```
+
+## Frontend (Power BI)
+
+### Installation
+
+#### Requirements
+
+- Windows 10
+
+#### Actual Installation
+
+1. Download and install Power BI: https://aka.ms/pbidesktopstore
+2. Enable R-powered visuals
+   1. Download and install R: https://mran.revolutionanalytics.com/download
+   2. Once you open any report, you will be asked to install R Visual for PBI. Confirm that.
 
 ## Credits
 
