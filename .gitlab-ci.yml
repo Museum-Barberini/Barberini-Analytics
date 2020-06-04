@@ -8,6 +8,7 @@ stages:
   - build
   - test
   - analyze
+  - test-frontend
 
 build:
   stage: build
@@ -45,6 +46,10 @@ minimal-mining-pipeline:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
 test-pbi-reports:
+  stage: test-frontend
+  only:
+    variables:
+      - $FULL_TEST
   tags:
     - bernd-windows
   script:
