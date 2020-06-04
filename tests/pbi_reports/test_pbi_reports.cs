@@ -12,6 +12,11 @@ using HWND = System.IntPtr;
 
 namespace MuseumBarberini.Analytics.Tests
 {
+    /// <summary>
+    /// Represents a test case for a Power BI report file.
+    /// Purpose of the test will be to try to open and load the report
+    /// and detect if any errors or deadlocks occur while doing so.
+    /// </summary>
     public class PbiReportTestCase {
         /// <summary>
         /// The path to the report template file.
@@ -23,6 +28,10 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public string Desktop { get; }
 
+        /// <summary>
+        /// The delay Power BI is granted to hang after all data sources have been adapted
+        /// before final error search starts.
+        /// </summary>
         public TimeSpan LoadDelay { get; }
 
         public bool HasPassed { get; private set; }
@@ -47,6 +56,9 @@ namespace MuseumBarberini.Analytics.Tests
             LoadDelay = loadDelay;
         }
 
+        /// <summary>
+        /// Start this test.
+        /// </summary>
         public void Start()
             => _logExceptions(() => {
                 Process = new Process {
@@ -60,6 +72,10 @@ namespace MuseumBarberini.Analytics.Tests
                 Snapshot = new PbiProcessSnapshot(Process);
             });
 
+        /// <summary>
+        /// Try to find indications for this test either having passed or failed.
+        /// If an indication is found, HasPassed or HasFailed will be set accordingly.
+        /// </summary>
         public void Check()
             => _logExceptions(() => {
                 void handleFail(string reason) {
@@ -77,12 +93,18 @@ namespace MuseumBarberini.Analytics.Tests
                     handleFail: handleFail
                 );
             });
-        
+
+        /// <summary>
+        /// Abort this test.
+        /// </summary>
         public void Stop()
             => _logExceptions(() => {
                 Process.Kill();
             });
 
+        /// <summary>
+        /// Save the results of this test into <paramref name="path"/>.
+        /// </summary>
         public void SaveResults(string path)
             => _logExceptions(() => {
                 Snapshot.SaveArtifacts(Path.Combine(path, Path.GetFileNameWithoutExtension(Report)));
@@ -111,7 +133,13 @@ namespace MuseumBarberini.Analytics.Tests
                 handleFail("Power BI showed an error while loading the report");
         }
 
-        private void _logExceptions(Action action) {
+        /// <summary>
+        /// Helper function that catches any exception and writes the stack trace to console
+        /// before re-throwing the exception. This is helpful when running a C# script from
+        /// PowerShell.
+        /// </summary>
+        /// <param name="action">The actual action to wrap.</param>
+        private static void _logExceptions(Action action) {
             try {
                 action();
             } catch (Exception ex) {
@@ -121,6 +149,9 @@ namespace MuseumBarberini.Analytics.Tests
         }
     }
 
+    /// <summary>
+    /// Represents the state of an observed Power BI process at a certain point in time.
+    /// </summary>
     public class PbiProcessSnapshot {
         public PbiProcessSnapshot(Process process) {
             Process = process;
@@ -128,10 +159,16 @@ namespace MuseumBarberini.Analytics.Tests
 
         public Process Process { get; }
 
+        /// <summary>
+        /// All windows that are currently opened by the process.
+        /// </summary>
         public IEnumerable<PbiWindowSnapshot> Windows => _windows;
         
         private List<PbiWindowSnapshot> _windows;
 
+        /// <summary>
+        /// Update this snapshot.
+        /// </summary>
         public void Update() {
             _windows = (
                 from window in CollectWindows()
@@ -141,6 +178,11 @@ namespace MuseumBarberini.Analytics.Tests
             ).ToList();
         }
 
+        /// <summary>
+        /// Save all artifacts of this snapshot into <paramref name="path"/>.
+        /// In detail, these are screenshots of all open windows.
+        /// </summary>
+        /// <param name="path"></param>
         public void SaveArtifacts(string path) {
             Directory.CreateDirectory(path);
 
@@ -212,6 +254,9 @@ namespace MuseumBarberini.Analytics.Tests
 #endregion DllImports
     }
 
+    /// <summary>
+    /// Represents the state of an observed Power BI window at a certain point in time.
+    /// </summary>
     public class PbiWindowSnapshot {
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
@@ -230,14 +275,23 @@ namespace MuseumBarberini.Analytics.Tests
             _screenshot = new Lazy<Bitmap>(RecordScreenshot);
         }
 
+        /// <summary>
+        /// The window handle (hWnd) of this window.
+        /// </summary>
         public HWND Hwnd { get; }
-        
+
         public string Title { get; private set; }
 
         public bool IsVisible { get; private set; }
 
         public RECT Bounds { get; private set; }
 
+        /// <summary>
+        /// A screenshot of this window.
+        /// </summary>
+        /// <remarks>
+        /// Will be generated lazilly.
+        /// </remarks>
         public Bitmap Screenshot => _screenshot.Value;
 
         private readonly Lazy<Bitmap> _screenshot;
@@ -248,12 +302,18 @@ namespace MuseumBarberini.Analytics.Tests
             return window;
         }
 
+        /// <summary>
+        /// Update this snapshot.
+        /// </summary>
         public void Update() {
             Title = GetWindowTitle();
             IsVisible = IsWindowVisible(Hwnd);
             Bounds = GetWindowBounds();
         }
 
+        /// <summary>
+        /// Tests whether this window displays the specified icon.
+        /// </summary>
         public bool DisplaysIcon(Bitmap icon) {
             var screenshot = Screenshot;
             if (screenshot is null)
@@ -320,13 +380,16 @@ namespace MuseumBarberini.Analytics.Tests
 
             return newBitmap;
         }
-        
+
+        /// <summary>
+        /// Collect all positions in <paramref name="sourceBitmap"/> where <paramref name="searchingBitmap"/> is found.
+        /// </summary>
         /// <remarks>
         /// Credits: https://stackoverflow.com/a/29333957. Edited.
         /// </remarks>
         private static IEnumerable<Point> FindBitmapsEntry(Bitmap sourceBitmap, Bitmap searchingBitmap)
         {
-            #region Arguments check
+        #region Arguments check
 
             if (sourceBitmap == null || searchingBitmap == null)
                 throw new ArgumentNullException();
@@ -337,7 +400,7 @@ namespace MuseumBarberini.Analytics.Tests
             if (sourceBitmap.Width < searchingBitmap.Width || sourceBitmap.Height < searchingBitmap.Height)
                 yield break; // Size of searchingBitmap bigger then sourceBitmap"
 
-            #endregion
+        #endregion
 
             var pixelFormatSize = Image.GetPixelFormatSize(sourceBitmap.PixelFormat) / 8;
 
@@ -406,7 +469,8 @@ namespace MuseumBarberini.Analytics.Tests
                             var sourceSecX = (mainX + secX) * pixelFormatSize;
 
                             for (var c = 0; c < pixelFormatSize; c++)
-                            {// through the bytes in pixel
+                            {
+                                // through the bytes in pixel
                                 if (sourceBytes[sourceSecX + sourceSecY + c] == searchingBytes[serchX + searchY + c])
                                     continue;
 
@@ -424,9 +488,7 @@ namespace MuseumBarberini.Analytics.Tests
                     }
 
                     if (!isStop) // hit
-                    {
                         yield return new Point(mainX, mainY);
-                    }
                 }
             }
         }

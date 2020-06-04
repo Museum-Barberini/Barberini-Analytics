@@ -1,9 +1,10 @@
 #requires -Version 5
+# This piece of .NET magic returns a CodeDomProvider that allows parsing modern C# scripts.
 
 $DotNetCodeDomLocation = 'nuget/microsoft.codedom.providers.dotnetcompilerplatform.2.0.1'
 
 if (-not (Test-Path $DotNetCodeDomLocation)) {
-    &scripts/setup/install_powershell_csharp.ps1
+    &scripts/setup/install_powershell_deps.ps1
 }
 
 Add-Type -Path "$DotNetCodeDomLocation\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll"

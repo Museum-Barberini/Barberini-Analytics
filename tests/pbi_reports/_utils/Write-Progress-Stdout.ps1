@@ -1,4 +1,9 @@
 function Write-Progress {
+    <#
+    .SYNOPSIS
+    Replaces the built-in Write-Progress command to redirect progress updates to stdout.
+    #>
+
     [cmdletbinding()]
     param(
         [Parameter(Position = 0)]

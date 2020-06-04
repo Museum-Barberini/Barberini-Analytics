@@ -1,4 +1,12 @@
-﻿if ($env:CI) {
+﻿<#
+    Test Runner for Power BI report tests
+    This script will try to load each Power BI report found in the repository
+    and detect whether Power BI can load it. If any error messages are found or
+    the loading times out, a failure is detected and reported. Additionally, all
+    opened Power BI windows are screenshotted and stored under output/test_pbi.
+#>
+
+if ($env:CI) {
     . "tests/pbi_reports/_utils/Write-Progress-Stdout.ps1"
 }
 
@@ -59,16 +67,19 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
 }
 
 
+# Prepare test cases
 $reports = Get-ChildItem power_bi/Museumseintritte.pbit #power_bi/*.pbit # testing
 $tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
 mkdir -Force output/test_pbi | Out-Null
 
+# Run tests
 foreach ($test in $tests) {
     Write-Progress -Id 1 -Activity "Testing Power BI reports" -CurrentOperation $test -PercentComplete (($runs++).Length / $tests.Length)
     Invoke-Test $test
 }
-
 Write-Progress -Id 1 -Completed "Testing Power BI reports"
+
+# Summary
 Write-Output "Power BI Test summary: $passes passes, $failures failures, $errors errors."
 $unknown = $runs - ($passes + $failures + $errors)
 if ($unknown) {
