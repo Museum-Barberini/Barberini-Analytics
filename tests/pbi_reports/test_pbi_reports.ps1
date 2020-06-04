@@ -68,4 +68,4 @@ if ($unknown) {
     Write-Error "Warning: $unknown tests have an unknown result!"
 }
 
-exit !($failures + $errors)
+exit !!($failures + $errors)
