@@ -1,6 +1,7 @@
 BEGIN;
 
-    CREATE EXTENSION fuzzystrmatch, pg_trgm;
+    CREATE EXTENSION fuzzystrmatch;
+    CREATE EXTENSION pg_trgm;
 
     CREATE TABLE absa.target_aspect(
         aspect_id SERIAL PRIMARY KEY,
