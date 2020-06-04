@@ -1,4 +1,4 @@
-$csharpProvider = &"tests/pbi_reports/csharp_provider.ps1"
+﻿$csharpProvider = &"tests/pbi_reports/csharp_provider.ps1"
 $drawingLib = "C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Drawing.dll"
 Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies ([System.Reflection.Assembly]::LoadFrom($drawingLib)) -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {
@@ -12,7 +12,7 @@ $interval = [timespan]::FromSeconds(10)
 $loadDelay = [timespan]::FromSeconds(20)
 
 
-$runs = $passes = $failures = $errors = 0
+$global:runs = $global:passes = $global:failures = $global:errors = 0
 
 function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
     Write-Progress -Id 2 -Activity "Testing report" -CurrentOperation "Opening report file"
@@ -37,7 +37,7 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
                 $global:passes++
                 return
             } elseif ($test.HasFailed) {
-                Write-Error "❌ FAILED:"
+                Write-Error "❌ FAILED: $test"
                 $global:failures++
                 return
             }
