@@ -1,5 +1,5 @@
 ﻿$csharpProvider = &"tests/pbi_reports/csharp_provider.ps1"
-$drawingLib = "nuget/System.Drawing.Common.4.7.0/lib/net461/System.Drawing.Common.dll"
+$drawingLib = "nuget\NETStandard.Library.2.0.3\build\netstandard2.0\ref\System.Drawing.dll"
 Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies ([System.Reflection.Assembly]::LoadFrom($drawingLib)) -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {
     exit 2
