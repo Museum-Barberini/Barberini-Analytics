@@ -50,5 +50,7 @@ test-pbi-reports:
   script:
     - whoami
     - dir
-    - cmd /k echo foo
-    - notepad
+    - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
+  artifacts:
+    paths:
+      - ./output/test_pbi/
