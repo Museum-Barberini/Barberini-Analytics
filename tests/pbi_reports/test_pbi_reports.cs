@@ -153,7 +153,6 @@ namespace MuseumBarberini.Analytics.Tests
                     label.AppendFormat("_{0}", window.Title);
                 label.Append(".png");
 
-                Console.WriteLine($"Creating screenshot {label}");
                 var screenshot = window.Screenshot;
 
                 screenshot?.Save(Path.Combine(path, label.ToString()));

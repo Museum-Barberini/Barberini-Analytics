@@ -70,5 +70,7 @@ $unknown = $runs - ($passes + $failures + $errors)
 if ($unknown) {
     Write-Error "Warning: $unknown tests have an unknown result!"
 }
+$unsuccessful = $failures + $errors
+Write-Output "Screenshots of all opened reports have been stored in output/test_pbi."
 
-exit !!($failures + $errors)
+exit !!($unsuccessful)
