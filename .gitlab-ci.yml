@@ -43,3 +43,10 @@ minimal-mining-pipeline:
   stage: test
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
+
+test-pbi-reports:
+  tags:
+    - bernd-windows
+  script:
+    - whoami
+    - dir
