@@ -19,7 +19,6 @@ if (!$?) {
 
 # Settings
 $pbi = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\PBIDesktopStore.exe"
-Write-Host $pbi  # debug
 $timeout = [timespan]::FromSeconds(300)
 $interval = [timespan]::FromSeconds(10)
 $loadDelay = [timespan]::FromSeconds(20)
@@ -68,7 +67,7 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
 
 
 # Prepare test cases
-$reports = Get-ChildItem power_bi/Museumseintritte.pbit #power_bi/*.pbit # testing
+$reports = Get-ChildItem power_bi/*.pbit
 $tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
 mkdir -Force output/test_pbi | Out-Null
 
