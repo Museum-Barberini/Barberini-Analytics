@@ -7,7 +7,7 @@ if (!$?) {
 }
 
 # Settings
-$pbi = "C:\Users\Christoph\AppData\Local\Microsoft\WindowsApps\PBIDesktopStore.exe"
+$pbi = $env:PBIDESKTOP
 $timeout = [timespan]::FromSeconds(300)
 $interval = [timespan]::FromSeconds(10)
 $loadDelay = [timespan]::FromSeconds(20)
