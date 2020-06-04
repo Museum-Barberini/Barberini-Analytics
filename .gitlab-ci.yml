@@ -50,3 +50,5 @@ test-pbi-reports:
   script:
     - whoami
     - dir
+    - cmd /k echo foo
+    - notepad
