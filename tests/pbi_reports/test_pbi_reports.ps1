@@ -1,4 +1,8 @@
-﻿$csharpProvider = (&"tests/pbi_reports/csharp_provider.ps1")[-1]
+﻿if ($env:CI) {
+    . "tests/pbi_reports/_utils/Write-Progress-Stdout.ps1"
+}
+
+$csharpProvider = (&"tests/pbi_reports/_utils/csharp_provider.ps1")[-1]
 $drawingLib = "nuget\NETStandard.Library.2.0.3\build\netstandard2.0\ref\System.Drawing.dll"
 Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies ([System.Reflection.Assembly]::LoadFrom($drawingLib)) -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {
