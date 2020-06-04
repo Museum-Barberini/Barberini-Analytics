@@ -6,7 +6,7 @@ if (!$?) {
 }
 
 # Settings
-$pbi = $env:PBIDESKTOP
+$pbi = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\PBIDesktopStore.exe"
 Write-Host $pbi  # debug
 $timeout = [timespan]::FromSeconds(300)
 $interval = [timespan]::FromSeconds(10)
