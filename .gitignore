@@ -1,5 +1,6 @@
 ### Project specific stuff ###
 db_config.yaml
+nuget/
 volumes/
 
 # Luigi output files
@@ -119,4 +120,3 @@ webpack.statistics.prod.html
 
 ### Editors ###
 .vscode/
-nuget/*
