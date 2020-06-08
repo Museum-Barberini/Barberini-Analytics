@@ -52,8 +52,6 @@ test-pbi-reports:
   tags:
     - bernd-windows
   script:
-    - whoami
-    - dir
     - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
   artifacts:
     paths:
