@@ -1,5 +1,4 @@
 import luigi
-import os
 
 from json_converters import JsoncToJson
 
@@ -13,5 +12,5 @@ class MuseumFacts(JsoncToJson):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{os.environ["OUTPUT_DIR"]}/museum_facts.json'
+            f'{self.output_dir}/museum_facts.json'
         )
