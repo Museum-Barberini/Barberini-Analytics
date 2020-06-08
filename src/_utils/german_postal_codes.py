@@ -10,7 +10,7 @@ class GermanPostalCodes(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            '{self.output_dir}/german_postal_codes.csv',
+            f'{self.output_dir}/german_postal_codes.csv',
             format=UTF8
         )
 
