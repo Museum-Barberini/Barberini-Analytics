@@ -51,18 +51,23 @@ class CollectPostAspectsAlgorithm(QueryDb):
         return f'''
             CREATE TEMPORARY TABLE aspect_match AS (
                 WITH
-                    known_post_id AS (SELECT post_id FROM {self.table})
+                    known_post_id AS (SELECT post_id FROM {self.table}),
+                    post_ngram AS (
+                        SELECT
+                            *
+                        FROM
+                            absa.post_ngram
+                        WHERE
+                            post_id NOT IN (SELECT * FROM known_post_id)
+                            AND {self.pre_filter_query('ngram')}
+                    )
                 SELECT
-                    source, post_id, word_index,
-                    {self.value_query(
-                        'post_word.word',
-                        'target_aspect_word.word')
-                    } AS {self.match_name}
+                    source, post_id, word_index, aspect_id,
+                    {self.value_query('ngram', 'target_aspect_word.word')}
+                        AS {self.match_name}
                 FROM
-                    absa.post_word,
+                    post_ngram,
                     absa.target_aspect_word
-                WHERE
-                    post_id NOT IN (SELECT * FROM known_post_id)
             );
 
             CREATE TEMPORARY TABLE best_aspect_match (
@@ -78,24 +83,30 @@ class CollectPostAspectsAlgorithm(QueryDb):
                 {self.aggregate_query} AS {self.match_name}
             FROM
                 aspect_match
-                    NATURAL JOIN absa.post_word
+                    NATURAL JOIN absa.post_ngram
             WHERE
-                {self.filter_query('post_word.word')}
+                {self.post_filter_query('ngram')}
             GROUP BY
                 source, post_id, word_index;
 
             SELECT DISTINCT
                 source, post_id, word_index, aspect_id,
-                MIN(target_aspect_word.word) AS aspect_word,  -- just any
+                MIN(target_aspect_word.word) AS aspect_word,  -- just any word
                 '{self.algorithm}' AS algorithm
             FROM
                 best_aspect_match
                     NATURAL JOIN aspect_match
-                    NATURAL JOIN absa.post_word,
-                absa.target_aspect_word
+                    JOIN absa.target_aspect_word USING (aspect_id)
             GROUP BY
                 source, post_id, word_index, aspect_id
         '''
+
+    def pre_filter_query(self, post_word_name):
+        """
+        Query to filter post words before applying the algorithm.
+        """
+
+        return 'TRUE'
 
 
 class CollectPostAspectsEquality(CollectPostAspectsAlgorithm):
@@ -113,7 +124,7 @@ class CollectPostAspectsEquality(CollectPostAspectsAlgorithm):
             (lower({post_word_name}) = lower({target_word_name}))::int
         '''
 
-    def filter_query(self, post_word_name):
+    def post_filter_query(self, post_word_name):
         return f'''
             {self.match_name}::bool
         '''
@@ -136,7 +147,7 @@ class CollectPostAspectsTrigram(CollectPostAspectsAlgorithm):
             similarity({post_word_name}, {target_word_name})
         '''
 
-    def filter_query(self, post_word_name):
+    def post_filter_query(self, post_word_name):
         return f'''
             {self.match_name} >= {self.threshold}
         '''
@@ -159,7 +170,13 @@ class CollectPostAspectsLevenshtein(CollectPostAspectsAlgorithm):
             levenshtein({post_word_name}, {target_word_name})
         '''
 
-    def filter_query(self, post_word_name):
+    def pre_filter_query(self, post_word_name):
+
+        return f'''
+            LENGTH({post_word_name}) <= 255
+        '''
+
+    def post_filter_query(self, post_word_name):
         return f'''
             {self.match_name}::real / length({post_word_name})
             <= {self.threshold}
