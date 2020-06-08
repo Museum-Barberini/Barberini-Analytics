@@ -1,22 +1,26 @@
 {
 	"'Allgemein'":
 		/*
-		Diese Kategorie ist wichtig, damit allgemeine Nennungen des Museums
-		nicht fälschlicherweise mit Hashtags wie #monetbarberini assoziert
-		werden.
+		Diese Kategorie darf nicht entfernt werden, damit allgemeine Nennungen
+		des Museums nicht fälschlicherweise mit Hashtags wie #monetbarberini
+		assoziert werden.
 		*/
 		["Barberini", "Museum Barberini"],
 	"Ausstellungen": {
-		"Henri-Edmond Cross": ["Farbe und Licht"],
+		"Klassiker der Moderne": ["Liebermann", "Munch", "Nolde", "Kandinsky"],
 		"Impressionismus": ["Kunst der Landschaft"],
-		"Picasso": ["Pablo Picasso", "#picassobarberini"],
-		"Van Gogh": ["van Gogh", "Gogh", "Stillleben", "Stilleben", "#vangoghbarberini", "#vangogh"],
-		"Monet": ["Claude Monet", "Seerosen", "Heuhaufen", "#claudemonet", "#monetbarberini"],
-		"'Künstler aus der DDR'": ["DDR",
+		"Von Hopper bis Rothko": ["Amerikas Weg in die Moderne"],
+		"Künstler aus der DDR": ["DDR", "Hinter der Maske",
 			"Gudrun Brüne", "Hartwig Ebersbach", "Günter Firit", "Albrecht Gehse", "Ulrich Hachulla", "Rolf Händler", "Bernhard Heisig", "Johannes Heisig", "Ralf Kerbach", "Walter Libuda", "Werner Liebmann", "Wolfgang Mattheuer", "Harald Metzkes", "Roland Nicolaus", "Stefan Plenkers", "Arno Rink", "Willi Sitte", "Erika Stürmer-Alex", "Werner Tübke"],
+		"Max Beckmann": ["Welttheater"],
+		"Gerhard Richter": [],
+		"Farbe und Licht": ["Henri-Edmond Cross"],
+		"Picasso": ["Das späte Werk", "#picassobarberini"],
 		"Wege des Barock": ["Barock", "Palazzo Barberini", "Corsini",
 			"Caravaggio", "Narziss", "#barockbarberini"],
-		"Gerhard Richter": []
+		"Van Gogh": ["van Gogh", "Gogh", "Stillleben", "Stilleben", "#vangoghbarberini", "#vangogh"],
+		"Monet. Orte": ["Monet", "Claude Monet", "Seerosen", "Heuhaufen", "#claudemonet", "#monetbarberini"],
+		"Impressionismus in Russland": ["Aufbruch zur Avantgarde"]
 	},
 	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp", "Popup"],
 	"Ticketsystem": ["ticket", "Ticketkauf", "Onlineshop",
