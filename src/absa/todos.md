@@ -9,8 +9,16 @@
 - `etage` - `tagen` ist auch noch so ein Problem
 ==> Bis 2 geht fast immer
 
-TODO: Wie wäre es mit `diff/len <= 2/9`?
-- überprüfen
+## lower levenshtein/len (`diff/len <= 2/9`)?
+- `#claudemonet` bis 0.34 okay
+- `Stilleben`: bis 0.24 okay
+- `picasso`: bis 0.29 okay
+- `Barberini`: bis 0.3 ok
+- `van Gogh`: bis 0.25 ok
+- `gogh`: bis 0.49 ok
+- `Architektur`: bis 0.26 ok
+- `monet`: bis 0.19 ok
+- `app`: bis 0.3 ok
 
 ## pg_trgm
 - `fassade`: `façade` liegt bei 0.36

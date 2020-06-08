@@ -7,6 +7,8 @@
 		*/
 		["Barberini", "Museum Barberini"],
 	"Ausstellungen": {
+		"Henri-Edmond Cross": ["Farbe und Licht"],
+		"Impressionismus": ["Kunst der Landschaft"],
 		"Picasso": ["Pablo Picasso", "#picassobarberini"],
 		"Van Gogh": ["van Gogh", "Gogh", "Stillleben", "Stilleben", "#vangoghbarberini", "#vangogh"],
 		"Monet": ["Claude Monet", "Seerosen", "Heuhaufen", "#claudemonet", "#monetbarberini"],
@@ -16,9 +18,10 @@
 			"Caravaggio", "Narziss", "#barockbarberini"],
 		"Gerhard Richter": []
 	},
-	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp"],
-	"Ticketsystem": ["ticket", "Ticketkauf", "Onlineshop"],
-	"Gebäude": ["Architektur", "Räume", "Räumlichkeiten", "Treppen", "Aufzug", "Fahrstuhl", "Fassade", "Etage", "Geschoss"],
+	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp", "Popup"],
+	"Ticketsystem": ["ticket", "Ticketkauf", "Onlineshop",
+		"barberini friends", "Online-Ticket"],
+	"Gebäude": ["Architektur", "Räume", "Räumlichkeiten", "Treppen", "Aufzug", "Fahrstuhl", "Fassade", "Etage", "Geschoss", "Rundgang"],
 	"Gastronomie": ["Café", "essen", "Kaffee", "Kuchen"],
 	"Corona": ["covid-19", "Coronavirus", "sars-cov-2", "#closedbutopen", "#flattenthecurve", "#museumfromhome"]
 }
