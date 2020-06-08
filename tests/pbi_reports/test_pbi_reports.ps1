@@ -56,10 +56,11 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
                 $global:passes++
                 return
             } elseif ($test.HasFailed) {
-                Write-Error "❌ FAILED: $test"
+                $error = @("❌ FAILED: $test")
                 if ($test.ResultReason) {
-                    Write-Error $test.ResultReason
+                    $error += $test.ResultReason
                 }
+                Write-Error ($error -join "`n")
                 $global:failures++
                 return
             }
