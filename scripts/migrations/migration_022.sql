@@ -1,29 +1,6 @@
--- Differentiate between FB posts and FB comments (!188)
+-- Fix facebook join in social_media_post view (!205)
 
 BEGIN;
-
-    CREATE OR REPLACE VIEW fb_post_all AS
-    (
-        SELECT
-            fb_post_id AS post_id,
-            page_id,
-            post_date,
-            text,
-            TRUE AS is_from_museum,
-            NULL AS response_to,
-        FALSE AS is_comment
-        FROM fb_post
-    ) UNION (
-        SELECT
-            fb_post_comment_id AS post_id,
-            page_id,
-            post_date,
-            text,
-            is_from_museum,
-            response_to,
-        TRUE AS is_comment
-        FROM fb_post_comment
-    );
 
     CREATE OR REPLACE VIEW social_media_post AS (
         WITH _social_media_post AS (
@@ -31,21 +8,22 @@ BEGIN;
                 SELECT
                     CASE WHEN is_comment
                         THEN 'Facebook Comment'
-                        ELSE 'Facebook Post'
-                    END AS source,
-                    fb_post_id AS post_id,
-                    text,
-                    post_date,
+		                ELSE 'Facebook Post'
+		            END AS source,
+                    fb_post_all.post_id,
+                    fb_post_all.text,
+                    fb_post_all.post_date,
                     NULL AS media_type,
                     response_to,
-                    NULL AS user_id,
+					NULL AS user_id,
                     is_from_museum,
                     likes,
                     comments,
                     shares,
                     permalink
                 FROM fb_post_all
-                NATURAL LEFT JOIN fb_post_rich
+                LEFT JOIN fb_post_rich
+					ON fb_post_all.post_id = fb_post_rich.fb_post_id
             ) UNION (
                 SELECT
                     'Instagram' AS source,
