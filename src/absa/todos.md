@@ -33,7 +33,8 @@
   * Lösung: `barberini` separat matchen und immer nur höchsten Treffer wählen
 ==> bis 0.65 geht immer
 
-**NEXT:** Write a task that attributes these results to each exhibition/post pair
+Noch ein Problem:
+- Zusammengesetzte Wörter (Online-Ticket-Verkaufsportal)
 
 ## Some queries
 
