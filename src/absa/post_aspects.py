@@ -24,6 +24,7 @@ class CollectPostAspects(ConcatCsv):
     """
 
     def requires(self):
+        yield CollectPostAspectsEquality(table=self.table)
         yield CollectPostAspectsTrigram(table=self.table)
         yield CollectPostAspectsLevenshtein(table=self.table)
 
@@ -48,36 +49,73 @@ class CollectPostAspectsAlgorithm(QueryDb):
     @property
     def query(self):
         return f'''
-            WITH
-                known_post_ids AS (SELECT post_id FROM {self.table}),
-                best_matches AS (
-                    SELECT
-                        source, post_id, word_index,
-                        {self.aggregate_query} {self.match_name}
-                    FROM
-                        absa.post_word
-                            NATURAL JOIN post,
-                        absa.target_aspect_word,
-                        {self.value_query} {self.match_name}
-                    WHERE
-                        post_id NOT IN (SELECT * FROM known_post_ids)
-                        AND {self.filter_query}
-                    GROUP BY
-                        source, post_id, word_index
-                )
+            CREATE TEMPORARY TABLE aspect_match AS (
+                WITH
+                    known_post_id AS (SELECT post_id FROM {self.table})
+                SELECT
+                    source, post_id, word_index,
+                    {self.value_query(
+                        'post_word.word',
+                        'target_aspect_word.word')
+                    } AS {self.match_name}
+                FROM
+                    absa.post_word,
+                    absa.target_aspect_word
+                WHERE
+                    post_id NOT IN (SELECT * FROM known_post_id)
+            );
+
+            CREATE TEMPORARY TABLE best_aspect_match (
+                source TEXT,
+                post_id TEXT,
+                word_index INTEGER,
+                {self.match_name} INTEGER,
+                PRIMARY KEY (source, post_id, word_index)
+            );
+            INSERT INTO best_aspect_match
+            SELECT
+                source, post_id, word_index,
+                {self.aggregate_query} AS {self.match_name}
+            FROM
+                aspect_match
+                    NATURAL JOIN absa.post_word
+            WHERE
+                {self.filter_query('post_word.word')}
+            GROUP BY
+                source, post_id, word_index;
+
             SELECT DISTINCT
                 source, post_id, word_index, aspect_id,
                 MIN(target_aspect_word.word) AS aspect_word,  -- just any
                 '{self.algorithm}' AS algorithm
             FROM
-                best_matches
-                    NATURAL JOIN absa.post_word
-                    NATURAL JOIN post,
-                absa.target_aspect_word,
-                {self.value_query} {self.match_name}_2
-            WHERE {self.match_name} = {self.match_name}_2
+                best_aspect_match
+                    NATURAL JOIN aspect_match
+                    NATURAL JOIN absa.post_word,
+                absa.target_aspect_word
             GROUP BY
                 source, post_id, word_index, aspect_id
+        '''
+
+
+class CollectPostAspectsEquality(CollectPostAspectsAlgorithm):
+
+    algorithm = 'equality'
+
+    @property
+    def aggregate_query(self):
+        return f'''
+            MAX({self.match_name})
+        '''
+
+    def value_query(self, post_word_name, target_word_name):
+        return f'''
+            (lower({post_word_name}) = lower({target_word_name}))::int
+        '''
+
+    def filter_query(self, post_word_name):
+        return f'''
+            {self.match_name}::bool
         '''
 
 
@@ -93,14 +131,12 @@ class CollectPostAspectsTrigram(CollectPostAspectsAlgorithm):
             MAX({self.match_name})
         '''
 
-    @property
-    def value_query(self):
-        return '''
-            similarity(post_word.word, target_aspect_word.word)
+    def value_query(self, post_word_name, target_word_name):
+        return f'''
+            similarity({post_word_name}, {target_word_name})
         '''
 
-    @property
-    def filter_query(self):
+    def filter_query(self, post_word_name):
         return f'''
             {self.match_name} >= {self.threshold}
         '''
@@ -118,15 +154,13 @@ class CollectPostAspectsLevenshtein(CollectPostAspectsAlgorithm):
             MIN({self.match_name})
         '''
 
-    @property
-    def value_query(self):
-        return '''
-            levenshtein(post_word.word, target_aspect_word.word)
+    def value_query(self, post_word_name, target_word_name):
+        return f'''
+            levenshtein({post_word_name}, {target_word_name})
         '''
 
-    @property
-    def filter_query(self):
+    def filter_query(self, post_word_name):
         return f'''
-            {self.match_name}::real / length(post_word.word)
+            {self.match_name}::real / length({post_word_name})
             <= {self.threshold}
         '''
