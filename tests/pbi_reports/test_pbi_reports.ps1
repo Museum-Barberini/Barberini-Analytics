@@ -24,7 +24,7 @@ $timeout = [timespan]::FromSeconds(300)
 # Delay between checks
 $interval = [timespan]::FromSeconds(10)
 # Time to wait for PBI to show possible loading windows after model has been created
-$loadDelay = [timespan]::FromSeconds(20)
+$loadDelay = [timespan]::FromSeconds(30)
 
 $maxIntervalCount = [Math]::Ceiling($timeout.Milliseconds / $interval.Milliseconds)
 $timeout = [timespan]::FromMilliseconds($maxIntervalCount)
