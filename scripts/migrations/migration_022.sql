@@ -8,14 +8,14 @@ BEGIN;
                 SELECT
                     CASE WHEN is_comment
                         THEN 'Facebook Comment'
-		                ELSE 'Facebook Post'
-		            END AS source,
+                        ELSE 'Facebook Post'
+                    END AS source,
                     fb_post_all.post_id,
                     fb_post_all.text,
                     fb_post_all.post_date,
                     NULL AS media_type,
                     response_to,
-					NULL AS user_id,
+                    NULL AS user_id,
                     is_from_museum,
                     likes,
                     comments,
@@ -23,7 +23,7 @@ BEGIN;
                     permalink
                 FROM fb_post_all
                 LEFT JOIN fb_post_rich
-					ON fb_post_all.post_id = fb_post_rich.fb_post_id
+                    ON fb_post_all.post_id = fb_post_rich.fb_post_id
             ) UNION (
                 SELECT
                     'Instagram' AS source,
