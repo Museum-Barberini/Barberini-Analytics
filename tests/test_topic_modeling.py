@@ -2,7 +2,6 @@ import os
 import pickle
 import sys
 from datetime import datetime
-from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 import luigi
@@ -14,7 +13,7 @@ from topic_modeling import Doc, TopicModelingFindTopics,\
     TopicModelingPreprocessCorpus, TopicModelingCreateCorpus
 
 
-class TestDoc(TestCase):
+class TestDoc(DatabaseTestCase):
 
     def test_guess_language(self):
 
@@ -85,7 +84,7 @@ class TestCreateCorpus(DatabaseTestCase):
         self.assertIsInstance(corpus[1], Doc)
 
 
-class TestPreprocessing(TestCase):
+class TestPreprocessing(DatabaseTestCase):
 
     @patch.object(TopicModelingPreprocessCorpus, 'input')
     @patch.object(TopicModelingPreprocessCorpus, 'output')
@@ -125,7 +124,7 @@ class TestPreprocessing(TestCase):
             output[1].tokens, ['weitere', 'weitere', 'toll'])
 
 
-class TestFindTopics(TestCase):
+class TestFindTopics(DatabaseTestCase):
 
     @patch.object(TopicModelingFindTopics, 'output')
     @patch.object(TopicModelingPreprocessCorpus, 'output')
