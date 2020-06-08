@@ -89,8 +89,23 @@ class TestSchema(DatabaseTestCase):
 
         self.assertFalse(
             invalid_sources,
-            msg=f"The columns (source, post_id) is no unique key for the "
-                f"following sources: {invalid_sources}"
+            msg=f"Key (source, post_id) is a duplicate for the following "
+                f"sources: {invalid_sources}"
+        )
+
+    def test_permalink(self):
+
+        invalid_sources = self.db_connector.query('''
+            SELECT source, COUNT(post_Id)
+            FROM post
+            WHERE permalink IS NULL
+            GROUP BY source
+        ''')
+
+        self.assertFalse(
+            invalid_sources,
+            msg=f"Permalinks are missing (partially?) for the following "
+                f"sources: {invalid_sources}"
         )
 
 
