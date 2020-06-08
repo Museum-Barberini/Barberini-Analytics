@@ -26,8 +26,8 @@ $interval = [timespan]::FromSeconds(10)
 # Time to wait for PBI to show possible loading windows after model has been created
 $loadDelay = [timespan]::FromSeconds(30)
 
-$maxIntervalCount = [Math]::Ceiling($timeout.Milliseconds / $interval.Milliseconds)
-$timeout = [timespan]::FromMilliseconds($maxIntervalCount)
+$maxIntervalCount = [Math]::Ceiling($timeout.TotalMilliseconds / $interval.TotalMilliseconds)
+$timeout = [timespan]::FromMilliseconds($interval.TotalMilliseconds * $maxIntervalCount)
 
 
 $global:runs = $global:passes = $global:failures = $global:errors = 0
@@ -56,11 +56,11 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
                 $global:passes++
                 return
             } elseif ($test.HasFailed) {
-                $error = @("❌ FAILED: $test")
+                $err = @("❌ FAILED: $test")
                 if ($test.ResultReason) {
-                    $error += $test.ResultReason
+                    $err += $test.ResultReason
                 }
-                Write-Error ($error -join "`n")
+                Write-Error ($err -join "`n")
                 $global:failures++
                 return
             }
