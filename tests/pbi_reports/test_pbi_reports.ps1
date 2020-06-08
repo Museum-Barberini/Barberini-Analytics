@@ -32,7 +32,7 @@ $timeout = [timespan]::FromMilliseconds($interval.TotalMilliseconds * $maxInterv
 
 $global:runs = $global:passes = $global:failures = $global:errors = 0
 
-function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
+function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) {
     Write-Progress -Id 2 -Activity "Testing report" -CurrentOperation "Opening report file"
     $test.Start()
 
