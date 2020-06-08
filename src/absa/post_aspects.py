@@ -74,7 +74,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
                 source TEXT,
                 post_id TEXT,
                 word_index INTEGER,
-                {self.match_name} INTEGER,
+                {self.match_name} REAL,
                 PRIMARY KEY (source, post_id, word_index)
             );
             INSERT INTO best_aspect_match
@@ -167,7 +167,11 @@ class CollectPostAspectsLevenshtein(CollectPostAspectsAlgorithm):
 
     def value_query(self, post_word_name, target_word_name):
         return f'''
-            levenshtein({post_word_name}, {target_word_name})
+            CAST(levenshtein(
+                LOWER({post_word_name}),
+                LOWER({target_word_name}
+            )) AS real)
+            / length({post_word_name})
         '''
 
     def pre_filter_query(self, post_word_name):
@@ -178,6 +182,5 @@ class CollectPostAspectsLevenshtein(CollectPostAspectsAlgorithm):
 
     def post_filter_query(self, post_word_name):
         return f'''
-            {self.match_name}::real / length({post_word_name})
-            <= {self.threshold}
+            {self.match_name} <= {self.threshold}
         '''
