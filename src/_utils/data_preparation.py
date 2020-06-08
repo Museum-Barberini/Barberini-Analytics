@@ -324,7 +324,7 @@ class DataPreparationTask(luigi.Task):
             loop(), msg, size=size, index_fun=lambda: index)
 
 
-class ConcatCsv(DataPreparationTask):
+class ConcatCsvs(DataPreparationTask):
 
     def run(self):
         dfs = [
