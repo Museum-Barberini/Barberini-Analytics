@@ -20,7 +20,6 @@ class CollectPostAspects(ConcatCsvs):
     """
     TODO: Drop topological ancestors ("Ausstellungen" if there is
     also "Ausstellungen/van Gogh")
-    TODO: Check ngrams ("van Gogh")
     """
 
     def requires(self):
