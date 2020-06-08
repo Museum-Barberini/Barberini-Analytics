@@ -53,6 +53,7 @@ test-pbi-reports:
     - bernd-windows
   script:
     - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
+    - dir # test
   artifacts:
     paths:
       - ./output/test_pbi/
