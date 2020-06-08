@@ -52,11 +52,8 @@ test-pbi-reports:
   tags:
     - bernd-windows
   script:
-#    - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
-    - mkdir output
-    - mkdir output/test_pbi
-    - dir > ./output/test_pbi/dir.txt # test
-    - thisdesnotexist
+    - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
   artifacts:
+    when: always
     paths:
       - ./output/test_pbi/
