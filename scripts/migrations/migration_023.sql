@@ -36,8 +36,8 @@ BEGIN;
                         ELSE 'Facebook Post'
                     END AS source,
                     fb_post_all.post_id,
-                    text,
-                    post_date,
+                    fb_post_all.text,
+                    fb_post_all.post_date,
                     NULL AS media_type,
                     response_to,
                     NULL AS user_id,
@@ -47,7 +47,8 @@ BEGIN;
                     shares,
                     fb_post_all.permalink
                 FROM fb_post_all
-                NATURAL LEFT JOIN fb_post_rich
+                LEFT JOIN fb_post_rich
+                    ON fb_post_all.post_id = fb_post_rich.fb_post_id
             ) UNION (
                 SELECT
                     'Instagram' AS source,
