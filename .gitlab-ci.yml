@@ -51,6 +51,8 @@ test-pbi-reports:
       - $FULL_TEST
   tags:
     - bernd-windows
+  before_script:
+    - powershell -Command "&scripts/setup/install_powershell_deps.ps1"
   script:
     - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
   artifacts:
