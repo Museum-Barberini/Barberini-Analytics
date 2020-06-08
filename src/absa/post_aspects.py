@@ -4,7 +4,7 @@ from luigi.format import UTF8
 from csv_to_db import CsvToDb
 from data_preparation import ConcatCsv
 from query_db import QueryDb
-from .post_words import PostWordsToDb
+from .post_ngrams import PostNgramsToDb
 from .target_aspects import TargetAspectsToDb
 
 
@@ -39,7 +39,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
 
     def _requires(self):
         return luigi.task.flatten([
-            PostWordsToDb(),
+            PostNgramsToDb(),
             TargetAspectsToDb(),
             super()._requires()
         ])
