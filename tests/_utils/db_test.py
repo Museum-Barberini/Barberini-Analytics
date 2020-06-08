@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import distutils.util
 import logging
 import os
+from shutil import rmtree
 import subprocess as sp
 import unittest
 from queue import Queue
@@ -220,6 +221,8 @@ class DatabaseTestCase(unittest.TestCase):
         outer_output_dir = os.getenv('OUTPUT_DIR')
         os.environ['OUTPUT_DIR'] = self.str_id
         self.addCleanup(os.environ.update, POSTGRES_DB=outer_output_dir)
+        os.mkdir(os.getenv('OUTPUT_DIR'))
+        self.addCleanup(rmtree, os.getenv('OUTPUT_DIR'))
 
         self.dirty_file_paths = []
         self.addCleanup(lambda: [

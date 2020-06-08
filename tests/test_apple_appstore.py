@@ -5,6 +5,7 @@ import requests
 
 from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDB
 from db_test import DatabaseTestCase
+from museum_facts import MuseumFacts
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']
@@ -26,6 +27,7 @@ class TestFetchAppleReviews(DatabaseTestCase):
     def setUp(self):
         super().setUp()
         self.task = FetchAppstoreReviews()
+        self.run_task(MuseumFacts())
         self.task.get_country_codes = lambda: FAKE_COUNTRY_CODES
 
     def test_germany_basic(self):
