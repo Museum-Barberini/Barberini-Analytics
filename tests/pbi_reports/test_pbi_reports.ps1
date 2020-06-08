@@ -19,9 +19,15 @@ if (!$?) {
 
 # Settings
 $pbi = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\PBIDesktopStore.exe"
+# If loading time is exceeded, report test will abort and fail
 $timeout = [timespan]::FromSeconds(300)
+# Delay between checks
 $interval = [timespan]::FromSeconds(10)
+# Time to wait for PBI to show possible loading windows after model has been created
 $loadDelay = [timespan]::FromSeconds(20)
+
+$maxIntervalCount = [Math]::Ceiling($timeout.Milliseconds / $interval.Milliseconds)
+$timeout = [timespan]::FromMilliseconds($maxIntervalCount)
 
 
 $global:runs = $global:passes = $global:failures = $global:errors = 0
@@ -40,7 +46,8 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
                 return
             }
 
-            Write-Progress -Id 2 -Activity "Testing report" -CurrentOperation "Waiting for report file to load... ($i)"
+            Write-Progress -Id 2 -Activity "Testing report" `
+                -CurrentOperation "Waiting for report file to load... ($i/$maxIntervalCount)"
             Start-Sleep -Seconds $interval.Seconds
             $test.Check()
 
@@ -68,12 +75,14 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase]$test) {
 
 # Prepare test cases
 $reports = Get-ChildItem power_bi/*.pbit
-$tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
+$tests = $reports | ForEach-Object `
+    {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
 mkdir -Force output/test_pbi | Out-Null
 
 # Run tests
 foreach ($test in $tests) {
-    Write-Progress -Id 1 -Activity "Testing Power BI reports" -CurrentOperation $test -PercentComplete (($runs++).Length / $tests.Length)
+    Write-Progress -Id 1 -Activity "Testing Power BI reports" `
+        -CurrentOperation $test -PercentComplete (($runs++).Length / $tests.Length)
     Invoke-Test $test
 }
 Write-Progress -Id 1 -Completed "Testing Power BI reports"
