@@ -1,4 +1,5 @@
 import luigi
+from luigi.format import UTF8
 
 from json_converters import JsoncToJson
 
@@ -12,5 +13,6 @@ class MuseumFacts(JsoncToJson):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/museum_facts.json'
+            f'{self.output_dir}/museum_facts.json',
+            format=UTF8
         )
