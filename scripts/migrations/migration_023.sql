@@ -35,7 +35,7 @@ BEGIN;
                         THEN 'Facebook Comment'
                         ELSE 'Facebook Post'
                     END AS source,
-                    fb_post_id AS post_id,
+                    fb_post_all.post_id,
                     text,
                     post_date,
                     NULL AS media_type,
