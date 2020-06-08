@@ -1,8 +1,13 @@
+-- Tables for aspect mining baseline (!214)
+
 BEGIN;
 
+    -- Activate extensions for fuzzy search
     CREATE EXTENSION fuzzystrmatch;
     CREATE EXTENSION pg_trgm;
 
+
+    -- Create tables
     CREATE TABLE absa.target_aspect(
         aspect_id SERIAL PRIMARY KEY,
         aspect text[]
@@ -18,7 +23,6 @@ BEGIN;
         source TEXT,
         post_id TEXT,
         word_index INT,
-        --FOREIGN KEY (source, post_id) REFERENCES post,
         FOREIGN KEY (source, post_id, word_index) REFERENCES absa.post_word,
         aspect_id INT REFERENCES absa.target_aspect,
         target_aspect_word TEXT,
