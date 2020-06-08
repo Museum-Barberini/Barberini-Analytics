@@ -14,7 +14,7 @@ $csharpProvider = (&"tests/pbi_reports/_utils/csharp_provider.ps1")[-1]
 $drawingLib = "nuget\NETStandard.Library.2.0.3\build\netstandard2.0\ref\System.Drawing.dll"
 Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies ([System.Reflection.Assembly]::LoadFrom($drawingLib)) -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {
-    exit 2
+    exit 2  # Error loading C# component
 }
 
 # Settings
@@ -26,9 +26,9 @@ $interval = [timespan]::FromSeconds(10)
 # Time to wait for PBI to show possible loading windows after model has been created
 $loadDelay = [timespan]::FromSeconds(30)
 
+
 $maxIntervalCount = [Math]::Ceiling($timeout.TotalMilliseconds / $interval.TotalMilliseconds)
 $timeout = [timespan]::FromMilliseconds($interval.TotalMilliseconds * $maxIntervalCount)
-
 
 $global:runs = $global:passes = $global:failures = $global:errors = 0
 

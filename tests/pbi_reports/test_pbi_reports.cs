@@ -406,7 +406,8 @@ namespace MuseumBarberini.Analytics.Tests
 
 
             // Copy sourceBitmap to byte array
-            var sourceBitmapData = sourceBitmap.LockBits(new Rectangle(0, 0, sourceBitmap.Width, sourceBitmap.Height),
+            var sourceBitmapData = sourceBitmap.LockBits(
+                new Rectangle(0, 0, sourceBitmap.Width, sourceBitmap.Height),
                 ImageLockMode.ReadOnly, sourceBitmap.PixelFormat);
             var sourceBitmapBytesLength = sourceBitmapData.Stride * sourceBitmap.Height;
             var sourceBytes = new byte[sourceBitmapBytesLength];
@@ -414,19 +415,19 @@ namespace MuseumBarberini.Analytics.Tests
             sourceBitmap.UnlockBits(sourceBitmapData);
 
             // Copy searchingBitmap to byte array
-            var serchingBitmapData =
-                searchingBitmap.LockBits(new Rectangle(0, 0, searchingBitmap.Width, searchingBitmap.Height),
-                    ImageLockMode.ReadOnly, searchingBitmap.PixelFormat);
-            var serchingBitmapBytesLength = serchingBitmapData.Stride * searchingBitmap.Height;
-            var searchingBytes = new byte[serchingBitmapBytesLength];
-            Marshal.Copy(serchingBitmapData.Scan0, searchingBytes, 0, serchingBitmapBytesLength);
-            searchingBitmap.UnlockBits(serchingBitmapData);
+            var searchingBitmapData = searchingBitmap.LockBits(
+                new Rectangle(0, 0, searchingBitmap.Width, searchingBitmap.Height),
+                ImageLockMode.ReadOnly, searchingBitmap.PixelFormat);
+            var searchingBitmapBytesLength = searchingBitmapData.Stride * searchingBitmap.Height;
+            var searchingBytes = new byte[searchingBitmapBytesLength];
+            Marshal.Copy(searchingBitmapData.Scan0, searchingBytes, 0, searchingBitmapBytesLength);
+            searchingBitmap.UnlockBits(searchingBitmapData);
 
             var pointsList = new List<Point>();
 
             // Seqrching entries
-            // minimazing serching zone
-            // sourceBitmap.Height - serchingBitmap.Height + 1
+            // minimizing searching zone
+            // sourceBitmap.Height - searchingBitmap.Height + 1
             for (var mainY = 0; mainY < sourceBitmap.Height - searchingBitmap.Height + 1; mainY++)
             {
                 var sourceY = mainY * sourceBitmapData.Stride;
@@ -455,23 +456,23 @@ namespace MuseumBarberini.Analytics.Tests
                     // find fist equalation and now we go deeper) 
                     for (var secY = 0; secY < searchingBitmap.Height; secY++)
                     {
-                        var searchY = secY * serchingBitmapData.Stride;
+                        var searchY = secY * searchingBitmapData.Stride;
 
                         var sourceSecY = (mainY + secY) * sourceBitmapData.Stride;
 
                         for (var secX = 0; secX < searchingBitmap.Width; secX++)
                         {
-                            // secX & secY - coordinates of serchingBitmap
-                            // searchX + searchY = pointer in array serchingBitmap bytes
+                            // secX & secY - coordinates of searchingBitmap
+                            // searchX + searchY = pointer in array searchingBitmap bytes
 
-                            var serchX = secX * pixelFormatSize;
+                            var searchX = secX * pixelFormatSize;
 
                             var sourceSecX = (mainX + secX) * pixelFormatSize;
 
                             for (var c = 0; c < pixelFormatSize; c++)
                             {
                                 // through the bytes in pixel
-                                if (sourceBytes[sourceSecX + sourceSecY + c] == searchingBytes[serchX + searchY + c])
+                                if (sourceBytes[sourceSecX + sourceSecY + c] == searchingBytes[searchX + searchY + c])
                                     continue;
 
                                 // not equal - abort iteration
