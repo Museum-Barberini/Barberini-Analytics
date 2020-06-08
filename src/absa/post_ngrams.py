@@ -91,7 +91,7 @@ class CollectPostNgrams(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            'output/absa/post_ngrams.csv',
+            '{self.output_dir}/absa/post_ngrams.csv',
             format=luigi.format.UTF8)
 
     def run(self):
