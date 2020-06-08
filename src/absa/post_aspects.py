@@ -157,7 +157,7 @@ class CollectPostAspectsLevenshtein(CollectPostAspectsAlgorithm):
 
     algorithm = 'levenshtein'
 
-    threshold = 2 / 9
+    threshold = 0.19
 
     @property
     def aggregate_query(self):
