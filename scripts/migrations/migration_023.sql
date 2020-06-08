@@ -1,35 +1,88 @@
--- Tables for aspect mining baseline (!214)
+-- Fix permalinks for fb comments in social_media_post (#262)
 
 BEGIN;
 
-    -- Activate extensions for fuzzy search
-    CREATE EXTENSION fuzzystrmatch;
-    CREATE EXTENSION pg_trgm;
-
-
-    -- Create tables
-    CREATE TABLE absa.target_aspect(
-        aspect_id SERIAL PRIMARY KEY,
-        aspect text[]
+    CREATE OR REPLACE VIEW fb_post_all AS
+    (
+        SELECT
+            fb_post_id AS post_id,
+            page_id,
+            post_date,
+            text,
+            TRUE AS is_from_museum,
+            NULL AS response_to,
+            FALSE AS is_comment,
+            permalink
+        FROM fb_post
+    ) UNION (
+        SELECT
+            fb_post_comment_id AS post_id,
+            page_id,
+            post_date,
+            text,
+            is_from_museum,
+            response_to,
+            TRUE AS is_comment,
+            permalink
+        FROM fb_post_comment
     );
 
-    CREATE TABLE absa.target_aspect_word(
-        aspect_id int REFERENCES absa.target_aspect,
-        word text,
-        PRIMARY KEY (aspect_id, word)
-    );
-
-    CREATE TABLE absa.post_aspect(
-        source TEXT,
-        post_id TEXT,
-        word_index INT,
-        FOREIGN KEY (source, post_id, word_index) REFERENCES absa.post_word,
-        aspect_id INT REFERENCES absa.target_aspect,
-        target_aspect_word TEXT,
-        FOREIGN KEY (aspect_id, target_aspect_word)
-            REFERENCES absa.target_aspect_word(aspect_id, word),
-        algorithm TEXT,
-        PRIMARY KEY (algorithm, source, post_id, word_index, aspect_id)
+    CREATE OR REPLACE VIEW social_media_post AS (
+        WITH _social_media_post AS (
+            (
+                SELECT
+                    CASE WHEN is_comment
+                        THEN 'Facebook Comment'
+                        ELSE 'Facebook Post'
+                    END AS source,
+                    fb_post_all.post_id,
+                    fb_post_all.text,
+                    fb_post_all.post_date,
+                    NULL AS media_type,
+                    response_to,
+                    NULL AS user_id,
+                    is_from_museum,
+                    likes,
+                    comments,
+                    shares,
+                    fb_post_all.permalink
+                FROM fb_post_all
+                LEFT JOIN fb_post_rich
+                    ON fb_post_all.post_id = fb_post_rich.fb_post_id
+            ) UNION (
+                SELECT
+                    'Instagram' AS source,
+                    ig_post_id AS post_id,
+                    text,
+                    post_date,
+                    media_type,
+                    NULL AS response_to,
+                    NULL AS user_id,
+                    TRUE AS is_from_museum,
+                    likes,
+                    comments,
+                    NULL AS shares,
+                    permalink
+                FROM ig_post_rich
+            ) UNION (
+                SELECT
+                    'Twitter' AS source,
+                    tweet_id AS post_id,
+                    text,
+                    post_date,
+                    NULL as media_type,
+                    response_to,
+                    user_id,
+                    is_from_museum,
+                    likes,
+                    replies AS comments,
+                    retweets AS shares,
+                    permalink
+                FROM tweet_rich
+            )
+        )
+        SELECT *, (response_to IS NOT NULL) is_response
+        FROM _social_media_post
     );
 
 COMMIT;
