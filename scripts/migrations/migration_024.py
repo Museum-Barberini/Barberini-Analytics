@@ -52,15 +52,16 @@ for table in PERFORMANCE_TABLES:
     # Special treatment because of multi-column key
     # (pandas unique only works on series -> 1d)
     if table == 'fb_post_performance':
-        page_ids = df['page_id']
         df.drop(columns='page_id', inplace=True)
         key_columns.remove('page_id')
     key_column = key_columns[0]
 
     before = df[key_column].count()
-    print("Before:", before)
     to_drop = []
     unique_ids = df[key_column].unique()
+
+    print(f"========= TABLE: {table} =========")
+    print("Before:", before)
     print(f"Processing {len(unique_ids)} unique ids")
     for unique_id in unique_ids:
         ordered_entries = df.loc[df[key_column] == unique_id] \
@@ -71,11 +72,22 @@ for table in PERFORMANCE_TABLES:
             if prev_row is None:  # could be 0
                 prev_row = row
                 continue
+
+            # if current and previous entries are equal,
+            # flag current entry for deletion
             if row[performance_columns] \
                .equals(prev_row[performance_columns]):
                 to_drop.append(i)
             prev_row = row
-    print("To drop:", len(to_drop))
+
     to_drop_df = df[df.index.isin(to_drop)]
+    print("To drop:", len(to_drop))
     print("After:", before - len(to_drop))
-    break
+    for _, row in to_drop_df.iterrows():
+        CONNECTOR.execute(
+            f'''
+            DELETE FROM {table}
+            WHERE {key_column} = '{row[key_column]}'
+            AND {TIMESTAMP_COLUMN} = '{row[TIMESTAMP_COLUMN]}'
+            '''
+        )
