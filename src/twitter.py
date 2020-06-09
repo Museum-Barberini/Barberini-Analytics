@@ -119,7 +119,7 @@ class FetchTwitter(DataPreparationTask):
     def run(self):
         timespan = self.timespan
         if self.minimal_mode:
-            timespan = dt.timedelta(days=1)
+            timespan = dt.timedelta(days=3)
 
         tweets = ts.query_tweets(
             self.query,
