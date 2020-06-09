@@ -8,7 +8,7 @@ start_section() {
 	then
 		echo $2
 	else
-		echo -e "section_start:${date +%s}:{$1}\r\e[0K${2}"
+		echo -e "section_start:$(date +%s):${1}\r\e[0K${2}"
 	fi
 }
 
@@ -17,6 +17,6 @@ end_section() {
 	then
 		echo "Done."
 	else
-    	echo -e "section_end:${date +%s}:${1}\r\e[0K"
+    	echo -e "section_end:$(date +%s):${1}\r\e[0K"
 	fi
 }
