@@ -3,9 +3,9 @@ import pandas as pd
 from db_connector import db_connector
 
 PERFORMANCE_TABLES = [
-    'tweet_performance',
+    'ig_post_performance',
     'fb_post_performance',
-    'ig_post_performance'
+    'tweet_performance'
 ]
 TIMESTAMP_COLUMN = 'timestamp'
 CONNECTOR = db_connector()
@@ -57,11 +57,14 @@ for table in PERFORMANCE_TABLES:
         key_columns.remove('page_id')
     key_column = key_columns[0]
 
+    before = df[key_column].count()
+    print("Before:", before)
     to_drop = []
-    for unique_id in df[key_column].unique():
+    unique_ids = df[key_column].unique()
+    print(f"Processing {len(unique_ids)} unique ids")
+    for unique_id in unique_ids:
         ordered_entries = df.loc[df[key_column] == unique_id] \
             .sort_values(by=TIMESTAMP_COLUMN, axis='index', ascending=True)
-        print(ordered_entries)
 
         prev_row = None
         for i, row in ordered_entries.iterrows():
@@ -70,8 +73,9 @@ for table in PERFORMANCE_TABLES:
                 continue
             if row[performance_columns] \
                .equals(prev_row[performance_columns]):
-                print(row.equals(prev_row))
                 to_drop.append(i)
             prev_row = row
-    print(len(to_drop))
+    print("To drop:", len(to_drop))
+    to_drop_df = df[df.index.isin(to_drop)]
+    print("After:", before - len(to_drop))
     break
