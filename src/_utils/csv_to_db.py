@@ -3,6 +3,7 @@ import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+import pandas as pd
 from psycopg2.errors import UndefinedTable
 
 import db_connector
@@ -81,20 +82,51 @@ class CsvToDb(CopyToTable):
         """
         Overridden from superclass to forbid dynamical schema changes.
         """
+
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
     def rows(self):
-        rows = super().rows()
-        next(rows)
-        return rows
+
+        with self.input().open('r') as file:
+            df = self.read_csv(file)
+        for col_name, col_type in self.columns:
+            if col_type == 'ARRAY':
+                df[col_name] = df[col_name].apply(
+                    lambda iterable: "'{%s}'" % ','.join(
+                        # TODO: Use mogrify from below here.
+                        [f'{item}' for item in iterable]
+                    )
+                )
+        csv = df.to_csv(index=False, header=False)
+        for line in csv.splitlines():
+            yield (line,)
+        """ import pdb; pdb.set_trace()
+        try:
+            connection = self.output().connect()
+            with connection:
+                with connection.cursor() as cursor:
+                    for row in df.itertuples(index=False):
+                        csv = cursor.mogrify(
+                            ','.join(['%s'] * len(df.columns)),
+                            row
+                        )
+                        yield (str(csv, 'utf-8'),)
+        finally:
+            connection.close() """
+
+    def read_csv(self, file):
+        return pd.read_csv(file, **self.read_csv_args)
+
+    read_csv_args = {}
 
     @property
     def table_path(self):
         """
         Split up self.table into schema and table name.
         """
+
         table = self.table
         segments = table.split('.')
         return (
