@@ -1,3 +1,4 @@
+from ast import literal_eval
 from io import BytesIO, TextIOWrapper
 import luigi
 from luigi.format import UTF8
@@ -8,7 +9,21 @@ from zipfile import ZipFile
 import regex
 
 from .post_words import regex_compile
+from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
+
+
+class PolaritiesToDb(CsvToDb):
+
+    table = 'absa.polarity'
+
+    read_csv_args = dict(**super().read_csv_args, converters={
+        'inflections': literal_eval
+    })
+
+    def requires(self):
+
+        return FetchPolarities()
 
 
 class FetchPolarities(DataPreparationTask):
@@ -18,15 +33,15 @@ class FetchPolarities(DataPreparationTask):
         'SentiWS/SentiWS_v2.0.zip'
     )
 
-    pattern_float = regex.compile(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
+    format_float = regex.compile(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
 
-    pattern = regex_compile(rf'''
+    format = regex_compile(rf'''
             ^
             (?<word>\p{{L}}+)
             \|
             (?<pos_tag>[A-Z]+)
             \t
-            (?<polarity>{pattern_float.pattern})
+            (?<polarity>{format_float.pattern})
             \t?
             ((?<=\t)
                 (?<inflection>\p{{L}}+)
@@ -66,7 +81,7 @@ class FetchPolarities(DataPreparationTask):
 
     def load_polarity(self, line):
 
-        match = self.pattern.search(line)
+        match = self.format.search(line)
         return dict(
             word=match.group('word'),
             pos_tag=match.group('pos_tag'),
