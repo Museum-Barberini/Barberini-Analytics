@@ -26,7 +26,8 @@ class CheckPosts(DatabaseTestCase):
                 "Instagram",
                 "Google Play", "Apple Appstore"
             },
-            sources
+            sources,
+            msg="Expected sources are not met by post view"
         )
 
     def test_post_unique(self):
