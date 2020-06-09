@@ -83,11 +83,14 @@ for table in PERFORMANCE_TABLES:
     to_drop_df = df[df.index.isin(to_drop)]
     print("To drop:", len(to_drop))
     print("After:", before - len(to_drop))
+    queries = []
     for _, row in to_drop_df.iterrows():
-        CONNECTOR.execute(
+        queries.append(
             f'''
             DELETE FROM {table}
             WHERE {key_column} = '{row[key_column]}'
             AND {TIMESTAMP_COLUMN} = '{row[TIMESTAMP_COLUMN]}'
             '''
         )
+    if queries:
+        CONNECTOR.execute(queries)
