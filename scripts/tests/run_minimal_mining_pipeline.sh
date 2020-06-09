@@ -3,7 +3,7 @@
 set -e
 
 export BARBERINI_ANALYTICS_CONTEXT=DEBUG
-./scripts/tests/gitlab_log.sh --source-only
+. ./scripts/tests/gitlab_log.sh
 
 
 cd $(dirname "$0")/../..
