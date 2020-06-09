@@ -90,6 +90,7 @@ class ExtractTweetPerformance(DataPreparationTask):
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
+        df['tweet_id'] = df['tweet_id'].apply(str)
         df = self.filter_fkey_violations(df)
         df = self.condense_performance_values(df)
 
