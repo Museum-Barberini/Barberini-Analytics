@@ -99,7 +99,7 @@ test: luigi-clean
 	# globstar needed to recursively find all .py-files via **
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m $(testmodule) db_test -v \
+		&& python3 -m db_test $(test) -v \
 		&& make luigi-clean
 
 test-full:
