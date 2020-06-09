@@ -3,9 +3,9 @@ import pandas as pd
 from db_connector import db_connector
 
 PERFORMANCE_TABLES = [
+    'tweet_performance',
     'ig_post_performance',
-    'fb_post_performance',
-    'tweet_performance'
+    'fb_post_performance'
 ]
 TIMESTAMP_COLUMN = 'timestamp'
 CONNECTOR = db_connector()
@@ -93,4 +93,5 @@ for table in PERFORMANCE_TABLES:
             '''
         )
     if queries:
-        CONNECTOR.execute(queries)
+        print("Issuing queries...")
+        CONNECTOR.execute(*queries)
