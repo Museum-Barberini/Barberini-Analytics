@@ -3,6 +3,7 @@
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/doc/ci/pipelines/\
 # index.md#custom-collapsible-sections
 
+# Usage: start_section id "Some header"
 start_section() {
 	if [ -z "$CI" ]
 	then
@@ -12,6 +13,7 @@ start_section() {
 	fi
 }
 
+# Usage: end_section id
 end_section() {
 	if [ -z "$CI" ]
 	then
