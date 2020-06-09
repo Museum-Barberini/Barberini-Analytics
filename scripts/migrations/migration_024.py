@@ -63,12 +63,15 @@ for table in PERFORMANCE_TABLES:
             .sort_values(by=TIMESTAMP_COLUMN, axis='index', ascending=True)
         print(ordered_entries)
 
-        first_skipped = False
+        prev_row = None
         for i, row in ordered_entries.iterrows():
-            if not first_skipped:
-                first_skipped = True
-                previous_entry = i
+            if prev_row is None:  # could be 0
+                prev_row = row
                 continue
-            # df
-            previous_entry = i
-        break
+            if row[performance_columns] \
+               .equals(prev_row[performance_columns]):
+                print(row.equals(prev_row))
+                to_drop.append(i)
+            prev_row = row
+    print(len(to_drop))
+    break
