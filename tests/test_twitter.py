@@ -9,10 +9,7 @@ from luigi.mock import MockTarget
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
 from db_test import DatabaseTestCase
 
-import unittest  # only needed for unittest.skip
 
-
-@unittest.skip('Skipped while Twitterscraper is broken')
 class TestFetchTwitter(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
