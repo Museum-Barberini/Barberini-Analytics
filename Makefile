@@ -23,11 +23,11 @@ startup: startup-db
 				&& echo "html" || echo "none") \
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 
-	echo -e "\xf0\x9f\x8f\x84\xe2\x80\x8d To join the party, open http://localhost:32828" \
-		"and run:\n   ssh -L 32828:localhost:$$(docker ps \
+	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d To join the party, open "\
+		"http://localhost:32828 and run:\n   ssh -L 32828:localhost:$$(docker ps \
 		| grep ${USER}-barberini_analytics_luigi \
 		| sed 's/^.*0\.0\.0\:\([[:digit:]]\+\)->[[:digit:]]\+\/tcp.*$$/\1/' \
-		) -fN $$(hostname)"
+		) -fN $$(hostname)\e[0m"
 
 startup-db:
 	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
