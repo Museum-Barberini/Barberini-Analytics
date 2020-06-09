@@ -48,7 +48,7 @@ class CheckPosts(DatabaseTestCase):
     def test_permalink(self):
 
         invalid_sources = self.db_connector.query('''
-            SELECT source, COUNT(post_Id)
+            SELECT source, COUNT(post_id)
             FROM post
             WHERE permalink IS NULL
             GROUP BY source
