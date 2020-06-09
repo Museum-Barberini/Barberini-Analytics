@@ -1,6 +1,31 @@
--- Fix facebook join in social_media_post view (!205)
+-- Fix permalinks for fb comments in social_media_post (#262)
 
 BEGIN;
+
+    CREATE OR REPLACE VIEW fb_post_all AS
+    (
+        SELECT
+            fb_post_id AS post_id,
+            page_id,
+            post_date,
+            text,
+            TRUE AS is_from_museum,
+            NULL AS response_to,
+            FALSE AS is_comment,
+            permalink
+        FROM fb_post
+    ) UNION (
+        SELECT
+            fb_post_comment_id AS post_id,
+            page_id,
+            post_date,
+            text,
+            is_from_museum,
+            response_to,
+            TRUE AS is_comment,
+            permalink
+        FROM fb_post_comment
+    );
 
     CREATE OR REPLACE VIEW social_media_post AS (
         WITH _social_media_post AS (
@@ -20,7 +45,7 @@ BEGIN;
                     likes,
                     comments,
                     shares,
-                    permalink
+                    fb_post_all.permalink
                 FROM fb_post_all
                 LEFT JOIN fb_post_rich
                     ON fb_post_all.post_id = fb_post_rich.fb_post_id
