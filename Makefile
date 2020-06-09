@@ -23,8 +23,8 @@ startup: startup-db
 				&& echo "html" || echo "none") \
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 	
-	echo -e "🏄‍♂️ To join the party, open http://localhost:32828 and run:\n " \
-		"ssh -L 32828:localhost:$$(${DOCKER_COMPOSE} -p ${USER} ps \
+	echo -e "\xf0\x9f\x8f\x84\xe2\x80\x8d To join the party, open http://localhost:32828" \
+		" and run:\n   ssh -L 32828:localhost:$$(${DOCKER_COMPOSE} -p ${USER} ps \
 		| grep ${USER}-barberini_analytics_luigi \
 		| sed 's/^.\+0\.0\.0\..\:\([[:digit:]]\+\)->[[:digit:]]\+\/tcp$$/\1/' \
 		) -C -N $$(hostname)"
@@ -132,7 +132,8 @@ db-do:
 	docker exec -it barberini_analytics_db psql -U postgres -a "$(db)" -c "$(do)"
 
 db-backup:
-	docker exec barberini_analytics_db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec barberini_analytics_db pg_dump -U postgres barberini \
+		> /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 # Restore the database from a dump/backup
 db-restore:
