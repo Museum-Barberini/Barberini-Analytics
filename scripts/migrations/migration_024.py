@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import logging
 import pandas as pd
 from db_connector import db_connector
+
+logger = logging.getLogger('luigi-interface')
 
 PERFORMANCE_TABLES = [
     'tweet_performance',
@@ -60,9 +63,9 @@ for table in PERFORMANCE_TABLES:
     to_drop = []
     unique_ids = df[key_column].unique()
 
-    print(f"========= TABLE: {table} =========")
-    print("Before:", before)
-    print(f"Processing {len(unique_ids)} unique ids")
+    logger.debug("Condensing performance table:", table)
+    logger.debug(f"Processing {len(unique_ids)} unique ids")
+    logger.debug("Before:", before)
     for unique_id in unique_ids:
         ordered_entries = df.loc[df[key_column] == unique_id] \
             .sort_values(by=TIMESTAMP_COLUMN, axis='index', ascending=True)
@@ -80,9 +83,9 @@ for table in PERFORMANCE_TABLES:
                 to_drop.append(i)
             prev_row = row
 
+    logger.debug("After:", before - len(to_drop))
+
     to_drop_df = df[df.index.isin(to_drop)]
-    print("To drop:", len(to_drop))
-    print("After:", before - len(to_drop))
     queries = []
     for _, row in to_drop_df.iterrows():
         queries.append(
@@ -93,5 +96,4 @@ for table in PERFORMANCE_TABLES:
             '''
         )
     if queries:
-        print("Issuing queries...")
         CONNECTOR.execute(*queries)
