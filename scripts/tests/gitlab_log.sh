@@ -5,6 +5,7 @@
 
 # Usage: start_section id "Some header"
 start_section() {
+    echo -e "\e[1m\e[34m\c" && trap 'echo -e "\e[0m\c"' RETURN
     if [ -z "$CI" ]
     then
         echo $2
