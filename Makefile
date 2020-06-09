@@ -24,7 +24,7 @@ startup: startup-db
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 	
 	echo -e "\xf0\x9f\x8f\x84\xe2\x80\x8d To join the party, open http://localhost:32828" \
-		" and run:\n   ssh -L 32828:localhost:$$(${DOCKER_COMPOSE} -p ${USER} ps \
+		" and run:\n   ssh -LfN 32828:localhost:$$(${DOCKER_COMPOSE} -p ${USER} ps \
 		| grep ${USER}-barberini_analytics_luigi \
 		| sed 's/^.\+0\.0\.0\..\:\([[:digit:]]\+\)->[[:digit:]]\+\/tcp$$/\1/' \
 		) -C -N $$(hostname)"
