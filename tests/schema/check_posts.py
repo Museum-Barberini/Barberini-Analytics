@@ -24,7 +24,8 @@ class CheckPosts(DatabaseTestCase):
                 "Facebook Post", "Facebook Comment",
                 "Google Maps",
                 "Instagram",
-                "Google Play", "Apple Appstore"
+                "Google Play", "Apple Appstore",
+                "Twitter"
             },
             sources,
             msg="Expected sources are not met by post view"
