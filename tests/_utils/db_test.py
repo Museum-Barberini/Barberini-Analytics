@@ -190,7 +190,8 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         sp.run(
             './scripts/migrations/migrate.sh',
             check=True,
-            env=dict(os.environ, POSTGRES_DB=self.template_name))
+            env=dict(os.environ, POSTGRES_DB=self.template_name)
+        )
         # Seal template
         connector.execute(
             f'''
