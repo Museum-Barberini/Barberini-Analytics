@@ -27,9 +27,10 @@ if ($env:CI) {
 $csharpProvider = (&"tests/pbi_reports/_utils/csharp_provider.ps1")[-1]
 $assemblies = (
     "nuget\NETStandard.Library.2.0.0\build\netstandard2.0\ref\mscorlib.dll",
+    "nuget\NETStandard.Library.2.0.0\build\netstandard2.0\ref\netstandard.dll",
     "nuget\NETStandard.Library.2.0.0\build\netstandard2.0\ref\System.Drawing.dll",
-    "nuget\Magick.NET-Q8-x64.7.19.0\lib\net40\Magick.NET-Q8-x64.dll",
-    "nuget\Magick.NET.Core.2.0.0\lib\net40\Magick.NET.Core.dll"
+    "nuget\Magick.NET-Q8-x64.7.19.0\lib\netstandard20\Magick.NET-Q8-x64.dll",
+    "nuget\Magick.NET.Core.2.0.0\lib\netstandard20\Magick.NET.Core.dll"
 ) | ForEach-Object {[System.Reflection.Assembly]::LoadFrom($_)}
 Copy-Item "nuget\Magick.NET-Q8-x64.7.19.0\runtimes\win-x64\native\Magick.Native-Q8-x64.dll" .
 Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies $assemblies -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
