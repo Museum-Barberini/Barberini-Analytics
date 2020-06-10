@@ -89,6 +89,7 @@ for table in PERFORMANCE_TABLES:
     logger.debug("After:", before - len(to_drop))
 
     to_drop_df = df[df.index.isin(to_drop)]
+    # Note this could be optimized by using cursor.copy_from and a temporary table.
     queries = []
     for _, row in to_drop_df.iterrows():
         queries.append(
