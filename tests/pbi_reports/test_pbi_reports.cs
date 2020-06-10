@@ -328,8 +328,10 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public bool DisplaysIcon(Bitmap icon, out double similarity) {
             var screenshot = Screenshot;
-            if (screenshot is null)
+            if (screenshot is null) {
+                similarity = default;
                 return false;
+            }
 
             var magickIcon = CreateMagickImage(icon);
             var magickScreenshot = CreateMagickImage(screenshot);
