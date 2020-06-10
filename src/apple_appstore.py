@@ -48,12 +48,16 @@ class FetchAppstoreReviews(DataPreparationTask):
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 
-        for country_code in self.iter_verbose(
-                country_codes, msg='Fetching appstore reviews for {item}'):
+        # Another bug with iter_verbose causes the amount of data entries to be
+        # 2 * expected_amount - 1, so it has been replaced with logger.debug
+        # for now
+        # TODO: investigate cause and fix
+        for country_code in country_codes:
             try:
                 data_for_country = self.fetch_for_country(country_code)
                 if not data_for_country.empty:
                     data.append(data_for_country)
+                logger.debug(f'Fetching appstore reviews for {country_code}')
             except requests.HTTPError as error:
                 if error.response.status_code == 400:
                     # not all countries are available
@@ -84,12 +88,13 @@ class FetchAppstoreReviews(DataPreparationTask):
                 data_list += data
             except requests.exceptions.HTTPError as error:
                 if error.response and \
-                        error.response.status_code == 503 or \
-                        (error.response.status_code == 403 and
-                         country_code not in ['DE', 'US', 'GB']):
+                        (error.response.status_code == 503 or
+                         (error.response.status_code == 403 and
+                          country_code not in ['DE', 'US', 'GB'])):
                     logger.error(f"Encountered {error.response.status_code} "
                                  f"server error '{error}' for country code "
                                  f"'{country_code}'\nContinuing anyway...")
+                    break
                 else:
                     raise
 
