@@ -329,7 +329,7 @@ namespace MuseumBarberini.Analytics.Tests
         public bool DisplaysIcon(Bitmap icon, out double similarity) {
             var screenshot = Screenshot;
             if (screenshot is null) {
-                similarity = default;
+                similarity = default(double);
                 return false;
             }
 
