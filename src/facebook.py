@@ -353,26 +353,27 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'response_to': None
                 }
 
-                if comment.get('comment_count'):
-                    try:
-                        # Handle each reply for the comment
-                        for reply in comment['comments']['data']:
-                            yield {
-                                'comment_id': reply.get('id').split('_')[1],
-                                'page_id': str(page_id),
-                                'post_id': str(post_id),
-                                'post_date': reply.get('created_time'),
-                                'text': reply.get('message'),
-                                'is_from_museum': self.from_barberini(reply),
-                                'response_to': str(comment_id)
-                            }
-                    except KeyError:
-                        # Sometimes, replies become unavailable. In this case,
-                        # the Graph API returns the true 'comment_count',
-                        # but does not provide a 'comments' field anyway
-                        logger.warning(
-                            f"Failed to retrieve replies for comment "
-                            f"{comment.get('id')}")
+                if not comment.get('comment_count'):
+                    continue
+                try:
+                    # Handle each reply for the comment
+                    for reply in comment['comments']['data']:
+                        yield {
+                            'comment_id': reply.get('id').split('_')[1],
+                            'page_id': str(page_id),
+                            'post_id': str(post_id),
+                            'post_date': reply.get('created_time'),
+                            'text': reply.get('message'),
+                            'is_from_museum': self.from_barberini(reply),
+                            'response_to': str(comment_id)
+                        }
+                except KeyError:
+                    # Sometimes, replies become unavailable. In this case,
+                    # the Graph API returns the true 'comment_count',
+                    # but does not provide a 'comments' field anyway
+                    logger.warning(
+                        f"Failed to retrieve replies for comment "
+                        f"{comment.get('id')}")
 
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
