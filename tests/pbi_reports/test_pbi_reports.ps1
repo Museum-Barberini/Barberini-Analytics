@@ -1,10 +1,24 @@
-﻿<#
+<#
     Test Runner for Power BI report tests
     This script will try to load each Power BI report found in the repository
     and detect whether Power BI can load it. If any error messages are found or
     the loading times out, a failure is detected and reported. Additionally, all
     opened Power BI windows are screenshotted and stored under output/test_pbi.
 #>
+[CmdletBinding()]
+Param(
+    $reports = (Get-ChildItem power_bi/*.pbit),
+
+    $pbi = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\PBIDesktopStore.exe",
+
+    # If loading time is exceeded, report test will abort and fail
+    [timespan] $timeout = [timespan]::FromSeconds(300),
+    # Delay between checks
+    [timespan] $interval = [timespan]::FromSeconds(10),
+    # Time to wait for PBI to show possible loading windows after model has been created
+    [timespan] $loadDelay = [timespan]::FromSeconds(30)
+)
+
 
 if ($env:CI) {
     . "tests/pbi_reports/_utils/Write-Progress-Stdout.ps1"
@@ -16,15 +30,6 @@ Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies ([System.Reflect
 if (!$?) {
     exit 2  # Error loading C# component
 }
-
-# Settings
-$pbi = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\PBIDesktopStore.exe"
-# If loading time is exceeded, report test will abort and fail
-$timeout = [timespan]::FromSeconds(300)
-# Delay between checks
-$interval = [timespan]::FromSeconds(10)
-# Time to wait for PBI to show possible loading windows after model has been created
-$loadDelay = [timespan]::FromSeconds(30)
 
 
 $maxIntervalCount = [Math]::Ceiling($timeout.TotalMilliseconds / $interval.TotalMilliseconds)
@@ -75,7 +80,6 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) 
 
 
 # Prepare test cases
-$reports = Get-ChildItem power_bi/*.pbit
 $tests = $reports | ForEach-Object `
     {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
 mkdir -Force output/test_pbi | Out-Null
