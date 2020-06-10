@@ -2,25 +2,22 @@ import logging
 import pickle
 from collections import defaultdict
 
+from gsdmm import MovieGroupProcess
 import langdetect
 import luigi
+from luigi.format import UTF8
+from nltk.tokenize import word_tokenize
 import pandas as pd
-from apple_appstore import AppstoreReviewsToDB
+
+from posts import PostsToDb
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 from db_connector import db_connector
-from facebook import FbPostCommentsToDB
-from google_maps import GoogleMapsReviewsToDB
-from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
-from gsdmm import MovieGroupProcess
-from luigi.format import UTF8
-from nltk.tokenize import word_tokenize
 from stop_words import get_stop_words
-from twitter import TweetsToDB
 
 logger = logging.getLogger('luigi-interface')
 
-'''
+"""
 Flow of control
 --------------
 
@@ -50,7 +47,7 @@ the minimal runs.
 This only applies if the minimal run uses
 a fresh test database.
 
-'''
+"""
 
 
 class TopicModeling(luigi.WrapperTask):
@@ -62,13 +59,13 @@ class TopicModeling(luigi.WrapperTask):
 
 class TopicModelingTextsToDb(CsvToDb):
     """
-    The table topic_modeling_texts assigns one
+    The table topic_modeling.topic_text assigns one
     topic to each text comment for each model
     (if the text comment is withing the timespan
     the model was constructed for).
     """
 
-    table = 'topic_modeling_texts'
+    table = 'topic_modeling.topic_text'
 
     def requires(self):
         return TopicModelingTextDf()
@@ -76,25 +73,25 @@ class TopicModelingTextsToDb(CsvToDb):
 
 class TopicModelingTopicsToDb(CsvToDb):
     """
-    The table topic_modeling_topics contains the
+    The table topic_modeling.topic contains the
     most frequent terms for each topic for each
     model.
     """
 
-    table = 'topic_modeling_topics'
+    table = 'topic_modeling.topic'
 
     def requires(self):
         return TopicModelingTopicsDf()
 
 
 class TopicModelingTopicsDf(DataPreparationTask):
-    '''
+    """
     This task's main purpose is to provide a
     single output target that can be used by
     the downstream task TopicModelingTopicsToDb.
     The task also deletes existing data to
     ensure consistency.
-    '''
+    """
 
     def requires(self):
         return TopicModelingFindTopics()
@@ -116,18 +113,18 @@ class TopicModelingTopicsDf(DataPreparationTask):
         # there are no inconsistencies after the new
         # topics data is inserted.
         db_connector().execute(
-            'TRUNCATE topic_modeling_topics'
+            'TRUNCATE topic_modeling.topic'
         )
 
 
 class TopicModelingTextDf(DataPreparationTask):
-    '''
+    """
     This task's only purpose is to provide a
     single output target that can be used by
     the downstream task TopicModelingTextsToDb.
     The task also deletes existing data to
     ensure consistency.
-    '''
+    """
 
     def requires(self):
         return TopicModelingFindTopics()
@@ -149,7 +146,7 @@ class TopicModelingTextDf(DataPreparationTask):
         # there are no inconsistencies after the new
         # topics data is inserted.
         db_connector().execute(
-            'TRUNCATE topic_modeling_texts'
+            'TRUNCATE topic_modeling.topic_text'
         )
 
 
@@ -352,12 +349,7 @@ class TopicModelingCreateCorpus(DataPreparationTask):
     """
 
     def requires(self):
-        # make sure that the most recent posts are available
-        yield AppstoreReviewsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield GooglePlaystoreReviewsToDB()
-        yield TweetsToDB()
-        yield FbPostCommentsToDB()
+        yield PostsToDb()
 
     def output(self):
         return luigi.LocalTarget(
@@ -385,7 +377,7 @@ class Doc:
     """
     This helper class represents individual text documents.
     In our case a text document is a post on e.g. Facebook,
-    Twitter, Google Play, ..
+    Twitter, Google Play, ...
     """
 
     def __init__(self, text, source=None, post_date=None,
