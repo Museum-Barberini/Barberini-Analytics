@@ -137,8 +137,10 @@ namespace MuseumBarberini.Analytics.Tests
                 return;
             }
             foreach (var (failure, icon) in FailureIcons.Select(kvp => (kvp.Key, kvp.Value)))
-                if (windows.Any(window => window.DisplaysIcon(icon)))
-                    handleFail($"Power BI showed an error while loading the report: {failure}");
+                foreach (var (window, index) in windows.Select((window, index) => (window, index)))
+                    if (window.DisplaysIcon(icon))
+                        handleFail($"Power BI showed an error in window {window} " +
+                                   $"while loading the report: {failure}");
         }
 
         /// <summary>
