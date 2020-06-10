@@ -91,14 +91,21 @@ class CsvToDb(CopyToTable):
 
         with self.input().open('r') as file:
             df = self.read_csv(file)
-        for col_name, col_type in self.columns:
-            if col_type == 'ARRAY':
-                df[col_name] = df[col_name].apply(
-                    lambda iterable: "'{%s}'" % ','.join(
-                        # TODO: Use mogrify from below here.
-                        [f'{item}' for item in iterable]
-                    )
-                )
+        try:
+            connection = self.output().connect()
+            with connection:
+                with connection.cursor() as cursor:
+                    for col_name, col_type in self.columns:
+                        if col_type == 'ARRAY':
+                            df[col_name] = df[col_name].apply(
+                                lambda iterable: f'''{{{cursor.mogrify(
+                                    ','.join(['%s'] * len(df.columns)),
+                                    iterable
+                                )}}}'''
+                            )
+                            print(df[col_name])
+        finally:
+            connection.close()
         csv = df.to_csv(index=False, header=False)
         for line in csv.splitlines():
             yield (line,)
