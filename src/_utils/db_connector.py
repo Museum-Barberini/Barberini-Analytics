@@ -137,9 +137,11 @@ class DbConnector:
         return self._execute_queries([query], result_function)
 
 
-def db_connector():
-    connector = copy.copy(default_connector())
-    connector.database = os.environ['POSTGRES_DB']
+def db_connector(database=None):
+    connector = default_connector()
+    if database is None:
+        database = os.environ['POSTGRES_DB']
+    connector.database = database
     return connector
 
 
