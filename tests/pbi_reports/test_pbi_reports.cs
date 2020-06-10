@@ -138,9 +138,9 @@ namespace MuseumBarberini.Analytics.Tests
             }
             foreach (var (failure, icon) in FailureIcons.Select(kvp => (kvp.Key, kvp.Value)))
                 foreach (var (window, index) in windows.Select((window, index) => (window, index)))
-                    if (window.DisplaysIcon(icon))
+                    if (window.DisplaysIcon(icon, out var similarity))
                         handleFail($"Power BI showed an error in window {index} " +
-                                   $"while loading the report: {failure}");
+                                   $"while loading the report: {failure} (similarity={similarity})");
         }
 
         /// <summary>
@@ -326,7 +326,7 @@ namespace MuseumBarberini.Analytics.Tests
         /// <summary>
         /// Tests whether this window displays the specified icon.
         /// </summary>
-        public bool DisplaysIcon(Bitmap icon) {
+        public bool DisplaysIcon(Bitmap icon, out double similarity) {
             var screenshot = Screenshot;
             if (screenshot is null)
                 return false;
@@ -334,7 +334,7 @@ namespace MuseumBarberini.Analytics.Tests
             var magickIcon = CreateMagickImage(icon);
             var magickScreenshot = CreateMagickImage(screenshot);
             var result = magickScreenshot.SubImageSearch(magickIcon);
-            return result.SimilarityMetric <= IconSimilarityThreshold;
+            return (similarity = result.SimilarityMetric) <= IconSimilarityThreshold;
         }
 
         private RECT GetWindowBounds() {
