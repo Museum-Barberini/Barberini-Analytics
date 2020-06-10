@@ -49,8 +49,8 @@ def get_performance_columns(table, key_columns):
 for table in PERFORMANCE_TABLES:
     key_columns = get_key_columns(table)
     performance_columns = get_performance_columns(table, key_columns)
-    all_data = CONNECTOR.query_with_header(f'SELECT * FROM {table}')
-    df = pd.DataFrame(data=all_data[0], columns=all_data[1])
+    data, header = CONNECTOR.query_with_header(f'SELECT * FROM {table}')
+    df = pd.DataFrame(data, columns=header)
 
     # Special treatment because of multi-column key
     # (pandas unique only works on series -> 1d)
