@@ -59,7 +59,7 @@ for table in PERFORMANCE_TABLES:
         key_columns.remove('page_id')
     key_column = key_columns[0]
 
-    before = df[key_column].count()
+    before = len(df)
     to_drop = []
     unique_ids = df[key_column].unique()
 
