@@ -24,9 +24,8 @@ startup: startup-db
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 	
 	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d To join the party, open "\
-		"http://localhost:32828 and run:\n   ssh -L 32828:localhost:$$(docker ps \
-		| grep ${USER}-barberini_analytics_luigi \
-		| sed 's/^.*0\.0\.0\:\([[:digit:]]\+\)->[[:digit:]]\+\/tcp.*$$/\1/' \
+		"http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$(
+			docker port ${USER}-barberini_analytics_luigi 8082 | cut d: -f2 \
 		) -fN $$(hostname)\e[0m"
 
 startup-db:
