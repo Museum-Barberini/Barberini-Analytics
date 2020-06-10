@@ -304,7 +304,7 @@ namespace MuseumBarberini.Analytics.Tests
         /// </remarks>
         public Bitmap Screenshot => _screenshot.Value;
 
-        protected static double IconSimilarityThreshold = 0.07;
+        protected static double IconSimilarityThreshold = 0.1;
 
         private readonly Lazy<Bitmap> _screenshot;
 
@@ -517,7 +517,7 @@ namespace MuseumBarberini.Analytics.Tests
                 magickImage.Read(stream);
             }
 
-            const double scaleFactor = 1 / 3.0; // For performance
+            const double scaleFactor = 1 / 3d; // For performance
             magickImage.Resize(
                 (int)Math.Round(magickImage.Width * scaleFactor),
                 (int)Math.Round(magickImage.Height * scaleFactor)
