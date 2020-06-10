@@ -1,4 +1,3 @@
-from ast import literal_eval
 from io import BytesIO, TextIOWrapper
 import luigi
 from luigi.format import UTF8
@@ -16,10 +15,6 @@ from data_preparation import DataPreparationTask
 class PolaritiesToDb(CsvToDb):
 
     table = 'absa.polarity'
-
-    read_csv_args = dict(**super().read_csv_args, converters={
-        'inflections': literal_eval
-    })
 
     def requires(self):
 
