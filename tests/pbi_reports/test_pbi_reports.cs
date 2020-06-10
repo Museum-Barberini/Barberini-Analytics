@@ -10,6 +10,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using HWND = System.IntPtr;
 
+using ImageMagick;
+
+
 namespace MuseumBarberini.Analytics.Tests
 {
     /// <summary>
@@ -294,6 +297,8 @@ namespace MuseumBarberini.Analytics.Tests
         /// </remarks>
         public Bitmap Screenshot => _screenshot.Value;
 
+        protected static double IconSimilarityThreshold = 0.07;
+
         private readonly Lazy<Bitmap> _screenshot;
 
         public static PbiWindowSnapshot Create(HWND hwnd) {
@@ -319,11 +324,10 @@ namespace MuseumBarberini.Analytics.Tests
             if (screenshot is null)
                 return false;
 
-            var positions = FindBitmapsEntry(
-                screenshot,
-                ConvertToPixelFormat(icon, screenshot.PixelFormat)
-            );
-            return positions.Any();
+            var magickIcon = CreateMagickImage(icon);
+            var magickScreenshot = CreateMagickImage(screenshot);
+            var result = magickScreenshot.SubImageSearch(magickIcon);
+            return result.SimilarityMetric <= IconSimilarityThreshold;
         }
 
         private RECT GetWindowBounds() {
@@ -492,6 +496,24 @@ namespace MuseumBarberini.Analytics.Tests
                         yield return new Point(mainX, mainY);
                 }
             }
+        }
+
+        private static MagickImage CreateMagickImage(Bitmap bitmap) {
+            var magickImage = new MagickImage();
+            using (var stream = new MemoryStream())
+            {
+                bitmap.Save(stream, ImageFormat.Bmp);
+
+                stream.Position = 0;
+                magickImage.Read(stream);
+            }
+
+            const double scaleFactor = 1 / 3.0; // For performance
+            magickImage.Resize(
+                (int)Math.Round(magickImage.Width * scaleFactor),
+                (int)Math.Round(magickImage.Height * scaleFactor)
+            );
+            return magickImage;
         }
 
 #region DllImports

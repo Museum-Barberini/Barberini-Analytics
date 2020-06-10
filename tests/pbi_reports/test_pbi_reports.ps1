@@ -1,4 +1,4 @@
-<#
+﻿<#
     Test Runner for Power BI report tests
     This script will try to load each Power BI report found in the repository
     and detect whether Power BI can load it. If any error messages are found or
@@ -25,8 +25,14 @@ if ($env:CI) {
 }
 
 $csharpProvider = (&"tests/pbi_reports/_utils/csharp_provider.ps1")[-1]
-$drawingLib = "nuget\NETStandard.Library.2.0.3\build\netstandard2.0\ref\System.Drawing.dll"
-Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies ([System.Reflection.Assembly]::LoadFrom($drawingLib)) -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
+$assemblies = (
+    "nuget\NETStandard.Library.2.0.0\build\netstandard2.0\ref\mscorlib.dll",
+    "nuget\NETStandard.Library.2.0.0\build\netstandard2.0\ref\System.Drawing.dll",
+    "nuget\Magick.NET-Q8-x64.7.19.0\lib\net40\Magick.NET-Q8-x64.dll",
+    "nuget\Magick.NET.Core.2.0.0\lib\net40\Magick.NET.Core.dll"
+) | ForEach-Object {[System.Reflection.Assembly]::LoadFrom($_)}
+Copy-Item "nuget\Magick.NET-Q8-x64.7.19.0\runtimes\win-x64\native\Magick.Native-Q8-x64.dll" .
+Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies $assemblies -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {
     exit 2  # Error loading C# component
 }
