@@ -1,5 +1,6 @@
 from ast import literal_eval
 import datetime as dt
+from io import StringIO
 import logging
 
 import luigi
@@ -90,30 +91,34 @@ class CsvToDb(CopyToTable):
 
     def rows(self):
 
-        with self.input().open('r') as file:
-            df = self.read_csv(file)
-        for i, (_, col_type) in enumerate(self.columns):
-            if col_type == 'ARRAY':
-                col_name = df.columns[i]
-                df[col_name] = df[col_name].apply(
-                    lambda iterable:
-                        f'''{{{','.join(
-                            str(item) for item in iterable
-                        )}}}''' if iterable else '{}')
+        array_columns = [
+            col_type == 'ARRAY'
+            for (col_name, col_type)
+            in self.columns
+        ]
+        df = self.read_csv(self.input(), array_columns)
+        for i, array_column in enumerate(array_columns):
+            if not array_column:
+                continue
+            col_name = df.columns[i]
+            df[col_name] = df[col_name].apply(
+                lambda iterable:
+                    f'''{{{','.join(
+                        str(item) for item in iterable
+                    )}}}''' if iterable else '{}')
         csv = df.to_csv(index=False, header=False)
         for line in csv.splitlines():
             yield (line,)
 
-    def read_csv(self, file):
-        return pd.read_csv(file, **self.read_csv_args())
-
-    def read_csv_args(self):
-        return {
-            'converters': {
-                'tuple': literal_eval,
-                'array': literal_eval
-            }
+    def read_csv(self, input, array_columns):
+        with input.open('r') as file:
+            csv_columns = pd.read_csv(StringIO(next(file))).columns
+        converters = {
+            csv_column: literal_eval
+            for csv_column in csv_columns[array_columns]
         }
+        with input.open('r') as file:
+            return pd.read_csv(file, converters=converters)
 
     @property
     def table_path(self):
