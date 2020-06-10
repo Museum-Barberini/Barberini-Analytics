@@ -43,11 +43,13 @@ namespace MuseumBarberini.Analytics.Tests
 
         public string ResultReason { get; private set; }
 
-        protected static Bitmap[] FailureIcons = Directory.GetFiles(
+        protected static Dictionary<string, Bitmap> FailureIcons = Directory.GetFiles(
                 Path.Combine(Directory.GetCurrentDirectory(), "tests/pbi_reports"),
                 "pbi_failure*.bmp"
-            ).Select(file => new Bitmap(file)
-            ).ToArray();
+            ).ToDictionary(
+                file => Path.GetFileNameWithoutExtension(file),
+                file => new Bitmap(file)
+            );
 
         protected Process Process { get; private set; }
         
@@ -126,14 +128,17 @@ namespace MuseumBarberini.Analytics.Tests
             Snapshot.Update();
 
             var windows = Snapshot.Windows.ToList();
-            if (windows.Count == 1 && windows[0].Title.EndsWith(" - Power BI Desktop"))
+            if (windows.Count == 1 && windows[0].Title.EndsWith(" - Power BI Desktop")) {
                 handlePass();
-            else if (!windows.Any(window => string.IsNullOrWhiteSpace(window.Title)))
+                return;
+            }
+            if (!windows.Any(window => string.IsNullOrWhiteSpace(window.Title))) {
                 handleFail("Power BI did not open any valid window");
-            else if (FailureIcons.Any(icon =>
-                windows.Any(window =>
-                    window.DisplaysIcon(icon))))
-                handleFail("Power BI showed an error while loading the report");
+                return;
+            }
+            foreach (var (failure, icon) in FailureIcons.Select(kvp => (kvp.Key, kvp.Value)))
+                if (windows.Any(window => window.DisplaysIcon(icon)))
+                    handleFail($"Power BI showed an error while loading the report: {failure}");
         }
 
         /// <summary>
