@@ -266,6 +266,27 @@ class DatabaseTestCase(unittest.TestCase):
         for requirement in list(dict.fromkeys(requirements)):
             requirement.run()
 
+    @staticmethod
+    def run_task_externally(task_class: luigi.task_register.Register):
+        """
+        Run the task and all its dependencies in an external process.
+        In contrast to run_task(), this isolates the execution from all
+        installed mocking stuff, coverage detection etc. Also, luigi's
+        native scheduler is used.
+        """
+
+        sp.run(
+            check=True,
+            args=f'''make
+                luigi-restart-scheduler
+                luigi-clean
+                luigi-task
+                    LMODULE={task_class.__module__}
+                    LTASK={task_class.__name__}
+                luigi-clean
+            '''.split()
+        )
+
 
 """
 This module is a transparent wrapper around the main entry point of the
