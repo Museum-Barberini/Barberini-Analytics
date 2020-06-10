@@ -36,7 +36,7 @@ class FetchPolarities(DataPreparationTask):
             \|
             (?<pos_tag>[A-Z]+)
             \t
-            (?<polarity>{format_float.pattern})
+            (?<weight>{format_float.pattern})
             \t?
             ((?<=\t)
                 (?<inflection>\p{{L}}+)
@@ -60,7 +60,7 @@ class FetchPolarities(DataPreparationTask):
         rows = self.load_polarities(archive)
         df = pd.DataFrame(
             rows,
-            columns=['word', 'pos_tag', 'polarity', 'inflections']
+            columns=['word', 'pos_tag', 'weight', 'inflections']
         )
 
         with self.output().open('w') as output:
@@ -80,6 +80,6 @@ class FetchPolarities(DataPreparationTask):
         return dict(
             word=match.group('word'),
             pos_tag=match.group('pos_tag'),
-            polarity=float(match.group('polarity')),
+            weight=float(match.group('weight')),
             inflections=match.captures('inflection')
         )
