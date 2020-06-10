@@ -308,8 +308,12 @@ class TestEventTransformation(GomusTransformationTest):
             ExtractEventData,
             *args, **kwargs)
 
-        self.categories = get_categories()
         self.test_data_path += 'events/'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.categories = get_categories()
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
@@ -328,7 +332,7 @@ class TestEventTransformation(GomusTransformationTest):
         def generate_input_targets():
             for category in self.categories:
                 target = MockTarget(cleanse_umlauts(category), format=UTF8)
-                self.write_file_to_target(target, category + '_in.csv')
+                self.write_file_to_target(target, f'{category}_in.csv')
                 yield target
 
         input_mock.return_value = generate_input_targets()
