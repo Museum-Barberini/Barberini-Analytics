@@ -140,6 +140,8 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
     A custom test suite that provides a database template for all tests.
     """
 
+    template_name = 'barberini_test_template'
+
     def setUpSuite(self):
 
         super().setUpSuite()
@@ -152,15 +154,14 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         See also DatabaseTestCase.setup_database().
         """
 
-        self.db_name = f'barberini_test_template'
-        os.environ['POSTGRES_DB_TEMPLATE'] = self.db_name
+        os.environ['POSTGRES_DB_TEMPLATE'] = self.template_name
         # Avoid accidental access to production database
         os.environ['POSTGRES_DB'] = ''
 
         # --- Set up template database ---
         # Check for template cache
         current_mhash = checksumdir.dirhash('./scripts/migrations')
-        connector = db_connector.db_connector(self.db_name)
+        connector = db_connector.db_connector(self.template_name)
         try:
             latest_mhash, *_ = connector.query(
                 'SHOW database_test.migrations_hash',
@@ -180,23 +181,23 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         _perform_query(f'''
             -- Necessary for dropping the database
             UPDATE pg_database SET datistemplate = FALSE
-            WHERE datname = '{self.db_name}'
+                WHERE datname = '{self.template_name}';
+            DROP DATABASE IF EXISTS {self.template_name};
+            CREATE DATABASE {self.template_name};
         ''')
-        _perform_query(f'DROP DATABASE IF EXISTS {self.db_name}')
-        _perform_query(f'CREATE DATABASE {self.db_name}')
         # Apply migrations
         sp.run(
             './scripts/migrations/migrate.sh',
             check=True,
-            env=dict(os.environ, POSTGRES_DB=self.db_name))
+            env=dict(os.environ, POSTGRES_DB=self.template_name))
         # Seal template
         connector.execute(
             f'''
                 UPDATE pg_database SET datistemplate = TRUE
-                WHERE datname = '{self.db_name}'
+                WHERE datname = '{self.template_name}'
             ''',
             f'''
-                ALTER DATABASE {self.db_name}
+                ALTER DATABASE {self.template_name}
                 SET database_test.migrations_hash = '{current_mhash}'
             '''
         )
