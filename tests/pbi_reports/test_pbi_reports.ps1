@@ -12,7 +12,7 @@ Param(
     $pbi = "${env:LOCALAPPDATA}\Microsoft\WindowsApps\PBIDesktopStore.exe",
 
     # If loading time is exceeded, report test will abort and fail
-    [timespan] $timeout = [timespan]::FromSeconds(300),
+    [timespan] $timeout = [timespan]::FromSeconds(420),
     # Delay between checks
     [timespan] $interval = [timespan]::FromSeconds(10),
     # Time to wait for PBI to show possible loading windows after model has been created
