@@ -139,7 +139,7 @@ namespace MuseumBarberini.Analytics.Tests
             foreach (var (failure, icon) in FailureIcons.Select(kvp => (kvp.Key, kvp.Value)))
                 foreach (var (window, index) in windows.Select((window, index) => (window, index)))
                     if (window.DisplaysIcon(icon))
-                        handleFail($"Power BI showed an error in window {window} " +
+                        handleFail($"Power BI showed an error in window {index} " +
                                    $"while loading the report: {failure}");
         }
 
