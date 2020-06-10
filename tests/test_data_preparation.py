@@ -268,6 +268,23 @@ class TestDataPreparationTask(DatabaseTestCase):
             )
         )
 
+    def test_filter_fkey_violations_error_if_all_values_discarded(self):
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        self.db_connector.execute(
+            f'''CREATE TABLE {TABLE_NAME_FOREIGN} (
+                {COLUMN_NAME_FOREIGN} INT PRIMARY KEY
+            )''',
+            f'''CREATE TABLE {TABLE_NAME} (
+                {COLUMN_NAME} INT
+                    REFERENCES {TABLE_NAME_FOREIGN} ({COLUMN_NAME_FOREIGN})
+            )''')
+        # no values are inserted into DB prior
+        print(self.db_connector.query(f"SELECT * FROM {TABLE_NAME_FOREIGN}"))
+        with self.assertRaises(ValueError):
+            self.task.filter_fkey_violations(
+                pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
+            )
+
     def assertFilterFkeyViolations(
             self, df, expected_valid, expected_foreign_keys):
         self.task = DataPreparationTask(table=TABLE_NAME)

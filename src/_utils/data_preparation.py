@@ -156,6 +156,11 @@ class DataPreparationTask(luigi.Task):
                 if sys.stdout.isatty() else
                 "Values not printed for privacy reasons")
 
+            if len(invalid_values) - len(df) == 0 and not self.minimal_mode:
+                # all data has been skipped, something is fishy
+                raise ValueError("All values have been discarded outside "
+                                 "of minimal mode!")
+
         def filter_invalid_values(values, constraint):
             if values.empty:
                 return values
