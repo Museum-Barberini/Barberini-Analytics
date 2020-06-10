@@ -1,3 +1,4 @@
+from ast import literal_eval
 import datetime as dt
 import logging
 
@@ -91,43 +92,28 @@ class CsvToDb(CopyToTable):
 
         with self.input().open('r') as file:
             df = self.read_csv(file)
-        try:
-            connection = self.output().connect()
-            with connection:
-                with connection.cursor() as cursor:
-                    for col_name, col_type in self.columns:
-                        if col_type == 'ARRAY':
-                            import pdb; pdb.set_trace()
-                            df[col_name] = df[col_name].apply(
-                                lambda iterable: f'''{{{cursor.mogrify(
-                                    ','.join(['%s'] * len(df.columns)),
-                                    iterable
-                                )}}}'''
-                            )
-                            print(df[col_name])
-        finally:
-            connection.close()
+        for i, (_, col_type) in enumerate(self.columns):
+            if col_type == 'ARRAY':
+                col_name = df.columns[i]
+                df[col_name] = df[col_name].apply(
+                    lambda iterable:
+                        f'''{{{','.join(
+                            str(item) for item in iterable
+                        )}}}''' if iterable else '{}')
         csv = df.to_csv(index=False, header=False)
         for line in csv.splitlines():
             yield (line,)
-        """ import pdb; pdb.set_trace()
-        try:
-            connection = self.output().connect()
-            with connection:
-                with connection.cursor() as cursor:
-                    for row in df.itertuples(index=False):
-                        csv = cursor.mogrify(
-                            ','.join(['%s'] * len(df.columns)),
-                            row
-                        )
-                        yield (str(csv, 'utf-8'),)
-        finally:
-            connection.close() """
 
     def read_csv(self, file):
-        return pd.read_csv(file, **self.read_csv_args)
+        return pd.read_csv(file, **self.read_csv_args())
 
-    read_csv_args = {}
+    def read_csv_args(self):
+        return {
+            'converters': {
+                'tuple': literal_eval,
+                'array': literal_eval
+            }
+        }
 
     @property
     def table_path(self):

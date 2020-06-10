@@ -50,15 +50,16 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name};')
-        self.assertEqual(actual_data, [(0, 1, 'a', 'b'), *EXPECTED_DATA])
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual([(0, 1, 'a', 'b'), *EXPECTED_DATA], actual_data)
 
     def test_no_duplicates_are_inserted(self):
 
         # Set up database samples
         self.db_connector.execute(f'''
                 INSERT INTO {self.table_name}
-                VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,"z');
+                VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,"z')
             ''')
 
         # Execute code under test
@@ -67,7 +68,7 @@ class TestCsvToDb(DatabaseTestCase):
         # Inspect result
         actual_data = self.db_connector.query(
             f'SELECT * FROM {self.table_name}')
-        self.assertEqual(actual_data, EXPECTED_DATA)
+        self.assertEqual(EXPECTED_DATA, actual_data)
 
     def test_columns(self):
 
@@ -90,7 +91,7 @@ class TestCsvToDb(DatabaseTestCase):
         ]
         COMPLEX_CSV = '''\
 tuple,array,str
-"(1,2,3)","['a','b','c'],'quoted str'
+"(1,2,3)","['a','b','c']",'quoted str'
 (),[],[bracketed str]
 '''
 
@@ -100,27 +101,22 @@ tuple,array,str
             f'''CREATE TABLE {self.table_name} (
                 ints int[],
                 texts text[],
-                text text
+                text text PRIMARY KEY
             )''')
 
         self.dummy.csv = COMPLEX_CSV
-
-        from ast import literal_eval
-        self.dummy.read_csv_args = {
-            **self.dummy.read_csv_args,
-            'converters': {
-                'tuple': literal_eval,
-                'array': literal_eval
-            }
-        }
 
         # Execute code under test
         self.run_task(self.dummy)
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name};')
-        self.assertEqual(actual_data, COMPLEX_DATA)
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual(
+            [(list(row[0]), *row[1:]) for row in COMPLEX_DATA],
+            actual_data
+        )
 
 
 class DummyFileWrapper(luigi.Task):
