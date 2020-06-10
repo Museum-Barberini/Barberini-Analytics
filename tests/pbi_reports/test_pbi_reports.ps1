@@ -32,6 +32,7 @@ $assemblies = (
     "nuget\Magick.NET-Q8-AnyCPU.7.19.0\lib\netstandard20\Magick.NET-Q8-AnyCPU.dll",
     "nuget\Magick.NET.Core.2.0.0\lib\netstandard20\Magick.NET.Core.dll"
 ) | ForEach-Object {[System.Reflection.Assembly]::LoadFrom($_)}
+Copy-Item "nuget\Magick.NET-Q8-AnyCPU.7.19.0\runtimes\win-x86\native\Magick.Native-Q8-x86.dll" .
 Copy-Item "nuget\Magick.NET-Q8-AnyCPU.7.19.0\runtimes\win-x64\native\Magick.Native-Q8-x64.dll" .
 Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies $assemblies -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {

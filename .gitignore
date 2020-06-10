@@ -18,6 +18,9 @@ id_*
 *.env
 *.pbix
 
+Magick.Native-Q8-x64.dll
+Magick.Native-Q8-x86.dll
+
 
 ### Compilation/cache stuff ###
 # Byte-compiled / optimized / DLL files
@@ -119,4 +122,3 @@ webpack.statistics.prod.html
 
 ### Editors ###
 .vscode/
-Magick.Native-Q8-x64.dll
