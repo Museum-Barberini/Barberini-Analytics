@@ -46,9 +46,10 @@ minimal-mining-pipeline:
 
 test-pbi-reports:
   stage: test
-  only:
-    variables:
-      - $FULL_TEST
+  rules:
+    - if: '$FULL_TEST'
+      when: always
+    - if: '$CI_COMMIT_BRANCH =~ /test-powerbi/'
   tags:
     - bernd-windows
   before_script:
