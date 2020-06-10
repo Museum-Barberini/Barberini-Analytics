@@ -97,6 +97,7 @@ class CsvToDb(CopyToTable):
                 with connection.cursor() as cursor:
                     for col_name, col_type in self.columns:
                         if col_type == 'ARRAY':
+                            import pdb; pdb.set_trace()
                             df[col_name] = df[col_name].apply(
                                 lambda iterable: f'''{{{cursor.mogrify(
                                     ','.join(['%s'] * len(df.columns)),
