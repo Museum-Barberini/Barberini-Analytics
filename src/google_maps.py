@@ -189,16 +189,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     extracted['text_english'] = raw_comment
                     extracted['language'] = "english"
 
-                # german reviews have this format:
-                #   [german review]\n\n
-                #   (Translated by Google)\n[english translation]
-                elif "(Original)" not in raw_comment and \
-                        "(Translated by Google)" in raw_comment:
-                    parts = raw_comment.split("(Translated by Google)")
-                    extracted['text'] = parts[0].strip()
-                    extracted['text_english'] = parts[1].strip()
-                    extracted['language'] = "german"
-
                 # other reviews have this format:
                 #   (Translated by Google)[english translation]\n\n
                 #   (Original)\n[original review]
