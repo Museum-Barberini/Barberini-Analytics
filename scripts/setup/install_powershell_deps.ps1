@@ -10,4 +10,4 @@ Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -O
 &nuget/Nuget.exe install -OutputDirectory nuget NETStandard.Library -Version 2.0.0
 
 # Install MagickImage
-&nuget/Nuget.exe install -OutputDirectory nuget Magick.NET-Q8-x64 -Version 7.19.0
+&nuget/Nuget.exe install -OutputDirectory nuget Magick.NET-Q8-AnyCPU -Version 7.19.0
