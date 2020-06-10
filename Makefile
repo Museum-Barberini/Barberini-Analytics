@@ -23,8 +23,8 @@ startup: startup-db
 				&& echo "html" || echo "none") \
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
 	
-	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d To join the party, open "\
-		"http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$(
+	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
+		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$(
 			docker port ${USER}-barberini_analytics_luigi 8082 | cut d: -f2 \
 		) -fN $$(hostname)\e[0m"
 
