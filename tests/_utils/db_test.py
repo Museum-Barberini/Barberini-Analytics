@@ -182,10 +182,10 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         _perform_query(f'''
             -- Necessary for dropping the database
             UPDATE pg_database SET datistemplate = FALSE
-                WHERE datname = '{self.template_name}';
-            DROP DATABASE IF EXISTS {self.template_name};
-            CREATE DATABASE {self.template_name};
+                WHERE datname = '{self.template_name}'
         ''')
+        _perform_query(f'DROP DATABASE IF EXISTS {self.template_name}')
+        _perform_query(f'CREATE DATABASE {self.template_name}')
         # Apply migrations
         sp.run(
             './scripts/migrations/migrate.sh',
