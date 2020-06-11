@@ -1,8 +1,11 @@
+from ast import literal_eval
 import datetime as dt
+from io import StringIO
 import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+import pandas as pd
 from psycopg2.errors import UndefinedTable
 
 import db_connector
@@ -81,20 +84,48 @@ class CsvToDb(CopyToTable):
         """
         Overridden from superclass to forbid dynamical schema changes.
         """
+
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
     def rows(self):
-        rows = super().rows()
-        next(rows)
-        return rows
+
+        array_columns = [
+            col_type == 'ARRAY'
+            for (col_name, col_type)
+            in self.columns
+        ]
+        df = self.read_csv(self.input(), array_columns)
+        for i, array_column in enumerate(array_columns):
+            if not array_column:
+                continue
+            col_name = df.columns[i]
+            df[col_name] = df[col_name].apply(
+                lambda iterable:
+                    f'''{{{','.join(
+                        str(item) for item in iterable
+                    )}}}''' if iterable else '{}')
+        csv = df.to_csv(index=False, header=False)
+        for line in csv.splitlines():
+            yield (line,)
+
+    def read_csv(self, input, array_columns):
+        with input.open('r') as file:
+            csv_columns = pd.read_csv(StringIO(next(file))).columns
+        converters = {
+            csv_column: literal_eval
+            for csv_column in csv_columns[array_columns]
+        }
+        with input.open('r') as file:
+            return pd.read_csv(file, converters=converters)
 
     @property
     def table_path(self):
         """
         Split up self.table into schema and table name.
         """
+
         table = self.table
         segments = table.split('.')
         return (
