@@ -7,16 +7,20 @@ import subprocess as sp
 import unittest
 from queue import Queue
 
+import checksumdir
 import luigi
 import luigi.mock
 import luigi.notifications
 import psycopg2
+from psycopg2.errors import UndefinedObject
 
+import db_connector
 import suitable
-from db_connector import db_connector
 
 
-logger = logging.getLogger('luigi-interface')
+logging.basicConfig()
+logger = logging.getLogger('db_test')
+logger.setLevel(logging.INFO)
 
 
 @contextmanager
@@ -94,7 +98,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
             luigi.notifications.send_error_email(
                 subject=f"\N{bug}" f'''{"This 1 test"
                             if unsuccessful_count == 1
-                            else f"These {unsuccessful_count} tests"}'''
+                            else f"These {unsuccessful_count} tests"} '''
                         "failed on our nightly CI pipeline you won't "
                         "believe!",
                 message=django_renderer(
@@ -136,6 +140,8 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
     A custom test suite that provides a database template for all tests.
     """
 
+    template_name = 'barberini_test_template'
+
     def setUpSuite(self):
 
         super().setUpSuite()
@@ -148,18 +154,55 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         See also DatabaseTestCase.setup_database().
         """
 
-        self.db_name = f'barberini_test_template{id(self)}'
-        # avoid accidental access to production database
+        # --- Configure environment variables --
+        os.environ['POSTGRES_DB_TEMPLATE'] = self.template_name
+        # Avoid accidental access to production database
         os.environ['POSTGRES_DB'] = ''
-        os.environ['POSTGRES_DB_TEMPLATE'] = self.db_name
 
-        # set up template database
-        _perform_query(f'CREATE DATABASE {self.db_name}')
-        self.addCleanup(_perform_query, f'DROP DATABASE {self.db_name}')
+        # --- Set up template database ---
+        # Check for template cache
+        current_mhash = checksumdir.dirhash('./scripts/migrations')
+        connector = db_connector.db_connector(self.template_name)
+        try:
+            latest_mhash, *_ = connector.query(
+                'SHOW database_test.migrations_hash',
+                only_first=True
+            )
+            if latest_mhash == current_mhash:
+                logger.info("Using template database cache")
+                return  # Cache is still valid, nothing to do
+        except psycopg2.OperationalError:
+            pass  # Database does not exist
+        except UndefinedObject:
+            pass  # No hash specified for historical reasons
+
+        # --- Cache invalidation, recreating template database ---
+        logger.info("Recreating template database cache")
+        # Drop template
+        _perform_query(f'''
+            -- Necessary for dropping the database
+            UPDATE pg_database SET datistemplate = FALSE
+                WHERE datname = '{self.template_name}'
+        ''')
+        _perform_query(f'DROP DATABASE IF EXISTS {self.template_name}')
+        _perform_query(f'CREATE DATABASE {self.template_name}')
+        # Apply migrations
         sp.run(
             './scripts/migrations/migrate.sh',
             check=True,
-            env=dict(os.environ, POSTGRES_DB=self.db_name))
+            env=dict(os.environ, POSTGRES_DB=self.template_name)
+        )
+        # Seal template
+        connector.execute(
+            f'''
+                UPDATE pg_database SET datistemplate = TRUE
+                WHERE datname = '{self.template_name}'
+            ''',
+            f'''
+                ALTER DATABASE {self.template_name}
+                SET database_test.migrations_hash = '{current_mhash}'
+            '''
+        )
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -195,7 +238,7 @@ class DatabaseTestCase(unittest.TestCase):
                 TEMPLATE {os.environ['POSTGRES_DB_TEMPLATE']}
             ''')
         # Instantiate connector
-        self.db_connector = db_connector()
+        self.db_connector = db_connector.db_connector()
 
         # Register cleanup
         self.addCleanup(
