@@ -93,7 +93,8 @@ class FetchAppstoreReviews(DataPreparationTask):
                           country_code not in ['DE', 'US', 'GB'])):
                     logger.error(f"Encountered {error.response.status_code} "
                                  f"server error '{error}' for country code "
-                                 f"'{country_code}'\nContinuing anyway...")
+                                 f"'{country_code}'")
+                    logger.error("Continuing anyway...")
                     break
                 else:
                     raise
