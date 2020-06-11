@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import distutils.util
 import logging
 import os
+from shutil import rmtree
 import subprocess as sp
 import unittest
 from queue import Queue
@@ -228,9 +229,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         # Generate "unique" database name
         outer_db = os.getenv('POSTGRES_DB')
-        os.environ['POSTGRES_DB'] = 'barberini_test_{clazz}_{id}'.format(
-            clazz=self.__class__.__name__.lower(),
-            id=id(self))
+        os.environ['POSTGRES_DB'] = self.str_id
         self.addCleanup(os.environ.update, POSTGRES_DB=outer_db)
         # Create database
         _perform_query(f'''
@@ -262,9 +261,21 @@ class DatabaseTestCase(unittest.TestCase):
 
     def setup_filesystem(self):
 
+        outer_output_dir = os.getenv('OUTPUT_DIR')
+        os.environ['OUTPUT_DIR'] = self.str_id
+        self.addCleanup(os.environ.update, POSTGRES_DB=outer_output_dir)
+        os.mkdir(os.getenv('OUTPUT_DIR'))
+        self.addCleanup(rmtree, os.getenv('OUTPUT_DIR'))
+
         self.dirty_file_paths = []
         self.addCleanup(lambda: [
             os.remove(file) for file in self.dirty_file_paths])
+
+    @property
+    def str_id(self):
+        return 'barberini_test_{clazz}_{id}'.format(
+            clazz=self.__class__.__name__.lower(),
+            id=id(self))
 
     def install_mock_target(self, mock_object, store_function):
 

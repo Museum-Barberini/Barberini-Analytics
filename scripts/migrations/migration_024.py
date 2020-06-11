@@ -14,7 +14,7 @@ TIMESTAMP_COLUMN = 'timestamp'
 CONNECTOR = db_connector()
 
 
-# Utlities copied from DataPreparationTask.condense_performance_values
+# Utilities copied from DataPreparationTask.condense_performance_values
 # ------------------------------------------
 def get_key_columns(table):
     primary_key_columns = CONNECTOR.query(

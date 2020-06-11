@@ -1,35 +1,44 @@
--- Tables for aspect mining baseline (!214)
+/** Revise exhibition schema again
+    With the latest changes from !194, it was no longer possible to join
+    exhibition with exhibition_day.
+    This migration includes the column title into the exhibition_day and
+    refactors the view.
+  */
 
 BEGIN;
 
-    -- Activate extensions for fuzzy search
-    CREATE EXTENSION fuzzystrmatch;
-    CREATE EXTENSION pg_trgm;
+    DROP VIEW exhibition_day;
 
+    CREATE FUNCTION exhibition_short_title(_title text) RETURNS text AS
+    $$
+        SELECT CONCAT_WS(
+            ' ',
+            EXTRACT(YEAR FROM MIN(start_date)),
+            COALESCE((regexp_match(_title, '.*?\S(?=\s*[\.\/-] )'))[1], _title)
+        )
+        FROM exhibition_time
+            NATURAL JOIN exhibition
+        WHERE exhibition_time.title = _title
+            AND special IS NULL;
+    $$
+    LANGUAGE SQL IMMUTABLE;
 
-    -- Create tables
-    CREATE TABLE absa.target_aspect(
-        aspect_id SERIAL PRIMARY KEY,
-        aspect text[]
-    );
+    ALTER TABLE exhibition
+        DROP COLUMN short_title,
+        ADD COLUMN short_title TEXT GENERATED ALWAYS AS (
+            exhibition_short_title(title)
+        ) STORED;
 
-    CREATE TABLE absa.target_aspect_word(
-        aspect_id int REFERENCES absa.target_aspect,
-        word text,
-        PRIMARY KEY (aspect_id, word)
-    );
-
-    CREATE TABLE absa.post_aspect(
-        source TEXT,
-        post_id TEXT,
-        word_index INT,
-        FOREIGN KEY (source, post_id, word_index) REFERENCES absa.post_word,
-        aspect_id INT REFERENCES absa.target_aspect,
-        target_aspect_word TEXT,
-        FOREIGN KEY (aspect_id, target_aspect_word)
-            REFERENCES absa.target_aspect_word(aspect_id, word),
-        algorithm TEXT,
-        PRIMARY KEY (algorithm, source, post_id, word_index, aspect_id)
+    CREATE VIEW exhibition_day AS (
+        SELECT DATE(date), exhibition.title, short_title
+        FROM generate_series(
+            (SELECT MIN(start_date) FROM exhibition_time),
+            now(),
+            '1 day'::interval
+        ) date
+        LEFT JOIN exhibition_time
+	    ON date BETWEEN start_date AND end_date
+        NATURAL JOIN exhibition
     );
 
 COMMIT;
