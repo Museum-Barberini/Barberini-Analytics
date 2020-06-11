@@ -52,6 +52,19 @@ class CsvToDb(CopyToTable):
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
+    converters_in = {
+        'ARRAY': literal_eval
+    }
+
+    converters_out = {
+        'ARRAY': lambda iterable:
+            f'''{{{','.join(
+                str(item) for item in iterable
+            )}}}''' if iterable else '{}',
+        'integer': lambda value:
+            None if np.isnan(value) else str(int(value))
+    }
+
     @property
     def columns(self):
         if not self._columns:
@@ -90,9 +103,15 @@ class CsvToDb(CopyToTable):
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
-    # TODO: This keeps getting muddy and more muddy. Consider using something
-    # like pandas.io.sql and override copy?
     def rows(self):
+        """
+        Completely throw away super's stupid implementation because there are
+        some inconsistencies between pandas's and postgres's interpretations
+        of CSV files. Mainly, arrays are treated differently. This requires us
+        to do the conversion ourself ...
+        """
+        # TODO: This keeps getting muddy and more muddy. Consider using
+        # something like pandas.io.sql and override copy?
 
         df = self.read_csv(self.input())
 
@@ -111,27 +130,14 @@ class CsvToDb(CopyToTable):
     def read_csv(self, input):
         with input.open('r') as file:
             csv_columns = pd.read_csv(StringIO(next(file))).columns
-        converters_in = {
+        converters = {
             csv_name: self.converters_in[sql_type]
             for csv_name, (sql_name, sql_type)
             in zip(csv_columns, self.columns)
             if sql_type in self.converters_in
         }
         with input.open('r') as file:
-            return pd.read_csv(file, converters=converters_in)
-
-    converters_in = {
-        'ARRAY': literal_eval
-    }
-
-    converters_out = {
-        'ARRAY': lambda iterable:
-            f'''{{{','.join(
-                str(item) for item in iterable
-            )}}}''' if iterable else '{}',
-        'integer': lambda value:
-            None if np.isnan(value) else str(int(value))
-    }
+            return pd.read_csv(file, converters=converters)
 
     @property
     def table_path(self):
