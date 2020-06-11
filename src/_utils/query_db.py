@@ -1,3 +1,5 @@
+from ast import literal_eval
+
 import luigi
 import pandas as pd
 
@@ -8,6 +10,12 @@ class QueryDb(DataPreparationTask):
 
     query = luigi.Parameter(
         description="The SQL query to perform on the DB"
+    )
+
+    # Don't use a ListParameter here to preserve free typing of arguments
+    args = luigi.Parameter(
+        default=(),
+        description="The SQL query's parameters"
     )
 
     limit = luigi.parameter.IntParameter(
@@ -35,8 +43,12 @@ class QueryDb(DataPreparationTask):
         )
 
     def run(self):
+        # Unpack luigi-serialized parameter
+        self.args = literal_eval(self.args)
+
         query = self.build_query()
-        rows, columns = self.db_connector.query_with_header(query)
+        rows, columns = self.db_connector.query_with_header(
+            query, *self.args)
         df = pd.DataFrame(rows, columns=columns)
         with self.output().open('w') as output_stream:
             df.to_csv(output_stream, index=False, header=True)
