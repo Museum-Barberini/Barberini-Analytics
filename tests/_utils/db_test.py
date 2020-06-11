@@ -98,7 +98,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
             luigi.notifications.send_error_email(
                 subject=f"\N{bug}" f'''{"This 1 test"
                             if unsuccessful_count == 1
-                            else f"These {unsuccessful_count} tests"}'''
+                            else f"These {unsuccessful_count} tests"} '''
                         "failed on our nightly CI pipeline you won't "
                         "believe!",
                 message=django_renderer(
