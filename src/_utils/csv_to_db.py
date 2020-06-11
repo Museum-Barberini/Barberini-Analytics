@@ -5,6 +5,7 @@ import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+import numpy as np
 import pandas as pd
 from psycopg2.errors import UndefinedTable
 
@@ -89,36 +90,48 @@ class CsvToDb(CopyToTable):
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
+    # TODO: This keeps getting muddy and more muddy. Consider using something
+    # like pandas.io.sql and override copy?
     def rows(self):
 
-        array_columns = [
-            col_type == 'ARRAY'
-            for (col_name, col_type)
-            in self.columns
-        ]
-        df = self.read_csv(self.input(), array_columns)
-        for i, array_column in enumerate(array_columns):
-            if not array_column:
-                continue
+        df = self.read_csv(self.input())
+
+        for i, (col_name, col_type) in enumerate(self.columns):
             col_name = df.columns[i]
-            df[col_name] = df[col_name].apply(
-                lambda iterable:
-                    f'''{{{','.join(
-                        str(item) for item in iterable
-                    )}}}''' if iterable else '{}')
+            try:
+                converter = self.converters_out[col_type]
+            except KeyError:
+                continue
+            df[col_name] = df[col_name].apply(converter)
         csv = df.to_csv(index=False, header=False)
+
         for line in csv.splitlines():
             yield (line,)
 
-    def read_csv(self, input, array_columns):
+    def read_csv(self, input):
         with input.open('r') as file:
             csv_columns = pd.read_csv(StringIO(next(file))).columns
-        converters = {
-            csv_column: literal_eval
-            for csv_column in csv_columns[array_columns]
+        converters_in = {
+            csv_name: self.converters_in[sql_type]
+            for csv_name, (sql_name, sql_type)
+            in zip(csv_columns, self.columns)
+            if sql_type in self.converters_in
         }
         with input.open('r') as file:
-            return pd.read_csv(file, converters=converters)
+            return pd.read_csv(file, converters=converters_in)
+
+    converters_in = {
+        'ARRAY': literal_eval
+    }
+
+    converters_out = {
+        'ARRAY': lambda iterable:
+            f'''{{{','.join(
+                str(item) for item in iterable
+            )}}}''' if iterable else '{}',
+        'integer': lambda value:
+            None if np.isnan(value) else str(int(value))
+    }
 
     @property
     def table_path(self):
