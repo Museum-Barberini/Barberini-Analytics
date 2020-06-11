@@ -1,44 +1,88 @@
-/** Revise exhibition schema again
-    With the latest changes from !194, it was no longer possible to join
-    exhibition with exhibition_day.
-    This migration includes the column title into the exhibition_day and
-    refactors the view.
-  */
+-- Fix permalinks for fb comments in social_media_post (#262)
 
 BEGIN;
 
-    DROP VIEW exhibition_day;
+    CREATE OR REPLACE VIEW fb_post_all AS
+    (
+        SELECT
+            fb_post_id AS post_id,
+            page_id,
+            post_date,
+            text,
+            TRUE AS is_from_museum,
+            NULL AS response_to,
+            FALSE AS is_comment,
+            permalink
+        FROM fb_post
+    ) UNION (
+        SELECT
+            fb_post_comment_id AS post_id,
+            page_id,
+            post_date,
+            text,
+            is_from_museum,
+            response_to,
+            TRUE AS is_comment,
+            permalink
+        FROM fb_post_comment
+    );
 
-    CREATE FUNCTION exhibition_short_title(_title text) RETURNS text AS
-    $$
-        SELECT CONCAT_WS(
-            ' ',
-            EXTRACT(YEAR FROM MIN(start_date)),
-            COALESCE((regexp_match(_title, '.*?\S(?=\s*[\.\/-] )'))[1], _title)
+    CREATE OR REPLACE VIEW social_media_post AS (
+        WITH _social_media_post AS (
+            (
+                SELECT
+                    CASE WHEN is_comment
+                        THEN 'Facebook Comment'
+                        ELSE 'Facebook Post'
+                    END AS source,
+                    fb_post_all.post_id,
+                    fb_post_all.text,
+                    fb_post_all.post_date,
+                    NULL AS media_type,
+                    response_to,
+                    NULL AS user_id,
+                    is_from_museum,
+                    likes,
+                    comments,
+                    shares,
+                    fb_post_all.permalink
+                FROM fb_post_all
+                LEFT JOIN fb_post_rich
+                    ON fb_post_all.post_id = fb_post_rich.fb_post_id
+            ) UNION (
+                SELECT
+                    'Instagram' AS source,
+                    ig_post_id AS post_id,
+                    text,
+                    post_date,
+                    media_type,
+                    NULL AS response_to,
+                    NULL AS user_id,
+                    TRUE AS is_from_museum,
+                    likes,
+                    comments,
+                    NULL AS shares,
+                    permalink
+                FROM ig_post_rich
+            ) UNION (
+                SELECT
+                    'Twitter' AS source,
+                    tweet_id AS post_id,
+                    text,
+                    post_date,
+                    NULL as media_type,
+                    response_to,
+                    user_id,
+                    is_from_museum,
+                    likes,
+                    replies AS comments,
+                    retweets AS shares,
+                    permalink
+                FROM tweet_rich
+            )
         )
-        FROM exhibition_time
-            NATURAL JOIN exhibition
-        WHERE exhibition_time.title = _title
-            AND special IS NULL;
-    $$
-    LANGUAGE SQL IMMUTABLE;
-
-    ALTER TABLE exhibition
-        DROP COLUMN short_title,
-        ADD COLUMN short_title TEXT GENERATED ALWAYS AS (
-            exhibition_short_title(title)
-        ) STORED;
-
-    CREATE VIEW exhibition_day AS (
-        SELECT DATE(date), exhibition.title, short_title
-        FROM generate_series(
-            (SELECT MIN(start_date) FROM exhibition_time),
-            now(),
-            '1 day'::interval
-        ) date
-        LEFT JOIN exhibition_time
-	    ON date BETWEEN start_date AND end_date
-        NATURAL JOIN exhibition
+        SELECT *, (response_to IS NOT NULL) is_response
+        FROM _social_media_post
     );
 
 COMMIT;

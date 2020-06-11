@@ -43,6 +43,7 @@ services:
         container_name: barberini_analytics_db
         image: postgres
         restart: always
+        shm_size: 1g
         ports:
             - "5432:5432"
         env_file:

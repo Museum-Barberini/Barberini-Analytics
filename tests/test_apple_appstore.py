@@ -123,6 +123,17 @@ class TestFetchAppleReviews(DatabaseTestCase):
         except requests.exceptions.HTTPError:
             self.fail("503 HTTP Error should be caught")
 
+        mock_res = MagicMock(status_code=403)
+        fetch_page_mock.side_effect = \
+            requests.exceptions.HTTPError(response=mock_res)
+        try:
+            self.task.fetch_for_country('not_DE_not_GB_not_US')
+        except requests.exceptions.HTTPError:
+            self.fail("403 HTTP Error should be caught for DE, GB and US")
+
+        with self.assertRaises(requests.exceptions.HTTPError):
+            self.task.fetch_for_country('GB')
+
     @patch.object(FetchAppstoreReviews, 'fetch_for_country')
     def test_all_countries_some_countries_dont_have_data(self, mock):
 
