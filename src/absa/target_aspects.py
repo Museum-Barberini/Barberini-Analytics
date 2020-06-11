@@ -62,13 +62,14 @@ class ConvertTargetAspectWords(DataPreparationTask):
         aspect_ids = {}
 
         def register_id_for_aspect(aspect):
-            response_file = yield QueryDb(query=f'''
-                SELECT aspect_id
-                FROM {self.label_table}
-                WHERE aspect = '{{{','.join([
-                    f'"{part}"' for part in aspect
-                ])}}}'::text[]
-            ''')
+            response_file = yield QueryDb(
+                query=f'''
+                    SELECT aspect_id
+                    FROM {self.label_table}
+                    WHERE aspect = %s
+                ''',
+                args=(list(aspect),)
+            )
             with response_file.open('r') as response_stream:
                 response = pd.read_csv(response_stream)
             aspect_ids[aspect] = response.iloc[0][0]
