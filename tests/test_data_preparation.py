@@ -282,7 +282,8 @@ class TestDataPreparationTask(DatabaseTestCase):
         print(self.db_connector.query(f"SELECT * FROM {TABLE_NAME_FOREIGN}"))
         with self.assertRaisesRegex(
                 ValueError,
-                "All values have been discarded outside of minimal mode!"):
+                "All values have been discarded "
+                "due to foreign key violation!"):
             self.task.filter_fkey_violations(
                 pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
             )
