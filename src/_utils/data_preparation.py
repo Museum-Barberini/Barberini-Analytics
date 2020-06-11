@@ -143,10 +143,10 @@ class DataPreparationTask(luigi.Task):
                         pd.DataFrame
                     ], None] = None
             ) -> pd.DataFrame:
-
         """
         Note that this currently only works with lower case identifiers.
         """
+
         def log_invalid_values(invalid_values, foreign_key):
             logger.warning(
                 f"Skipped {len(invalid_values)} out of {len(df)} rows "
