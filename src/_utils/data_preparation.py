@@ -205,8 +205,7 @@ class DataPreparationTask(luigi.Task):
                     # all data has been skipped, something is fishy
                     # TODO: the check for minimal_mode is a temporary
                     # workaround, see issue #191
-                    raise ValueError("All values have been discarded outside "
-                                     "of minimal mode!")
+                    raise ValueError("All values have been discarded due to foreign key violation!")
                 if invalid_values_handler:
                     invalid_values_handler(invalid_values, constraint[1])
 
