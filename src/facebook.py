@@ -433,14 +433,12 @@ def num_to_str(num):
     want strings, so convert 'em all!
     """
 
-    print(num)
-    print(type(num))
     if not num:
         return None
     try:
         if np.isnan(num):
             return None
-    except ValueError:
+    except TypeError:
         # Need to convert first
         return num_to_str(int(num))
     return str(int(num))
