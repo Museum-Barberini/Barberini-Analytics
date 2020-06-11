@@ -280,7 +280,9 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''')
         # no values are inserted into DB prior
         print(self.db_connector.query(f"SELECT * FROM {TABLE_NAME_FOREIGN}"))
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+                ValueError,
+                "All values have been discarded outside of minimal mode!"):
             self.task.filter_fkey_violations(
                 pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
             )

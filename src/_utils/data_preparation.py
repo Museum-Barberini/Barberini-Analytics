@@ -204,6 +204,8 @@ class DataPreparationTask(luigi.Task):
                 if len(invalid_values) - len(df) == 0 \
                         and not self.minimal_mode:
                     # all data has been skipped, something is fishy
+                    # TODO: the check for minimal_mode is a temporary
+                    # workaround, see issue #191
                     raise ValueError("All values have been discarded outside "
                                      "of minimal mode!")
                 if invalid_values_handler:
