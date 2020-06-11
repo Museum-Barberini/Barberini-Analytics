@@ -201,8 +201,7 @@ class DataPreparationTask(luigi.Task):
             valid_values, invalid_values = values[valid], values[~valid]
             if not invalid_values.empty:
                 log_invalid_values(invalid_values, constraint)
-                if len(invalid_values) - len(df) == 0 \
-                        and not self.minimal_mode:
+                if valid_values.empty and not self.minimal_mode:
                     # all data has been skipped, something is fishy
                     # TODO: the check for minimal_mode is a temporary
                     # workaround, see issue #191
