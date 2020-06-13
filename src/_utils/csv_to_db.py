@@ -59,7 +59,7 @@ class CsvToDb(CopyToTable):
     converters_out = {
         'ARRAY': lambda iterable:
             # TODO: This might break when we pass certain objects into the
-            # array. In case of this event, we will want toconsider
+            # array. In case of this event, we will want to consider
             # information_schema.element_types as well ...
             f'''{{{','.join(
                 f'"{item}"' for item in iterable
