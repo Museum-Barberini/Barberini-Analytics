@@ -1,8 +1,12 @@
+from ast import literal_eval
 import datetime as dt
+from io import StringIO
 import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+import numpy as np
+import pandas as pd
 from psycopg2.errors import UndefinedTable
 
 import db_connector
@@ -48,6 +52,22 @@ class CsvToDb(CopyToTable):
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
+    converters_in = {
+        'ARRAY': literal_eval
+    }
+
+    converters_out = {
+        'ARRAY': lambda iterable:
+            # TODO: This might break when we pass certain objects into the
+            # array. In case of this event, we will want to consider
+            # information_schema.element_types as well ...
+            f'''{{{','.join(
+                f'"{item}"' for item in iterable
+            )}}}''' if iterable else '{}',
+        'integer': lambda value:
+            None if np.isnan(value) else str(int(value))
+    }
+
     @property
     def columns(self):
         if not self._columns:
@@ -80,20 +100,53 @@ class CsvToDb(CopyToTable):
         """
         Overridden from superclass to forbid dynamical schema changes.
         """
+
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
     def rows(self):
-        rows = super().rows()
-        next(rows)
-        return rows
+        """
+        Completely throw away super's stupid implementation because there are
+        some inconsistencies between pandas's and postgres's interpretations
+        of CSV files. Mainly, arrays are treated differently. This requires us
+        to do the conversion ourself ...
+        """
+        # TODO: This keeps getting muddy and more muddy. Consider using
+        # something like pandas.io.sql and override copy?
+
+        df = self.read_csv(self.input())
+
+        for i, (col_name, col_type) in enumerate(self.columns):
+            col_name = df.columns[i]
+            try:
+                converter = self.converters_out[col_type]
+            except KeyError:
+                continue
+            df[col_name] = df[col_name].apply(converter)
+        csv = df.to_csv(index=False, header=False)
+
+        for line in csv.splitlines():
+            yield (line,)
+
+    def read_csv(self, input):
+        with input.open('r') as file:
+            csv_columns = pd.read_csv(StringIO(next(file))).columns
+        converters = {
+            csv_name: self.converters_in[sql_type]
+            for csv_name, (sql_name, sql_type)
+            in zip(csv_columns, self.columns)
+            if sql_type in self.converters_in
+        }
+        with input.open('r') as file:
+            return pd.read_csv(file, converters=converters)
 
     @property
     def table_path(self):
         """
         Split up self.table into schema and table name.
         """
+
         table = self.table
         segments = table.split('.')
         return (
