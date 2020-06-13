@@ -132,7 +132,7 @@ class CsvToDb(CopyToTable):
             quoting=csv.QUOTE_ALL
         )
 
-        for line in csv.splitlines():
+        for line in csv_string.splitlines():
             yield (line,)
 
     def read_csv(self, input):
