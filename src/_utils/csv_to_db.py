@@ -1,4 +1,5 @@
 from ast import literal_eval
+import csv
 import datetime as dt
 from io import StringIO
 import logging
@@ -125,7 +126,11 @@ class CsvToDb(CopyToTable):
             except KeyError:
                 continue
             df[col_name] = df[col_name].apply(converter)
-        csv = df.to_csv(index=False, header=False)
+        csv_string = df.to_csv(
+            index=False,
+            header=False,
+            quoting=csv.QUOTE_ALL
+        )
 
         for line in csv.splitlines():
             yield (line,)
