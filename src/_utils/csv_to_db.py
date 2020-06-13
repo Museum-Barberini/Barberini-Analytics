@@ -62,7 +62,7 @@ class CsvToDb(CopyToTable):
             # array. In case of this event, we will want toconsider
             # information_schema.element_types as well ...
             f'''{{{','.join(
-                str(item) for item in iterable
+                f'"{item}"' for item in iterable
             )}}}''' if iterable else '{}',
         'integer': lambda value:
             None if np.isnan(value) else str(int(value))
