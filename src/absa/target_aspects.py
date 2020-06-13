@@ -98,9 +98,6 @@ class ConvertTargetAspectLabels(DataPreparationTask):
         with self.input().open('r') as csv_stream:
             df = pd.read_csv(csv_stream, converters={'aspect': literal_eval})
         df = df[['aspect']].drop_duplicates()
-        df['aspect'] = df['aspect'].apply(
-            lambda aspect:
-                f'''{{{','.join([f'{part}' for part in aspect])}}}''')
         with self.output().open('w') as csv_stream:
             df.to_csv(csv_stream, header=True, index=False)
 
