@@ -23,6 +23,13 @@ class CsvToDb(CopyToTable):
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
 
+    """
+    Don't delete this or make it private! This parameter assures that every
+    (sub)instance of me is treated as an individual and will be re-run.
+    """
+    dummy_date = luigi.FloatParameter(
+        default=dt.datetime.timestamp(dt.datetime.now()))
+
     # override the default column separator (tab)
     column_separator = ','
 
