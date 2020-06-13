@@ -127,7 +127,7 @@ class CsvToDb(CopyToTable):
             df[col_name] = df[col_name].apply(converter)
         csv = df.to_csv(index=False, header=False)
 
-        for line in csv_string.splitlines():
+        for line in csv.splitlines():
             yield (line,)
 
     def read_csv(self, input):
