@@ -142,7 +142,12 @@ class DbConnector:
             with conn:
                 with conn.cursor() as cur:
                     for query in queries:
-                        logger.debug(f"DbConnector: Executing query: {query}")
+                        logger.debug(
+                            "DbConnector: Executing query '''%s''' "
+                            "with arguments: %s",
+                            query,
+                            args
+                        )
                         cur.execute(query, args)
                         yield result_function(cur)
         finally:
