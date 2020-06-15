@@ -19,7 +19,8 @@ cd /app
 {
     make apply-pending-migrations luigi-task LMODULE=fill_db LTASK=$TASK
 } || {
-    cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
+    cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M") \
+    && exit 1
 }
 
 make luigi-clean
