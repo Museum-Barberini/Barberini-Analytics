@@ -5,10 +5,15 @@ from csv_to_db import CsvToDb
 from db_test import DatabaseTestCase
 
 
-EXPECTED_DATA = [(1, 2, 'abc', 'xy,"z'), (2, 10, '678', ',,;abc')]
+EXPECTED_DATA = [
+    (1, 2, 'abc', 'xy,"z'),
+    (3, 42, "i have a\nlinebreak", "and i have some strange \x1E 0x1e char"),
+    (2, 10, '678', ',,;abc')
+]
 EXPECTED_CSV = '''\
 id,A,B,C
 1,2,abc,"xy,""z"
+3,42,"i have a\nlinebreak","and i have some strange \x1e 0x1e char"
 2,10,"678",",,;abc"
 '''
 
