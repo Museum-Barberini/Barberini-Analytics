@@ -66,9 +66,9 @@ for table in PERFORMANCE_TABLES:
     to_drop = []
     unique_ids = df[key_column].unique()
 
-    logger.debug("Condensing performance table:", table)
+    logger.debug(f"Condensing performance table: {table}")
     logger.debug(f"Processing {len(unique_ids)} unique ids")
-    logger.debug("Before:", before)
+    logger.debug(f"Number of values before: {before}")
     for unique_id in unique_ids:
         ordered_entries = df.loc[df[key_column] == unique_id] \
             .sort_values(by=TIMESTAMP_COLUMN, axis='index', ascending=True)
@@ -86,7 +86,7 @@ for table in PERFORMANCE_TABLES:
                 to_drop.append(i)
             prev_row = row
 
-    logger.debug("After:", before - len(to_drop))
+    logger.debug(f"Number of values after: {before - len(to_drop)}")
 
     to_drop_df = df[df.index.isin(to_drop)]
 
