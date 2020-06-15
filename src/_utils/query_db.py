@@ -8,6 +8,10 @@ from data_preparation import DataPreparationTask
 
 class QueryDb(DataPreparationTask):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.args = str(self.args)
+
     query = luigi.Parameter(
         description="The SQL query to perform on the DB"
     )
