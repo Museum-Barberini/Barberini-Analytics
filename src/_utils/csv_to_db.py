@@ -52,11 +52,23 @@ class CsvToDb(CopyToTable):
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
+    """
+    Conversion functions to be applied by pandas while loading the input CSV.
+    """
     converters_in = {
+        # Pandas stores arrays as "(1,2,3)", but must be specified the
+        # following function explicitly in order not to load them as plain
+        # string.
         'ARRAY': literal_eval
     }
 
+    """
+    Conversion functions to be applied before generating the ouput CSV for
+    postgres.
+    """
     converters_out = {
+        # Unless pandas, postgres parses arrays according to the following
+        # syntax: '{42,"some text"}'
         'ARRAY': lambda iterable:
             # TODO: This might break when we pass certain objects into the
             # array. In case of this event, we will want to consider
@@ -64,6 +76,11 @@ class CsvToDb(CopyToTable):
             f'''{{{','.join(
                 f'"{item}"' for item in iterable
             )}}}''' if iterable else '{}',
+        # This is necessary due to pandas storing data as numpy types whenever
+        # possible. In some cases we don't want this because it introduces
+        # float representations of large numbers and NaN instead of None.
+        # Convert them to strings always, and postgres will parse them itself,
+        # anyway.
         'integer': lambda value:
             None if np.isnan(value) else str(int(value))
     }
@@ -108,12 +125,12 @@ class CsvToDb(CopyToTable):
 
     def rows(self):
         """
-        Completely throw away super's stupid implementation because there are
-        some inconsistencies between pandas's and postgres's interpretations
-        of CSV files. Mainly, arrays are treated differently. This requires us
-        to do the conversion ourself ...
+        Completely throw away super's implementation because there are some
+        inconsistencies between pandas's and postgres's interpretations of CSV
+        files. Mainly, arrays are encoded differently. This requires us to do
+        the conversion ourself ...
         """
-        # TODO: This keeps getting muddy and more muddy. Consider using
+        # NOTE: This keeps getting muddy and more muddy. Consider using
         # something like pandas.io.sql and override copy?
 
         df = self.read_csv(self.input())
