@@ -211,15 +211,12 @@ class TopicModelingFindTopics(DataPreparationTask):
                 K=12 if model_name else 10
             )
 
-            print("tmA")
             for doc in docs_in_timespan:
                 doc.predict(model, model_name)
 
-            print("tmB")
             # cols: text,source,post_date,topic,model_name
             text_df = pd.DataFrame([doc.to_dict() for doc in docs_in_timespan])
 
-            print("tmC")
             # cols: topic,term,count,model
             out = []
             for i, topic_terms in enumerate(self.top_terms(model)):
