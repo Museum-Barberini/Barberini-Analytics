@@ -47,6 +47,7 @@ class FbPostCommentsToDB(CsvToDb):
 
     def read_csv(self, input):
         df = super().read_csv(input)
+        # This is necessary to prevent pandas from replacing "None" with "NaN"
         df['response_to'] = df['response_to'].apply(num_to_str)
         return df
 
@@ -435,10 +436,8 @@ def num_to_str(num):
 
     if not num:
         return None
-    try:
-        if np.isnan(num):
-            return None
-    except TypeError:
-        # Need to convert first
-        return num_to_str(int(num))
+    if isinstance(num, str):
+        return num
+    if np.isnan(num):
+        return None
     return str(int(num))
