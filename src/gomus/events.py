@@ -50,15 +50,13 @@ class ExtractEventData(DataPreparationTask):
 
     def run(self):
         self.categories = get_categories()
-        for category in self.categories:
-            yield FetchCategoryReservations(category=category)
 
         self.events_df = pd.DataFrame(columns=self.columns)
 
         # for every kind of category
-        for index, event_files in enumerate(self.input()):
-            category = self.categories[index]
-            with event_files.open('r') as events:
+        for category in self.categories:
+            event_file = yield FetchCategoryReservations(category=category)
+            with event_file.open('r') as events:
                 # for every event that falls into that category
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')
