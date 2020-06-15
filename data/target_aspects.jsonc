@@ -32,7 +32,7 @@
 	"Andrang": ["voll", "Fülle", "überfüllt"],
 	"Anfahrt": {
 		"ÖPNV": ["Bus", "Bahn", "Bahnhof"],
-		"Auto": ["Parklplatz", "parken"]
+		"Auto": ["Parkplatz", "parken"]
 	},
 	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp", "Popup"],
 	"Audioguide": ["Audiotour", "Kopfhörer", "Headset"],
