@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 case $1 in
     daily)
@@ -16,11 +15,14 @@ case $1 in
 esac
 
 cd /app
-{
-    make apply-pending-migrations luigi-task LMODULE=fill_db LTASK=$TASK
-} || {
-    cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M") \
-    && exit 1
-}
+make apply-pending-migrations luigi-task LMODULE=fill_db LTASK=$TASK
+EXIT_VAL=$?
+
+if [ $EXIT_VAL -ne 0 ]
+    then cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
+fi
 
 make luigi-clean
+
+exit $EXIT_VAL
+

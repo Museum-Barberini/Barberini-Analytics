@@ -19,4 +19,3 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         raise ValueError(f"Usage: {sys.argv[0]} <error source>")
     send_error_mail(sys.argv[1])
-    exit(1)  # If part of a bash-pipeline, it should still fail
