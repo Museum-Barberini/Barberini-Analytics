@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # The intention of this script is to send an error mail even outside of
 # Luigi's default capability, so that external errors are noticed (make
-#  startup is still assumed to work, since luigi's send_error_mail is used)
+# startup is still assumed to work, since luigi's send_error_mail is used)
 import sys
 import luigi.notifications
 
