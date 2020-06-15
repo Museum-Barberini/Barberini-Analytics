@@ -1,5 +1,5 @@
 Remove-Item -Force -Recurse -ErrorAction Ignore nuget
-mkdir nuget
+mkdir nuget | Out-Null
 
 # Install nuget
 Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget/Nuget.exe
