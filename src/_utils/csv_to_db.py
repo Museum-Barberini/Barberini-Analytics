@@ -149,7 +149,7 @@ class CsvToDb(CopyToTable):
 
     def read_csv(self, input):
         with input.open('r') as file:
-            # Optimization. We're only interested into the colum names, no
+            # Optimization. We're only interested in the column names, no
             # need to read the whole file.
             header_stream = StringIO(next(file))
             csv_columns = pd.read_csv(header_stream).columns
