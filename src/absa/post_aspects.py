@@ -35,6 +35,10 @@ class CollectPostAspects(ConcatCsvs):
 
 
 class CollectPostAspectsAlgorithm(QueryDb):
+    """
+    Note regarding time consumption: 2020-06-15 each subinstance took less
+    than 5 minutes when running the first time.
+    """
 
     def _requires(self):
         return luigi.task.flatten([
