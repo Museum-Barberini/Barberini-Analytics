@@ -16,7 +16,7 @@ Param(
     # Delay between checks
     [timespan] $interval = [timespan]::FromSeconds(10),
     # Time to wait for PBI to show possible loading windows after model has been created
-    [timespan] $loadDelay = [timespan]::FromSeconds(30)
+    [timespan] $loadDelay = [timespan]::FromSeconds(40)
 )
 
 
