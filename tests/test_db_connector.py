@@ -68,7 +68,7 @@ class TestDbConnector(DatabaseTestCase):
     def test_query_with_header_args(self):
 
         rows, columns = self.connector.query_with_header(
-            f'SELECT * FROM (VALUES (%s, %s, %s)) x(a, b, c)',
+            'SELECT * FROM (VALUES (%s, %s, %s)) x(a, b, c)',
             42, 'foo', [1, 2, 3]
         )
         self.assertEqual([(42, 'foo', [1, 2, 3])], rows)

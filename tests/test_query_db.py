@@ -43,7 +43,7 @@ class TestQueryDb(DatabaseTestCase):
     def test_args(self):
 
         self.task = QueryDb(
-            query=f'''SELECT * FROM (VALUES (%s, %s, '%%')) x(a, b, c)''',
+            query='''SELECT * FROM (VALUES (%s, %s, '%%')) x(a, b, c)''',
             args=(42, 'foo'))
         self.task.output = lambda: \
             luigi.mock.MockTarget(f'output/{self.table}')
