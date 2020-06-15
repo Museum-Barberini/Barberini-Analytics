@@ -136,12 +136,12 @@ class CsvToDb(CopyToTable):
         df = self.read_csv(self.input())
 
         for i, (col_name, col_type) in enumerate(self.columns):
-            col_name = df.columns[i]
+            csv_col_name = df.columns[i]
             try:
                 converter = self.converters_out[col_type]
             except KeyError:
                 continue
-            df[col_name] = df[col_name].apply(converter)
+            df[csv_col_name] = df[csv_col_name].apply(converter)
         csv = df.to_csv(index=False, header=False)
 
         for line in filter(None, csv.split('\n')):
