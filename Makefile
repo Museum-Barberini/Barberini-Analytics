@@ -14,10 +14,6 @@ DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
 
 # Start the container luigi. Also start the container barberini_analytics_db if it is not already running.
 # If the container barberini_analytics_db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
-
-fail:
-	exit 1
-
 startup: startup-db
 	# Generate custom hostname for better error logs
 	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
