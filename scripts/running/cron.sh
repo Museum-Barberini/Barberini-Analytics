@@ -5,7 +5,7 @@ USER=$1-run
 BASEDIR=$(dirname "$0")/../..
 PATH="/usr/local/bin:$PATH"
 
-EMAIL_STR = "INFO: Sending email to \[.+\]"
+EMAIL_STR="INFO: Sending email to \[.+\]"
 
 export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
 

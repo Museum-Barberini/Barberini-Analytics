@@ -11,7 +11,7 @@ def send_error_mail(error_source):
         subject="[BP] External error in production pipeline",
         message=("An external error has occured while trying to run the "
                  "pipeline. For details see the according log.\n"
-                 f"Host: {error_source}")
+                 f"Error source: {error_source}")
     )
 
 
