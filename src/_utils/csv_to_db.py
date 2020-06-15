@@ -1,8 +1,12 @@
+from ast import literal_eval
 import datetime as dt
+from io import StringIO
 import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+import numpy as np
+import pandas as pd
 from psycopg2.errors import UndefinedTable
 
 import db_connector
@@ -48,6 +52,39 @@ class CsvToDb(CopyToTable):
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
 
+    """
+    Conversion functions to be applied by pandas while loading the input CSV.
+    """
+    converters_in = {
+        # Pandas stores arrays as "(1,2,3)", but must be specified the
+        # following function explicitly in order not to load them as plain
+        # string.
+        'ARRAY': literal_eval
+    }
+
+    """
+    Conversion functions to be applied before generating the ouput CSV for
+    postgres.
+    """
+    converters_out = {
+        # Unless pandas, postgres parses arrays according to the following
+        # syntax: '{42,"some text"}'
+        'ARRAY': lambda iterable:
+            # TODO: This might break when we pass certain objects into the
+            # array. In case of this event, we will want to consider
+            # information_schema.element_types as well ...
+            f'''{{{','.join(
+                f'"{item}"' for item in iterable
+            )}}}''' if iterable else '{}',
+        # This is necessary due to pandas storing data as numpy types whenever
+        # possible. In some cases we don't want this because it introduces
+        # float representations of large numbers and NaN instead of None.
+        # Convert them to strings always, and postgres will parse them itself,
+        # anyway.
+        'integer': lambda value:
+            None if np.isnan(value) else str(int(value))
+    }
+
     @property
     def columns(self):
         if not self._columns:
@@ -81,20 +118,56 @@ class CsvToDb(CopyToTable):
         """
         Overridden from superclass to forbid dynamical schema changes.
         """
+
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
     def rows(self):
-        rows = super().rows()
-        next(rows)
-        return rows
+        """
+        Completely throw away super's implementation because there are some
+        inconsistencies between pandas's and postgres's interpretations of CSV
+        files. Mainly, arrays are encoded differently. This requires us to do
+        the conversion ourself ...
+        """
+        # NOTE: This keeps getting muddy and more muddy. Consider using
+        # something like pandas.io.sql and override copy?
+
+        df = self.read_csv(self.input())
+
+        for i, (col_name, col_type) in enumerate(self.columns):
+            csv_col_name = df.columns[i]
+            try:
+                converter = self.converters_out[col_type]
+            except KeyError:
+                continue
+            df[csv_col_name] = df[csv_col_name].apply(converter)
+        csv = df.to_csv(index=False, header=False)
+
+        for line in filter(None, csv.split('\n')):
+            yield (line,)
+
+    def read_csv(self, input):
+        with input.open('r') as file:
+            # Optimization. We're only interested in the column names, no
+            # need to read the whole file.
+            header_stream = StringIO(next(file))
+            csv_columns = pd.read_csv(header_stream).columns
+        converters = {
+            csv_name: self.converters_in[sql_type]
+            for csv_name, (sql_name, sql_type)
+            in zip(csv_columns, self.columns)
+            if sql_type in self.converters_in
+        }
+        with input.open('r') as file:
+            return pd.read_csv(file, converters=converters)
 
     @property
     def table_path(self):
         """
         Split up self.table into schema and table name.
         """
+
         table = self.table
         segments = table.split('.')
         return (

@@ -5,6 +5,7 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 
 from db_test import DatabaseTestCase
+from gomus.exhibitions import ExhibitionTimesToDb
 from gomus.exhibitions import FetchExhibitions, FetchExhibitionTimes
 
 
@@ -67,3 +68,20 @@ class TestExhibitions(DatabaseTestCase):
 
         with output_target.open('r') as output_data:
             self.assertEqual(expected_data, output_data.read())
+
+    def test_short_title(self):
+
+        self.task = ExhibitionTimesToDb()
+        self.run_task(self.task)
+
+        ambiguous_titles = self.db_connector.query('''
+            SELECT short_title
+            FROM exhibition
+            GROUP BY short_title
+            HAVING COUNT(title) <> 1
+        ''')
+
+        self.assertFalse(
+            ambiguous_titles,
+            msg=f"These exhibition titles are ambiguous: {ambiguous_titles}"
+        )

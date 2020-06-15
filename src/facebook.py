@@ -5,6 +5,7 @@ import logging
 import os
 
 import luigi
+import numpy as np
 import pandas as pd
 import requests
 from luigi.format import UTF8
@@ -43,6 +44,12 @@ class FbPostCommentsToDB(CsvToDb):
 
     def requires(self):
         return FetchFbPostComments(table=self.table)
+
+    def read_csv(self, input):
+        df = super().read_csv(input)
+        # This is necessary to prevent pandas from replacing "None" with "NaN"
+        df['response_to'] = df['response_to'].apply(num_to_str)
+        return df
 
 # ======= FetchTasks =======
 
@@ -108,6 +115,7 @@ class FetchFbPostDetails(DataPreparationTask):
     This abstract class encapsulates common behavior for tasks
     such as FetchFbPostPerformance and FetchFbPostComments
     """
+
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
         description="For how much time posts should be fetched")
@@ -286,10 +294,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             'page_id': str
         })
 
-        # only convert 'response_to' to string if it exists,
-        # since otherwise it would result in a string "None"
-        df['response_to'] = df['response_to'].apply(
-            lambda x: str(x) if x else None)
+        df['response_to'] = df['response_to'].apply(num_to_str)
 
         df = self.filter_fkey_violations(df)
 
@@ -389,6 +394,7 @@ def try_request_multiple_times(url, **kwargs):
     some requests to fail (mainly: to time out), request the api up
     to four times.
     """
+
     headers = kwargs.pop('headers', None)
     if not headers:
         access_token = os.getenv('FB_ACCESS_TOKEN')
@@ -419,3 +425,19 @@ def try_request_multiple_times(url, **kwargs):
     if not response.ok and not response.status_code == 400:
         response.raise_for_status()
     return response
+
+
+def num_to_str(num):
+    """
+    By default, pandas treats columns that contain both integers and None
+    values as np.floats. However, we don't want either of this here, we just
+    want strings, so convert 'em all!
+    """
+
+    if not num:
+        return None
+    if isinstance(num, str):
+        return num
+    if np.isnan(num):
+        return None
+    return str(int(num))

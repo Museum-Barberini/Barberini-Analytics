@@ -143,10 +143,10 @@ class DataPreparationTask(luigi.Task):
                         pd.DataFrame
                     ], None] = None
             ) -> pd.DataFrame:
-
         """
         Note that this currently only works with lower case identifiers.
         """
+
         def log_invalid_values(invalid_values, foreign_key):
             logger.warning(
                 f"Skipped {len(invalid_values)} out of {len(df)} rows "
@@ -201,6 +201,12 @@ class DataPreparationTask(luigi.Task):
             valid_values, invalid_values = values[valid], values[~valid]
             if not invalid_values.empty:
                 log_invalid_values(invalid_values, constraint)
+                if valid_values.empty and not self.minimal_mode:
+                    # all data has been skipped, something is fishy
+                    # TODO: the check for minimal_mode is a temporary
+                    # workaround, see issue #191
+                    raise ValueError("All values have been discarded "
+                                     "due to foreign key violation!")
                 if invalid_values_handler:
                     invalid_values_handler(invalid_values, constraint[1])
 
