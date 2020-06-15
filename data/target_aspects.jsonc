@@ -56,7 +56,7 @@
 		"Garderobe": ["Schließfach", "Schließfächer", "Tasche"],
 		"Infrastruktur": {
 			"Beleuchtung": [],
-			"Belüftung": ["Klimaanlage", "Klimatisierung", "klimatisiert"],
+			"Belüftung": ["Klimaanlage", "Klimatisierung", "klimatisiert", "stickig"],
 			"WLAN": []
 		},
 		"Toiletten": ["Örtlichkeiten", "Klo"],
