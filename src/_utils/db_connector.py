@@ -85,7 +85,7 @@ class DbConnector:
         results = self._execute_query(
             query=query,
             result_function=result_function,
-            *args
+            args=args
         )
         result = next(results)
         if next(results, result) is not result:
