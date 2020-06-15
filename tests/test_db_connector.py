@@ -53,7 +53,7 @@ class TestDbConnector(DatabaseTestCase):
     def test_query_args(self):
 
         rows = self.connector.query(
-            f'SELECT * FROM (VALUES (%s, %s, %s)) x',
+            'SELECT * FROM (VALUES (%s, %s, %s)) x',
             42, 'foo', [1, 2, 3]
         )
         self.assertEqual([(42, 'foo', [1, 2, 3])], rows)
