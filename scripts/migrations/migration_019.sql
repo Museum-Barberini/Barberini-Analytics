@@ -1,3 +1,5 @@
+-- Revise exhibition view, add year to title (!194)
+
 BEGIN;
 
     DROP VIEW exhibition_day;
