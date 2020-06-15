@@ -12,16 +12,33 @@ from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 
 
-class PolaritiesToDb(CsvToDb):
-
-    table = 'absa.polarity'
+class PolaritiesToDb(luigi.WrapperTask):
 
     def requires(self):
 
-        return FetchPolarities()
+        yield SentiWsToDb()
+        yield SeplToDb()
 
 
-class FetchPolarities(DataPreparationTask):
+class SentiWsToDb(CsvToDb):
+
+    table = 'absa.polarity_sentiws'
+
+    def requires(self):
+
+        return FetchSentiWs()
+
+
+class SeplToDb(CsvToDb):
+
+    table = 'absa.polarity_sepl'
+
+    def requires(self):
+
+        return FetchSepl()
+
+
+class FetchSentiWs(DataPreparationTask):
 
     url = luigi.Parameter(
         'http://pcai056.informatik.uni-leipzig.de/downloads/etc/'
@@ -49,7 +66,7 @@ class FetchPolarities(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/polarities.csv',
+            f'{self.output_dir}/absa/sentiws.csv',
             format=UTF8
         )
 
@@ -83,3 +100,56 @@ class FetchPolarities(DataPreparationTask):
             weight=float(match.group('weight')),
             inflections=match.captures('inflection')
         )
+
+
+class FetchSepl(DataPreparationTask):
+    """
+    Sentiment Phrase List. URL: http://www.opinion-mining.org
+    """
+
+    def input(self):
+
+        return luigi.LocalTarget(
+            'secret_files/absa/SePL-german-v1.1.csv',
+            format=UTF8
+        )
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/absa/sepl.csv',
+            format=UTF8
+        )
+
+    def run(self):
+
+        with self.input().open() as input:
+            df = pd.read_csv(
+                input,
+                header=None,
+                sep=';',
+                comment='#',
+                keep_default_na=False
+            )
+        df.columns = [
+            'phrase',
+            'opinion_value',
+            'standard_deviation',
+            'standard_error',
+            'phrase_type',
+            'manual_correction'
+        ]
+
+        df['manual_correction'] = df['manual_correction'].apply(
+            self.parse_manual_correction)
+
+        with self.output().open('w') as output:
+            df.to_csv(output, index=False)
+
+    def parse_manual_correction(self, value):
+
+        if not value:
+            return False
+        if value == 'm':
+            return True
+        raise ValueError(f"Unknow manual_correction: {value}")
