@@ -139,9 +139,11 @@ namespace MuseumBarberini.Analytics.Tests
             foreach (var (failure, icon) in FailureIcons.Select(kvp => (kvp.Key, kvp.Value)))
                 foreach (var (window, index) in windows.Select((window, index) => (window, index))) {
                     Console.WriteLine($"(Checking window {index} against icon {failure})");
-                    if (window.DisplaysIcon(icon, out var similarity))
+                    if (window.DisplaysIcon(icon, out var similarity)) {
                         handleFail($"Power BI showed an error in window {index} " +
                                    $"while loading the report: {failure} (similarity={similarity})");
+                        return;
+                    }
                 }
         }
 
