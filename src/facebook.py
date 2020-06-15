@@ -436,10 +436,8 @@ def num_to_str(num):
 
     if not num:
         return None
-    try:
-        if np.isnan(num):
-            return None
-    except TypeError:
-        # Need to convert first
-        return num_to_str(int(num))
+    if isinstance(num, str):
+        return num
+    if np.isnan(num):
+        return None
     return str(int(num))
