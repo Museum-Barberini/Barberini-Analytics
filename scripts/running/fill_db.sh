@@ -25,4 +25,3 @@ fi
 make luigi-clean
 
 exit $EXIT_VAL
-
