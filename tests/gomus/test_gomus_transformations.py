@@ -56,9 +56,7 @@ class GomusTransformationTest(DatabaseTestCase):
     def prepare_mock_targets(self, input_mock, output_mock, infile):
         # Overwrite input and output of target task with MockTargets
         self.prepare_input_target(input_mock, infile)
-        output_target = self.prepare_output_target(output_mock)
-
-        return output_target
+        return self.prepare_output_target(output_mock)
 
     def execute_task(self, **kwargs):
         try:
@@ -358,18 +356,13 @@ class TestEventTransformation(GomusTransformationTest):
             'events_out.csv')
 
     @patch.object(ExtractEventData, 'output')
-    @patch.object(FetchCategoryReservations, 'output')
-    def test_empty_events(self, input_mock, output_mock):
-        output_target = self.prepare_mock_targets(
-            input_mock,
-            output_mock,
-            'events_empty_in.csv')
+    @patch('gomus.events.get_categories')
+    def test_empty_events(self, categories_mock, output_mock):
+        output_target = self.prepare_output_target(output_mock)
+        categories_mock.return_value = []
 
         gen = self.execute_task()
-        try:
-            for dep in gen:
-                gen.send(dep.output())
-        except StopIteration:
+        for _, _ in enumerate(gen):  # iterate generator to its end
             pass
 
         self.check_result(
