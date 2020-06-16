@@ -45,8 +45,8 @@ class FbPostCommentsToDB(CsvToDb):
     def requires(self):
         return FetchFbPostComments(table=self.table)
 
-    def read_csv(self, input):
-        df = super().read_csv(input)
+    def read_csv(self, input_csv):
+        df = super().read_csv(input_csv)
         # This is necessary to prevent pandas from replacing "None" with "NaN"
         df['response_to'] = df['response_to'].apply(num_to_str)
         return df
@@ -286,20 +286,39 @@ class FetchFbPostComments(FetchFbPostDetails):
         # be fetched multiple times as well, causing
         # primary key violations
         # See #227
-        df = df.drop_duplicates(
-            subset=['comment_id', 'post_id'], ignore_index=True)
-        df = df.astype({
-            'post_id': str,
-            'comment_id': str,
-            'page_id': str
-        })
+        if not df.empty:
+            df = df.drop_duplicates(
+                subset=['comment_id', 'post_id'], ignore_index=True)
+            df = df.astype({
+                'post_id': str,
+                'comment_id': str,
+                'page_id': str
+            })
 
-        df['response_to'] = df['response_to'].apply(num_to_str)
+            df['response_to'] = df['response_to'].apply(num_to_str)
 
-        df = self.filter_fkey_violations(df)
+            df = self.filter_fkey_violations(df)
+            with self.output().open('w') as output_file:
+                df.to_csv(output_file, index=False, header=True)
 
-        with self.output().open('w') as output_file:
-            df.to_csv(output_file, index=False, header=True)
+        else:
+            """
+            This whole else block is a dirty workaround, because the ToDB tasks
+            currently cannot deal with completely empty CSV files as input,
+            they assume that at least the header row exists.
+            But one cannot set column names on an empty DataFrame, so
+            the header for this is now hardcoded here until that is fixed.
+            """
+            with self.output().open('w') as output_file:
+                output_file.write(','.join([
+                    'post_id',
+                    'page_id',
+                    'comment_id',
+                    'text',
+                    'post_date',
+                    'is_from_museum',
+                    'response_to'
+                ]) + '\n')
 
     def fetch_comments(self, df):
         invalid_count = 0
