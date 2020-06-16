@@ -24,7 +24,7 @@ rm $LOGPATH/"$1-$(date -d '2 weeks ago' +%Y-%m-%d).log" || true
             barberini_analytics_luigi /app/scripts/running/fill_db.sh $1 \
         || grep -Eq $EMAIL_STR $TMPFILE \
         || docker-compose -p $USER -f $BASEDIR/docker/docker-compose.yml exec -T \
-            barberini_analytics_luigi /app/scripts/running/external_error.py $1
+            barberini_analytics_luigi /app/scripts/running/notify_external_error.py $1
     make -C $BASEDIR shutdown USER=$USER
     echo "Ending $1 run at [$(date +"%Y-%m-%d %H:%M")]"
     echo "======================================================================="
