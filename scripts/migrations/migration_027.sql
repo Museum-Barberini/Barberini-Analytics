@@ -3,7 +3,7 @@ BEGIN;
     ALTER TABLE absa.post_ngram
         RENAME COLUMN ngram TO phrase;
 
-    CREATE TABLE absa.polarity_sentiws (
+    CREATE TABLE absa.phrase_polarity_sentiws (
         word TEXT,
         pos_tag TEXT,
         weight REAL,
@@ -17,7 +17,7 @@ BEGIN;
         PRIMARY KEY (word, polarity)
     );
 
-    CREATE TABLE absa.polarity_sepl (
+    CREATE TABLE absa.phrase_polarity_sepl (
         phrase TEXT PRIMARY KEY,
         weight REAL,
         stddev REAL,
@@ -26,7 +26,7 @@ BEGIN;
         manual_coorection BOOLEAN
     );
 
-    CREATE VIEW absa.polarity AS
+    CREATE VIEW absa.phrase_polarity AS
     (
         (
             SELECT
@@ -35,7 +35,7 @@ BEGIN;
                 weight,
                 polarity,
                 'SentiWS' AS dataset
-            FROM absa.polarity_sentiws
+            FROM absa.phrase_polarity_sentiws
         ) UNION (
             SELECT
                 phrase,
@@ -50,7 +50,7 @@ BEGIN;
                     WHEN weight < 0 THEN 'negative'
                 END AS polarity,
                 'SePL' AS dataset
-            FROM absa.polarity_sepl
+            FROM absa.phrase_polarity_sepl
         )
     );
 

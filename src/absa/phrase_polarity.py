@@ -12,7 +12,7 @@ from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 
 
-class PolaritiesToDb(luigi.WrapperTask):
+class PhrasePolaritiesToDb(luigi.WrapperTask):
 
     def requires(self):
 
@@ -22,7 +22,7 @@ class PolaritiesToDb(luigi.WrapperTask):
 
 class SentiWsToDb(CsvToDb):
 
-    table = 'absa.polarity_sentiws'
+    table = 'absa.phrase_polarity_sentiws'
 
     def requires(self):
 
@@ -31,7 +31,7 @@ class SentiWsToDb(CsvToDb):
 
 class SeplToDb(CsvToDb):
 
-    table = 'absa.polarity_sepl'
+    table = 'absa.phrase_polarity_sepl'
 
     def requires(self):
 
