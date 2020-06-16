@@ -310,7 +310,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             the header for this is now hardcoded here until that is fixed.
             """
             with self.output().open('w') as output_file:
-                output_file.write(','.join([
+                pd.DataFrame(columns=[
                     'post_id',
                     'page_id',
                     'comment_id',
@@ -318,7 +318,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'post_date',
                     'is_from_museum',
                     'response_to'
-                ]) + '\n')
+                ]).to_csv(output_file, index=False, header=True)
 
     def fetch_comments(self, df):
         invalid_count = 0
