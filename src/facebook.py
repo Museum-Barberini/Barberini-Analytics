@@ -298,8 +298,6 @@ class FetchFbPostComments(FetchFbPostDetails):
             df['response_to'] = df['response_to'].apply(num_to_str)
 
             df = self.filter_fkey_violations(df)
-            with self.output().open('w') as output_file:
-                df.to_csv(output_file, index=False, header=True)
 
         else:
             """
@@ -307,16 +305,18 @@ class FetchFbPostComments(FetchFbPostDetails):
             currently cannot deal with completely empty CSV files as input,
             they assume that at least the header row exists.
             """
-            with self.output().open('w') as output_file:
-                pd.DataFrame(columns=[
-                    'post_id',
-                    'page_id',
-                    'comment_id',
-                    'text',
-                    'post_date',
-                    'is_from_museum',
-                    'response_to'
-                ]).to_csv(output_file, index=False, header=True)
+            df = pd.DataFrame(columns=[
+                'post_id',
+                'page_id',
+                'comment_id',
+                'text',
+                'post_date',
+                'is_from_museum',
+                'response_to'
+            ])
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False, header=True)
 
     def fetch_comments(self, df):
         invalid_count = 0
