@@ -328,3 +328,22 @@ class DataPreparationTask(luigi.Task):
                 index = next_index if next_index else index + 1
         return self.iter_verbose(
             loop(), msg, size=size, index_fun=lambda: index)
+
+
+class ConcatCsvs(DataPreparationTask):
+
+    def run(self):
+        dfs = [
+            self.read_csv(input)
+            for input in luigi.task.flatten(self.input())
+        ]
+        df = pd.concat(dfs)
+        self.write_csv(df, self.output())
+
+    def read_csv(self, target: luigi.Target):
+        with target.open('r') as input:
+            return pd.read_csv(input)
+
+    def write_csv(self, df: pd.DataFrame, target: luigi.Target):
+        with target.open('w') as output:
+            df.to_csv(output, index=False)

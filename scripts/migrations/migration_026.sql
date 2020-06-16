@@ -1,57 +1,35 @@
+-- Tables for aspect mining baseline (!214)
+
 BEGIN;
 
-    ALTER TABLE absa.post_ngram
-        RENAME COLUMN ngram TO phrase;
+    -- Activate extensions for fuzzy search
+    CREATE EXTENSION fuzzystrmatch;
+    CREATE EXTENSION pg_trgm;
 
-    CREATE TABLE absa.polarity_sentiws (
-        word TEXT,
-        pos_tag TEXT,
-        weight REAL,
-        inflections TEXT[],
-        polarity TEXT GENERATED ALWAYS AS (
-            CASE
-                WHEN weight > 0 THEN 'positive'
-                WHEN weight < 0 THEN 'negative'
-            END
-        ) STORED,
-        PRIMARY KEY (word, polarity)
+
+    -- Create tables
+    CREATE TABLE absa.target_aspect (
+        aspect_id SERIAL PRIMARY KEY,
+        aspect text[]
     );
 
-    CREATE TABLE absa.polarity_sepl (
-        phrase TEXT PRIMARY KEY,
-        weight REAL,
-        stddev REAL,
-        stderr REAL,
-        phrase_type TEXT,
-        manual_coorection BOOLEAN
+    CREATE TABLE absa.target_aspect_word (
+        aspect_id int REFERENCES absa.target_aspect,
+        word text,
+        PRIMARY KEY (aspect_id, word)
     );
 
-    CREATE VIEW absa.polarity AS
-    (
-        (
-            SELECT
-                word AS phrase,
-                pos_tag,
-                weight,
-                polarity,
-                'SentiWS' AS dataset
-            FROM absa.polarity_sentiws
-        ) UNION (
-            SELECT
-                phrase,
-                CASE phrase_type
-                    WHEN 'a' THEN 'ADJX'
-                    WHEN 'n' THEN 'NN'
-                    WHEN 'v' THEN 'VVINF'
-                END AS pos_tag,
-                weight,
-                CASE
-                    WHEN weight > 0 THEN 'positive'
-                    WHEN weight < 0 THEN 'negative'
-                END AS polarity,
-                'SePL' AS dataset
-            FROM absa.polarity_sepl
-        )
+    CREATE TABLE absa.post_aspect (
+        source TEXT,
+        post_id TEXT,
+        word_index INT,
+        FOREIGN KEY (source, post_id, word_index) REFERENCES absa.post_word,
+        aspect_id INT REFERENCES absa.target_aspect,
+        target_aspect_word TEXT,
+        FOREIGN KEY (aspect_id, target_aspect_word)
+            REFERENCES absa.target_aspect_word(aspect_id, word),
+        match_algorithm TEXT,
+        PRIMARY KEY (match_algorithm, source, post_id, word_index, aspect_id)
     );
 
 COMMIT;

@@ -3,6 +3,7 @@ import logging
 import luigi
 import os
 import psycopg2
+from luigi.format import UTF8
 
 from luigi.contrib.external_program import ExternalProgramTask
 
@@ -10,7 +11,7 @@ from csv_to_db import CsvToDb
 from data_preparation import OUTPUT_DIR
 from db_connector import db_connector
 from google_trends.gtrends_topics import GtrendsTopics
-from json_to_csv import JsonToCsv
+from json_converters import JsonToCsv
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
@@ -33,7 +34,10 @@ class GtrendsValuesClearDB(luigi.Task):
 
     def output(self):
         # Pseudo output file to signal completion of the task
-        return luigi.LocalTarget('output/GtrendsValuesClearDB')
+        return luigi.LocalTarget(
+            f'{OUTPUT_DIR}/GtrendsValuesClearDB',
+            format=UTF8
+        )
 
     def requires(self):
         return GtrendsTopics()
@@ -71,7 +75,9 @@ class ConvertGtrendsValues(JsonToCsv):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/google_trends/values.csv')
+            f'{self.output_dir}/google_trends/values.csv',
+            format=UTF8
+        )
 
 
 class FetchGtrendsValues(ExternalProgramTask):
@@ -85,7 +91,9 @@ class FetchGtrendsValues(ExternalProgramTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/google_trends/values.json')
+            f'{OUTPUT_DIR}/google_trends/values.json',
+            format=UTF8
+        )
 
     def program_args(self):
         with self.input()[0].open('r') as facts_file:
