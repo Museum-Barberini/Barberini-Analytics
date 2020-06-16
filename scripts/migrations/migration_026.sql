@@ -34,7 +34,7 @@ BEGIN;
                 pos_tag,
                 weight,
                 polarity,
-                'SentiWS' AS datase
+                'SentiWS' AS dataset
             FROM absa.polarity_sentiws
         ) UNION (
             SELECT
