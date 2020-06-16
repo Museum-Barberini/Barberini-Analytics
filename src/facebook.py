@@ -277,7 +277,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         comments = []
 
         if self.minimal_mode:
-            df = df.head(5)
+            df = df.head(15)
 
         comments = self.fetch_comments(df)
         df = pd.DataFrame(comments)
