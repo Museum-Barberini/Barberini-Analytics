@@ -95,7 +95,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
             SELECT DISTINCT
                 source, post_id, word_index, aspect_id,
                 MIN(target_aspect_word.word) AS aspect_word,  -- just any word
-                '{self.algorithm}' AS algorithm
+                '{self.algorithm}' AS match_algorithm
             FROM
                 best_aspect_match
                     NATURAL JOIN aspect_match
