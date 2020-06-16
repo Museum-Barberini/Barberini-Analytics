@@ -306,8 +306,6 @@ class FetchFbPostComments(FetchFbPostDetails):
             This whole else block is a dirty workaround, because the ToDB tasks
             currently cannot deal with completely empty CSV files as input,
             they assume that at least the header row exists.
-            But one cannot set column names on an empty DataFrame, so
-            the header for this is now hardcoded here until that is fixed.
             """
             with self.output().open('w') as output_file:
                 pd.DataFrame(columns=[
