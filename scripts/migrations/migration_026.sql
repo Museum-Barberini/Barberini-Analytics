@@ -1,5 +1,8 @@
 BEGIN;
 
+    ALTER TABLE absa.post_ngram
+        RENAME COLUMN ngram TO phrase;
+
     CREATE TABLE absa.polarity_sentiws (
         word TEXT,
         pos_tag TEXT,

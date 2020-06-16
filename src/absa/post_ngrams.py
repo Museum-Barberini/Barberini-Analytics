@@ -139,7 +139,7 @@ class CollectPostNgrams(DataPreparationTask):
                     word{0}.post_id AS post_id,
                     {n} AS n,
                     word{0}.word_index AS word_index,
-                    CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS ngram
+                    CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS phrase
             FROM    {mult_exp(f'word_relevant AS word{{i}}')}
             WHERE   {mult_join('(word{i}.source, word{i}.post_id) ='
                                '(word{j}.source, word{j}.post_id)')}
