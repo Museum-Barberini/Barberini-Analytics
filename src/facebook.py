@@ -5,6 +5,7 @@ import logging
 import os
 
 import luigi
+import numpy as np
 import pandas as pd
 import requests
 from luigi.format import UTF8
@@ -43,6 +44,12 @@ class FbPostCommentsToDB(CsvToDb):
 
     def requires(self):
         return FetchFbPostComments(table=self.table)
+
+    def read_csv(self, input_csv):
+        df = super().read_csv(input_csv)
+        # This is necessary to prevent pandas from replacing "None" with "NaN"
+        df['response_to'] = df['response_to'].apply(num_to_str)
+        return df
 
 # ======= FetchTasks =======
 
@@ -108,6 +115,7 @@ class FetchFbPostDetails(DataPreparationTask):
     This abstract class encapsulates common behavior for tasks
     such as FetchFbPostPerformance and FetchFbPostComments
     """
+
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
         description="For how much time posts should be fetched")
@@ -269,7 +277,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         comments = []
 
         if self.minimal_mode:
-            df = df.head(5)
+            df = df.head(15)
 
         comments = self.fetch_comments(df)
         df = pd.DataFrame(comments)
@@ -278,20 +286,34 @@ class FetchFbPostComments(FetchFbPostDetails):
         # be fetched multiple times as well, causing
         # primary key violations
         # See #227
-        df = df.drop_duplicates(
-            subset=['comment_id', 'post_id'], ignore_index=True)
-        df = df.astype({
-            'post_id': str,
-            'comment_id': str,
-            'page_id': str
-        })
+        if not df.empty:
+            df = df.drop_duplicates(
+                subset=['comment_id', 'post_id'], ignore_index=True)
+            df = df.astype({
+                'post_id': str,
+                'comment_id': str,
+                'page_id': str
+            })
 
-        # only convert 'response_to' to string if it exists,
-        # since otherwise it would result in a string "None"
-        df['response_to'] = df['response_to'].apply(
-            lambda x: str(x) if x else None)
+            df['response_to'] = df['response_to'].apply(num_to_str)
 
-        df = self.filter_fkey_violations(df)
+            df = self.filter_fkey_violations(df)
+
+        else:
+            """
+            This whole else block is a dirty workaround, because the ToDB tasks
+            currently cannot deal with completely empty CSV files as input,
+            they assume that at least the header row exists.
+            """
+            df = pd.DataFrame(columns=[
+                'post_id',
+                'page_id',
+                'comment_id',
+                'text',
+                'post_date',
+                'is_from_museum',
+                'response_to'
+            ])
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
@@ -389,6 +411,7 @@ def try_request_multiple_times(url, **kwargs):
     some requests to fail (mainly: to time out), request the api up
     to four times.
     """
+
     headers = kwargs.pop('headers', None)
     if not headers:
         access_token = os.getenv('FB_ACCESS_TOKEN')
@@ -419,3 +442,19 @@ def try_request_multiple_times(url, **kwargs):
     if not response.ok and not response.status_code == 400:
         response.raise_for_status()
     return response
+
+
+def num_to_str(num):
+    """
+    By default, pandas treats columns that contain both integers and None
+    values as np.floats. However, we don't want either of this here, we just
+    want strings, so convert 'em all!
+    """
+
+    if not num:
+        return None
+    if isinstance(num, str):
+        return num
+    if np.isnan(num):
+        return None
+    return str(int(num))
