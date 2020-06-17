@@ -87,6 +87,13 @@ class TestInstagram(DatabaseTestCase):
     @patch.object(instagram.FetchIgPostPerformance, 'input')
     def test_post_performance_transformation(
             self, input_mock, output_mock, request_mock):
+        self.db_connector.execute(
+            '''
+            INSERT INTO ig_post (ig_post_id) VALUES
+                (0123456789),
+                (9876543210)
+            '''
+        )
         input_target = MockTarget('posts_in', format=UTF8)
         input_mock.return_value = input_target
         output_target = MockTarget('insights_out', format=UTF8)
@@ -108,6 +115,11 @@ class TestInstagram(DatabaseTestCase):
                   encoding='utf-8') as json_no_video_in:
             input_no_video_insights = json_no_video_in.read()
 
+        with open(f'{IG_TEST_DATA}/post_insights_expected.csv',
+                  'r',
+                  encoding='utf-8') as expected_data_in:
+            expected_data = expected_data_in.read()
+
         def mock_video_json():
             return json.loads(input_video_insights)
 
@@ -126,8 +138,12 @@ class TestInstagram(DatabaseTestCase):
                     column[0]
                     for column
                     in instagram.IgPostPerformanceToDB().columns],
-                timespan=dt.timedelta(days=100000))
+                timespan=dt.timedelta(days=100000),
+                table='ig_post_performance')
             self.task.run()
+
+        with output_target.open('r') as output_data:
+            self.assertEqual(output_data.read(), expected_data)
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgProfileMetricsDevelopment, 'output')

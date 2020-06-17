@@ -90,7 +90,9 @@ class ExtractTweetPerformance(DataPreparationTask):
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         df['timestamp'] = current_timestamp
-        df = self.ensure_foreign_keys(df)
+        df['tweet_id'] = df['tweet_id'].apply(str)
+        df = self.filter_fkey_violations(df)
+        df = self.condense_performance_values(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
@@ -118,7 +120,7 @@ class FetchTwitter(DataPreparationTask):
     def run(self):
         timespan = self.timespan
         if self.minimal_mode:
-            timespan = dt.timedelta(days=0)
+            timespan = dt.timedelta(days=5)
 
         tweets = ts.query_tweets(
             self.query,

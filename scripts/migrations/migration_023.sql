@@ -1,4 +1,4 @@
--- Differentiate between FB posts and FB comments (!188)
+-- Fix permalinks for fb comments in social_media_post (#262)
 
 BEGIN;
 
@@ -11,7 +11,8 @@ BEGIN;
             text,
             TRUE AS is_from_museum,
             NULL AS response_to,
-        FALSE AS is_comment
+            FALSE AS is_comment,
+            permalink
         FROM fb_post
     ) UNION (
         SELECT
@@ -21,7 +22,8 @@ BEGIN;
             text,
             is_from_museum,
             response_to,
-        TRUE AS is_comment
+            TRUE AS is_comment,
+            permalink
         FROM fb_post_comment
     );
 
@@ -33,9 +35,9 @@ BEGIN;
                         THEN 'Facebook Comment'
                         ELSE 'Facebook Post'
                     END AS source,
-                    fb_post_id AS post_id,
-                    text,
-                    post_date,
+                    fb_post_all.post_id,
+                    fb_post_all.text,
+                    fb_post_all.post_date,
                     NULL AS media_type,
                     response_to,
                     NULL AS user_id,
@@ -43,9 +45,10 @@ BEGIN;
                     likes,
                     comments,
                     shares,
-                    permalink
+                    fb_post_all.permalink
                 FROM fb_post_all
-                NATURAL LEFT JOIN fb_post_rich
+                LEFT JOIN fb_post_rich
+                    ON fb_post_all.post_id = fb_post_rich.fb_post_id
             ) UNION (
                 SELECT
                     'Instagram' AS source,

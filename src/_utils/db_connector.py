@@ -1,4 +1,3 @@
-import copy
 import logging
 import os
 import psycopg2
@@ -14,12 +13,20 @@ class DbConnector:
 
     def __init__(self, host, user, database, password):
         super().__init__()
-        # crucial to avoid unintended access to default postgres database
-        assert database, "Database was not specified"
         self.host = host
         self.user = user
         self.database = database
         self.password = password
+
+    @property
+    def database(self):
+        return self.__database
+
+    @database.setter
+    def database(self, database):
+        # crucial to avoid unintended access to default postgres database
+        assert database, "Database was not specified"
+        self.__database = database
 
     def execute(self, *queries: List[str]) -> List[Tuple]:
         """
@@ -129,9 +136,11 @@ class DbConnector:
         return self._execute_queries([query], result_function)
 
 
-def db_connector():
-    connector = copy.copy(default_connector())
-    connector.database = os.environ['POSTGRES_DB']
+def db_connector(database=None):
+    connector = default_connector()
+    if database is None:
+        database = os.environ['POSTGRES_DB']
+    connector.database = database
     return connector
 
 

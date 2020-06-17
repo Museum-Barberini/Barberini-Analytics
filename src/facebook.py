@@ -5,6 +5,7 @@ import logging
 import os
 
 import luigi
+import numpy as np
 import pandas as pd
 import requests
 from luigi.format import UTF8
@@ -44,6 +45,12 @@ class FbPostCommentsToDB(CsvToDb):
     def requires(self):
         return FetchFbPostComments(table=self.table)
 
+    def read_csv(self, input_csv):
+        df = super().read_csv(input_csv)
+        # This is necessary to prevent pandas from replacing "None" with "NaN"
+        df['response_to'] = df['response_to'].apply(num_to_str)
+        return df
+
 # ======= FetchTasks =======
 
 
@@ -68,16 +75,23 @@ class FetchFbPosts(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_posts(self, page_id):
-        url = f'{API_BASE}/{page_id}/published_posts?limit=100'
+        limit = 100
+        url = f'{API_BASE}/{page_id}/published_posts?limit={limit}'
 
         response = try_request_multiple_times(url)
         response_content = response.json()
         yield from response_content['data']
 
-        log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
+        # log_loop = self.loop_verbose(msg="Fetching facebook page {index}")
+        # This is currently buggy as it only prints out every second iteration
+        # Replaced with logger.info for now (TODO: Fix loop_verbose)
+        i = 1
         while 'next' in response_content['paging']:
+            logger.info(f"Fetched approx. {i * limit} Facebook posts")
+            i += 1
             url = response_content['paging']['next']
-            next(log_loop)
+
+            # next(log_loop)
             response = try_request_multiple_times(url)
             response_content = response.json()
             yield from response_content['data']
@@ -101,6 +115,7 @@ class FetchFbPostDetails(DataPreparationTask):
     This abstract class encapsulates common behavior for tasks
     such as FetchFbPostPerformance and FetchFbPostComments
     """
+
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
         description="For how much time posts should be fetched")
@@ -157,7 +172,8 @@ class FetchFbPostPerformance(FetchFbPostDetails):
         for index in self.iter_verbose(
                 df.index,
                 msg="Fetching performance data for FB post {index}/{size}"):
-            page_id, post_id = df['page_id'][index], df['post_id'][index]
+            page_id, post_id = \
+                str(df['page_id'][index]), str(df['post_id'][index])
             fb_post_id = f'{page_id}_{post_id}'
             post_date = self.post_date(df, index)
             if post_date < self.minimum_relevant_date:
@@ -186,7 +202,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             response_content = response.json()
 
             post_perf = {
-                'time_stamp': current_timestamp,
+                'timestamp': current_timestamp,
             }
 
             # Reactions
@@ -234,7 +250,15 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             logger.warning(f"Skipped {invalid_count} posts")
 
         df = pd.DataFrame(performances)
-        df = self.ensure_foreign_keys(df)
+
+        # For some reason, all except the first set of performance
+        # values get inserted twice into the performances list.
+        # This could be due to a bug in iter_verbose, though it's uncertain.
+        # TODO: Investigate and fix the root cause, this is a workaround
+        df.drop_duplicates(subset='post_id', inplace=True, ignore_index=True)
+
+        df = self.filter_fkey_violations(df)
+        df = self.condense_performance_values(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
@@ -253,7 +277,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         comments = []
 
         if self.minimal_mode:
-            df = df.head(5)
+            df = df.head(15)
 
         comments = self.fetch_comments(df)
         df = pd.DataFrame(comments)
@@ -262,25 +286,41 @@ class FetchFbPostComments(FetchFbPostDetails):
         # be fetched multiple times as well, causing
         # primary key violations
         # See #227
-        df = df.drop_duplicates(
-            subset=['comment_id', 'post_id'], ignore_index=True)
-        df = df.astype({
-            'post_id': str,
-            'comment_id': str,
-            'page_id': str
-        })
+        if not df.empty:
+            df = df.drop_duplicates(
+                subset=['comment_id', 'post_id'], ignore_index=True)
+            df = df.astype({
+                'post_id': str,
+                'comment_id': str,
+                'page_id': str
+            })
 
-        # only convert 'response_to' to string if it exists,
-        # since otherwise it would result in a string "None"
-        df['response_to'] = df['response_to'].apply(
-            lambda x: str(x) if x else None)
+            df['response_to'] = df['response_to'].apply(num_to_str)
 
-        df = self.ensure_foreign_keys(df)
+            df = self.filter_fkey_violations(df)
+
+        else:
+            """
+            This whole else block is a dirty workaround, because the ToDB tasks
+            currently cannot deal with completely empty CSV files as input,
+            they assume that at least the header row exists.
+            """
+            df = pd.DataFrame(columns=[
+                'post_id',
+                'page_id',
+                'comment_id',
+                'text',
+                'post_date',
+                'is_from_museum',
+                'response_to'
+            ])
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_comments(self, df):
+        invalid_count = 0
+
         # Handle each post
         for i in df.index:
             page_id, post_id = df['page_id'][i], df['post_id'][i]
@@ -313,6 +353,9 @@ class FetchFbPostComments(FetchFbPostDetails):
                    f'filter={filt}&order={order}&fields={fields}')
 
             response = try_request_multiple_times(url)
+            if response.status_code == 400:
+                invalid_count += 1
+                continue
             response_data = response.json().get('data')
 
             logger.info(f"Fetched {len(response_data)} "
@@ -333,17 +376,28 @@ class FetchFbPostComments(FetchFbPostDetails):
                 }
 
                 if comment.get('comment_count'):
-                    # Handle each reply for the comment
-                    for reply in comment['comments']['data']:
-                        yield {
-                            'comment_id': reply.get('id').split('_')[1],
-                            'page_id': str(page_id),
-                            'post_id': str(post_id),
-                            'post_date': reply.get('created_time'),
-                            'text': reply.get('message'),
-                            'is_from_museum': self.from_barberini(reply),
-                            'response_to': str(comment_id)
-                        }
+                    try:
+                        # Handle each reply for the comment
+                        for reply in comment['comments']['data']:
+                            yield {
+                                'comment_id': reply.get('id').split('_')[1],
+                                'page_id': str(page_id),
+                                'post_id': str(post_id),
+                                'post_date': reply.get('created_time'),
+                                'text': reply.get('message'),
+                                'is_from_museum': self.from_barberini(reply),
+                                'response_to': str(comment_id)
+                            }
+                    except KeyError:
+                        # Sometimes, replies become unavailable. In this case,
+                        # the Graph API returns the true 'comment_count',
+                        # but does not provide a 'comments' field anyway
+                        logger.warning(
+                            f"Failed to retrieve replies for comment "
+                            f"{comment.get('id')}")
+
+        if invalid_count:
+            logger.warning(f"Skipped {invalid_count} posts")
 
     @staticmethod
     def from_barberini(comment_json):
@@ -357,6 +411,7 @@ def try_request_multiple_times(url, **kwargs):
     some requests to fail (mainly: to time out), request the api up
     to four times.
     """
+
     headers = kwargs.pop('headers', None)
     if not headers:
         access_token = os.getenv('FB_ACCESS_TOKEN')
@@ -383,5 +438,23 @@ def try_request_multiple_times(url, **kwargs):
 
     # cause clear error instead of trying
     # to process the invalid response
-    response.raise_for_status()
+    # (except if we tried to access a foreign object)
+    if not response.ok and not response.status_code == 400:
+        response.raise_for_status()
     return response
+
+
+def num_to_str(num):
+    """
+    By default, pandas treats columns that contain both integers and None
+    values as np.floats. However, we don't want either of this here, we just
+    want strings, so convert 'em all!
+    """
+
+    if not num:
+        return None
+    if isinstance(num, str):
+        return num
+    if np.isnan(num):
+        return None
+    return str(int(num))
