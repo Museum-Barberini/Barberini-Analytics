@@ -125,7 +125,7 @@ class CollectPostNgrams(DataPreparationTask):
             WITH
                 word_relevant AS (
                     SELECT  *
-                    FROM    {self.word_table}
+                    FROM    /*<REPORT_PROGRESS>*/{self.word_table}
                     WHERE   word NOT IN (
                         SELECT word
                         FROM {self.stopword_table}

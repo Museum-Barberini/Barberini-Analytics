@@ -71,7 +71,7 @@ class TestQueryDb(DatabaseTestCase):
                 SELECT i FROM generate_series(1, 10) s(i)
             );
             SELECT i
-            FROM /*REPORT_PROGRESS*/series, pg_sleep(
+            FROM /*<REPORT_PROGRESS>*/series, pg_sleep(
                 -- Make sure sleep is not cached
                 CASE WHEN i = i THEN 0.2 END
             )
@@ -110,7 +110,7 @@ class TestQueryDb(DatabaseTestCase):
             SELECT i / (i - 5)  -- raise "division by zero" error for i = 5
             FROM
                 {
-                    '/*REPORT_PROGRESS*/series'
+                    '/*<REPORT_PROGRESS>*/series'
                     if report_progress
                     else 'series'
                 }, pg_sleep(

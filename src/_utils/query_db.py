@@ -41,7 +41,7 @@ class QueryDb(DataPreparationTask):
                     "exploration purposes. Might impact performance.")
 
     report_progress_function_pattern = re.compile(
-        r'\/\*REPORT_PROGRESS\*\/(["\w\.]+)'
+        r'\/\*<REPORT_PROGRESS>\*\/(["\w\.]+)'
     )
 
     report_progress_row_interval = 1000
