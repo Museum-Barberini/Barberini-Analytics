@@ -148,7 +148,11 @@ class DbConnector:
                             query,
                             args
                         )
-                        cur.execute(query, args)
+                        try:
+                            cur.execute(query, args)
+                        except Exception:
+                            print(query)
+                            raise
                         yield result_function(cur)
         finally:
             conn.close()
