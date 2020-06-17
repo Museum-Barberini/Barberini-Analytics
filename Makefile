@@ -22,13 +22,18 @@ startup: startup-db
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+	
+	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
+		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$( \
+			docker port ${USER}-barberini_analytics_luigi 8082 | cut -d: -f2 \
+		) -fN $$(hostname)\e[0m"
 
 startup-db:
 	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-	 		$(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
+			 $(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
 		else\
-	 		$(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
+			 $(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
 		fi;\
 	fi
 
@@ -63,7 +68,7 @@ luigi-scheduler:
 	${SHELL} -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
 luigi-restart-scheduler:
-	killall luigid
+	killall luigid || true
 	make luigi-scheduler
 	
 luigi:
@@ -88,6 +93,9 @@ output-folder:
 # example: make test
 # example: make test test=tests/test_twitter.py
 test ?= tests/**/test*.py
+# optional argument: testmodule
+# Usually you don't want to change this. All database tests in this solution
+# require DatabaseTestSuite from db_test. Only exception is tests/schema/**.
 test: luigi-clean
 	mkdir -p output
 	# globstar needed to recursively find all .py-files via **
@@ -122,7 +130,8 @@ db-do:
 	docker exec -it barberini_analytics_db psql -U postgres -a "$(db)" -c "$(do)"
 
 db-backup:
-	docker exec barberini_analytics_db pg_dump -U postgres barberini > /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec barberini_analytics_db pg_dump -U postgres barberini \
+		> /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 # Restore the database from a dump/backup
 db-restore:

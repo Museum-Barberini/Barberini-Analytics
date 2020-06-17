@@ -1,13 +1,13 @@
 {
     "data": [
       {
-        "id": "id1_di9",
+        "id": "123456789_987654001",
         "message": "messäge1",
         "created_time": "2020-05-01T11:00:00+0000",
         "comment_count": 0
       },
       {
-        "id": "id2_di8",
+        "id": "123456789_987654002",
         "message": "messäge2",
         "created_time": "2020-05-02T11:00:00+0000",
         "comment_count": 4,
@@ -16,7 +16,7 @@
             {
               "created_time": "2020-05-03T11:00:00+0000",
               "message": "messäge3",
-              "id": "id3_di7"
+              "id": "123456789_987654003"
             },
             {
               "created_time": "2020-05-04T11:00:00+0000",
@@ -25,12 +25,12 @@
                 "id": "MuB-ID"
               },
               "message": "messäge4",
-              "id": "id4_di6"
+              "id": "123456789_987654004"
             },
             {
               "created_time": "2020-05-05T11:00:00+0000",
               "message": "messäge5",
-              "id": "id5_di5"
+              "id": "123456789_987654005"
             },
             {
               "created_time": "2020-05-06T11:00:00+0000",
@@ -39,7 +39,7 @@
                 "id": "MuB-ID"
               },
               "message": "messäge6",
-              "id": "id6_di4"
+              "id": "123456789_987654006"
             }
           ],
           "paging": {
@@ -51,7 +51,7 @@
         }
       },
       {
-        "id": "id7_di3",
+        "id": "123456789_987654007",
         "message": "messäge7",
         "created_time": "2020-05-07T11:00:00+0000",
         "comment_count": 2,
@@ -60,7 +60,7 @@
             {
               "created_time": "2020-05-08T11:00:00+0000",
               "message": "messäge8",
-              "id": "id8_di2"
+              "id": "123456789_987654008"
             },
             {
               "created_time": "2020-05-09T11:00:00+0000",
@@ -69,7 +69,7 @@
                 "id": "MuB-ID"
               },
               "message": "messäge9",
-              "id": "id9_di1"
+              "id": "123456789_987654009"
             }
           ],
           "paging": {
