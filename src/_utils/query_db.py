@@ -40,9 +40,14 @@ class QueryDb(DataPreparationTask):
         description="If True, all posts will be shuffled. For debugging and "
                     "exploration purposes. Might impact performance.")
 
-    report_progress_function_pattern = re.compile(
-        r'\/\*<REPORT_PROGRESS>\*\/(["\w\.]+)'
-    )
+    report_progress_function_pattern = re.compile(r'''
+        \/\*<REPORT_PROGRESS>\*\/
+        (?P<relation>(?P<q>"?)[\w\.]+(?P=q))
+        (
+            \s*(?:[Aa][Ss]\s*)?
+            (?P<alias>(?P<_q>"?)[\w\.]+(?P=_q))
+        )?
+    ''', flags=re.VERBOSE)
 
     report_progress_row_interval = 1000
 
@@ -94,7 +99,8 @@ class QueryDb(DataPreparationTask):
             nonlocal has_reporter
             has_reporter = True
 
-            table_name = match.group(1)
+            table_name = match.group('relation')
+            alias_name = match.group('alias')
             progress_name = f'progress_{len(progress_names)}_{id(self)}'[:58]
             progress_names.append(progress_name)
 
@@ -133,7 +139,7 @@ class QueryDb(DataPreparationTask):
                         ELSE TRUE
                     END
                 ) _table
-            ) "{table_name}"'''
+            ) "{alias_name if alias_name else table_name}"'''
 
         try:
             complex_query = self.report_progress_function_pattern.sub(

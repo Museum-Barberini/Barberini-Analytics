@@ -3,6 +3,7 @@ from tempfile import mkdtemp
 import os
 import re
 from shutil import rmtree
+from string import Formatter
 import sys
 import time
 
@@ -64,17 +65,20 @@ class TestQueryDb(DatabaseTestCase):
         )
         pd.testing.assert_frame_equal(expected_result, actual_result)
 
-    def test_update_progress(self):
+    @data('{}', '{} {}', '{} aS {}')
+    def test_update_progress(self, alias):
 
-        self.task = QueryDb(query='''
+        self.task = QueryDb(query=f'''
             CREATE TEMPORARY TABLE series AS (
                 SELECT i FROM generate_series(1, 10) s(i)
             );
-            SELECT i
-            FROM /*<REPORT_PROGRESS>*/series, pg_sleep(
-                -- Make sure sleep is not cached
-                CASE WHEN i = i THEN 0.2 END
-            )
+            SELECT {'seires' if count_placeholders(alias) > 1 else 'series'}.i
+            FROM
+                /*<REPORT_PROGRESS>*/{alias.format('series', 'seires')},
+                pg_sleep(
+                    -- Make sure sleep is not cached
+                    CASE WHEN i = i THEN 0.2 END
+                )
         ''')
         self.task.report_progress_row_interval = 2
 
@@ -178,3 +182,8 @@ def stdout_redirected(stdout=None):
     finally:
         rmtree(temp_dir)
 # ---
+
+
+def count_placeholders(format_string: str) -> int:
+
+    return len(list(Formatter().parse(format_string)))
