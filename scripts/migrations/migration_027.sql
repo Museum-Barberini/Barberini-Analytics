@@ -3,6 +3,7 @@ BEGIN;
     ALTER TABLE absa.post_ngram
         RENAME COLUMN ngram TO phrase;
 
+
     CREATE TABLE absa.phrase_polarity_sentiws (
         word TEXT,
         pos_tag TEXT,
@@ -52,6 +53,18 @@ BEGIN;
                 'SePL' AS dataset
             FROM absa.phrase_polarity_sepl
         )
+    );
+
+
+    CREATE TABLE absa.post_polarity (
+        source TEXT,
+        post_id TEXT,
+        polarity REAL,
+        stddev REAL,
+        count INT,
+        dataset TEXT,
+        match_algorithm TEXT,
+        PRIMARY KEY (source, post_id, dataset, match_algorithm)
     );
 
 COMMIT;
