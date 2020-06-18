@@ -188,7 +188,7 @@ class QueryDb(DataPreparationTask):
                     if max
                 ]
                 print(
-                    f"\rExecuting query ..." + (
+                    f"Executing query ..." + (
                         f" ({' | '.join(progress_strings)})"
                         if progress_strings
                         else ""
