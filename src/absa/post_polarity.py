@@ -102,7 +102,7 @@ class CollectIdentityPostPolarities(QueryDb):
                     phrase_polarity.dataset,
                     '{self.algorithm}' AS match_algorithm
                 FROM
-                    /*<REPORT_PROGRESS>*/absa.post_ngram post_ngram
+                    /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
                     JOIN absa.phrase_polarity USING (phrase)
                 GROUP BY
                     source, post_id, word_index, post_ngram.n,
@@ -133,7 +133,7 @@ class CollectInflectedPostPolarities(QueryDb):
                     phrase_polarity.dataset,
                     '{self.algorithm}' AS match_algorithm
                 FROM
-                    /*<REPORT_PROGRESS>*/absa.post_ngram post_ngram
+                    /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
                     JOIN absa.inflection ON
                         lower(inflection.inflected) = lower(post_ngram.phrase)
                     JOIN absa.phrase_polarity ON

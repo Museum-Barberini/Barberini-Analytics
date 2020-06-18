@@ -66,7 +66,7 @@ class TestQueryDb(DatabaseTestCase):
         )
         pd.testing.assert_frame_equal(expected_result, actual_result)
 
-    @data('{}', '{} {}', '{} aS {}')
+    @data('{}', '{} aS {}')
     def test_update_progress(self, alias):
 
         self.task = QueryDb(query=f'''

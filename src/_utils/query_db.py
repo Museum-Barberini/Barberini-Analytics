@@ -45,7 +45,7 @@ class QueryDb(DataPreparationTask):
         \/\*<REPORT_PROGRESS>\*\/
         (?P<relation>(?P<q>"?)[\w\.]+(?P=q))
         (
-            \s*(?:[Aa][Ss]\s*)?
+            \s*(?:[Aa][Ss]\s*)
             (?P<alias>(?P<_q>"?)[\w\.]+(?P=_q))
         )?
     ''', flags=re.VERBOSE)
