@@ -24,7 +24,7 @@ class FuzzyJoinPhrases(QueryDb):
         return f'''
             CREATE TEMPORARY TABLE phrase_match AS (
                 WITH
-                    known_post_id AS ({self._known_post_ids_query()}),
+                    known_post_id AS ({self.known_post_ids_query()}),
                     phrase AS (
                         SELECT
                             *
