@@ -26,9 +26,8 @@ class JoinPhrases(QueryDb):
                 WITH
                     known_post_id AS (
                         (SELECT post_id FROM {self.table})
-                        UNION
                         --debug
-                        --(SELECT post_id FROM post WHERE post_date <= NOW() - INTERVAL '1 day')
+                        --UNION (SELECT post_id FROM post WHERE post_date <= NOW() - INTERVAL '1 day')
                     ),
                     phrase AS (
                         SELECT
