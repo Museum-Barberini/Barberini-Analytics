@@ -66,7 +66,7 @@ class TestQueryDb(DatabaseTestCase):
 
     def test_update_progress(self):
 
-        self.task = QueryDb(query=f'''
+        self.task = QueryDb(query='''
             CREATE TEMPORARY TABLE series AS (
                 SELECT i FROM generate_series(1, 10) s(i)
             );
