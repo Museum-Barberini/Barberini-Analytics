@@ -155,7 +155,7 @@ class DbConnector:
             with conn:
                 with conn.cursor() as cur:
                     for query in queries:
-                        logger.info(
+                        logger.debug(
                             "DbConnector: Executing query '''%s''' "
                             "with arguments: %s",
                             query,
