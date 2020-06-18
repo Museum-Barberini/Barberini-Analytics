@@ -114,7 +114,7 @@ class CollectIdentityPostPolarities(QueryDb):
                 count((word_index, n)),
                 dataset, match_algorithm
             FROM post_phrase_polarity
-            GROUP BY source, post_id, dataset, match_algorithm;
+            GROUP BY source, post_id, dataset, match_algorithm
         '''
 
 
@@ -149,5 +149,5 @@ class CollectInflectedPostPolarities(QueryDb):
                 count((word_index, n)),
                 dataset, match_algorithm
             FROM post_phrase_polarity
-            GROUP BY source, post_id, dataset, match_algorithm;
+            GROUP BY source, post_id, dataset, match_algorithm
         '''
