@@ -99,16 +99,19 @@ class CollectIdentityPostPolarities(QueryDb):
                 SELECT
                     source, post_id, word_index, post_ngram.n,
                     avg(weight) AS polarity, stddev(weight),
-                    phrase_polarity.dataset, '{self.algorithm}' AS match_algorithm
+                    phrase_polarity.dataset,
+                    '{self.algorithm}' AS match_algorithm
                 FROM
-                    /*<REPORT_PROGRESS >*/absa.post_ngram
+                    /*<REPORT_PROGRESS>*/absa.post_ngram post_ngram
                     JOIN absa.phrase_polarity USING (phrase)
                 GROUP BY
-                    source, post_id, word_index, post_ngram.n, phrase_polarity.dataset
+                    source, post_id, word_index, post_ngram.n,
+                    phrase_polarity.dataset
             )
             SELECT
                 source, post_id,
-                avg(polarity) AS polarity, stddev(polarity), count((word_index, n)),
+                avg(polarity) AS polarity, stddev(polarity),
+                count((word_index, n)),
                 dataset, match_algorithm
             FROM post_phrase_polarity
             GROUP BY source, post_id, dataset, match_algorithm;
@@ -127,20 +130,23 @@ class CollectInflectedPostPolarities(QueryDb):
                 SELECT
                     source, post_id, word_index, post_ngram.n,
                     avg(weight) AS polarity, stddev(weight),
-                    phrase_polarity.dataset, '{self.algorithm}' AS match_algorithm
+                    phrase_polarity.dataset,
+                    '{self.algorithm}' AS match_algorithm
                 FROM
-                    /*<REPORT_PROGRESS >*/absa.post_ngram
+                    /*<REPORT_PROGRESS>*/absa.post_ngram post_ngram
                     JOIN absa.inflection ON
                         lower(inflection.inflected) = lower(post_ngram.phrase)
                     JOIN absa.phrase_polarity ON
                         phrase_polarity.phrase = inflection.word
                         AND phrase_polarity.dataset = inflection.dataset
                 GROUP BY
-                    source, post_id, word_index, post_ngram.n, phrase_polarity.dataset
+                    source, post_id, word_index, post_ngram.n,
+                    phrase_polarity.dataset
             )
             SELECT
                 source, post_id,
-                avg(polarity) AS polarity, stddev(polarity), count((word_index, n)),
+                avg(polarity) AS polarity, stddev(polarity),
+                count((word_index, n)),
                 dataset, match_algorithm
             FROM post_phrase_polarity
             GROUP BY source, post_id, dataset, match_algorithm;
