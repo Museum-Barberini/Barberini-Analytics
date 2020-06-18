@@ -1,10 +1,11 @@
 from contextlib import contextmanager
-from tempfile import mkdtemp
+import datetime as dt
 import os
 import re
 from shutil import rmtree
 from string import Formatter
 import sys
+from tempfile import mkdtemp
 import time
 
 from ddt import ddt, data
@@ -92,6 +93,7 @@ class TestQueryDb(DatabaseTestCase):
             range(1, 10 + 1),
             columns=['i']
         )
+        self.task.report_progress_update_interval = dt.timedelta(seconds=0.2)
         pd.testing.assert_frame_equal(expected_result, actual_result)
 
         output_lines = output.strip().splitlines()
@@ -122,6 +124,7 @@ class TestQueryDb(DatabaseTestCase):
                     CASE WHEN i = i THEN 0.2 END
                 )
         ''')
+        self.task.report_progress_update_interval = dt.timedelta(seconds=0.2)
         self.task.report_progress_row_interval = 2
 
         with self.assertRaises(psycopg2.errors.DivisionByZero):

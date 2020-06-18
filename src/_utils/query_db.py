@@ -1,4 +1,5 @@
 from ast import literal_eval
+import datetime as dt
 import logging
 import os
 import re
@@ -50,6 +51,8 @@ class QueryDb(DataPreparationTask):
     ''', flags=re.VERBOSE)
 
     report_progress_row_interval = 1000
+
+    report_progress_update_interval = dt.timedelta(seconds=1)
 
     def build_query(self):
         query = self.query
@@ -192,7 +195,7 @@ class QueryDb(DataPreparationTask):
                     """,
                     end=''
                 )
-                sleep(1)
+                sleep(self.report_progress_update_interval.total_seconds())
 
         finally:
             while cleanups:
