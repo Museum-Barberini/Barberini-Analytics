@@ -46,7 +46,8 @@ class FuzzyJoinPostPolarities(FuzzyJoinPhrases):
         return f'''
             WITH post_phrase_polarity AS (
                 SELECT
-                    source, post_id, word_index, n,
+                    phrase_match.source, phrase_match.post_id,
+                    phrase_match.word_index, phrase_match.n,
                     AVG(weight) AS polarity, STDDEV(weight),
                     dataset, '{self.algorithm.name}' AS match_algorithm
                 FROM
@@ -55,7 +56,9 @@ class FuzzyJoinPostPolarities(FuzzyJoinPhrases):
                         JOIN {self.reference_table} AS reference
                             USING ({self.reference_key})
                 GROUP BY
-                    source, post_id, word_index, n, dataset
+                    phrase_match.source, phrase_match.post_id,
+                    phrase_match.word_index, phrase_match.n,
+                    dataset
             )
             SELECT
                 source, post_id,

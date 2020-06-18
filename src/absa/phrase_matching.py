@@ -37,7 +37,7 @@ class FuzzyJoinPhrases(QueryDb):
                             )}
                     )
                 SELECT
-                    source, post_id, word_index, n,
+                    phrase.source, phrase.post_id, phrase.word_index, phrase.n,
                     reference.{self.reference_key},
                     {self.algorithm.value_query(
                             f'phrase.{self.primary_phrase}',
