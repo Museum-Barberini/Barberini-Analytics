@@ -2,7 +2,9 @@ import luigi
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from .phrase_matching import JoinPhrases, MergePhrases
+from data_preparation import ConcatCsvs
+from query_db import QueryDb
+from .phrase_matching import FuzzyJoinPhrases, FuzzyMatchPhrases
 from .phrase_polarity import PhrasePolaritiesToDb
 
 
@@ -70,6 +72,8 @@ class CollectPostPolarities(ConcatCsvs):
     def requires(self):
 
         yield CollectFuzzyPostPolarities()
+        yield CollectIdentityPostPolarities()
+        yield CollectInflectedPostPolarities()
 
 
 class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
@@ -81,3 +85,63 @@ class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
             f'{self.output_dir}/absa/post_polarities.csv',
             format=UTF8
         )
+
+
+class CollectIdentityPostPolarities(QueryDb):
+
+    algorithm = 'identity'
+
+    @property
+    def query(self):
+
+        return f'''
+            WITH post_phrase_polarity AS (
+                SELECT
+                    source, post_id, word_index, post_ngram.n,
+                    avg(weight) AS polarity, stddev(weight),
+                    phrase_polarity.dataset, '{self.algorithm}' AS match_algorithm
+                FROM
+                    /*<REPORT_PROGRESS >*/absa.post_ngram
+                    JOIN absa.phrase_polarity USING (phrase)
+                GROUP BY
+                    source, post_id, word_index, post_ngram.n, phrase_polarity.dataset
+            )
+            SELECT
+                source, post_id,
+                avg(polarity) AS polarity, stddev(polarity), count((word_index, n)),
+                dataset, match_algorithm
+            FROM post_phrase_polarity
+            GROUP BY source, post_id, dataset, match_algorithm;
+        '''
+
+
+class CollectInflectedPostPolarities(QueryDb):
+
+    algorithm = 'inflected'
+
+    @property
+    def query(self):
+
+        return f'''
+            WITH post_phrase_polarity AS (
+                SELECT
+                    source, post_id, word_index, post_ngram.n,
+                    avg(weight) AS polarity, stddev(weight),
+                    phrase_polarity.dataset, '{self.algorithm}' AS match_algorithm
+                FROM
+                    /*<REPORT_PROGRESS >*/absa.post_ngram
+                    JOIN absa.inflection ON
+                        lower(inflection.inflected) = lower(post_ngram.phrase)
+                    JOIN absa.phrase_polarity ON
+                        phrase_polarity.phrase = inflection.word
+                        AND phrase_polarity.dataset = inflection.dataset
+                GROUP BY
+                    source, post_id, word_index, post_ngram.n, phrase_polarity.dataset
+            )
+            SELECT
+                source, post_id,
+                avg(polarity) AS polarity, stddev(polarity), count((word_index, n)),
+                dataset, match_algorithm
+            FROM post_phrase_polarity
+            GROUP BY source, post_id, dataset, match_algorithm;
+        '''
