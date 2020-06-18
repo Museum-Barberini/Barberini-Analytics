@@ -71,9 +71,9 @@ class CollectPostPolarities(ConcatCsvs):
 
     def requires(self):
 
-        yield CollectFuzzyPostPolarities()
-        yield CollectIdentityPostPolarities()
-        yield CollectInflectedPostPolarities()
+        yield CollectFuzzyPostPolarities(table=self.table)
+        yield CollectIdentityPostPolarities(table=self.table)
+        yield CollectInflectedPostPolarities(table=self.table)
 
 
 class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
