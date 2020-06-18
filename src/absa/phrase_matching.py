@@ -7,7 +7,7 @@ from data_preparation import ConcatCsvs
 from query_db import QueryDb
 
 
-class JoinPhrases(QueryDb):
+class FuzzyJoinPhrases(QueryDb):
 
     def requires(self):
 
@@ -96,9 +96,9 @@ class JoinPhrases(QueryDb):
         '''
 
 
-class MergePhrases(ConcatCsvs):
+class FuzzyMatchPhrases(ConcatCsvs):
 
-    join: Callable[[], JoinPhrases]
+    join: Callable[[], FuzzyJoinPhrases]
 
     def requires(self):
 
@@ -107,12 +107,12 @@ class MergePhrases(ConcatCsvs):
 
     def algorithms(self):
 
-        yield MatchPhrasesEquality()
-        yield MatchPhrasesLevenshtein()
-        yield MatchPhrasesTrigram()
+        yield FuzzyMatchIdentity()
+        yield FuzzyMatchLevenshtein()
+        yield FuzzyMatchTrigram()
 
 
-class MatchPhrases(luigi.Task):
+class FuzzyMatch(luigi.Task):
 
     def pre_filter_query(self, post_word):
         """
@@ -124,9 +124,9 @@ class MatchPhrases(luigi.Task):
     run = None  # Not a task to be executed, just a strategy object
 
 
-class MatchPhrasesEquality(MatchPhrases):
+class FuzzyMatchIdentity(FuzzyMatch):
 
-    name = 'equality'
+    name = 'identity'
 
     def aggregate_query(self, match):
         return f'''
@@ -144,7 +144,7 @@ class MatchPhrasesEquality(MatchPhrases):
         '''
 
 
-class MatchPhrasesLevenshtein(MatchPhrases):
+class FuzzyMatchLevenshtein(FuzzyMatch):
 
     name = 'levenshtein'
 
@@ -176,7 +176,7 @@ class MatchPhrasesLevenshtein(MatchPhrases):
         '''
 
 
-class MatchPhrasesTrigram(MatchPhrases):
+class FuzzyMatchTrigram(FuzzyMatch):
 
     name = 'trigram'
 

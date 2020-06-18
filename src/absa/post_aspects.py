@@ -2,7 +2,7 @@ import luigi
 from luigi.format import UTF8
 
 from csv_to_db import CsvToDb
-from .phrase_matching import JoinPhrases, MergePhrases
+from .phrase_matching import FuzzyJoinPhrases, FuzzyMatchPhrases
 from .target_aspects import TargetAspectsToDb
 
 
@@ -14,7 +14,7 @@ class PostAspectsToDb(CsvToDb):
         return CollectPostAspects(table=self.table)
 
 
-class JoinPostAspects(JoinPhrases):
+class JoinPostAspects(FuzzyJoinPhrases):
     """
     Note regarding time consumption: 2020-06-15 each subinstance took less
     than 5 minutes when running the first time.
@@ -30,7 +30,7 @@ class JoinPostAspects(JoinPhrases):
         yield TargetAspectsToDb()
 
 
-class CollectPostAspects(MergePhrases):
+class CollectPostAspects(FuzzyMatchPhrases):
     """
     TODO: Drop topological ancestors ("Ausstellungen" if there is
     also "Ausstellungen/van Gogh")

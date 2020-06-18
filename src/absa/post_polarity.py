@@ -14,7 +14,7 @@ class PostPolaritiesToDb(CsvToDb):
         return CollectPostPolarities(table=self.table)
 
 
-class JoinPostPolarities(JoinPhrases):
+class FuzzyJoinPostPolarities(FuzzyJoinPhrases):
 
     reference_table = 'absa.phrase_polarity'
     reference_phrase = 'phrase'
@@ -42,7 +42,7 @@ class JoinPostPolarities(JoinPhrases):
     def final_query(self):
 
         return f'''
-            WITH phrase_polarity AS (
+            WITH post_phrase_polarity AS (
                 SELECT
                     source, post_id, word_index, n,
                     AVG(weight) AS polarity, STDDEV(weight),
@@ -60,14 +60,21 @@ class JoinPostPolarities(JoinPhrases):
                 AVG(polarity) AS polarity, STDDEV(polarity),
                 COUNT((word_index, n)) AS count,
                 dataset, match_algorithm
-            FROM phrase_polarity
+            FROM post_phrase_polarity
             GROUP BY source, post_id, dataset, match_algorithm
         '''
 
 
-class CollectPostPolarities(MergePhrases):
+class CollectPostPolarities(ConcatCsvs):
 
-    join = JoinPostPolarities
+    def requires(self):
+
+        yield CollectFuzzyPostPolarities()
+
+
+class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
+
+    join = FuzzyJoinPostPolarities
 
     def output(self):
         return luigi.LocalTarget(
