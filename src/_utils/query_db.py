@@ -81,6 +81,9 @@ class QueryDb(DataPreparationTask):
     # sequence index). When printing, start new line if value if message has
     # changed.
     def report_progress(self, fun, query):
+        """
+        Time overhead: ~60%
+        """
 
         has_reporter = False
         progress_names = []
