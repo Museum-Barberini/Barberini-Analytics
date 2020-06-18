@@ -120,7 +120,7 @@ class QueryDb(DataPreparationTask):
                         ) <> 0
                         WHEN MOD(
                             _row_number,
-                            {self.progress_auto_update_interval}
+                            {self.report_progress_row_interval}
                         ) = 0 THEN SETVAL(
                             '{progress_name}',
                             NEXTVAL('{progress_name}') +

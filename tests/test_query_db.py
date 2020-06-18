@@ -76,7 +76,7 @@ class TestQueryDb(DatabaseTestCase):
                 CASE WHEN i = i THEN 0.2 END
             )
         ''')
-        self.task.progress_auto_update_interval = 2
+        self.task.report_progress_row_interval = 2
 
         with stdout_redirected() as buf_path:
             with self.assert_process_invariant():
@@ -118,7 +118,7 @@ class TestQueryDb(DatabaseTestCase):
                     CASE WHEN i = i THEN 0.2 END
                 )
         ''')
-        self.task.progress_auto_update_interval = 2
+        self.task.report_progress_row_interval = 2
 
         with self.assertRaises(psycopg2.errors.DivisionByZero):
             with self.assert_process_invariant():
