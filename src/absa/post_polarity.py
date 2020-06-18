@@ -6,6 +6,7 @@ from data_preparation import ConcatCsvs
 from query_db import QueryDb
 from .phrase_matching import FuzzyJoinPhrases, FuzzyMatchPhrases
 from .phrase_polarity import PhrasePolaritiesToDb
+from .post_ngrams import PostNgramsToDb
 
 
 class PostPolaritiesToDb(CsvToDb):
@@ -78,6 +79,13 @@ class CollectPostPolarities(ConcatCsvs):
         yield CollectIdentityPostPolarities(table=self.table)
         yield CollectInflectedPostPolarities(table=self.table)
 
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/absa/post_polarity.csv',
+            format=UTF8
+        )
+
 
 class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
 
@@ -85,7 +93,7 @@ class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/post_polarities.csv',
+            f'{self.output_dir}/absa/fuzzy_post_polarity.csv',
             format=UTF8
         )
 
@@ -93,6 +101,10 @@ class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
 class CollectIdentityPostPolarities(QueryDb):
 
     algorithm = 'identity'
+
+    def requires(self):
+
+        yield PostNgramsToDb()
 
     @property
     def query(self):
@@ -124,6 +136,10 @@ class CollectIdentityPostPolarities(QueryDb):
 class CollectInflectedPostPolarities(QueryDb):
 
     algorithm = 'inflected'
+
+    def requires(self):
+
+        yield PostNgramsToDb()
 
     @property
     def query(self):
