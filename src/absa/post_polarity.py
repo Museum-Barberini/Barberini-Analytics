@@ -25,6 +25,20 @@ class JoinPostPolarities(JoinPhrases):
         yield from super().requires()
         yield PhrasePolaritiesToDb()
 
+    def known_post_ids_query(self):
+
+        if not self.minimal_mode:
+            return super().known_post_ids_query()
+
+        return f'''
+            {super().known_post_ids_query()}
+            UNION (
+                SELECT post_id
+                FROM post
+                WHERE post_date <= NOW() - INTERVAL '3 days'
+            )
+        '''
+
     def final_query(self):
 
         return f'''

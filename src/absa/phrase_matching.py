@@ -24,11 +24,7 @@ class JoinPhrases(QueryDb):
         return f'''
             CREATE TEMPORARY TABLE phrase_match AS (
                 WITH
-                    known_post_id AS (
-                        (SELECT post_id FROM {self.table})
-                        --debug
-                        --UNION (SELECT post_id FROM post WHERE post_date <= NOW() - INTERVAL '1 day')
-                    ),
+                    known_post_id AS ({self._known_post_ids_query()}),
                     phrase AS (
                         SELECT
                             *
@@ -58,7 +54,7 @@ class JoinPhrases(QueryDb):
                 word_index INTEGER,
                 n INTEGER,
                 match_value REAL,
-                PRIMARY KEY (source, post_id, word_index)
+                PRIMARY KEY (source, post_id, word_index, n)
             );
             INSERT INTO best_phrase_match
             SELECT
@@ -77,6 +73,10 @@ class JoinPhrases(QueryDb):
 
             {self.final_query()}
         '''
+
+    def known_post_ids_query(self):
+
+        return f'SELECT post_id FROM {self.table}'
 
     def final_query(self):
 
