@@ -178,7 +178,7 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public IEnumerable<PbiWindowSnapshot> Windows => _windows;
         
-        private List<PbiWindowSnapshot> _windows;
+        private List<PbiWindowSnapshot> _windows = new List<PbiWindowSnapshot>();
 
         /// <summary>
         /// Update this snapshot.
