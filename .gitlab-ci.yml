@@ -56,6 +56,7 @@ test-pbi-reports:
     - if: '$FULL_TEST'
       when: always
     - if: '$CI_COMMIT_BRANCH =~ /.*test-powerbi.*/'
+      when: always
   tags:
     - bernd-windows
   before_script:
