@@ -188,12 +188,13 @@ class QueryDb(DataPreparationTask):
                     if max
                 ]
                 print(
-                    f"Executing query ..." + (
+                    f"\rExecuting query ..." + (
                         f" ({' | '.join(progress_strings)})"
                         if progress_strings
                         else ""
                     ),
-                    end=''
+                    end='',
+                    flush=True
                 )
                 sleep(self.report_progress_update_interval.total_seconds())
 
