@@ -57,6 +57,8 @@ class QueryDb(DataPreparationTask):
 
     report_progress_update_interval = dt.timedelta(seconds=1)
 
+    report_progress_enabled = False
+
     def build_query(self):
         query = self.query
         if self.shuffle:
@@ -124,29 +126,29 @@ class QueryDb(DataPreparationTask):
 
             return f'''(
                 SELECT * FROM (
-                    SELECT _table.* FROM (
-                        SELECT _table.*, ROW_NUMBER() OVER() _row_number
-                        FROM {table_name} _table
-                    ) _table
-                    WHERE CASE
-                        WHEN _row_number = 1 THEN SETVAL(
+                    SELECT
+                        _table.*
+                    FROM
+                        SETVAL(
                             'max_{progress_name}',
                             (SELECT COUNT(*) FROM {table_name}) + 1,
                             true
-                        ) <> 0
-                        WHEN MOD(
-                            _row_number,
-                            {self.report_progress_row_interval}
-                        ) = 0 THEN SETVAL(
-                            '{progress_name}',
-                            NEXTVAL('{progress_name}') +
-                                {self.report_progress_row_interval - 1},
-                            true
-                        ) <> 0
+                        ),
+                        (
+                            SELECT _table.*, ROW_NUMBER() OVER() _row_number
+                            FROM {table_name} _table
+                        ) _table
+                    WHERE CASE
+                        WHEN random() * {self.report_progress_row_interval}
+                            <= 1 THEN
+                        SETVAL('{progress_name}', _row_number, true ) <> 0
                         ELSE TRUE
                     END
                 ) _table
             ) "{alias_name if alias_name else table_name}"'''
+
+        if self.enable_progress_report:  # skipping progress for now, too slow
+            return fun(query)
 
         try:
             complex_query = self.report_progress_function_pattern.sub(

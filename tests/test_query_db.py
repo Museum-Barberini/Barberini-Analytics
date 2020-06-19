@@ -81,6 +81,7 @@ class TestQueryDb(DatabaseTestCase):
                     CASE WHEN i = i THEN 0.2 END
                 )
         ''')
+        self.task.report_progress_enabled = True
         self.task.report_progress_row_interval = 2
 
         try:
@@ -135,6 +136,7 @@ class TestQueryDb(DatabaseTestCase):
                     CASE WHEN j = j THEN 0.4 END
                 );
         ''')
+        self.task.report_progress_enabled = True
         self.task.report_progress_row_interval = 2
 
         try:
@@ -187,6 +189,7 @@ class TestQueryDb(DatabaseTestCase):
                     CASE WHEN i = i THEN 0.2 END
                 )
         ''')
+        self.task.report_progress_enabled = True
         self.task.report_progress_update_interval = dt.timedelta(seconds=0.2)
         self.task.report_progress_row_interval = 2
 
