@@ -104,7 +104,8 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public void Stop()
             => _logExceptions(() => {
-                Process.Kill();
+                if (!Process.HasExited)
+                    Process.Kill();
             });
 
         /// <summary>
