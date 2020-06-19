@@ -5,6 +5,7 @@ import os
 import re
 import signal
 from time import sleep
+import traceback
 
 import luigi
 import pandas as pd
@@ -42,7 +43,9 @@ class QueryDb(DataPreparationTask):
                     "exploration purposes. Might impact performance.")
 
     report_progress_function_pattern = re.compile(r'''
-        \/\*<REPORT_PROGRESS>\*\/
+        \/\*<REPORT_PROGRESS
+        (\('(?P<message>[^']*)'\))?
+        >\*\/
         (?P<relation>(?P<q>"?)[\w\.]+(?P=q))
         (
             \s*(?:[Aa][Ss]\s*)
@@ -94,7 +97,7 @@ class QueryDb(DataPreparationTask):
         """
 
         has_reporter = False
-        progress_names = []
+        progresses = {}
         cleanups = []
 
         def compile_progress(match):
@@ -104,8 +107,9 @@ class QueryDb(DataPreparationTask):
 
             table_name = match.group('relation')
             alias_name = match.group('alias')
-            progress_name = f'progress_{len(progress_names)}_{id(self)}'[:58]
-            progress_names.append(progress_name)
+            message = match.group('message')
+            progress_name = f'progress_{len(progresses)}_{id(self)}'[:58]
+            progresses.update({progress_name: message})
 
             for sequence in [progress_name, f'max_{progress_name}']:
                 self.db_connector.execute(f'''
@@ -118,7 +122,7 @@ class QueryDb(DataPreparationTask):
                         DROP SEQUENCE {sequence_closure}
                     '''))(sequence))
 
-            return rf'''(
+            return f'''(
                 SELECT * FROM (
                     SELECT _table.* FROM (
                         SELECT _table.*, ROW_NUMBER() OVER() _row_number
@@ -165,38 +169,47 @@ class QueryDb(DataPreparationTask):
                     os.kill(pid, signal.SIGTERM)
 
             # we are child
-            print()
-            while True:
-                progresses = [
-                    self.db_connector.query(
-                        f'''
-                            SELECT
-                                CAST(current.last_value AS int),
-                                CAST(max.last_value AS int) - 1
-                            FROM
-                                {progress_name} current,
-                                max_{progress_name} max
-                        ''',
-                        only_first=True
+            try:
+                print()
+                while True:
+                    states = {
+                        message: self.db_connector.query(
+                            f'''
+                                SELECT
+                                    CAST(current.last_value AS int),
+                                    CAST(max.last_value AS int) - 1
+                                FROM
+                                    {progress_name} current,
+                                    max_{progress_name} max
+                            ''',
+                            only_first=True
+                        )
+                        for progress_name, message
+                        in progresses.items()
+                    }
+                    progress_strings = [
+                        (
+                            f"{message}: " if message else ""
+                        ) + (
+                            f"{current}/{max}, {current / max :2.1%}"
+                        )
+                        for message, (current, max)
+                        in states.items()
+                        if max
+                    ]
+                    print(
+                        "\rExecuting query ..." + (
+                            f" ({' | '.join(progress_strings)})"
+                            if progress_strings
+                            else ""
+                        ),
+                        end='',
+                        flush=True
                     )
-                    for progress_name
-                    in progress_names
-                ]
-                progress_strings = [
-                    f"{current}/{max}, {current / max :2.1%}"
-                    for current, max in progresses
-                    if max
-                ]
-                print(
-                    "\rExecuting query ..." + (
-                        f" ({' | '.join(progress_strings)})"
-                        if progress_strings
-                        else ""
-                    ),
-                    end='',
-                    flush=True
-                )
-                sleep(self.report_progress_update_interval.total_seconds())
+                    sleep(self.report_progress_update_interval.total_seconds())
+            except Exception as e:
+                traceback.print_exc()
+                os._exit(1)
 
         finally:
             while cleanups:

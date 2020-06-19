@@ -67,7 +67,7 @@ class TestQueryDb(DatabaseTestCase):
         pd.testing.assert_frame_equal(expected_result, actual_result)
 
     @data('{}', '{} aS {}')
-    def test_update_progress(self, alias):
+    def test_report_progress(self, alias):
 
         self.task = QueryDb(query=f'''
             CREATE TEMPORARY TABLE series AS (
@@ -83,11 +83,16 @@ class TestQueryDb(DatabaseTestCase):
         ''')
         self.task.report_progress_row_interval = 2
 
-        with stdout_redirected() as buf_path:
-            with self.assert_process_invariant():
-                actual_result = self.run_query()
-            with open(buf_path) as buf:
-                output = buf.read()
+        try:
+            with stdout_redirected() as buf_path:
+                try:
+                    with self.assert_process_invariant():
+                        actual_result = self.run_query()
+                finally:
+                    with open(buf_path) as buf:
+                        output = buf.read()
+        finally:
+            print(output)
 
         expected_result = pd.DataFrame(
             range(1, 10 + 1),
@@ -104,6 +109,64 @@ class TestQueryDb(DatabaseTestCase):
             percentage = match.group(1)
             if percentage:  # maybe not yet loaded
                 self.assertTrue(0 <= int(percentage) <= 100)
+        self.assertEqual('Done.', output_lines[-1])
+
+    def test_report_progress_multiple(self):
+
+        self.task = QueryDb(query='''
+            CREATE TEMPORARY TABLE series AS (
+                SELECT i FROM generate_series(1, 10) s(i)
+            );
+            CREATE TEMPORARY TABLE squares AS (
+                SELECT series.i ^ 2 AS j
+                FROM
+                    /*<REPORT_PROGRESS('Doing this')>*/series,
+                    pg_sleep(
+                        -- Make sure sleep is not cached
+                        CASE WHEN i = i THEN 0.2 END
+                    )
+                WHERE mod(i, 2) <> 0
+            );
+            SELECT sqrt(j)::int AS i
+            FROM
+                /*<REPORT_PROGRESS('Doing that')>*/squares,
+                pg_sleep(
+                    -- Make sure sleep is not cached
+                    CASE WHEN j = j THEN 0.4 END
+                );
+        ''')
+        self.task.report_progress_row_interval = 2
+
+        try:
+            with stdout_redirected() as buf_path:
+                try:
+                    with self.assert_process_invariant():
+                        actual_result = self.run_query()
+                finally:
+                    with open(buf_path) as buf:
+                        output = buf.read()
+        finally:
+            print(output)
+
+        expected_result = pd.DataFrame(
+            range(1, 10 + 1, 2),
+            columns=['i']
+        )
+        self.task.report_progress_update_interval = dt.timedelta(seconds=0.2)
+        pd.testing.assert_frame_equal(expected_result, actual_result)
+
+        output_lines = output.strip().splitlines()
+        self.assertGreaterEqual(len(output_lines), 3)
+        for line in output_lines[:-1]:
+            match = re.fullmatch(r'.+(?: \(\d+/10, (\d+\.\d)+%\))?', line)
+            self.assertTrue(match)
+            percentage = match.group(1)
+            if percentage:  # maybe not yet loaded
+                self.assertTrue(0 <= int(percentage) <= 100)
+        for msg in ['Doing this', 'Doing that']:
+            self.assertTrue(any(
+                line for line in output_lines if msg in line
+            ))
         self.assertEqual('Done.', output_lines[-1])
 
     @data(False, True)
