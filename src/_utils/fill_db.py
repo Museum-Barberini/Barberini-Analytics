@@ -30,7 +30,7 @@ class FillDBDaily(luigi.WrapperTask):
         yield PostAspectsToDb()
         yield PostNgramsToDb()
         yield PostPolaritiesToDb()
-        
+
         yield TopicModeling()
 
 
