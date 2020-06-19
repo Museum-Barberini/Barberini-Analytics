@@ -31,6 +31,6 @@ start_section luigi_minimal "Running minimal pipeline ..."
 end_section luigi_minimal
 
 start_section check_schema "Checking schema ..."
-    make docker-do do="POSTGRES_DB_TEMPLATE=$POSTGRES_DB make test \
-        testmodule=unittest test=tests/schema/**check*.py"
+    make docker-do do="POSTGRES_DB_TEMPLATE=$POSTGRES_DB \
+        make test test=tests/schema/**check*.py"
 end_section check_schema

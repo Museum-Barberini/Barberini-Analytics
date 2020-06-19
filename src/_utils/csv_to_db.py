@@ -146,8 +146,8 @@ class CsvToDb(CopyToTable):
         for line in filter(None, csv.split('\n')):
             yield (line,)
 
-    def read_csv(self, input):
-        with input.open('r') as file:
+    def read_csv(self, input_csv):
+        with input_csv.open('r') as file:
             # Optimization. We're only interested in the column names, no
             # need to read the whole file.
             header_stream = StringIO(next(file))
@@ -158,7 +158,7 @@ class CsvToDb(CopyToTable):
             in zip(csv_columns, self.columns)
             if sql_type in self.converters_in
         }
-        with input.open('r') as file:
+        with input_csv.open('r') as file:
             return pd.read_csv(file, converters=converters)
 
     @property
