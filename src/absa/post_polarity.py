@@ -105,6 +105,7 @@ class CollectIdentityPostPolarities(QueryDb):
     def requires(self):
 
         yield PostNgramsToDb()
+        yield PhrasePolaritiesToDb()
 
     @property
     def query(self):
@@ -140,6 +141,7 @@ class CollectInflectedPostPolarities(QueryDb):
     def requires(self):
 
         yield PostNgramsToDb()
+        yield PhrasePolaritiesToDb()
 
     @property
     def query(self):
