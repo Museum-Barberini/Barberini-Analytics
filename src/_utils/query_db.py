@@ -207,7 +207,7 @@ class QueryDb(DataPreparationTask):
                         flush=True
                     )
                     sleep(self.report_progress_update_interval.total_seconds())
-            except Exception as e:
+            except Exception:
                 traceback.print_exc()
                 os._exit(1)
 
