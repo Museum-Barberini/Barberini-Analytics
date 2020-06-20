@@ -88,4 +88,36 @@ BEGIN;
         PRIMARY KEY (source, post_id, dataset, match_algorithm)
     );
 
+
+    CREATE VIEW absa.post_aspect_polarity AS (
+        SELECT
+            source, post_id,
+            aspect_id,
+            count(distinct word_index), avg(polarity) AS polarity,
+            post_polarity.match_algorithm AS polarity_match_algorithm,
+            post_aspect.match_algorithm AS aspect_match_algorithm,
+            dataset
+        FROM absa.post_polarity
+            JOIN absa.post_aspect USING (source, post_id)
+        GROUP BY
+            source, post_id,
+            aspect_id,
+            post_polarity.match_algorithm, post_aspect.match_algorithm,
+            dataset
+    );
+
+    CREATE VIEW absa.aspect_polarity AS (
+        SELECT
+            aspect_id, count(DISTINCT post_id), avg(polarity),
+            polarity_match_algorithm, aspect_match_algorithm,
+            dataset
+        FROM post
+        NATURAL JOIN absa.post_aspect_polarity
+        WHERE NOT is_from_museum
+        GROUP BY
+            aspect_id,
+            polarity_match_algorithm, aspect_match_algorithm,
+            dataset
+    );
+
 COMMIT;
