@@ -1,4 +1,4 @@
--- Introduce relations for polarity baseline (!235)
+-- Introduce relations for sentiment baseline (!235)
 
 BEGIN;
 
@@ -7,6 +7,7 @@ BEGIN;
         word TEXT,
         pos_tag TEXT,
         weight REAL,
+        CHECK (weight BETWEEN -1 AND 1),
         inflections TEXT[],
         polarity TEXT GENERATED ALWAYS AS (
             CASE
@@ -20,6 +21,7 @@ BEGIN;
     CREATE TABLE absa.phrase_polarity_sepl (
         phrase TEXT PRIMARY KEY,
         weight REAL,
+        CHECK (weight BETWEEN 1 AND 10),
         stddev REAL,
         stderr REAL,
         phrase_type TEXT,
@@ -78,15 +80,18 @@ BEGIN;
     );
 
 
-    -- 3. Update schema for post_polarity
+    -- 3. Update schema for post_sentiment
     ALTER TABLE absa.post_ngram
         RENAME COLUMN ngram TO phrase;    
 
-    CREATE TABLE absa.post_polarity (
+    CREATE TABLE absa.post_sentiment (
         source TEXT,
         post_id TEXT,
-        polarity REAL,
+        sentiment REAL,
+        CHECK (sentiment BETWEEN -1 AND 1),
         stddev REAL,
+        subjectivity REAL,
+        CHECK (subjectivity BETWEEN -1 AND 1),
         count INT,
         dataset TEXT,
         match_algorithm TEXT,

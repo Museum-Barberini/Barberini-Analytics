@@ -9,15 +9,15 @@ from .phrase_polarity import PhrasePolaritiesToDb
 from .post_ngrams import PostNgramsToDb
 
 
-class PostPolaritiesToDb(CsvToDb):
+class PostSentimentsToDb(CsvToDb):
 
-    table = 'absa.post_polarity'
+    table = 'absa.post_sentiment'
 
     def requires(self):
-        return CollectPostPolarities(table=self.table)
+        return CollectPostSentiments(table=self.table)
 
 
-class FuzzyJoinPostPolarities(FuzzyJoinPhrases):
+class FuzzyJoinPostSentiments(FuzzyJoinPhrases):
 
     reference_table = 'absa.phrase_polarity'
     reference_phrase = 'phrase'
@@ -71,13 +71,15 @@ class FuzzyJoinPostPolarities(FuzzyJoinPhrases):
         '''
 
 
-class CollectPostPolarities(ConcatCsvs):
+class CollectPostSentiments(ConcatCsvs):
+
+    # TODO: known_post_ids for subtasks should be differentiated by algorithm
 
     def requires(self):
 
-        yield CollectFuzzyPostPolarities(table=self.table)
-        yield CollectIdentityPostPolarities(table=self.table)
-        yield CollectInflectedPostPolarities(table=self.table)
+        yield CollectFuzzyPostSentiments(table=self.table)
+        yield CollectIdentityPostSentiments(table=self.table)
+        yield CollectInflectedPostSentiments(table=self.table)
 
     def output(self):
 
@@ -87,13 +89,13 @@ class CollectPostPolarities(ConcatCsvs):
         )
 
 
-class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
+class CollectFuzzyPostSentiments(FuzzyMatchPhrases):
 
-    join = FuzzyJoinPostPolarities
+    join = FuzzyJoinPostSentiments
 
     def output(self):
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/fuzzy_post_polarity.csv',
+            f'{self.output_dir}/absa/fuzzy_post_sentiment.csv',
             format=UTF8
         )
 
@@ -153,7 +155,7 @@ class CollectPostPolaritiesAbstract(QueryDb):
         '''
 
 
-class CollectIdentityPostPolarities(CollectPostPolaritiesAbstract):
+class CollectIdentityPostSentiments(CollectPostPolaritiesAbstract):
 
     algorithm = 'identity'
 
@@ -166,7 +168,7 @@ class CollectIdentityPostPolarities(CollectPostPolaritiesAbstract):
         '''
 
 
-class CollectInflectedPostPolarities(CollectPostPolaritiesAbstract):
+class CollectInflectedPostSentiments(CollectPostPolaritiesAbstract):
 
     algorithm = 'inflected'
 
