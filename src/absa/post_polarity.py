@@ -140,7 +140,8 @@ class CollectPostPolaritiesAbstract(QueryDb):
                 dataset, match_algorithm
             FROM post_phrase_polarity
                 JOIN word_count USING (source, post_id)
-            GROUP BY source, post_id, dataset, match_algorithm, word_count
+            GROUP BY
+                source, post_id, dataset, match_algorithm, word_count.count
         '''
 
     @property
