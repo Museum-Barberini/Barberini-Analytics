@@ -147,7 +147,7 @@ class QueryDb(DataPreparationTask):
                 ) _table
             ) "{alias_name if alias_name else table_name}"'''
 
-        if self.enable_progress_report:  # skipping progress for now, too slow
+        if self.report_progress_enabled:  # skipping progress for now, too slow
             return fun(query)
 
         try:
