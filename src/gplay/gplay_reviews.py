@@ -53,7 +53,10 @@ class FetchGplayReviews(DataPreparationTask):
         language_codes = self.get_language_codes()
         if self.minimal_mode:
             random_num = random.randint(0, len(language_codes) - 2)
-            language_codes = language_codes[random_num:random_num + 2]
+            language_codes = list({
+                *language_codes[random_num:random_num + 2],
+                'de'  # make sure we do not get zero reviews
+            })
 
         reviews_nested = [
             self.fetch_for_language(language_code)
@@ -85,7 +88,7 @@ class FetchGplayReviews(DataPreparationTask):
             params={
                 'lang': language_code,
                 # num: max number of reviews to be fetched. We want all reviews
-                'num': 1000000
+                'num': 1000000 if not self.minimal_mode else 12
             }
         )
         # task should fail if request is not successful

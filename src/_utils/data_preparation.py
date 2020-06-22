@@ -1,11 +1,11 @@
 import logging
-import pandas as pd
 import os
 import sys
 from functools import reduce
 from typing import Callable, Dict, List, Tuple
 
 import luigi
+import pandas as pd
 
 import db_connector
 
@@ -35,7 +35,106 @@ class DataPreparationTask(luigi.Task):
     def output_dir(self):
         return OUTPUT_DIR
 
-    def ensure_foreign_keys(
+    def condense_performance_values(
+            self,
+            df,
+            timestamp_column='timestamp'):
+
+        def get_key_columns():
+            primary_key_columns = self.db_connector.query(
+                f'''
+                SELECT a.attname, format_type(a.atttypid, a.atttypmod)
+                    AS data_type
+                FROM   pg_index i
+                JOIN   pg_attribute a ON a.attrelid = i.indrelid
+                                    AND a.attnum = ANY(i.indkey)
+                WHERE  i.indrelid = '{self.table}'::regclass
+                AND    i.indisprimary
+                ''')
+            return [
+                row[0]
+                for row in primary_key_columns
+                if row[0] != timestamp_column]
+
+        def get_performance_columns():
+            nonlocal key_columns
+            # This simply returns all columns except the key
+            # and timestamp columns of the target table
+            db_columns = self.db_connector.query(
+                f'''
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = \'{self.table}\'
+                ''')
+            return [
+                row[0]
+                for row in db_columns
+                if row[0] not in key_columns and row[0] != timestamp_column]
+
+        if not self.table:
+            raise RuntimeError("Table not set in condense_performance_values")
+
+        # Read latest performance data from DB
+        key_columns = get_key_columns()
+        performance_columns = get_performance_columns()
+        query_keys = ','.join(key_columns)
+        latest_performances = self.db_connector.query(
+            f'''
+            SELECT {query_keys},{','.join(performance_columns)}
+            FROM {self.table} AS p1
+                NATURAL JOIN (
+                    SELECT {query_keys}, MAX({timestamp_column})
+                        AS {timestamp_column}
+                    FROM {self.table}
+                    GROUP BY {query_keys}
+                ) AS p2
+            '''
+        )
+
+        # For each new entry, check against most recent
+        # performance data -> drop if it didn't change
+        latest_performance_df = pd.DataFrame(
+            latest_performances, columns=[*key_columns, *performance_columns])
+
+        new_suffix = '_new'
+        old_suffix = '_old'
+        merge_result = pd.merge(
+            df,
+            latest_performance_df,
+            how='left',  # keep all new data + preserve index
+            on=key_columns,
+            suffixes=(new_suffix, old_suffix))
+
+        org_count = df[key_columns[0]].count()
+        to_drop = []
+        new_values = merge_result[[
+            f'{perf_col}{new_suffix}'
+            for perf_col in performance_columns]]
+        old_values = merge_result[[
+            f'{perf_col}{old_suffix}'
+            for perf_col in performance_columns]]
+
+        # Cut off suffixes to enable Series comparison
+        new_values.columns = [
+            label[:-len(new_suffix)]
+            for label in new_values.columns]
+        old_values.columns = [
+            label[:-len(old_suffix)]
+            for label in old_values.columns]
+
+        for i, new_row in new_values.iterrows():
+            # The dtypes of the DataFrames get messed up
+            # sometimes, so we cast to object for safety
+            new_row = new_row.astype(object)
+            old_row = old_values.loc[i].astype(object)
+            if new_row.equals(old_row):
+                to_drop.append(i)
+
+        logger.info(f"Discard {len(to_drop)} unchanged performance "
+                    f"values out of {org_count} for {self.table}")
+        return df.drop(index=to_drop).reset_index(drop=True)
+
+    def filter_fkey_violations(
                 self,
                 df: pd.DataFrame,
                 invalid_values_handler: Callable[[
@@ -47,6 +146,7 @@ class DataPreparationTask(luigi.Task):
         """
         Note that this currently only works with lower case identifiers.
         """
+
         def log_invalid_values(invalid_values, foreign_key):
             logger.warning(
                 f"Skipped {len(invalid_values)} out of {len(df)} rows "
@@ -87,6 +187,7 @@ class DataPreparationTask(luigi.Task):
                     foreign_values,
                     left_on=columns, right_on=_foreign_columns,
                     how='left'
+                ).drop_duplicates(
                 ).set_index(
                     values.index
                 ).apply(
@@ -100,6 +201,12 @@ class DataPreparationTask(luigi.Task):
             valid_values, invalid_values = values[valid], values[~valid]
             if not invalid_values.empty:
                 log_invalid_values(invalid_values, constraint)
+                if valid_values.empty and not self.minimal_mode:
+                    # all data has been skipped, something is fishy
+                    # TODO: the check for minimal_mode is a temporary
+                    # workaround, see issue #191
+                    raise ValueError("All values have been discarded "
+                                     "due to foreign key violation!")
                 if invalid_values_handler:
                     invalid_values_handler(invalid_values, constraint[1])
 
@@ -154,3 +261,70 @@ class DataPreparationTask(luigi.Task):
                 GROUP BY constraint_name, foreign_table_name;
             ''')
         }
+
+    def iter_verbose(self, iterable, msg, size=None, index_fun=None):
+        """
+        Iterate over an iterable, but as a side effect, print progress updates
+        to the console if appropriate.
+        Neglecting any outputs, this method is equivalent to:
+            def iter_verbose(self, iterable):
+                return iterable
+        """
+        if not sys.stdout.isatty():
+            yield from iterable
+            return
+        if isinstance(msg, str):
+            yield from self.iter_verbose(
+                iterable,
+                msg=lambda: msg, size=size, index_fun=index_fun
+            )
+            return
+        size = size if size \
+            else len(iterable) if hasattr(iterable, '__len__') \
+            else None
+        format_args = {
+            'item': str(None),
+            'index': 0
+        }
+        if size:
+            format_args['size'] = size
+        print()
+        try:
+            iterable = iter(iterable)
+            index = 0
+            item = next(iterable)
+            while True:
+                index = index_fun() + 1 if index_fun else index + 1
+                forth = yield item
+                item = iterable.send(forth) \
+                    if hasattr(iterable, 'send') \
+                    else next(iterable)
+
+                format_args['index'] = index
+                format_args['item'] = item
+                message = msg().format(**format_args)
+                message = f'\r{message} ... '
+                if size:
+                    message += f'({(index - 1) / size :2.1%})'
+                print(message, end=' ', flush=True)
+                yield item
+            print(f'\r{msg().format(**format_args)} ... done.', flush=True)
+        except Exception:
+            print(flush=True)
+            raise
+
+    def loop_verbose(self, msg, size=None):
+        """
+        Stream an infinite generator that prints progress updates to the
+        console if appropriate. Use next() to increment the progress or
+        .send() to specify the current index.
+        """
+        index = 0
+
+        def loop():
+            nonlocal index
+            while True:
+                next_index = yield index
+                index = next_index if next_index else index + 1
+        return self.iter_verbose(
+            loop(), msg, size=size, index_fun=lambda: index)

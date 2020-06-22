@@ -1,5 +1,6 @@
 ### Project specific stuff ###
 db_config.yaml
+nuget/
 volumes/
 
 # Luigi output files
@@ -16,6 +17,9 @@ id_*
 
 *.env
 *.pbix
+
+Magick.Native-Q8-x64.dll
+Magick.Native-Q8-x86.dll
 
 
 ### Compilation/cache stuff ###
@@ -109,9 +113,6 @@ dmypy.json
 
 *.Rproj*
 .Rproj.user
-
-# node.js
-package-lock.json
 
 # pbiviz
 .tmp/

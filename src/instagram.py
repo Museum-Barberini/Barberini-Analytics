@@ -245,7 +245,8 @@ class FetchIgPostPerformance(DataPreparationTask):
         if sys.stdout.isatty():
             print()
 
-        performance_df = self.ensure_foreign_keys(performance_df)
+        performance_df = self.filter_fkey_violations(performance_df)
+        performance_df = self.condense_performance_values(performance_df)
 
         with self.output().open('w') as output_file:
             performance_df.to_csv(output_file, index=False, header=True)

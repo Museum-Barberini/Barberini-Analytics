@@ -10,7 +10,7 @@ from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
 from db_test import DatabaseTestCase
 
 
-class TextFetchTwitter(DatabaseTestCase):
+class TestFetchTwitter(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
@@ -50,9 +50,8 @@ class TextFetchTwitter(DatabaseTestCase):
 class TestExtractTweets(DatabaseTestCase):
 
     @patch.object(FetchTwitter, 'output')
-    @patch.object(ExtractTweets, 'museum_user_id')
     @patch.object(ExtractTweets, 'output')
-    def test_extract_tweets(self, output_mock, user_id_mock, raw_tweets_mock):
+    def test_extract_tweets(self, output_mock, raw_tweets_mock):
         output_target = MockTarget('extracted_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -68,12 +67,9 @@ class TestExtractTweets(DatabaseTestCase):
                 encoding='utf-8') as data_out:
             extracted_tweets = data_out.read()
 
-        user_id = 10000000
-
         self.install_mock_target(
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))
-        user_id_mock.return_value = user_id
 
         task = ExtractTweets()
         task.run()
@@ -117,6 +113,14 @@ class TestExtractTweetPerformance(DatabaseTestCase):
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')
     def test_extract_tweet_performance(self, output_mock, raw_tweets_mock):
+        self.db_connector.execute(
+            '''
+            INSERT INTO tweet (tweet_id) VALUES
+                ('1234567890123456789'),
+                ('111111111111111111'),
+                ('2222222222222222222')
+            '''
+        )
         output_target = MockTarget('perform_extracted_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -130,24 +134,24 @@ class TestExtractTweetPerformance(DatabaseTestCase):
                 'tests/test_data/twitter/expected_tweet_performance.csv',
                 'r',
                 encoding='utf-8') as data_out:
-            extracted_performance = data_out.read()
+            expected_performance = data_out.read()
 
         self.install_mock_target(
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))
 
-        task = ExtractTweetPerformance()
+        task = ExtractTweetPerformance(table='tweet_performance')
         task.run()
 
         with output_target.open('r') as output_file:
             output = output_file.read()
         self.assertEqual(
             output.split('\n')[0],
-            extracted_performance.split('\n')[0])
+            expected_performance.split('\n')[0])
         for i in range(1, 3):
             self.assertEqual(  # cutting away the timestamp
                 output.split('\n')[i].split(';')[:-1],
-                extracted_performance.split('\n')[i].split(';')[:-1])
+                expected_performance.split('\n')[i].split(';')[:-1])
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')
@@ -165,15 +169,15 @@ class TestExtractTweetPerformance(DatabaseTestCase):
                 'tests/test_data/twitter/empty_tweet_performance.csv',
                 'r',
                 encoding='utf-8') as data_out:
-            extracted_performance = data_out.read()
+            expected_performance = data_out.read()
 
         self.install_mock_target(
             raw_tweets_mock,
             lambda file: file.write(raw_tweets))
 
-        task = ExtractTweetPerformance()
+        task = ExtractTweetPerformance(table='tweet_performance')
         task.run()
 
         with output_target.open('r') as output_file:
             output = output_file.read()
-        self.assertEqual(output, extracted_performance)
+        self.assertEqual(output, expected_performance)

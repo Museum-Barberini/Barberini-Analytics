@@ -45,32 +45,25 @@ class FetchAppstoreReviews(DataPreparationTask):
         country_codes = sorted(self.get_country_codes())
         if self.minimal_mode:
             random_num = random.randint(0, len(country_codes) - 2)
-
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 
-        print()
-        try:
-            for index, country_code in enumerate(country_codes, start=1):
-                print(
-                    f"\rFetching appstore reviews for {country_code} "
-                    f"({100. * (index - 1) / len(country_codes)}%)",
-                    end='',
-                    flush=True)
-                try:
-                    data_for_country = self.fetch_for_country(country_code)
-                    # check if there's data for given
-                    # country code before appending
-                    if not data_for_country.empty:
-                        data.append(data_for_country)
-                except requests.HTTPError as error:
-                    if error.response.status_code == 400:
-                        # not all countries are available
-                        pass
-                    else:
-                        raise
-        finally:
-            print()
+        # Another bug with iter_verbose causes the amount of data entries to be
+        # 2 * expected_amount - 1, so it has been replaced with logger.debug
+        # for now
+        # TODO: investigate cause and fix
+        for country_code in country_codes:
+            try:
+                data_for_country = self.fetch_for_country(country_code)
+                if not data_for_country.empty:
+                    data.append(data_for_country)
+                logger.debug(f'Fetching appstore reviews for {country_code}')
+            except requests.HTTPError as error:
+                if error.response.status_code == 400:
+                    # not all countries are available
+                    pass
+                else:
+                    raise
         try:
             ret = pd.concat(data)
         except ValueError:
@@ -94,17 +87,21 @@ class FetchAppstoreReviews(DataPreparationTask):
                 data, url = self.fetch_page(url)
                 data_list += data
             except requests.exceptions.HTTPError as error:
-                if error.response and error.response.status_code == 503:
-                    logger.warning(
-                        f"Encountered 503 server error: {error}")
-                    logger.warning("Continuing anyway")
+                if error.response is not None and \
+                        (error.response.status_code == 503 or
+                         (error.response.status_code == 403 and
+                          country_code not in ['DE', 'US', 'GB'])):
+                    logger.error(f"Encountered {error.response.status_code} "
+                                 f"server error '{error}' for country code "
+                                 f"'{country_code}'")
+                    logger.error("Continuing anyway...")
                     break
                 else:
                     raise
 
         if not data_list:
             # no reviews for the given country code
-            logger.warning(f"Empty data for country {country_code}")
+            logger.debug(f"Empty data for country {country_code}")
 
         result = pd.DataFrame(data_list)
         result['country_code'] = country_code

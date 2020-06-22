@@ -3,22 +3,34 @@
 set -e
 
 export BARBERINI_ANALYTICS_CONTEXT=DEBUG
+. ./scripts/tests/gitlab_log.sh
+
 
 cd $(dirname "$0")/../..
 
-echo "Setting up test database ..."
-export POSTGRES_DB='barberini_test'
-docker exec -i db psql -U postgres -a postgres -v ON_ERROR_STOP=1 <<< "
-DROP DATABASE IF EXISTS $POSTGRES_DB;
-CREATE DATABASE $POSTGRES_DB;"
+start_section setup_database "Setting up test database ..."
+    export POSTGRES_DB='barberini_test'
+    docker exec -i barberini_analytics_db \
+        psql -U postgres -a postgres -v ON_ERROR_STOP=1 <<< "
+    DROP DATABASE IF EXISTS $POSTGRES_DB;
+    CREATE DATABASE $POSTGRES_DB;"
+end_section setup_database
 
-echo "Starting luigi container ..."
-make startup
-trap "make shutdown" EXIT
+start_section start_container "Starting luigi container ..."
+    make startup
+    trap "make shutdown" EXIT
+end_section start_container
 
 # Basically, we are emulating fill_db.sh now, just without backups.
-echo "Applying all migrations ..."
-make docker-do do="POSTGRES_DB=$POSTGRES_DB ./scripts/migrations/migrate.sh"
+start_section apply_migrations "Applying all migrations ..."
+    make docker-do do="POSTGRES_DB=$POSTGRES_DB ./scripts/migrations/migrate.sh"
+end_section apply_migrations
 
-echo "Running minimal pipeline ..."
-make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
+start_section luigi_minimal "Running minimal pipeline ..."
+    make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
+end_section luigi_minimal
+
+start_section check_schema "Checking schema ..."
+    make docker-do do="POSTGRES_DB_TEMPLATE=$POSTGRES_DB \
+        make test test=tests/schema/**check*.py"
+end_section check_schema

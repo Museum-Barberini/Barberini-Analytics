@@ -59,9 +59,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         logger.info("creating service...")
         service = self.load_service(credentials)
         logger.info("fetching reviews...")
-        place_id, raw_reviews = self.fetch_raw_reviews(service)
+        raw_reviews = self.fetch_raw_reviews(service)
         logger.info("extracting reviews...")
-        reviews_df = self.extract_reviews(place_id, raw_reviews)
+        reviews_df = self.extract_reviews(raw_reviews)
         logger.info("success! writing...")
 
         with self.output().open('w') as output_file:
@@ -105,9 +105,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             discoveryServiceUrl=self.google_gmb_discovery_url)
 
     """
-    the google-api is based on resources that contain other resources
-    an authenticated user has account(s), an accounts contains locations and a
-    location contains reviews (which we need to request one  by one)
+    The GMB API is based on resources that contain other resources.
+    An authenticated user has account(s), an accounts contains locations, and
+    a location contains reviews (which we need to request one by one).
     """
     def fetch_raw_reviews(self, service, page_size=100):
         # get account identifier
@@ -128,39 +128,43 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         place_id = location_list['locations'][0]['locationKey']['placeId']
 
         # get reviews for that location
-        reviews = []
         review_list = service.accounts().locations().reviews().list(
             parent=location,
             pageSize=page_size).execute()
-        reviews = reviews + review_list['reviews']
+        yield from [
+            {**review, 'placeId': place_id}
+            for review
+            in review_list['reviews']
+        ]
         total_reviews = review_list['totalReviewCount']
-        try:
-            print(
-                f"Fetched {len(reviews)} out of {total_reviews} reviews",
-                end='', flush=True)
 
-            while 'nextPageToken' in review_list:
-                """
-                TODO: optimize by requesting the latest review from DB rather
-                than fetching more pages once that one is found
-                """
-                next_page_token = review_list['nextPageToken']
-                review_list = service.accounts().locations().reviews().list(
-                    parent=location,
-                    pageSize=page_size,
-                    pageToken=next_page_token).execute()
-                reviews = reviews + review_list['reviews']
-                print(
-                    f"\rFetched {len(reviews)} out of {total_reviews} reviews",
-                    end='', flush=True)
+        log_loop = self.loop_verbose(
+            msg="Fetching Google Maps page {index}/{size}",
+            size=total_reviews)
+        next(log_loop)
+        review_counter = 0
+        while 'nextPageToken' in review_list:
+            next_page_token = review_list['nextPageToken']
+            log_loop.send(review_counter)
+            """
+            TODO: optimize by requesting the latest review from DB rather
+            than fetching more pages once that one is found
+            """
+            review_list = service.accounts().locations().reviews().list(
+                parent=location,
+                pageSize=page_size,
+                pageToken=next_page_token).execute()
+            review_counter += len(review_list['reviews'])
+            yield from [
+                {**review, 'placeId': place_id}
+                for review
+                in review_list['reviews']
+            ]
 
-                if self.minimal_mode:
-                    review_list.pop('nextPageToken')
-        finally:
-            print()
-        return place_id, reviews
+            if self.minimal_mode:
+                review_list.pop('nextPageToken')
 
-    def extract_reviews(self, place_id, raw_reviews) -> pd.DataFrame:
+    def extract_reviews(self, raw_reviews) -> pd.DataFrame:
         extracted_reviews = []
         for raw in raw_reviews:
             extracted = dict()
@@ -170,6 +174,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             extracted['text'] = None
             extracted['text_english'] = None
             extracted['language'] = None
+            extracted['place_id'] = raw['placeId']
 
             raw_comment = raw.get('comment', None)
             if raw_comment:
@@ -206,6 +211,4 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     extracted['language'] = "other"
 
             extracted_reviews.append(extracted)
-        df = pd.DataFrame(extracted_reviews)
-        df['place_id'] = place_id
-        return df
+        return pd.DataFrame(extracted_reviews)

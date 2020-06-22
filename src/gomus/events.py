@@ -1,16 +1,20 @@
 import csv
 import datetime as dt
+import logging
 
 import luigi
 import pandas as pd
+import requests
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
+from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchEventReservations
 from gomus.bookings import BookingsToDb
-from gomus._utils.extract_customers import hash_id
+
+logger = logging.getLogger('luigi-interface')
 
 
 class EventsToDb(CsvToDb):
@@ -31,14 +35,7 @@ class ExtractEventData(DataPreparationTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.events_df = None
-        self.categories = [
-            "Öffentliche Führung",
-            "Event",
-            "Gespräch",
-            "Kinder-Workshop",
-            "Konzert",
-            "Lesung",
-            "Vortrag"]
+        self.categories = get_categories()
 
     def _requires(self):
         return luigi.task.flatten([
@@ -76,7 +73,7 @@ class ExtractEventData(DataPreparationTask):
                         "Storniert" if i % 2 else "Gebucht",
                         category)
 
-        self.events_df = self.ensure_foreign_keys(self.events_df)
+        self.events_df = self.filter_fkey_violations(self.events_df)
 
         with self.output().open('w') as output_csv:
             self.events_df.to_csv(output_csv, index=False)
@@ -131,11 +128,10 @@ class FetchCategoryReservations(DataPreparationTask):
                 ORDER BY start_datetime DESC LIMIT 2
             '''
         else:
-            # TODO: Change 3 to 2 tomorrow
-            three_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=3)
+            two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
             query = (f'SELECT booking_id FROM gomus_booking WHERE '
                      f'category=\'{self.category}\' '
-                     f'AND start_datetime > \'{three_weeks_ago}\'')
+                     f'AND start_datetime > \'{two_weeks_ago}\'')
 
         booking_ids = self.db_connector.query(query)
 
@@ -178,3 +174,31 @@ def cleanse_umlauts(string):
         'Ä': 'Ae', 'ä': 'ae',
         'Ö': 'Oe', 'ö': 'oe',
         'Ü': 'Ue', 'ü': 'ue'}))
+
+
+def get_categories():
+    try:
+        url = 'https://barberini.gomus.de/api/v4/events/categories'
+        response = requests.get(url)
+        response.raise_for_status()
+        response_json = response.json()
+        categories = [
+            category.get('name')
+            for category in response_json.get('categories')]
+    except requests.HTTPError as e:
+        # Fetch Error and log instead of raising since this
+        # is performed during __init__, which means that scheduling
+        # the whole pipeline could fail if an error was raised here
+        logger.error(f"Unable to fetch event categories!"
+                     f"Using manual list as fallback. Error: {e}")
+        categories = [
+            "Event",
+            "Gespräch",
+            "Kinder-Workshop",
+            "Konzert",
+            "Lesung",
+            "Öffentliche Führung",
+            "Vortrag"
+        ]
+    categories.sort()
+    return categories

@@ -5,10 +5,15 @@ from csv_to_db import CsvToDb
 from db_test import DatabaseTestCase
 
 
-EXPECTED_DATA = [(1, 2, 'abc', 'xy,"z'), (2, 10, '678', ',,;abc')]
+EXPECTED_DATA = [
+    (1, 2, 'abc', 'xy,"z'),
+    (3, 42, "i have a\nlinebreak", "and i have some strange \x1E 0x1e char"),
+    (2, 10, '678', ',,;abc')
+]
 EXPECTED_CSV = '''\
 id,A,B,C
 1,2,abc,"xy,""z"
+3,42,"i have a\nlinebreak","and i have some strange \x1e 0x1e char"
 2,10,"678",",,;abc"
 '''
 
@@ -19,7 +24,10 @@ class TestCsvToDb(DatabaseTestCase):
         super().setUp()
 
         self.table_name = 'tmp_csv_table'
-        self.dummy = DummyWriteCsvToDb(self.table_name)
+        self.dummy = DummyWriteCsvToDb(
+            table=self.table_name,
+            csv=EXPECTED_CSV
+        )
 
         # Set up database
         self.db_connector.execute(
@@ -47,15 +55,16 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name};')
-        self.assertEqual(actual_data, [(0, 1, 'a', 'b'), *EXPECTED_DATA])
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual([(0, 1, 'a', 'b'), *EXPECTED_DATA], actual_data)
 
     def test_no_duplicates_are_inserted(self):
 
         # Set up database samples
         self.db_connector.execute(f'''
                 INSERT INTO {self.table_name}
-                VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,"z');
+                VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,"z')
             ''')
 
         # Execute code under test
@@ -64,7 +73,7 @@ class TestCsvToDb(DatabaseTestCase):
         # Inspect result
         actual_data = self.db_connector.query(
             f'SELECT * FROM {self.table_name}')
-        self.assertEqual(actual_data, EXPECTED_DATA)
+        self.assertEqual(EXPECTED_DATA, actual_data)
 
     def test_columns(self):
 
@@ -79,6 +88,41 @@ class TestCsvToDb(DatabaseTestCase):
         actual_columns = list(self.dummy.columns)
         self.assertListEqual(expected_columns, actual_columns)
 
+    def test_array_columns(self):
+
+        COMPLEX_DATA = [
+            ((1, 2, 3), ['a', 'b', 'c'], "'quoted str'"),
+            ((), [], '[bracketed str]')
+        ]
+        COMPLEX_CSV = '''\
+tuple,array,str
+"(1,2,3)","['a','b','c']",'quoted str'
+(),[],[bracketed str]
+'''
+
+        # Set up database
+        self.db_connector.execute(
+            f'DROP TABLE {self.table_name}',
+            f'''CREATE TABLE {self.table_name} (
+                ints int[],
+                texts text[],
+                text text PRIMARY KEY
+            )''')
+
+        self.dummy.csv = COMPLEX_CSV
+
+        # Execute code under test
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual(
+            [(list(row[0]), *row[1:]) for row in COMPLEX_DATA],
+            actual_data
+        )
+
 
 class DummyFileWrapper(luigi.Task):
     def __init__(self, *args, **kwargs):
@@ -87,9 +131,11 @@ class DummyFileWrapper(luigi.Task):
             f'DummyFileWrapperMock{hash(self)}',
             format=luigi.format.UTF8)
 
+    csv = luigi.Parameter()
+
     def run(self):
         with self.mock_target.open('w') as input_file:
-            input_file.write(EXPECTED_CSV)
+            input_file.write(self.csv)
 
     def output(self):
         return self.mock_target
@@ -97,11 +143,9 @@ class DummyFileWrapper(luigi.Task):
 
 class DummyWriteCsvToDb(CsvToDb):
 
-    def __init__(self, table_name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__class__.table = table_name
+    table = luigi.Parameter()
 
-    table = None  # value set in __init__
+    csv = luigi.Parameter()
 
     def requires(self):
-        return DummyFileWrapper()
+        return DummyFileWrapper(csv=self.csv)

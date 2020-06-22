@@ -1,4 +1,3 @@
-import copy
 import logging
 import os
 import psycopg2
@@ -14,12 +13,20 @@ class DbConnector:
 
     def __init__(self, host, user, database, password):
         super().__init__()
-        # crucial to avoid unintended access to default postgres database
-        assert database, "Database was not specified"
         self.host = host
         self.user = user
         self.database = database
         self.password = password
+
+    @property
+    def database(self):
+        return self.__database
+
+    @database.setter
+    def database(self, database):
+        # crucial to avoid unintended access to default postgres database
+        assert database, "Database was not specified"
+        self.__database = database
 
     def execute(self, *queries: List[str]) -> List[Tuple]:
         """
@@ -42,6 +49,15 @@ class DbConnector:
             query=f'SELECT EXISTS({query})',
             only_first=True)[0])
 
+    def exists_table(self, table: str) -> bool:
+        """
+        Check if the given table is present in the database.
+        """
+        return self.exists(f'''
+                SELECT * FROM information_schema.tables
+                WHERE LOWER(table_name) = LOWER('{table}')
+            ''')
+
     def query(self, query: str, only_first: bool = False) -> List[Tuple]:
         """
         Execute a query and return a list of results.
@@ -63,6 +79,22 @@ class DbConnector:
             raise AssertionError(
                 "DB access with just one query should only return one result")
         return result
+
+    def query_with_header(self, query: str) -> List[Tuple]:
+        """
+        Execute a query and return two values of which the first is the list
+        of fetched rows and the second is the list of column names.
+        """
+        all_results = self._execute_query(
+            query=query,
+            result_function=lambda cursor:
+                (cursor.fetchall(), [desc[0] for desc in cursor.description])
+        )
+        results = next(all_results)
+        if next(all_results, results) is not results:
+            raise AssertionError(
+                "DB access with just one query should only return one table")
+        return results
 
     def _create_connection(self):
         return psycopg2.connect(
@@ -104,9 +136,11 @@ class DbConnector:
         return self._execute_queries([query], result_function)
 
 
-def db_connector():
-    connector = copy.copy(default_connector())
-    connector.database = os.environ['POSTGRES_DB']
+def db_connector(database=None):
+    connector = default_connector()
+    if database is None:
+        database = os.environ['POSTGRES_DB']
+    connector.database = database
     return connector
 
 
