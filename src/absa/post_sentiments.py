@@ -85,7 +85,7 @@ class CollectPostSentiments(ConcatCsvs):
     def output(self):
 
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/post_polarity.csv',
+            f'{self.output_dir}/absa/post_sentiments.csv',
             format=UTF8
         )
 
