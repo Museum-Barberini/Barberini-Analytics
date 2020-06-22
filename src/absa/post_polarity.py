@@ -180,10 +180,12 @@ class CollectInflectedPostPolarities(QueryDb):
                     FROM
                         /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
                         JOIN absa.inflection ON
-                            lower(inflection.inflected) = lower(post_ngram.phrase)
+                            lower(inflection.inflected)
+                                = lower(post_ngram.phrase)
                         JOIN absa.phrase_polarity ON
                             phrase_polarity.phrase = inflection.word
                             AND phrase_polarity.dataset = inflection.dataset
+                        JOIN word_count USING (source, post_id)
                     GROUP BY
                         source, post_id, word_index, post_ngram.n,
                         phrase_polarity.dataset
