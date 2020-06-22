@@ -150,7 +150,7 @@ class CollectPostPolaritiesAbstract(QueryDb):
     @property
     def query_source(self):
 
-        return f'''
+        return '''
             absa.post_ngram AS post_ngram
         '''
 
