@@ -11,7 +11,7 @@
 		["Barberini", "Museum Barberini"],
 
 	"Ausstellungen": {
-		"'Allgemein'": ["Kunst", "Gemälde", "Leinwand", "Exponat", "Bilder"],
+		"'Allgemein'": ["Kunst", "Gemälde", "Leinwand"],
 
 		"Klassiker der Moderne": ["Liebermann", "Munch", "Nolde", "Kandinsky"],
 		"Impressionismus": ["Kunst der Landschaft"],
@@ -34,25 +34,19 @@
 		"ÖPNV": ["Bus", "Bahn", "Bahnhof"],
 		"Auto": ["Parkplatz", "parken"]
 	},
-	"App": {
-		"'Allgemein'": ["Applikation", "Smartphone", "Tablet", "#barberiniapp"],
-		"Pop-up": ["Popup", "Einblendung"],
-		"Virtueller Rundgang": ["360 Grad", "360°"],
-		"Absturz": ["stürzt ab", "Crash"],
-		"Bedienung": []
-	},
+	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp", "Popup"],
 	"Audioguide": ["Audiotour", "Kopfhörer", "Headset"],
 	"Buchung": {
 		"'Allgemein'": ["Buchung", "buchen"],
-		"Onlineshop": ["Online-Ticket"],
 		"Tickets": ["Ticket", "Karte", "Barberini Friends", "Eintrittskarte", "Jahreskarte"],
 		"Preise": ["Ticketpreise", "billig", "teuer", "Kosten"],
 		"Reservierung": ["reservieren", "anmelden", "Anmeldung"],
-		"ausverkauft": [],
-		"Einlass": []
+		"ausverkauft": []
 	},
 	"Digitale Angebote": {
-		"'Allgemein'": ["digital"]
+		"'Allgemein'": ["digital"],
+		"Onlineshop": ["Online-Ticket"],
+		"Prolog": []
 	},
 	"Führung": ["Führungen", "Guide", "Guides"],
 	"Gastronomie": ["Café", "essen", "Kaffee", "Kuchen"],
@@ -68,11 +62,6 @@
 		"Toiletten": ["Örtlichkeiten", "Klo"],
 		"Wegführung": ["Ausschilderung", "Rundgang", "Wegweiser"]
 	},
-	"Kuration": {
-		"'Allgemein'": ["Kurator", "Kuratorin", "Kuratoren", "kuratiert"],
-		"Erklärtexte": ["Bildbeschreibung"],
-		"Prolog": []
-	},
 	"Service": {
 		"'Allgemein'": ["Personal", "Mitarbeiter", "Mitarbeiterin", "Empfang", "unfreundlich"],
 		"Security": ["Aufsichtspersonal", "Sicherheitspersonal", "Sicherheitsdienst", "Sicherheitskräfte", "Eingangskontrolle"]
@@ -82,7 +71,7 @@
 
 	"Aktionen": {
 		"#barberinikids": ["Kinder"],
-		"Corona": ["covid-19", "Coronavirus", "sars-cov-2", "#closedbutopen", "#flattenthecurve", "#museumfromhome", "covid", "Pandemie"],
+		"Corona": ["covid-19", "Coronavirus", "sars-cov-2", "#closedbutopen", "#flattenthecurve", "#museumfromhome"],
 		"Good morning, Barberini": []
 	}
 }
