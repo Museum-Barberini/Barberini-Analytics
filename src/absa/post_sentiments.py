@@ -77,7 +77,8 @@ class CollectPostSentiments(ConcatCsvs):
 
     def requires(self):
 
-        yield CollectFuzzyPostSentiments(table=self.table)
+        # TODO: Much too slow. Make it faster! Disabled for now.
+        # yield CollectFuzzyPostSentiments(table=self.table)
         yield CollectIdentityPostSentiments(table=self.table)
         yield CollectInflectedPostSentiments(table=self.table)
 
