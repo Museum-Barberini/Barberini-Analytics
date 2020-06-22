@@ -21,7 +21,7 @@ BEGIN;
     CREATE TABLE absa.phrase_polarity_sepl (
         phrase TEXT PRIMARY KEY,
         weight REAL,
-        CHECK (weight BETWEEN 1 AND 10),
+        CHECK (weight BETWEEN -1 AND 1),
         stddev REAL,
         stderr REAL,
         phrase_type TEXT,
