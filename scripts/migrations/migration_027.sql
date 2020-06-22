@@ -1,123 +1,35 @@
+-- Tables for aspect mining baseline (!214)
+
 BEGIN;
 
-    ALTER TABLE absa.post_ngram
-        RENAME COLUMN ngram TO phrase;
+    -- Activate extensions for fuzzy search
+    CREATE EXTENSION fuzzystrmatch;
+    CREATE EXTENSION pg_trgm;
 
 
-    CREATE TABLE absa.phrase_polarity_sentiws (
-        word TEXT,
-        pos_tag TEXT,
-        weight REAL,
-        inflections TEXT[],
-        polarity TEXT GENERATED ALWAYS AS (
-            CASE
-                WHEN weight > 0 THEN 'positive'
-                WHEN weight < 0 THEN 'negative'
-            END
-        ) STORED,
-        PRIMARY KEY (word, polarity)
+    -- Create tables
+    CREATE TABLE absa.target_aspect (
+        aspect_id SERIAL PRIMARY KEY,
+        aspect text[]
     );
 
-    CREATE TABLE absa.phrase_polarity_sepl (
-        phrase TEXT PRIMARY KEY,
-        weight REAL,
-        stddev REAL,
-        stderr REAL,
-        phrase_type TEXT,
-        manual_coorection BOOLEAN
+    CREATE TABLE absa.target_aspect_word (
+        aspect_id int REFERENCES absa.target_aspect,
+        word text,
+        PRIMARY KEY (aspect_id, word)
     );
 
-    CREATE VIEW absa.phrase_polarity AS (
-        WITH _phrase_polarity AS (
-            (
-                SELECT
-                    word AS phrase,
-                    pos_tag,
-                    weight,
-                    polarity,
-                    'SentiWS' AS dataset
-                FROM absa.phrase_polarity_sentiws
-            ) UNION (
-                SELECT
-                    phrase,
-                    CASE phrase_type
-                        WHEN 'a' THEN 'ADJX'
-                        WHEN 'n' THEN 'NN'
-                        WHEN 'v' THEN 'VVINF'
-                    END AS pos_tag,
-                    weight,
-                    CASE
-                        WHEN weight > 0 THEN 'positive'
-                        WHEN weight < 0 THEN 'negative'
-                    END AS polarity,
-                    'SePL' AS dataset
-                FROM absa.phrase_polarity_sepl
-            )
-        )
-        SELECT
-            *,
-            array_length(regexp_split_to_array(phrase, '\s+'), 1) AS n
-        FROM
-            _phrase_polarity
-    );
-
-
-    CREATE VIEW absa.inflection_sentiws AS (
-        SELECT unnest(inflections) inflected, word
-        FROM absa.phrase_polarity_sentiws
-    );
-
-    CREATE VIEW absa.inflection AS (
-        (
-            SELECT *, 'SentiWS' AS dataset
-            FROM absa.inflection_sentiws
-        ) UNION (
-            SELECT phrase, phrase, dataset
-            FROM absa.phrase_polarity
-        )
-    );
-
-    CREATE TABLE absa.post_polarity (
+    CREATE TABLE absa.post_aspect (
         source TEXT,
         post_id TEXT,
-        polarity REAL,
-        stddev REAL,
-        count INT,
-        dataset TEXT,
+        word_index INT,
+        FOREIGN KEY (source, post_id, word_index) REFERENCES absa.post_word,
+        aspect_id INT REFERENCES absa.target_aspect,
+        target_aspect_word TEXT,
+        FOREIGN KEY (aspect_id, target_aspect_word)
+            REFERENCES absa.target_aspect_word(aspect_id, word),
         match_algorithm TEXT,
-        PRIMARY KEY (source, post_id, dataset, match_algorithm)
-    );
-
-
-    CREATE VIEW absa.post_aspect_polarity AS (
-        SELECT
-            source, post_id,
-            aspect_id,
-            count(distinct word_index), avg(polarity) AS polarity,
-            post_polarity.match_algorithm AS polarity_match_algorithm,
-            post_aspect.match_algorithm AS aspect_match_algorithm,
-            dataset
-        FROM absa.post_polarity
-            JOIN absa.post_aspect USING (source, post_id)
-        GROUP BY
-            source, post_id,
-            aspect_id,
-            post_polarity.match_algorithm, post_aspect.match_algorithm,
-            dataset
-    );
-
-    CREATE VIEW absa.aspect_polarity AS (
-        SELECT
-            aspect_id, count(DISTINCT post_id), avg(polarity),
-            polarity_match_algorithm, aspect_match_algorithm,
-            dataset
-        FROM post
-        NATURAL JOIN absa.post_aspect_polarity
-        WHERE NOT is_from_museum
-        GROUP BY
-            aspect_id,
-            polarity_match_algorithm, aspect_match_algorithm,
-            dataset
+        PRIMARY KEY (match_algorithm, source, post_id, word_index, aspect_id)
     );
 
 COMMIT;

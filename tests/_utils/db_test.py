@@ -155,6 +155,10 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         See also DatabaseTestCase.setup_database().
         """
 
+        if 'POSTGRES_DB_TEMPLATE' in os.environ:
+            logger.info("Reusing template database provided by caller")
+            return
+
         # --- Configure environment variables --
         os.environ['POSTGRES_DB_TEMPLATE'] = self.template_name
         # Avoid accidental access to production database
