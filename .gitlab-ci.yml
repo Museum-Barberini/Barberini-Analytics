@@ -48,3 +48,20 @@ minimal-mining-pipeline:
   stage: test
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
+
+test-pbi-reports:
+  stage: test
+  rules:
+    - if: '$FULL_TEST'
+      when: always
+    - if: '$CI_COMMIT_BRANCH =~ /test-powerbi/'
+  tags:
+    - bernd-windows
+  before_script:
+    - powershell -Command "&scripts/setup/install_powershell_deps.ps1"
+  script:
+    - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
+  artifacts:
+    when: always
+    paths:
+      - ./output/test_pbi/

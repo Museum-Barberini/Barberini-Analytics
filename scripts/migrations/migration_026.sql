@@ -1,21 +1,7 @@
--- Reorganize topic_modeling tables (!231)
+-- Clean backup made in migration_011.sql (!245)
 
 BEGIN;
 
-    CREATE SCHEMA topic_modeling;
-
-    ALTER TABLE topic_modeling_texts
-        SET SCHEMA topic_modeling;
-    ALTER TABLE topic_modeling.topic_modeling_texts
-        RENAME TO topic_text;
-    ALTER TABLE topic_modeling.topic_text
-        RENAME CONSTRAINT topic_modeling_texts_pkey TO topic_text_pkey;
-
-    ALTER TABLE topic_modeling_topics
-        SET SCHEMA topic_modeling;
-    ALTER TABLE topic_modeling.topic_modeling_topics
-        RENAME TO topic;
-    ALTER TABLE topic_modeling.topic
-        RENAME CONSTRAINT topic_modeling_topics_pkey TO topic_pkey;
+    DROP TABLE IF EXISTS fb_post_old;
 
 COMMIT;

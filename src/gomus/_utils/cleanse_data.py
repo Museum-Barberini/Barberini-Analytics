@@ -75,8 +75,10 @@ class CleansePostalCodes(DataPreparationTask):
         )
 
     def output(self):
-        return luigi.LocalTarget('output/gomus/cleansed_customers.csv',
-                                 format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/cleansed_customers.csv',
+            format=UTF8
+        )
 
     def run(self):
         customer_df = self.get_customer_data()
