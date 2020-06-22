@@ -133,7 +133,7 @@ class CollectPostPolaritiesAbstract(QueryDb):
                 avg(polarity) AS polarity, stddev(polarity),
                 CASE
                     WHEN word_count.count > 0
-                    THEN count::real / word_count.count
+                    THEN post_phrase_polarity.count::real / word_count.count
                     ELSE NULL
                 END AS subjectivity,
                 count((word_index, n)),
