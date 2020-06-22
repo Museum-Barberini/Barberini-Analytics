@@ -98,9 +98,7 @@ class CollectFuzzyPostPolarities(FuzzyMatchPhrases):
         )
 
 
-class CollectIdentityPostPolarities(QueryDb):
-
-    algorithm = 'identity'
+class CollectPostPolaritiesAbstract(QueryDb):
 
     def requires(self):
 
@@ -121,11 +119,11 @@ class CollectIdentityPostPolarities(QueryDb):
                     SELECT
                         source, post_id, word_index, post_ngram.n,
                         avg(weight) AS polarity, stddev(weight),
+                        count(weight),
                         phrase_polarity.dataset,
                         '{self.algorithm}' AS match_algorithm
                     FROM
-                        /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
-                        JOIN absa.phrase_polarity USING (phrase)
+                        {self.query_source}
                     GROUP BY
                         source, post_id, word_index, post_ngram.n,
                         phrase_polarity.dataset
@@ -135,8 +133,7 @@ class CollectIdentityPostPolarities(QueryDb):
                 avg(polarity) AS polarity, stddev(polarity),
                 CASE
                     WHEN word_count.count > 0
-                    THEN count(phrase_polarity)::real
-                        / word_count.count
+                    THEN count::real / word_count.count
                     ELSE NULL
                 END AS subjectivity,
                 count((word_index, n)),
@@ -146,55 +143,39 @@ class CollectIdentityPostPolarities(QueryDb):
             GROUP BY source, post_id, dataset, match_algorithm
         '''
 
+    @property
+    def query_source(self):
 
-class CollectInflectedPostPolarities(QueryDb):
+        return f'''
+            absa.post_ngram AS post_ngram
+        '''
+
+
+class CollectIdentityPostPolarities(CollectPostPolaritiesAbstract):
+
+    algorithm = 'identity'
+
+    @property
+    def query_source(self):
+
+        return f'''
+            {super().query_source}
+            JOIN absa.phrase_polarity USING (phrase)
+        '''
+
+
+class CollectInflectedPostPolarities(CollectPostPolaritiesAbstract):
 
     algorithm = 'inflected'
 
-    def requires(self):
-
-        yield PostNgramsToDb()
-        yield PhrasePolaritiesToDb()
-
     @property
-    def query(self):
+    def query_source(self):
 
         return f'''
-            WITH
-                word_count AS (
-                    SELECT source, post_id, count(word_index)
-                    FROM absa.post_word
-                    GROUP BY source, post_id
-                ),
-                post_phrase_polarity AS (
-                    SELECT
-                        source, post_id, word_index, post_ngram.n,
-                        avg(weight) AS polarity, stddev(weight),
-                        phrase_polarity.dataset,
-                        '{self.algorithm}' AS match_algorithm
-                    FROM
-                        /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
-                        JOIN absa.inflection ON
-                            lower(inflection.inflected)
-                                = lower(post_ngram.phrase)
-                        JOIN absa.phrase_polarity ON
-                            phrase_polarity.phrase = inflection.word
-                            AND phrase_polarity.dataset = inflection.dataset
-                    GROUP BY
-                        source, post_id, word_index, post_ngram.n,
-                        phrase_polarity.dataset
-                )
-            SELECT
-                source, post_id,
-                avg(polarity) AS polarity, stddev(polarity),
-                CASE
-                    WHEN word_count.count > 0
-                    THEN count(inflection)::real / word_count.count
-                    ELSE NULL
-                END AS subjectivity,
-                count((word_index, n)),
-                dataset, match_algorithm
-            FROM post_phrase_polarity
-                JOIN word_count USING (source, post_id)
-            GROUP BY source, post_id, dataset, match_algorithm
+            {super().query_source}
+            JOIN absa.inflection
+                ON lower(inflection.inflected) = lower(post_ngram.phrase)
+            JOIN absa.phrase_polarity
+                ON  phrase_polarity.phrase = inflection.word
+                AND phrase_polarity.dataset = inflection.dataset
         '''
