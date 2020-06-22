@@ -129,7 +129,7 @@ class TestFetchAppleReviews(DatabaseTestCase):
         try:
             self.task.fetch_for_country('not_DE_not_GB_not_US')
         except requests.exceptions.HTTPError:
-            self.fail("403 HTTP Error should be caught for DE, GB and US")
+            self.fail("403 HTTP Error should be caught for not DE, GB and US")
 
         with self.assertRaises(requests.exceptions.HTTPError):
             self.task.fetch_for_country('GB')
