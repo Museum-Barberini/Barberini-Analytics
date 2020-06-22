@@ -301,7 +301,7 @@ class FetchFbPostComments(FetchFbPostDetails):
 
         else:
             """
-            This whole else block is a dirty workaround, because the ToDB tasks
+            This whole else block is a dirty workaround, because the ToDb tasks
             currently cannot deal with completely empty CSV files as input,
             they assume that at least the header row exists.
             """

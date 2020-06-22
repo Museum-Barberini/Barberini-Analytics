@@ -20,11 +20,11 @@ logger = logging.getLogger('luigi-interface')
 class GtrendsValuesToDb(luigi.WrapperTask):
 
     def requires(self):
-        yield GtrendsValuesClearDB()
+        yield GtrendsValuesClearDb()
         yield GtrendsValuesAddToDb()
 
 
-class GtrendsValuesClearDB(luigi.Task):
+class GtrendsValuesClearDb(luigi.Task):
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
@@ -35,7 +35,7 @@ class GtrendsValuesClearDB(luigi.Task):
     def output(self):
         # Pseudo output file to signal completion of the task
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/GtrendsValuesClearDB',
+            f'{OUTPUT_DIR}/{type(self).__name__}',
             format=UTF8
         )
 

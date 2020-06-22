@@ -16,14 +16,17 @@ from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
 
-# =============== ToDb Tasks ===============
+# =============== Database Tasks ===============
 
 
-class IgPostsToDb(CsvToDb):
-    table = 'ig_post'
-
+class IgToDb(luigi.WrapperTask):
     def requires(self):
-        return FetchIgPosts()
+        yield IgPostsToDb()
+        yield IgProfileMetricsDevelopmentToDb()
+        yield IgTotalProfileMetricsToDb()
+        yield IgAudienceGenderAgeToDb()
+        yield IgAudienceCityToDb()
+        yield IgAudienceCountryToDb()
 
 
 class IgPostPerformanceToDb(CsvToDb):
@@ -32,6 +35,13 @@ class IgPostPerformanceToDb(CsvToDb):
     def requires(self):
         return FetchIgPostPerformance(
             table=self.table, columns=[col[0] for col in self.columns])
+
+
+class IgPostsToDb(CsvToDb):
+    table = 'ig_post'
+
+    def requires(self):
+        return FetchIgPosts()
 
 
 class IgProfileMetricsDevelopmentToDb(CsvToDb):
@@ -419,13 +429,3 @@ def get_single_metric(page_id, metric, period='lifetime'):
     url = f'{API_BASE}/{page_id}/insights?metric={metric}&period={period}'
     res = try_request_multiple_times(url)
     return res.json()['data'][0]['values'][0]['value']
-
-
-class IgToDbWrapper(luigi.WrapperTask):
-    def requires(self):
-        yield IgPostsToDb()
-        yield IgProfileMetricsDevelopmentToDb()
-        yield IgTotalProfileMetricsToDb()
-        yield IgAudienceGenderAgeToDb()
-        yield IgAudienceCityToDb()
-        yield IgAudienceCountryToDb()
