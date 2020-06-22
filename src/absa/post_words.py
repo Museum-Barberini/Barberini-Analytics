@@ -88,7 +88,8 @@ class CollectPostWords(DataPreparationTask):
     def output(self):
         return luigi.LocalTarget(
             f'{self.output_dir}/absa/post_words.csv',
-            format=luigi.format.UTF8)
+            format=luigi.format.UTF8
+        )
 
     def run(self):
         if not self.standalone:

@@ -1,9 +1,8 @@
+-- Introduce relations for polarity baseline (!235)
+
 BEGIN;
 
-    ALTER TABLE absa.post_ngram
-        RENAME COLUMN ngram TO phrase;
-
-
+    -- 1. Create polarity relations
     CREATE TABLE absa.phrase_polarity_sentiws (
         word TEXT,
         pos_tag TEXT,
@@ -62,6 +61,7 @@ BEGIN;
     );
 
 
+    -- 2. Create inflection relations
     CREATE VIEW absa.inflection_sentiws AS (
         SELECT unnest(inflections) inflected, word
         FROM absa.phrase_polarity_sentiws
@@ -76,6 +76,11 @@ BEGIN;
             FROM absa.phrase_polarity
         )
     );
+
+
+    -- 3. Update schema for post_polarity
+    ALTER TABLE absa.post_ngram
+        RENAME COLUMN ngram TO phrase;    
 
     CREATE TABLE absa.post_polarity (
         source TEXT,
