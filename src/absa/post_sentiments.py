@@ -122,7 +122,6 @@ class CollectPostPolaritiesAbstract(QueryDb):
                     SELECT
                         source, post_id, word_index, post_ngram.n,
                         avg(weight) AS polarity, stddev(weight),
-                        count(weight),
                         phrase_polarity.dataset,
                         '{self.algorithm}' AS match_algorithm
                     FROM
@@ -133,10 +132,11 @@ class CollectPostPolaritiesAbstract(QueryDb):
                 )
             SELECT
                 source, post_id,
-                avg(polarity) AS polarity, stddev(polarity),
+                avg(polarity) AS sentiment, stddev(polarity),
                 CASE
                     WHEN word_count.count > 0
-                    THEN post_phrase_polarity.count::real / word_count.count
+                    THEN count(DISTINCT post_phrase_polarity.word_index)::real
+                        / word_count.count
                     ELSE NULL
                 END AS subjectivity,
                 count((word_index, n)),
@@ -144,8 +144,7 @@ class CollectPostPolaritiesAbstract(QueryDb):
             FROM post_phrase_polarity
                 JOIN word_count USING (source, post_id)
             GROUP BY
-                source, post_id, dataset, match_algorithm,
-                post_phrase_polarity.count, word_count.count
+                source, post_id, dataset, match_algorithm, word_count.count
         '''
 
     @property
