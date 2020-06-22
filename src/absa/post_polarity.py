@@ -75,7 +75,7 @@ class CollectPostPolarities(ConcatCsvs):
 
     def requires(self):
 
-        yield CollectFuzzyPostPolarities(table=self.table)
+        #yield CollectFuzzyPostPolarities(table=self.table)
         yield CollectIdentityPostPolarities(table=self.table)
         yield CollectInflectedPostPolarities(table=self.table)
 
@@ -118,7 +118,8 @@ class CollectIdentityPostPolarities(QueryDb):
                     phrase_polarity.dataset,
                     '{self.algorithm}' AS match_algorithm
                 FROM
-                    /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
+                    /*<REPORT_PROGRESS('post_phrase_polarity')>*/
+                    absa.post_ngram AS post_ngram
                     JOIN absa.phrase_polarity USING (phrase)
                 GROUP BY
                     source, post_id, word_index, post_ngram.n,
@@ -129,7 +130,7 @@ class CollectIdentityPostPolarities(QueryDb):
                 avg(polarity) AS polarity, stddev(polarity),
                 count((word_index, n)),
                 dataset, match_algorithm
-            FROM post_phrase_polarity
+            FROM /*<REPORT_PROGRESS('post_polarity')>*/post_phrase_polarity
             GROUP BY source, post_id, dataset, match_algorithm
         '''
 
@@ -163,6 +164,7 @@ class CollectInflectedPostPolarities(QueryDb):
                 GROUP BY
                     source, post_id, word_index, post_ngram.n,
                     phrase_polarity.dataset
+                HAVING inflected.dataset = 'SentiWS'  -- no pseudo inflections
             )
             SELECT
                 source, post_id,
