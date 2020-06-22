@@ -1,0 +1,3 @@
+BEGIN;
+DROP TABLE IF EXISTS fb_post_old;
+COMMIT;
