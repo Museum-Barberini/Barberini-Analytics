@@ -128,7 +128,7 @@ class CollectIdentityPostPolarities(QueryDb):
                             ELSE NULL
                         END AS subjectivity,
                         phrase_polarity.dataset,
-                        '{self.algorithm}' AS match_algorithm,
+                        '{self.algorithm}' AS match_algorithm
                     FROM
                         /*<REPORT_PROGRESS>*/absa.post_ngram AS post_ngram
                         JOIN absa.phrase_polarity USING (phrase)
