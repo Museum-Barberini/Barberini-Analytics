@@ -7,7 +7,7 @@
 
 BEGIN;
 CREATE TEMPORARY TABLE {0}_{1}_tmp (LIKE {0}.{1} INCLUDING ALL);
-COPY {0}_{1}_tmp FROM stdin WITH (FORMAT CSV);
+COPY {0}_{1}_tmp ({2}) FROM stdin WITH (FORMAT CSV);
 
 INSERT INTO {0}.{1} ({2})
     SELECT {2} FROM {0}_{1}_tmp

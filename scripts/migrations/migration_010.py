@@ -22,7 +22,7 @@ primkey_changes = [
             AND	kcu.constraint_schema = tco.constraint_schema
             AND	kcu.constraint_name = tco.constraint_name
         WHERE tco.constraint_type = 'PRIMARY KEY'
-            AND tco.constraint_name LIKE '%_primkey'
+            AND tco.constraint_name LIKE '%%_primkey'
     ''')
 ]
 
@@ -47,7 +47,7 @@ fkey_changes = [
             ON ccu.constraint_name = tco.constraint_name
             AND ccu.table_schema = tco.table_schema
         WHERE tco.constraint_type = 'FOREIGN KEY'
-            AND tco.constraint_name NOT LIKE tco.table_name || '%_'
+            AND tco.constraint_name NOT LIKE tco.table_name || '%%_'
     ''')
 ]
 

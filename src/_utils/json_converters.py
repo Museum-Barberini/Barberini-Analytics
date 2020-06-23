@@ -1,5 +1,6 @@
 import csv
 import json
+import jstyleson
 
 from data_preparation import DataPreparationTask
 
@@ -16,4 +17,12 @@ class JsonToCsv(DataPreparationTask):
 
     def getJson(self):
         with self.input().open('r') as json_file:
-            return json.loads(json_file.read())
+            return json.load(json_file)
+
+
+class JsoncToJson(DataPreparationTask):
+    def run(self):
+        with self.input().open('r') as input_file:
+            facts = jstyleson.load(input_file)
+        with self.output().open('w') as output_file:
+            json.dump(facts, output_file)
