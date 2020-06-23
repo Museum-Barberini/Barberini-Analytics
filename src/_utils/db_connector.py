@@ -31,6 +31,19 @@ class DbConnector:
         assert database, "Database was not specified"
         self.__database = database
 
+    def __repr__(self):
+
+        return (
+            f'{type(self).__name__}('
+            f'host={self.host}, '
+            f'user={self.user}, '
+            f'database={self.database})'
+        )
+
+    def __str__(self):
+
+        return f'{type(self).__name__}(db={self.database})'
+
     def execute(self, *queries: List[str]) -> List[Tuple]:
         """
         Execute one or multiple queries as one atomic operation and returns
