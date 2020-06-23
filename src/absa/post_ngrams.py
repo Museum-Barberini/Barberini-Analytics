@@ -125,7 +125,7 @@ class CollectPostNgrams(DataPreparationTask):
             WITH
                 word_relevant AS (
                     SELECT  *
-                    FROM    /*<REPORT_PROGRESS>*/{self.word_table}
+                    FROM    {self.word_table}
                     WHERE   word NOT IN (
                         SELECT word
                         FROM {self.stopword_table}
@@ -139,7 +139,7 @@ class CollectPostNgrams(DataPreparationTask):
                     word{0}.post_id AS post_id,
                     {n} AS n,
                     word{0}.word_index AS word_index,
-                    CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS phrase
+                    CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS ngram
             FROM    {mult_exp(f'word_relevant AS word{{i}}')}
             WHERE   {mult_join('(word{i}.source, word{i}.post_id) ='
                                '(word{j}.source, word{j}.post_id)')}

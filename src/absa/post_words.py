@@ -99,7 +99,7 @@ class CollectPostWords(DataPreparationTask):
             query=f'''
                 WITH known_post_ids AS (SELECT post_id FROM {self.table})
                 SELECT source, post_id, text
-                FROM /*<REPORT_PROGRESS>*/{self.post_table}
+                FROM {self.post_table}
                 WHERE text <> ''
                 AND post_id NOT IN (SELECT * FROM known_post_ids)
             ''',
