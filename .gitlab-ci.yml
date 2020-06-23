@@ -57,7 +57,7 @@ test-pbi-reports:
       when: always
     - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /.*test-powerbi.*/'
       when: always
-    - if: '$FULL_TEST != "False"'
+    - if: '$FULL_TEST == "False"'
       when: never
   tags:
     - bernd-windows
