@@ -55,10 +55,8 @@ test-pbi-reports:
   rules:
     - if: '$FULL_TEST'
       when: always
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /.*test-powerbi.*/'
+    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /.*test-powerbi.*/ && $CI_MERGE_REQUEST_TITLE =~ /WIP: .*/'
       when: always
-    - if: '$FULL_TEST == "False"'
-      when: never
   tags:
     - bernd-windows
   before_script:
