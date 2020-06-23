@@ -135,13 +135,12 @@ class CollectPostNgrams(DataPreparationTask):
                 "van Gogh" that include stopwords ("in") at any place? */
                 new_post_id AS (
                     SELECT post_id
-                    FROM {self.table}
-                    NATURAL JOIN post
+                    FROM post
                     WHERE post_date > ANY(
                         SELECT max(post_date)
                         FROM {self.table}
                         NATURAL JOIN post
-                    )
+                    ) IS NOT FALSE
                 )
             SELECT  word{0}.source AS source,
                     word{0}.post_id AS post_id,
