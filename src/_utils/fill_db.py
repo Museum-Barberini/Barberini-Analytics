@@ -5,7 +5,6 @@ from gomus.gomus import GomusToDb
 from google_trends.gtrends_values import GtrendsValuesToDB
 from absa.post_aspects import PostAspectsToDb
 from absa.post_ngrams import PostNgramsToDb
-from absa.post_sentiments import PostSentimentsToDb
 from topic_modeling import TopicModeling
 
 
@@ -29,7 +28,6 @@ class FillDBDaily(luigi.WrapperTask):
         # Analysis tasks
         yield PostAspectsToDb()
         yield PostNgramsToDb()
-        yield PostSentimentsToDb()
 
         yield TopicModeling()
 
