@@ -2,7 +2,7 @@ import logging
 import os
 import psycopg2
 
-from typing import Callable, Iterable, List, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
 logger = logging.getLogger('luigi-interface')
 
@@ -81,7 +81,8 @@ class DbConnector:
                 self,
                 query: str,
                 *args: Iterable[object],
-                only_first: bool = False
+                only_first: bool = False,
+                **kwargs: Dict[str, object]
             ) -> List[Tuple]:
         """
         Execute a query and return a list of results.
@@ -98,7 +99,8 @@ class DbConnector:
         results = self._execute_query(
             query=query,
             result_function=result_function,
-            args=args
+            args=args,
+            kwargs=kwargs
         )
         result = next(results)
         if next(results, result) is not result:
@@ -109,7 +111,8 @@ class DbConnector:
     def query_with_header(
                 self,
                 query: str,
-                *args: Iterable[object]
+                *args: Iterable[object],
+                **kwargs: Dict[str, object]
             ) -> List[Tuple]:
         """
         Execute a query and return two values of which the first is the list
@@ -120,7 +123,8 @@ class DbConnector:
             query=query,
             result_function=lambda cursor:
                 (cursor.fetchall(), [desc[0] for desc in cursor.description]),
-            args=args
+            args=args,
+            kwargs=kwargs
         )
         results = next(all_results)
         if next(all_results, results) is not results:
@@ -129,6 +133,7 @@ class DbConnector:
         return results
 
     def _create_connection(self):
+
         return psycopg2.connect(
             host=self.host,
             database=self.database,
@@ -140,7 +145,8 @@ class DbConnector:
                 self,
                 queries: List[str],
                 result_function: Callable[[psycopg2.extensions.cursor], T],
-                args: Iterable[object] = ()
+                args: Iterable[object] = (),
+                kwargs: Dict[str, object] = {}
             ) -> List[T]:
         """
         Executes all passed queries as one atomic operation and yields the
@@ -150,6 +156,7 @@ class DbConnector:
         commited once the generator has been enumerated.
         """
 
+        assert not args or not kwargs, "cannot combine args and kwargs"
         conn = self._create_connection()
         try:
             with conn:
@@ -157,11 +164,20 @@ class DbConnector:
                     for query in queries:
                         logger.debug(
                             "DbConnector: Executing query '''%s''' "
-                            "with arguments: %s",
+                            "with args: %s kwargs: %s",
                             query,
-                            args
+                            args,
+                            kwargs
                         )
-                        cur.execute(query, args)
+                        try:
+                            cur.execute(query, next(
+                                filter(bool, [args, kwargs]),
+                                # always pass args for consistent
+                                # resolution of percent escapings
+                                None))
+                        except Exception:
+                            print(query, args, kwargs)
+                            raise
                         yield result_function(cur)
                 for notice in conn.notices:
                     logger.warning(notice.strip())
@@ -172,15 +188,16 @@ class DbConnector:
                 self,
                 query: str,
                 result_function: Callable[[psycopg2.extensions.cursor], T],
-                args: Iterable[object] = ()
+                args: Iterable[object] = (),
+                kwargs: Dict[str, object] = {}
             ) -> None:
         """
-
         Executes the passed query and returns the results.
         Note that this is a generator function so the operation will be only
         commited once the generator has been enumerated.
         """
-        return self._execute_queries([query], result_function, args)
+
+        return self._execute_queries([query], result_function, args, kwargs)
 
 
 def db_connector(database=None):
