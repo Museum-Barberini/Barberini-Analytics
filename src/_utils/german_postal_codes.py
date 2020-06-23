@@ -3,11 +3,16 @@ import luigi
 import pandas as pd
 from luigi.format import UTF8
 
+from data_preparation import DataPreparationTask
 
-class GermanPostalCodes(luigi.Task):
+
+class GermanPostalCodes(DataPreparationTask):
 
     def output(self):
-        return luigi.LocalTarget('output/german_postal_codes.csv', format=UTF8)
+        return luigi.LocalTarget(
+            f'{self.output_dir}/german_postal_codes.csv',
+            format=UTF8
+        )
 
     def run(self):
         with open('data/German-Zip-Codes.csv',
