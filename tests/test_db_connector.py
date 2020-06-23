@@ -48,7 +48,15 @@ class TestDbConnector(DatabaseTestCase):
     def test_query(self):
 
         rows = self.connector.query(f'SELECT * FROM {self.temp_table}')
-        self.assertEqual(rows, [(1, 2), (3, 4)])
+        self.assertEqual([(1, 2), (3, 4)], rows)
+
+    def test_query_args(self):
+
+        rows = self.connector.query(
+            'SELECT * FROM (VALUES (%s, %s, %s)) x',
+            42, 'foo', [1, 2, 3]
+        )
+        self.assertEqual([(42, 'foo', [1, 2, 3])], rows)
 
     def test_query_with_header(self):
 
@@ -56,6 +64,15 @@ class TestDbConnector(DatabaseTestCase):
             f'SELECT * FROM {self.temp_table}')
         self.assertEqual([(1, 2), (3, 4)], rows)
         self.assertSequenceEqual(['col1', 'col2'], columns)
+
+    def test_query_with_header_args(self):
+
+        rows, columns = self.connector.query_with_header(
+            'SELECT * FROM (VALUES (%s, %s, %s)) x(a, b, c)',
+            42, 'foo', [1, 2, 3]
+        )
+        self.assertEqual([(42, 'foo', [1, 2, 3])], rows)
+        self.assertSequenceEqual(['a', 'b', 'c'], columns)
 
     def test_execute(self):
 
@@ -69,7 +86,7 @@ class TestDbConnector(DatabaseTestCase):
                 cur.execute(f'SELECT * FROM {self.temp_table}')
                 table_content = cur.fetchall()
 
-        self.assertEqual(table_content, [(3, 4)])
+        self.assertEqual([(3, 4)], table_content)
 
     def test_execute_multiple(self):
 

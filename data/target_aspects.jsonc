@@ -1,0 +1,77 @@
+{
+	/*
+		target aspects
+		In this configuration file, arbitrary aspect trees can be modeled whose leafs represent concrete aspects. To each leaf, a list of signal words can be defined. If the leaf key itself should *not* be treated as signal word, enclose it into single quotes (').
+		Make sure to clean all aspect tables and re-run TargetAspectsToDb after modifying this file.
+	*/
+	"'Allgemein'":
+		/*
+		Diese Kategorie darf nicht entfernt werden, damit allgemeine Nennungen des Museums nicht fälschlicherweise mit Hashtags wie #monetbarberini assoziert werden.
+		*/
+		["Barberini", "Museum Barberini"],
+
+	"Ausstellungen": {
+		"'Allgemein'": ["Kunst", "Gemälde", "Leinwand"],
+
+		"Klassiker der Moderne": ["Liebermann", "Munch", "Nolde", "Kandinsky"],
+		"Impressionismus": ["Kunst der Landschaft"],
+		"Von Hopper bis Rothko": ["Amerikas Weg in die Moderne"],
+		"Künstler aus der DDR": ["DDR", "Hinter der Maske",
+			"Gudrun Brüne", "Hartwig Ebersbach", "Günter Firit", "Albrecht Gehse", "Ulrich Hachulla", "Rolf Händler", "Bernhard Heisig", "Johannes Heisig", "Ralf Kerbach", "Walter Libuda", "Werner Liebmann", "Wolfgang Mattheuer", "Harald Metzkes", "Roland Nicolaus", "Stefan Plenkers", "Arno Rink", "Willi Sitte", "Erika Stürmer-Alex", "Werner Tübke"],
+		"Max Beckmann": ["Welttheater"],
+		"Gerhard Richter": [],
+		"Farbe und Licht": ["Henri-Edmond Cross"],
+		"Picasso": ["Das späte Werk", "#pablopicasso", "#picassobarberini"],
+		"Wege des Barock": ["Barock", "Palazzo Barberini", "Corsini",
+			"Caravaggio", "Narziss", "#barockbarberini"],
+		"Van Gogh": ["van Gogh", "Gogh", "Stillleben", "Stilleben", "#vangoghbarberini", "#vangogh"],
+		"Monet. Orte": ["Monet", "Claude Monet", "Seerosen", "Heuhaufen", "#claudemonet", "#monetbarberini"],
+		"Impressionismus in Russland": ["Aufbruch zur Avantgarde"]
+	},
+
+	"Andrang": ["voll", "Fülle", "überfüllt"],
+	"Anfahrt": {
+		"ÖPNV": ["Bus", "Bahn", "Bahnhof"],
+		"Auto": ["Parkplatz", "parken"]
+	},
+	"App": ["360 Grad", "virtuell", "Applikation", "Tablet", "Smartphone", "#barberiniapp", "Popup"],
+	"Audioguide": ["Audiotour", "Kopfhörer", "Headset"],
+	"Buchung": {
+		"'Allgemein'": ["Buchung", "buchen"],
+		"Tickets": ["Ticket", "Karte", "Barberini Friends", "Eintrittskarte", "Jahreskarte"],
+		"Preise": ["Ticketpreise", "billig", "teuer", "Kosten"],
+		"Reservierung": ["reservieren", "anmelden", "Anmeldung"],
+		"ausverkauft": []
+	},
+	"Digitale Angebote": {
+		"'Allgemein'": ["digital"],
+		"Onlineshop": ["Online-Ticket"],
+		"Prolog": []
+	},
+	"Führung": ["Führungen", "Guide", "Guides"],
+	"Gastronomie": ["Café", "essen", "Kaffee", "Kuchen"],
+	"Gebäude": {
+		"'Allgemein'": ["Räume", "Räumlichkeiten", "Treppen", "Aufzug", "Fahrstuhl", "Fassade", "Etage", "Geschoss"],
+		"Architektur": ["Fassade"],
+		"Garderobe": ["Schließfach", "Schließfächer", "Tasche"],
+		"Infrastruktur": {
+			"Beleuchtung": [],
+			"Belüftung": ["Klimaanlage", "Klimatisierung", "klimatisiert", "stickig"],
+			"WLAN": []
+		},
+		"Toiletten": ["Örtlichkeiten", "Klo"],
+		"Wegführung": ["Ausschilderung", "Rundgang", "Wegweiser"]
+	},
+	"Service": {
+		"'Allgemein'": ["Personal", "Mitarbeiter", "Mitarbeiterin", "Empfang", "unfreundlich"],
+		"Security": ["Aufsichtspersonal", "Sicherheitspersonal", "Sicherheitsdienst", "Sicherheitskräfte", "Eingangskontrolle"]
+	},
+	"Shop": ["Museumsshop"],
+	"Wartezeit": ["anstehen", "Schlange"],
+
+	"Aktionen": {
+		"#barberinikids": ["Kinder"],
+		"Corona": ["covid-19", "Coronavirus", "sars-cov-2", "#closedbutopen", "#flattenthecurve", "#museumfromhome"],
+		"Good morning, Barberini": []
+	}
+}
