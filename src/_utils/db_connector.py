@@ -163,6 +163,8 @@ class DbConnector:
                         )
                         cur.execute(query, args)
                         yield result_function(cur)
+                for notice in conn.notices:
+                    logger.warning(notice.strip())
         finally:
             conn.close()
 
