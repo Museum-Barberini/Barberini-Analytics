@@ -32,6 +32,12 @@ namespace MuseumBarberini.Analytics.Tests
         public string Desktop { get; }
 
         /// <summary>
+        /// The delay Power BI is granted to hang before the first window is opened. If exceeded,
+        /// the test will timeout.
+        /// </summary>
+        public TimeSpan PreLoadDelay { get; }
+
+        /// <summary>
         /// The delay Power BI is granted to hang after all data sources have been adapted
         /// before final error search starts.
         /// </summary>
@@ -55,10 +61,12 @@ namespace MuseumBarberini.Analytics.Tests
         
         protected PbiProcessSnapshot Snapshot { get; private set; }
         
-        public PbiReportTestCase(string report, string desktop, TimeSpan loadDelay) {
+        public PbiReportTestCase(
+                string report, string desktop,
+                TimeSpan preLoadDelay, TimeSpan loadDelay) {
             Report = report;
             Desktop = desktop;
-            LoadDelay = loadDelay;
+            (PreLoadDelay, LoadDelay) = (preLoadDelay, loadDelay);
         }
 
         /// <summary>
@@ -73,6 +81,8 @@ namespace MuseumBarberini.Analytics.Tests
                     }
                 };
                 Process.Start();
+
+                System.Threading.Thread.Sleep(LoadDelay);
 
                 Snapshot = new PbiProcessSnapshot(Process);
             });
