@@ -139,8 +139,8 @@ class CollectPostNgrams(DataPreparationTask):
                     NATURAL JOIN post
                     WHERE post_date > ANY(
                         SELECT max(post_date)
-			            FROM {self.table}
-			            NATURAL JOIN post
+                        FROM {self.table}
+                        NATURAL JOIN post
                     )
                 )
             SELECT  word{0}.source AS source,
