@@ -58,12 +58,9 @@ class PostWordsToDb(CsvToDb):
                     "the database will be respected.")
 
     def requires(self):
-        limit = self.limit
-        if self.minimal_mode and limit == -1:
-            limit = 50
         return CollectPostWords(
             table=self.table,
-            limit=limit,
+            limit=self.limit,
             shuffle=self.shuffle,
             standalone=self.standalone)
 
@@ -88,14 +85,17 @@ class CollectPostWords(DataPreparationTask):
 
     post_table = 'post'
 
-    def _requires(self):
-        _requires = super()._requires()
-        if not self.standalone:
-            _requires = [PostsToDb(), *_requires]
-        return luigi.task.flatten(_requires)
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/absa/post_words.csv',
+            format=luigi.format.UTF8
+        )
 
-    def requires(self):
-        yield QueryDb(
+    def run(self):
+        if not self.standalone:
+            yield PostsToDb()
+
+        posts_target = yield QueryDb(
             query=f'''
                 WITH known_post_ids AS (SELECT post_id FROM {self.table})
                 SELECT source, post_id, text
@@ -105,14 +105,7 @@ class CollectPostWords(DataPreparationTask):
             ''',
             limit=self.limit,
             shuffle=self.shuffle)
-
-    def output(self):
-        return luigi.LocalTarget(
-            f'{self.output_dir}/absa/post_words.csv',
-            format=luigi.format.UTF8)
-
-    def run(self):
-        with self.input()[0].open('r') as posts_stream:
+        with posts_target.open('r') as posts_stream:
             posts = pd.read_csv(posts_stream)
 
         tokens_per_post = {
