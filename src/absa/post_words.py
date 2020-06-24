@@ -87,13 +87,17 @@ class CollectPostWords(DataPreparationTask):
     post_table = 'post'
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/absa/post_words.csv',
-            format=luigi.format.UTF8)
+            format=luigi.format.UTF8
+        )
 
     def run(self):
+
         if not self.standalone:
             yield PostsToDb()
+
         posts_target = yield QueryDb(
             query=f'''
                 WITH known_post_ids AS (SELECT post_id FROM {self.table})
@@ -109,13 +113,13 @@ class CollectPostWords(DataPreparationTask):
 
         tokens_per_post = {
             (source, post_id): self.tokenize(text)
-            for (source, post_id, text)
+            for source, post_id, text
             in posts.itertuples(index=False)
         }
         words_per_post = {
-            (source, post_id, word_index): token
-            for ((source, post_id), tokens) in tokens_per_post.items()
-            for (word_index, token) in enumerate(tokens)
+            (source, post_id, word_index + 1): token
+            for (source, post_id), tokens in tokens_per_post.items()
+            for word_index, token in enumerate(tokens)
         }
         post_words = pd.Series(words_per_post) \
             .rename_axis(['source', 'post_id', 'word_index']) \
