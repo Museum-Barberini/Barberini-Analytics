@@ -59,10 +59,10 @@ class QueryDb(DataPreparationTask):
     def run(self):
 
         args, kwargs = self.args, self.kwargs
-        if isinstance(self.args, str):
+        if isinstance(args, str):
             # Unpack luigi-serialized parameter
             args = literal_eval(args)
-        if isinstance(self.kwargs, str):
+        if isinstance(kwargs, str):
             # Unpack luigi-serialized parameter
             kwargs = literal_eval(kwargs)
 
