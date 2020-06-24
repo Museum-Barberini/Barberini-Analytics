@@ -163,7 +163,7 @@ class CollectPostSentimentsSentence(CollectPostSentimentsAbstract):
         '''
 
     def query_select(self):
-        
+
         return f'''
             {super().query_select()},
             sentence_index
