@@ -58,12 +58,10 @@ class PostWordsToDb(CsvToDb):
                     "the database will be respected.")
 
     def requires(self):
-        limit = self.limit
-        if self.minimal_mode and limit == -1:
-            limit = 50
+
         return CollectPostWords(
             table=self.table,
-            limit=limit,
+            limit=self.limit,
             shuffle=self.shuffle,
             standalone=self.standalone)
 
