@@ -15,8 +15,10 @@ Param(
     [timespan] $timeout = [timespan]::FromSeconds(420),
     # Delay between checks
     [timespan] $interval = [timespan]::FromSeconds(10),
+    # Time to wait for PBI to show the initial splash screen
+    [timespan] $preLoadDelay = [timespan]::FromSeconds(20),
     # Time to wait for PBI to show possible loading windows after model has been created
-    [timespan] $loadDelay = [timespan]::FromSeconds(40)
+    [timespan] $loadDelay = [timespan]::FromSeconds(55)
 )
 
 
@@ -88,8 +90,9 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) 
 
 
 # Prepare test cases
-$tests = $reports | ForEach-Object `
-    {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
+$tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new(
+        $_, $pbi, $preLoadDelay, $loadDelay
+    )}
 mkdir -Force output/test_pbi | Out-Null
 
 # Run tests

@@ -338,12 +338,9 @@ class ConcatCsvs(DataPreparationTask):
             for input in luigi.task.flatten(self.input())
         ]
         df = pd.concat(dfs)
-        self.write_csv(df, self.output())
+        with self.output().open('w') as output:
+            df.to_csv(output, index=False)
 
     def read_csv(self, target: luigi.Target):
         with target.open('r') as input:
             return pd.read_csv(input)
-
-    def write_csv(self, df: pd.DataFrame, target: luigi.Target):
-        with target.open('w') as output:
-            df.to_csv(output, index=False)
