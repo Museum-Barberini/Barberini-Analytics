@@ -225,7 +225,7 @@ BEGIN;
         GROUP BY
             source, post_id, aspect_id,
             dataset, aspect_match_algorithm,
-            sentiment_match_algorithm, sentiment_model
+            sentiment_match_algorithm
     );
 
 
