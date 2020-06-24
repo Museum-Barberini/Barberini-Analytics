@@ -8,7 +8,7 @@
 		/*
 		Diese Kategorie darf nicht entfernt werden, damit allgemeine Nennungen des Museums nicht fälschlicherweise mit Hashtags wie #monetbarberini assoziert werden.
 		*/
-		["Barberini", "Museum Barberini"],
+		["Barberini", "Museum Barberini", "Museum"],
 
 	"Ausstellungen": {
 		"'Allgemein'": ["Kunst", "Gemälde", "Leinwand", "Exponat", "Bilder"],
@@ -74,7 +74,7 @@
 		"Prolog": []
 	},
 	"Service": {
-		"'Allgemein'": ["Personal", "Mitarbeiter", "Mitarbeiterin", "Empfang", "unfreundlich"],
+		"'Allgemein'": ["Personal", "Mitarbeiter", "Mitarbeiterin", "Angestellte", "Empfang", "unfreundlich"],
 		"Security": ["Aufsichtspersonal", "Sicherheitspersonal", "Sicherheitsdienst", "Sicherheitskräfte", "Eingangskontrolle"]
 	},
 	"Shop": ["Museumsshop"],
