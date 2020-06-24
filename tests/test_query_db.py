@@ -54,6 +54,26 @@ class TestQueryDb(DatabaseTestCase):
         )
         pd.testing.assert_frame_equal(expected_result, actual_result)
 
+    def test_kwargs(self):
+
+        self.task = QueryDb(
+            query='''
+                SELECT *
+                FROM (VALUES (%(spam)s, %(eggs)s, '%%'))
+                x(a, b, c)
+            ''',
+            kwargs={'spam': 42, 'eggs': 'foo'})
+        self.task.output = lambda: \
+            luigi.mock.MockTarget(f'output/{self.table}')
+
+        actual_result = self.run_query()
+
+        expected_result = pd.DataFrame(
+            [(42, 'foo', '%')],
+            columns=['a', 'b', 'c']
+        )
+        pd.testing.assert_frame_equal(expected_result, actual_result)
+
     def run_query(self):
 
         self.run_task(self.task)

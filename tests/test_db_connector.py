@@ -58,6 +58,14 @@ class TestDbConnector(DatabaseTestCase):
         )
         self.assertEqual([(42, 'foo', [1, 2, 3])], rows)
 
+    def test_query_kwargs(self):
+
+        rows = self.connector.query(
+            'SELECT * FROM (VALUES (%(spam)s, %(eggs)s)) x',
+            spam=42, eggs='foo'
+        )
+        self.assertEqual([(42, 'foo')], rows)
+
     def test_query_with_header(self):
 
         rows, columns = self.connector.query_with_header(
