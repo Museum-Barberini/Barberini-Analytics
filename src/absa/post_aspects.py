@@ -62,11 +62,11 @@ class CollectPostAspectsAlgorithm(QueryDb):
                             absa.post_ngram
                         WHERE
                             post_id NOT IN (SELECT * FROM known_post_id)
-                            AND {self.pre_filter_query('ngram')}
+                            AND {self.pre_filter_query('phrase')}
                     )
                 SELECT
                     source, post_id, word_index, aspect_id,
-                    {self.value_query('ngram', 'target_aspect_word.word')}
+                    {self.value_query('phrase', 'target_aspect_word.word')}
                         AS {self.match_name}
                 FROM
                     post_ngram,
@@ -88,7 +88,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
                 aspect_match
                     NATURAL JOIN absa.post_ngram
             WHERE
-                {self.post_filter_query('ngram')}
+                {self.post_filter_query('phrase')}
             GROUP BY
                 source, post_id, word_index;
 
