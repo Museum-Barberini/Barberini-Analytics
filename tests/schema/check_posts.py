@@ -90,7 +90,8 @@ class CheckPosts(DatabaseTestCase):
             for permalink in permalinks:
                 self.assert_valid_url(
                     permalink,
-                    msg=f"Permalink for source {source} is invalid: {permalink}"
+                    msg=f"Permalink for source {source} is invalid: "
+                        f"{permalink}"
                 )
 
     def assert_valid_url(self, url, msg=None):
