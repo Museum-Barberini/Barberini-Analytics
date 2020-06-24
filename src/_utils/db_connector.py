@@ -176,7 +176,7 @@ class DbConnector:
                         )
                         try:
                             cur.execute(query, all_args)
-                        except Exception:
+                        except psycopg2.Error:
                             print(query, all_args)
                             raise
                         yield result_function(cur)
