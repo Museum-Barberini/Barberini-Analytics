@@ -157,6 +157,12 @@ class DbConnector:
         """
 
         assert not args or not kwargs, "cannot combine args and kwargs"
+        all_args = next(
+            filter(bool, [args, kwargs]),
+            # always pass args for consistent
+            # resolution of percent escapings
+            None
+        )
         conn = self._create_connection()
         try:
             with conn:
@@ -164,19 +170,14 @@ class DbConnector:
                     for query in queries:
                         logger.debug(
                             "DbConnector: Executing query '''%s''' "
-                            "with args: %s kwargs: %s",
+                            "with args: %s",
                             query,
-                            args,
-                            kwargs
+                            all_args
                         )
                         try:
-                            cur.execute(query, next(
-                                filter(bool, [args, kwargs]),
-                                # always pass args for consistent
-                                # resolution of percent escapings
-                                None))
+                            cur.execute(query, all_args)
                         except Exception:
-                            print(query, args, kwargs)
+                            print(query, all_args)
                             raise
                         yield result_function(cur)
                 for notice in conn.notices:
