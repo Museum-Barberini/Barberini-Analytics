@@ -1,4 +1,5 @@
 -- ABSA: Add sentence_index to post_word and post_ngram relations (!257)
+-- Also raise word_idnex to start at 1.
 
 BEGIN;
 
