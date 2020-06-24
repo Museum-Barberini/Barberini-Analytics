@@ -29,7 +29,7 @@ class FuzzyJoinPhrases(QueryDb):
                         SELECT
                             *
                         FROM
-                            /*<REPORT_PROGRESS>*/{self.primary_table}
+                            {self.primary_table}
                         WHERE
                             post_id NOT IN (SELECT * FROM known_post_id)
                             AND {self.algorithm.pre_filter_query(
