@@ -8,7 +8,7 @@ BEGIN;
     /** TODO NEXT:
       * [done] post_word_polarity als Tabelle in DB
       * [done] post_aspect_sentiment_linear_distance
-      * für distances nur threshold oder auch weight function?
+      * für distances nur threshold oder auch weight function? weitere variation: weight vs limit
       * Committen ...
       * View post_aspect_sentiment muss dann nochmal aufgefächert werden: post_aspect_sentiment_always, post_aspect_sentiment_linear_distance, post_aspect_sentiment_grammar_distance
             * STEHENGEBLIEBEN! Links stehendes View post_phrase_aspect_sentiment schön machen und in migration script. Einmal dist ignorieren und für linear_distance tresholden (z. B. 3).
@@ -102,26 +102,42 @@ BEGIN;
 
     CREATE VIEW absa.post_phrase_aspect_polarity AS (
         SELECT
-            post_ngram.source, post_ngram.post_id,
+            polarity_phrase.source, polarity_phrase.post_id,
             aspect_id,
-            post_aspect.word_index AS aspect_word_index,
-            post_phrase_polarity.word_index AS polarity_word_index,
-            post_phrase_polarity.n AS polarity_phrase_n,
+            aspect_phrase.n AS aspect_phrase_n,
+            aspect_phrase.word_index AS aspect_word_index,
+            aspect_phrase.sentence_index AS aspect_sentence_index,
+            polarity_phrase.n AS polarity_phrase_n,
+            polarity_phrase.word_index AS polarity_word_index,
+            polarity_phrase.sentence_index AS polarity_sentence_index,
             avg(polarity) AS polarity,
             count(DISTINCT post_aspect.word_index) AS count,
             dataset,
             post_aspect.match_algorithm AS aspect_match_algorithm,
             post_phrase_polarity.match_algorithm AS sentiment_match_algorithm
         FROM absa.post_phrase_polarity
-            JOIN absa.post_ngram USING (source, post_id, word_index, n)
+            JOIN absa.post_ngram AS polarity_phrase
+                USING (source, post_id, n, word_index)
             JOIN absa.post_aspect USING (source, post_id)
+            JOIN absa.post_ngram AS aspect_phrase ON
+                (
+                    aspect_phrase.source,
+                    aspect_phrase.post_id,
+                    aspect_phrase.word_index
+                ) = (
+                    post_aspect.source,
+                    post_aspect.post_id,
+                    post_aspect.word_index
+                )
         GROUP BY
-            post_ngram.source, post_ngram.post_id,
+            polarity_phrase.source, polarity_phrase.post_id,
             aspect_id,
-            post_aspect.word_index,
-            post_phrase_polarity.word_index, post_phrase_polarity.n,
+            aspect_phrase.n, aspect_phrase.word_index,
+            polarity_phrase.n, polarity_phrase.word_index,
             dataset, aspect_match_algorithm,
-            sentiment_match_algorithm
+            sentiment_match_algorithm,
+            -- Pseudo joins:
+            aspect_phrase.sentence_index, polarity_phrase.sentence_index
     );
 
 
@@ -133,31 +149,21 @@ BEGIN;
                 aspect_id,
                 aspect_word_index,
                 polarity_word_index, polarity_phrase_n,
+                avg(polarity) AS polarity,
                 least(
                     min(abs(polarity_word_index - (
-                        aspect_word_index + aspect_phrase.n - 1)
+                        aspect_word_index + aspect_phrase_n - 1)
                     )),
                     min(abs(aspect_word_index - (
                         polarity_word_index + polarity_phrase_n - 1)
                     ))
                 ) AS linear_distance,
-                avg(polarity) AS polarity,
                 sum(count) AS sum,
                 dataset,
                 aspect_match_algorithm,
                 sentiment_match_algorithm
             FROM
                 absa.post_phrase_aspect_polarity
-                JOIN absa.post_ngram AS aspect_phrase ON
-                    (
-                        aspect_phrase.source,
-                        aspect_phrase.post_id,
-                        aspect_phrase.word_index
-                    ) = (
-                        post_phrase_aspect_polarity.source,
-                        post_phrase_aspect_polarity.post_id,
-                        aspect_word_index
-                    )
             GROUP BY
                 post_phrase_aspect_polarity.source,
                 post_phrase_aspect_polarity.post_id,
@@ -189,25 +195,47 @@ BEGIN;
             sentiment_match_algorithm, sentiment_model
         )
     ); */
-    CREATE VIEW absa.post_aspect_sentiment_max AS (
+    CREATE VIEW absa.post_aspect_sentiment_max_sentence AS (
         SELECT
             source, post_id,
             aspect_id,
-            avg(sentiment) AS sentiment,
-            count(DISTINCT word_index) AS count,
+            avg(polarity) AS sentiment,
+            count(DISTINCT polarity_word_index) AS count,
             dataset,
-            post_aspect.match_algorithm AS aspect_match_algorithm,
-            post_sentiment.match_algorithm AS sentiment_match_algorithm,
-            sentiment_model
-        FROM absa.post_sentiment
-            JOIN absa.post_aspect USING (source, post_id)
-            JOIN absa.post_word USING (source, post_id, word_index)
-        WHERE post_sentiment.sentence_index IS NULL
-            OR post_sentiment.sentence_index = post_word.sentence_index
+            aspect_match_algorithm,
+            sentiment_match_algorithm
+        FROM absa.post_phrase_aspect_polarity
+        WHERE polarity_sentence_index = aspect_sentence_index
         GROUP BY
             source, post_id, aspect_id,
             dataset, aspect_match_algorithm,
-            sentiment_match_algorithm, sentiment_model
+            sentiment_match_algorithm
+    );
+
+    CREATE VIEW absa.post_aspect_sentiment_max_document AS (
+        SELECT
+            source, post_id,
+            aspect_id,
+            avg(polarity) AS sentiment,
+            count(DISTINCT polarity_word_index) AS count,
+            dataset,
+            aspect_match_algorithm,
+            sentiment_match_algorithm
+        FROM absa.post_phrase_aspect_polarity
+        GROUP BY
+            source, post_id, aspect_id,
+            dataset, aspect_match_algorithm,
+            sentiment_match_algorithm
+    );
+
+    CREATE VIEW absa.post_aspect_sentiment_max AS (
+        (
+            SELECT *, 'same_document' AS sentiment_model
+            FROM absa.post_aspect_sentiment_max_document
+        ) UNION (
+            SELECT *, 'same_sentence' AS sentiment_model
+            FROM absa.post_aspect_sentiment_max_sentence
+        )
     );
 
 
@@ -215,6 +243,7 @@ BEGIN;
         SELECT
             source, post_id,
             aspect_id,
+            linear_distance,
             avg(polarity) AS sentiment,
             count(DISTINCT aspect_word_index) AS aspect_count,
             count(DISTINCT polarity_word_index) AS polarity_count,
@@ -225,7 +254,9 @@ BEGIN;
         GROUP BY
             source, post_id, aspect_id,
             dataset, aspect_match_algorithm,
-            sentiment_match_algorithm
+            sentiment_match_algorithm,
+            -- pseudo group
+            linear_distance
     );
 
 
