@@ -1,4 +1,4 @@
-import requests
+import validators
 
 from db_test import DatabaseTestCase
 
@@ -96,11 +96,8 @@ class CheckPosts(DatabaseTestCase):
 
     def assert_valid_url(self, url, msg=None):
 
-        try:
-            response = requests.head(url)
-            self.assertTrue(
-                response,
-                f"{msg}\nResponse was: {response.status_code}"
-            )
-        except requests.RequestException as exception:
-            self.fail(f"{msg}\nException was: {exception}")
+        result = validators.url(url)
+        if result:
+            return
+
+        self.fail(f"{msg}\nFailure: {result}")
