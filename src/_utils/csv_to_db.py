@@ -85,6 +85,8 @@ class CsvToDb(CopyToTable):
             None if np.isnan(value) else str(int(value))
     }
 
+    replace_content = False
+
     @property
     def columns(self):
         if not self._columns:
@@ -104,6 +106,12 @@ class CsvToDb(CopyToTable):
         return self._columns
 
     def copy(self, cursor, file):
+
+        if self.replace_content:
+            # delete existing rows to avoid cache invalidation
+            #TODO: Test, use in topic_modeling
+            cursor.execute(f'TRUNCATE {self.table}')
+
         query = self.load_sql_script(
             'copy',
             *self.table_path,
