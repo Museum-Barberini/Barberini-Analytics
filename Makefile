@@ -93,21 +93,16 @@ output-folder:
 # example: make test
 # example: make test test=tests/test_twitter.py
 test ?= tests/**/test*.py
-# optional argument: testmodule
-# Usually you don't want to change this. All database tests in this solution
-# require DatabaseTestSuite from db_test. Only exception is tests/schema/**.
-test: luigi-clean
-	mkdir -p output
+test:
 	# globstar needed to recursively find all .py-files via **
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m db_test $(test) -v \
-		&& make luigi-clean
+		&& python3 -m db_test $(test) -v
 
 test-full:
 	FULL_TEST=True make test
 
-coverage: luigi-clean
+coverage:
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
 		&& python3 -m coverage run --source ./src -m db_test -v --catch tests/**/test*.py -v
