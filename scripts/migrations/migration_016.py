@@ -55,6 +55,7 @@ try:
 
     # 3. Fetch posts again
     logger.info("Fetching posts again")
+    os.environ['OUTPUT_DIR'] = 'output_migration_015'
     sp.run(
         check=True,
         args='''make
@@ -62,8 +63,7 @@ try:
             luigi-clean
             luigi-task LMODULE=facebook LTASK=FbPostsToDB
             luigi-clean
-        '''.split(),
-        env={**os.environ, 'OUTPUT_DIR': 'output_migration_016'}
+        '''.split()
     )
 
     with conn:
