@@ -1,7 +1,6 @@
 import luigi
-from luigi.format import UTF8
 
-from csv_to_db import CsvToDb
+from csv_to_db import QueryCacheToDb
 from data_preparation import DataPreparationTask
 from query_db import QueryDb
 from .post_aspects import PostAspectsToDb
@@ -10,41 +9,9 @@ from .post_sentiments import PostPhrasePolaritiesToDb
 from .post_sentiments import PostSentimentsToDb
 
 
-#TODO: Use
-class QueryCacheToDb(DataPreparationTask):
-
-    def output(self):
-
-        return luigi.LocalTarget(
-            f'{self.output_dir}/{self.task_id}.csv',
-            format=UTF8
-        )
-
-    def run(self):
-
-        self.db_connector.execute(
-            f'TRUNCATE TABLE {self.table}',
-            f'INSERT INTO {self.table} {self.query}'
-        )
-
-        count = self.db_connector.query(f'SELECT COUNT(*) FROM {self.table}')
-
-        with self.output().open('w') as file:
-            file.write(f"Cache of {count} rows")
-
-
-class PostAspectSentimentsLinearDistanceToDb(CsvToDb):
+class PostAspectSentimentsLinearDistanceToDb(QueryCacheToDb):
 
     table = 'absa.post_aspect_sentiment_linear_distance'
-
-    replace_content = True
-
-    def requires(self):
-
-        return CollectPostAspectSentimentsLinearDistance()
-
-
-class CollectPostAspectSentimentsLinearDistance(QueryDb):
 
     phrase_aspect_table = 'absa.post_phrase_aspect_polarity_linear_distance'
 
@@ -74,18 +41,9 @@ class CollectPostAspectSentimentsLinearDistance(QueryDb):
         '''
 
 
-class PostPhraseAspectPolaritiesLinearDistanceToDb(CsvToDb):
+class PostPhraseAspectPolaritiesLinearDistanceToDb(QueryCacheToDb):
 
     table = 'absa.post_phrase_aspect_polarity_linear_distance'
-
-    replace_content = True
-
-    def requires(self):
-
-        return CollectPostPhraseAspectPolaritiesLinearDistance()
-
-
-class CollectPostPhraseAspectPolaritiesLinearDistance(QueryDb):
 
     phrase_aspect_table = 'absa.post_phrase_aspect_polarity'
 
@@ -134,18 +92,9 @@ class CollectPostPhraseAspectPolaritiesLinearDistance(QueryDb):
         '''
 
 
-class PostPhraseAspectPolaritiesToDb(CsvToDb):
+class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):
 
     table = 'absa.post_phrase_aspect_polarity'
-
-    replace_content = True
-
-    def requires(self):
-
-        return CollectPostPhraseAspectPolarities()
-
-
-class CollectPostPhraseAspectPolarities(QueryDb):
 
     aspect_table = 'absa.post_aspect'
 

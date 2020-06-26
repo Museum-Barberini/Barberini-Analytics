@@ -5,6 +5,7 @@ import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+from luigi.format import UTF8
 import numpy as np
 import pandas as pd
 from psycopg2.errors import UndefinedTable
@@ -185,3 +186,26 @@ class CsvToDb(CopyToTable):
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:
             return sql_file.read().format(*args)
+
+
+# TODO: Test
+class QueryCacheToDb(DataPreparationTask):
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/{self.task_id}.csv',
+            format=UTF8
+        )
+
+    def run(self):
+
+        self.db_connector.execute(
+            f'TRUNCATE TABLE {self.table}',
+            f'INSERT INTO {self.table} {self.query}'
+        )
+
+        count = self.db_connector.query(f'SELECT COUNT(*) FROM {self.table}')
+
+        with self.output().open('w') as file:
+            file.write(f"Cache of {count} rows")
