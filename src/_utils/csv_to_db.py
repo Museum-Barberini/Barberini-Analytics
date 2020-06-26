@@ -11,7 +11,7 @@ import pandas as pd
 from psycopg2.errors import UndefinedTable
 
 import db_connector
-from data_preparation import minimal_mode
+from data_preparation import DataPreparationTask, minimal_mode
 
 logger = logging.getLogger('luigi-interface')
 
