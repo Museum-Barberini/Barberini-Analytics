@@ -64,7 +64,7 @@
 	},
 	"Service": {
 		"'Allgemein'": ["Personal", "Mitarbeiter", "Mitarbeiterin", "Angestellte", "Empfang", "unfreundlich"],
-		"Security": ["Aufsichtspersonal", "Sicherheitspersonal", "Sicherheitsdienst", "Sicherheitskräfte", "Eingangskontrolle"]
+		"Security": ["Aufsichtspersonal", "Sicherheitspersonal", "Sicherheitsdienst", "Sicherheitskräfte", "Eingangskontrolle", "Aufpasser"]
 	},
 	"Shop": ["Museumsshop"],
 	"Wartezeit": ["anstehen", "Schlange"],
