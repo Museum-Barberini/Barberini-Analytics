@@ -90,6 +90,10 @@ make shutdown
    1. Download and install R: https://mran.revolutionanalytics.com/download
    2. Once you open any report, you will be asked to install R Visual for PBI. Confirm that.
 
+## Maintenance
+
+See `MAINTENANCE.md`.
+
 ## Credits
 
 **Authors:** Laura Holz, Selina Reinhard, Leon Schmidt, Georg Tennigkeit, Christoph Thiede, Tom Wollnik (bachelor project BP-FN1 @ HPI).  
