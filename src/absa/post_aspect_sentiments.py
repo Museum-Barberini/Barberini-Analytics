@@ -1,12 +1,7 @@
-import luigi
-
 from csv_to_db import QueryCacheToDb
-from data_preparation import DataPreparationTask
-from query_db import QueryDb
 from .post_aspects import PostAspectsToDb
 from .post_ngrams import PostNgramsToDb
 from .post_sentiments import PostPhrasePolaritiesToDb
-from .post_sentiments import PostSentimentsToDb
 
 
 class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
@@ -172,7 +167,8 @@ class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):
                 count(DISTINCT {self.aspect_table}.word_index) AS count,
                 dataset,
                 {self.aspect_table}.match_algorithm AS aspect_match_algorithm,
-                post_phrase_polarity.match_algorithm AS sentiment_match_algorithm
+                post_phrase_polarity.match_algorithm
+                    AS sentiment_match_algorithm
             FROM {self.polarity_table} AS post_phrase_polarity
                 JOIN {self.phrase_table} AS polarity_phrase
                     USING (source, post_id, n, word_index)

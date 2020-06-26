@@ -110,7 +110,6 @@ class CsvToDb(CopyToTable):
 
         if self.replace_content:
             # delete existing rows to avoid cache invalidation
-            #TODO: Test, use in topic_modeling
             cursor.execute(f'TRUNCATE {self.table}')
 
         query = self.load_sql_script(

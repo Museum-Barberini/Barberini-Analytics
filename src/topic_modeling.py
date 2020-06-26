@@ -76,6 +76,7 @@ class TopicModelingTextsToDb(CsvToDb):
 
         return TopicModelingTextDf()
 
+
 class TopicModelingTopicsToDb(CsvToDb):
     """
     The table topic_modeling_topics contains the
