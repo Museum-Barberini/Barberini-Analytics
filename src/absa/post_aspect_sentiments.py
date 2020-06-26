@@ -9,9 +9,9 @@ from .post_sentiments import PostPhrasePolaritiesToDb
 from .post_sentiments import PostSentimentsToDb
 
 
-class PostAspectSentimentsLinearDistanceToDb(QueryCacheToDb):
+class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
 
-    table = 'absa.post_aspect_sentiment_linear_distance'
+    table = 'absa.post_aspect_sentiment_linear_distance_limit'
 
     phrase_aspect_table = 'absa.post_phrase_aspect_polarity_linear_distance'
 
@@ -23,6 +23,11 @@ class PostAspectSentimentsLinearDistanceToDb(QueryCacheToDb):
     def query(self):
 
         return f'''
+            WITH linear_distance AS (
+                SELECT *
+                FROM {self.phrase_aspect_table}
+                WHERE linear_distance <= 4
+            )
             SELECT
                 source, post_id,
                 aspect_id,
@@ -33,7 +38,50 @@ class PostAspectSentimentsLinearDistanceToDb(QueryCacheToDb):
                 dataset,
                 aspect_match_algorithm,
                 sentiment_match_algorithm
-            FROM {self.phrase_aspect_table}
+            FROM linear_distance
+            GROUP BY
+                source, post_id, aspect_id,
+                dataset, aspect_match_algorithm,
+                sentiment_match_algorithm
+        '''
+
+
+class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
+
+    table = 'absa.post_aspect_sentiment_linear_distance_weight'
+
+    phrase_aspect_table = 'absa.post_phrase_aspect_polarity_linear_distance'
+
+    def requires(self):
+
+        return PostPhraseAspectPolaritiesLinearDistanceToDb()
+
+    @property
+    def query(self):
+
+        return f'''
+            WITH linear_weight AS (
+                SELECT
+                    *,
+                    round(
+                        exp(-((linear_distance::numeric / 5) ^ 2)),
+                        6
+                    ) AS linear_weight
+                FROM {self.phrase_aspect_table}
+            )
+            SELECT
+                source, post_id,
+                aspect_id,
+                avg(linear_distance) AS linear_distance,
+                sum(polarity) * sum(linear_weight) / sum(linear_weight)
+                    AS sentiment,
+                count(DISTINCT aspect_word_index) AS aspect_count,
+                count(DISTINCT polarity_word_index) AS polarity_count,
+                dataset,
+                aspect_match_algorithm,
+                sentiment_match_algorithm
+            FROM linear_weight
+            WHERE linear_weight > 0
             GROUP BY
                 source, post_id, aspect_id,
                 dataset, aspect_match_algorithm,
@@ -88,7 +136,6 @@ class PostPhraseAspectPolaritiesLinearDistanceToDb(QueryCacheToDb):
             )
             SELECT *
             FROM linear_distance
-            WHERE linear_distance <= 4
         '''
 
 

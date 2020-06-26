@@ -209,7 +209,7 @@ BEGIN;
     );
 
 
-    CREATE TABLE absa.post_aspect_sentiment_linear_distance (
+    CREATE TABLE absa.post_aspect_sentiment_linear_distance_limit (
         source TEXT, post_id TEXT,
         aspect_id INT REFERENCES absa.target_aspect,
         linear_distance INT,
@@ -220,6 +220,36 @@ BEGIN;
         PRIMARY KEY (
             source, post_id, aspect_id,
             dataset, aspect_match_algorithm, sentiment_match_algorithm
+        )
+    );
+
+    CREATE TABLE absa.post_aspect_sentiment_linear_distance_weight (
+        source TEXT, post_id TEXT,
+        aspect_id INT REFERENCES absa.target_aspect,
+        linear_distance INT,
+        sentiment REAL,
+        aspect_count INT, polarity_count INT,
+        dataset TEXT,
+        aspect_match_algorithm TEXT, sentiment_match_algorithm TEXT,
+        PRIMARY KEY (
+            source, post_id, aspect_id,
+            dataset, aspect_match_algorithm, sentiment_match_algorithm
+        )
+    );
+
+    CREATE VIEW absa.post_aspect_sentiment_linear_distance AS (
+        (
+            SELECT
+                *,
+                'limit' AS distance_method
+            FROM
+                absa.post_aspect_sentiment_linear_distance_limit
+        ) UNION (
+            SELECT
+                *,
+                'weight' AS distance_method
+            FROM
+                absa.post_aspect_sentiment_linear_distance_weight
         )
     );
 
