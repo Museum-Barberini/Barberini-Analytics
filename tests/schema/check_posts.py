@@ -88,16 +88,9 @@ class CheckPosts(DatabaseTestCase):
 
         for source, permalinks in samples.items():
             for permalink in permalinks:
-                self.assert_valid_url(
-                    permalink,
-                    msg=f"Permalink for source {source} is invalid: "
-                        f"{permalink}"
+                validation = validators.url(permalink)
+                self.assertTrue(
+                    validation, 
+                    f"Permalink for source {source} is invalid: {permalink}"
+                    f"\nFailure: {validation}"
                 )
-
-    def assert_valid_url(self, url, msg=None):
-
-        result = validators.url(url)
-        if result:
-            return
-
-        self.fail(f"{msg}\nFailure: {result}")
