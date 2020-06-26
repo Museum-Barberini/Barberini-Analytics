@@ -42,7 +42,7 @@ class CsvToDb(CopyToTable):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
- 
+
         # Set db connection parameters using env vars
         self.db_connector = db_connector.db_connector()
         self.host = self.db_connector.host
