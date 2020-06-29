@@ -89,9 +89,7 @@ class EditGomusReport(luigi.Task):
                 f'{REPORT_PARAMS}[filter[payment_status]][]=',
                 ORDERS_PAYMENT_STATUSES)
 
-        elif (report_type == 'Customers' or
-              report_type == 'Entries' or
-              report_type == 'Unique'):
+        elif (report_type == 'Customers' or report_type == 'Entries'):
             self.add_to_body(f'report[report_type]=Reports::{report_type}')
 
             self.add_to_body(f'{REPORT_PARAMS}[start_at]={self.start_at} 0:00')
