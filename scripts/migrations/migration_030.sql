@@ -1,4 +1,4 @@
--- add unique entries to our entry tables
+-- add unique entries to our entry tables (!264)
 
 BEGIN;
 
