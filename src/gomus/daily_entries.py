@@ -42,16 +42,13 @@ class ExtractDailyEntryData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        yield FetchGomusReport(
-            report='entries',
-            suffix='_1day',
-            sheet_indices=[0, 1] if not self.expected else [2, 3],
-            today=self.today)
-        yield FetchGomusReport(
-            report='entries_unique',
-            suffix='_1day',
-            sheet_indices=[0, 1] if not self.expected else [2, 3],
-            today=self.today)
+
+        for report in ['entries', 'entries_unique']:
+            yield FetchGomusReport(
+                report=report,
+                suffix='_1day',
+                sheet_indices=[0, 1] if not self.expected else [2, 3],
+                today=self.today)
 
     def output(self):
         return luigi.LocalTarget(
