@@ -11,9 +11,13 @@ from historic_data_helper import prepare_task, run_luigi_task, rename_output
 prepare_task()
 
 cur_day = dt.date.today()
+first_date = dt.date(2016, 1, 1)
 
-# 250 weeks should be sufficient for collecting all the data
-for day_offset in range(250 * 7):
+# the number of days to export daily entry reports
+delta = cur_day - first_date
+print(delta.days)
+
+for day_offset in range(delta.days):
 
     print(day_offset)
 
