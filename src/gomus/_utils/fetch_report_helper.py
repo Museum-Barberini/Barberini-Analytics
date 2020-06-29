@@ -20,7 +20,7 @@ REPORT_IDS = {
     'orders_1day': 1246,
 
     'entries_1day': 1262,
-    'unique_entries_1day': 1509,
+    'entries_unique_1day': 1509,
 
     'bookings_7days': 0,
     'bookings_nextYear': -5,

@@ -52,6 +52,7 @@ class EditGomusReport(luigi.Task):
     report = luigi.parameter.IntParameter(description="Report ID to edit")
     start_at = luigi.parameter.DateParameter(description="Start date to set")
     end_at = luigi.parameter.DateParameter(description="End date to set")
+    unique_entries = luigi.parameter.BoolParameter(description="Entries only")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -88,7 +89,9 @@ class EditGomusReport(luigi.Task):
                 f'{REPORT_PARAMS}[filter[payment_status]][]=',
                 ORDERS_PAYMENT_STATUSES)
 
-        elif report_type == 'Customers' or report_type == 'Entries':
+        elif (report_type == 'Customers' or
+              report_type == 'Entries' or
+              report_type == 'Unique'):
             self.add_to_body(f'report[report_type]=Reports::{report_type}')
 
             self.add_to_body(f'{REPORT_PARAMS}[start_at]={self.start_at} 0:00')
@@ -110,10 +113,16 @@ class EditGomusReport(luigi.Task):
 
             else:
                 only_unique_visitors = 0
+
                 self.add_to_body(
                     (f'{REPORT_PARAMS}[only_unique_visitors]='
                      f'{only_unique_visitors}'))
 
+                if self.unique_entries:
+                    only_unique_visitors = 1
+                    self.add_to_body(
+                        (f'{REPORT_PARAMS}[only_unique_visitors]='
+                         f'{only_unique_visitors}'))
         else:
             raise NotImplementedError("Unimplemented report type")
 
