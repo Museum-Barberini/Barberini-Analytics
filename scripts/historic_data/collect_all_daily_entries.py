@@ -33,6 +33,7 @@ for day_offset in range(delta.days):
     for i in range(2):
 
         rename_output(f'entries_1day.{i}.csv', day_offset)
+        rename_output(f'entries_unique_1day.{i}.csv', day_offset)
 
     # expected daily entries
 
@@ -46,5 +47,6 @@ for day_offset in range(delta.days):
     for j in range(2, 4):
 
         rename_output(f'entries_1day.{j}.csv', day_offset)
+        rename_output(f'entries_unique_1day.{j}.csv', day_offset)
 
     cur_day = cur_day - dt.timedelta(days=1)
