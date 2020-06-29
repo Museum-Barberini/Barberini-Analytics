@@ -90,7 +90,7 @@ class CheckPosts(DatabaseTestCase):
             for permalink in permalinks:
                 validation = validators.url(permalink)
                 self.assertTrue(
-                    validation, 
+                    validation,
                     f"Permalink for source {source} is invalid: {permalink}"
                     f"\nFailure: {validation}"
                 )
