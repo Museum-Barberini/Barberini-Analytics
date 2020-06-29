@@ -34,9 +34,7 @@ class FetchGomusReport(luigi.Task):
             )
 
     def requires(self):
-        unique = False
-        if 'unique' in self.report_name:
-            unique = True
+        unique = 'unique' in self.report_name
 
         if REPORT_IDS[f'{self.report_name}'] > 0:  # report refreshable
             start_time, end_time = parse_timespan(
