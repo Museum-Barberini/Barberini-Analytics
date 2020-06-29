@@ -97,11 +97,19 @@ class CollectPostWords(DataPreparationTask):
 
         posts_target = yield QueryDb(
             query=f'''
-                WITH known_post_ids AS (SELECT post_id FROM {self.table})
+                WITH new_post_id AS (
+                    SELECT post_id
+                    FROM post
+                    WHERE post_date > ANY(
+                        SELECT max(post_date)
+                        FROM {self.table}
+                        NATURAL JOIN post
+                    ) IS NOT FALSE
+                )
                 SELECT source, post_id, text
                 FROM {self.post_table}
+                NATURAL JOIN new_post_id
                 WHERE text <> ''
-                AND post_id NOT IN (SELECT * FROM known_post_ids)
             ''',
             limit=self.limit,
             shuffle=self.shuffle)
