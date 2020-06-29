@@ -106,7 +106,7 @@ mkdir -Force output/test_pbi | Out-Null
 foreach ($test in $tests) {
     $runs.Add($test)
     Write-Progress -Id 1 -Activity "Testing Power BI reports" `
-        -CurrentOperation $test -PercentComplete ($runs.Length / $tests.Length)
+        -CurrentOperation $test -PercentComplete ($runs.Count / $tests.Count)
     Invoke-Test $test
 }
 Write-Progress -Id 1 -Completed "Testing Power BI reports"
@@ -119,14 +119,14 @@ if ($runs) {
         $runs = [Linq.Enumerable]::ToList([Linq.Enumerable]::Except($runs, $testGroup))
         [PSCustomObject]@{
             Group = $_
-            Length = $testGroup.Length
+            Count = $testGroup.Count
             Tests = $testGroup
-    }} | Where-Object {$_.Length}
+    }} | Where-Object {$_.Count}
 } else {
     Write-Output "No tests have been executed."
 }
 if ($runs) {
-    Write-Error "Warning: $($runs.Length) tests have an unknown result: $runs"
+    Write-Error "Warning: $($runs.Count) tests have an unknown result: $runs"
 }
 $unsuccessful = $failures + $errors
 Write-Output "Screenshots of all opened reports have been stored in output/test_pbi."
