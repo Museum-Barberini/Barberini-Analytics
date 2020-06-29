@@ -107,7 +107,6 @@ class ExtractDailyEntryData(DataPreparationTask):
                 entries[report_number] = current_df
 
         # combine the data frames
-        print(entries[1]['count'])
         entries[1]['unique_count'] = entries[1]['count']
         entries[1] = entries[1].drop(['count'], axis=1)
         entries[0] = entries[0].drop(['unique_count'], axis=1)
