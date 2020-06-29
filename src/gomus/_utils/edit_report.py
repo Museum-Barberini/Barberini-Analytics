@@ -52,7 +52,9 @@ class EditGomusReport(luigi.Task):
     report = luigi.parameter.IntParameter(description="Report ID to edit")
     start_at = luigi.parameter.DateParameter(description="Start date to set")
     end_at = luigi.parameter.DateParameter(description="End date to set")
-    unique_entries = luigi.parameter.BoolParameter(description="Entries only")
+    unique_entries = luigi.parameter.BoolParameter(
+        description="Only used for entries. Describes whether a visting"
+                    "customer can only be counted once (unique entry)")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
