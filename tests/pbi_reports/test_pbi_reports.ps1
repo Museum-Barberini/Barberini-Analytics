@@ -120,7 +120,7 @@ if ($runs) {
         [PSCustomObject]@{
             Group = $_
             Count = $testGroup.Count
-            Tests = $testGroup
+            Tests = (($testGroup | ForEach-Object Name) -join ', ')
     }} | Where-Object {$_.Count}
 } else {
     Write-Output "No tests have been executed."
