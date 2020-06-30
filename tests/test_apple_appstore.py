@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import requests
 
-from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDB
+from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDb
 from db_test import DatabaseTestCase
 from museum_facts import MuseumFacts
 
@@ -217,7 +217,7 @@ class TestFetchAppleReviews(DatabaseTestCase):
         )
 
 
-class TestAppstoreReviewsToDB(DatabaseTestCase):
+class TestAppstoreReviewsToDb(DatabaseTestCase):
 
     @patch.object(FetchAppstoreReviews, 'get_country_codes')
     @patch('apple_appstore.requests.get')
@@ -276,7 +276,7 @@ class TestAppstoreReviewsToDB(DatabaseTestCase):
             for return_value in return_values]
         country_codes_mock.return_value = ['DE']
 
-        self.task = AppstoreReviewsToDB()
+        self.task = AppstoreReviewsToDb()
         self.run_task(self.task)
 
         result = self.db_connector.query(

@@ -26,6 +26,8 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public string Report { get; }
 
+        public string Name => Path.GetFileName(Report);
+
         /// <summary>
         /// The path to the PBI Desktop executable file.
         /// </summary>
@@ -127,7 +129,7 @@ namespace MuseumBarberini.Analytics.Tests
             });
 
         public override string ToString() {
-            return $"PBI Report Test: {Path.GetFileName(Report)}";
+            return $"PBI Report Test: {Name}";
         }
 
         private void _check(Action handlePass, Action<string> handleFail) {
