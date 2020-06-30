@@ -2,22 +2,24 @@
 set -e
 
 if [ -z "$1" ] || [ -z "$2" ]
-    then echo "Usage: $0 <PATCH-Host> <BASE-Host>"
+    then echo "Usage: $0 <BASE-Host> <PATCH-Host>"
     exit 1
 fi
 
-HOST_PATCH=$1
-HOST_BASE=$2
+HOST_BASE=$1
+HOST_PATCH=$2
 
-HOST_PATCH_DUMP="/tmp/$HOST_PATCH.sql"
 HOST_BASE_DUMP="/tmp/$HOST_BASE.sql"
-MERGE_DUMP="/tmp/$HOST_PATCH-BASE-$HOST_BASE.pgdump"
+HOST_PATCH_DUMP="/tmp/$HOST_PATCH.sql"
+MERGE_DUMP="/tmp/$HOST_BASE-PATCHED_WITH-$HOST_PATCH.pgdump"
 export PGUSER="postgres"
 export PGDATABASE="barberini"
 if [ ! -z $POSTGRES_PASSWORD ]
     then export PGPASSWORD=$POSTGRES_PASSWORD
 fi
 
+# Make sure to re-enable foreign key checks locally in case
+# something goes wrong
 function enable_foreign_key_checks {
     psql -c "SET session_replication_role = 'origin'" -h "localhost"
 }
