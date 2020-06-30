@@ -9,7 +9,7 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation import DataPreparationTask
-from gomus.customers import GomusToCustomerMappingToDB
+from gomus.customers import GomusToCustomerMappingToDb
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
@@ -51,7 +51,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             base_url=f'{self.base_url}/admin/bookings/',
             columns=self.columns)
         # table required for fetch_updated_mail()
-        yield GomusToCustomerMappingToDB()
+        yield GomusToCustomerMappingToDb()
 
     def output(self):
         return luigi.LocalTarget(

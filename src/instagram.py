@@ -16,17 +16,20 @@ from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
 
-# =============== ToDB Tasks ===============
+# =============== Database Tasks ===============
 
 
-class IgPostsToDB(CsvToDb):
-    table = 'ig_post'
-
+class IgToDb(luigi.WrapperTask):
     def requires(self):
-        return FetchIgPosts()
+        yield IgPostsToDb()
+        yield IgProfileMetricsDevelopmentToDb()
+        yield IgTotalProfileMetricsToDb()
+        yield IgAudienceGenderAgeToDb()
+        yield IgAudienceCityToDb()
+        yield IgAudienceCountryToDb()
 
 
-class IgPostPerformanceToDB(CsvToDb):
+class IgPostPerformanceToDb(CsvToDb):
     table = 'ig_post_performance'
 
     def requires(self):
@@ -34,7 +37,14 @@ class IgPostPerformanceToDB(CsvToDb):
             table=self.table, columns=[col[0] for col in self.columns])
 
 
-class IgProfileMetricsDevelopmentToDB(CsvToDb):
+class IgPostsToDb(CsvToDb):
+    table = 'ig_post'
+
+    def requires(self):
+        return FetchIgPosts()
+
+
+class IgProfileMetricsDevelopmentToDb(CsvToDb):
     table = 'ig_profile_metrics_development'
 
     def requires(self):
@@ -42,7 +52,7 @@ class IgProfileMetricsDevelopmentToDB(CsvToDb):
             table=self.table, columns=[col[0] for col in self.columns])
 
 
-class IgTotalProfileMetricsToDB(CsvToDb):
+class IgTotalProfileMetricsToDb(CsvToDb):
     table = 'ig_total_profile_metrics'
 
     def requires(self):
@@ -50,7 +60,7 @@ class IgTotalProfileMetricsToDB(CsvToDb):
             table=self.table, columns=[col[0] for col in self.columns])
 
 
-class IgAudienceCityToDB(CsvToDb):
+class IgAudienceCityToDb(CsvToDb):
     table = 'ig_audience_city'
 
     def requires(self):
@@ -60,7 +70,7 @@ class IgAudienceCityToDB(CsvToDb):
             country_mode=False)
 
 
-class IgAudienceCountryToDB(CsvToDb):
+class IgAudienceCountryToDb(CsvToDb):
     table = 'ig_audience_country'
 
     def requires(self):
@@ -70,7 +80,7 @@ class IgAudienceCountryToDB(CsvToDb):
             country_mode=True)
 
 
-class IgAudienceGenderAgeToDB(CsvToDb):
+class IgAudienceGenderAgeToDb(CsvToDb):
     table = 'ig_audience_gender_age'
 
     def requires(self):
@@ -171,7 +181,7 @@ class FetchIgPostPerformance(DataPreparationTask):
         # _requires introduces dependencies without
         # affecting the input() of a task
         return luigi.task.flatten([
-            IgPostsToDB(),
+            IgPostsToDb(),
             super()._requires()
         ])
 
@@ -419,13 +429,3 @@ def get_single_metric(page_id, metric, period='lifetime'):
     url = f'{API_BASE}/{page_id}/insights?metric={metric}&period={period}'
     res = try_request_multiple_times(url)
     return res.json()['data'][0]['values'][0]['value']
-
-
-class IgToDBWrapper(luigi.WrapperTask):
-    def requires(self):
-        yield IgPostsToDB()
-        yield IgProfileMetricsDevelopmentToDB()
-        yield IgTotalProfileMetricsToDB()
-        yield IgAudienceGenderAgeToDB()
-        yield IgAudienceCityToDB()
-        yield IgAudienceCountryToDB()
