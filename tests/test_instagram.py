@@ -137,7 +137,7 @@ class TestInstagram(DatabaseTestCase):
                 columns=[
                     column[0]
                     for column
-                    in instagram.IgPostPerformanceToDB().columns],
+                    in instagram.IgPostPerformanceToDb().columns],
                 timespan=dt.timedelta(days=100000),
                 table='ig_post_performance')
             self.task.run()
@@ -172,7 +172,7 @@ class TestInstagram(DatabaseTestCase):
 
         self.run_task(instagram.FetchIgProfileMetricsDevelopment(
             columns=[col[0] for col in
-                     instagram.IgProfileMetricsDevelopmentToDB().columns]))
+                     instagram.IgProfileMetricsDevelopmentToDb().columns]))
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
@@ -205,7 +205,7 @@ class TestInstagram(DatabaseTestCase):
         with freeze_time('2020-01-01 00:00:05'):
             self.run_task(instagram.FetchIgTotalProfileMetrics(
                 columns=[col[0] for col in
-                         instagram.IgTotalProfileMetricsToDB().columns]))
+                         instagram.IgTotalProfileMetricsToDb().columns]))
 
         with output_target.open('r') as output_data:
             self.assertEqual(output_data.read(), expected_data)
@@ -244,7 +244,7 @@ class TestInstagram(DatabaseTestCase):
             # data, which cannot be tested here
             instagram.FetchIgAudienceOrigin(
                 columns=[col[0] for col in
-                         instagram.IgAudienceCityToDB().columns],
+                         instagram.IgAudienceCityToDb().columns],
                 country_mode=False
             ).run()
 
@@ -280,7 +280,7 @@ class TestInstagram(DatabaseTestCase):
         with freeze_time('2020-01-01 00:00:05'):
             instagram.FetchIgAudienceGenderAge(
                 columns=[col[0] for col in
-                         instagram.IgAudienceGenderAgeToDB().columns]
+                         instagram.IgAudienceGenderAgeToDb().columns]
             ).run()
 
         with output_target.open('r') as output_data:

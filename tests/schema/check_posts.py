@@ -1,3 +1,5 @@
+import validators
+
 from db_test import DatabaseTestCase
 
 
@@ -47,7 +49,7 @@ class CheckPosts(DatabaseTestCase):
                 f"sources: {invalid_sources}"
         )
 
-    def test_permalink(self):
+    def test_permalink_missing(self):
 
         invalid_sources = self.db_connector.query('''
             SELECT source, COUNT(post_id)
@@ -61,3 +63,34 @@ class CheckPosts(DatabaseTestCase):
             msg=f"Permalinks are missing (partially?) for the following "
                 f"sources: {invalid_sources}"
         )
+
+    def test_permalink_valid(self):
+
+        samples = {
+            source: permalinks
+            for (source, permalinks) in self.db_connector.query('''
+                WITH sources AS (SELECT DISTINCT source FROM post)
+                SELECT
+                    source, (
+                        SELECT array_agg(permalink) FROM
+                            (
+                                SELECT permalink
+                                FROM post
+                                WHERE post.source = sources.source
+                                ORDER BY random()
+                                LIMIT 3
+                            ) AS samples
+                        ) AS permalinks
+                FROM sources
+                GROUP BY source;
+            ''')
+        }
+
+        for source, permalinks in samples.items():
+            for permalink in permalinks:
+                validation = validators.url(permalink)
+                self.assertTrue(
+                    validation,
+                    f"Permalink for source {source} is invalid: {permalink}"
+                    f"\nFailure: {validation}"
+                )
