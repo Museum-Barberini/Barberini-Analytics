@@ -12,7 +12,7 @@ from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class CustomersToDb(CsvToDb):
+class CustomersToDB(CsvToDb):
 
     amount = luigi.parameter.Parameter(default='regular')
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -28,7 +28,7 @@ class CustomersToDb(CsvToDb):
             today=self.today)
 
 
-class GomusToCustomerMappingToDb(CsvToDb):
+class GomusToCustomerMappingToDB(CsvToDb):
 
     table = 'gomus_to_customer_mapping'
 
@@ -47,7 +47,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDb(),
+            CustomersToDB(),
             super()._requires()
         ])
 
@@ -85,14 +85,15 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def check_mail(self, mail):
         tourism_tags = [
-            'reise', 'kultur', 'freunde', 'förder', 'guide',
-            'hotel', 'travel', 'event', 'visit', 'verein', 
-            'stiftung'
+            'reise', 'kultur', 'freunde', 'förder', 'foerder',
+            'guide', 'hotel', 'travel', 'event', 'visit',
+            'verein', 'stiftung'
         ]
 
-        contains_tag = False
+        contained_tags = []
         for tag in tourism_tags:
+            print(tag, mail)
             if tag in mail:
-                contains_tag = True
+                contained_tags.append(tag)
 
-        return contains_tag
+        return contained_tags
