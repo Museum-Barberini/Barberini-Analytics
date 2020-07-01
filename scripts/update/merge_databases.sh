@@ -13,9 +13,9 @@ HOST_BASE_DUMP="/tmp/$HOST_BASE.sql"
 HOST_PATCH_DUMP="/tmp/$HOST_PATCH.sql"
 MERGE_DUMP="/tmp/$HOST_BASE-PATCHED_WITH-$HOST_PATCH.pgdump"
 
-export PGDATABASE="barberini"
+export PGDATABASE="${POSTGRES_DB:-barberini}"
 export PGUSER="${POSTGRES_USER:-postgres}"
-export PGPASSWORD="${POSTGRES_PASSWORD:-}"
+export PGPASSWORD="$POSTGRES_PASSWORD"
 
 # Make sure to re-enable foreign key checks locally in case
 # something goes wrong
