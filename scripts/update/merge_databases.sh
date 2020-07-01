@@ -6,16 +6,17 @@ if [ -z "$1" ] || [ -z "$2" ]
     exit 1
 fi
 
-HOST_BASE=$1
-HOST_PATCH=$2
+HOST_BASE="$1"
+HOST_PATCH="$2"
 
 HOST_BASE_DUMP="/tmp/$HOST_BASE.sql"
 HOST_PATCH_DUMP="/tmp/$HOST_PATCH.sql"
 MERGE_DUMP="/tmp/$HOST_BASE-PATCHED_WITH-$HOST_PATCH.pgdump"
-export PGUSER="postgres"
+
 export PGDATABASE="barberini"
+export PGUSER="${POSTGRES_USER:-postgres}"
 if [ ! -z $POSTGRES_PASSWORD ]
-    then export PGPASSWORD=$POSTGRES_PASSWORD
+    then export PGPASSWORD="$POSTGRES_PASSWORD"
 fi
 
 # Make sure to re-enable foreign key checks locally in case
@@ -32,6 +33,9 @@ pg_dump -Fc -a -h "$HOST_BASE" -f "$HOST_BASE_DUMP" -T exhibition \
 pg_dump -a -h "$HOST_BASE" -f "$HOST_BASE_DUMP-exhibitions.sql" -t exhibition
 
 # disable search_path modification so existing relations can be found properly
+# this is not done for the other tables, since they are exported in postgres'
+# custom binary format, in which there are no single SQL statements
+# (it's also unnecessary since 'exhibition' is the only problematic table)
 sed -i -e "s/^SELECT pg_catalog.set_config('search_path', '', false);$//" \
     "$HOST_BASE_DUMP-exhibitions.sql"
 
