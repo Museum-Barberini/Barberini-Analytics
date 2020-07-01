@@ -27,8 +27,9 @@ trap enable_foreign_key_checks EXIT
 
 # Dump BASE data into custom psql format (except exhibition)
 echo "Exporting BASE-state"
-pg_dump -Fc -a -h "$HOST_BASE" -f "$HOST_BASE_DUMP" -T exhibition \
-    -T table_updates
+pg_dump -Fc -a -h "$HOST_BASE" -f "$HOST_BASE_DUMP" \
+    -T exhibition \  # requires search path modification, see below
+    -T table_updates  # database specific logs only
 pg_dump -a -h "$HOST_BASE" -f "$HOST_BASE_DUMP-exhibitions.sql" -t exhibition
 
 # disable search_path modification so existing relations can be found properly
