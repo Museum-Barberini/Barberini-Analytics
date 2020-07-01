@@ -39,9 +39,11 @@ sed -i -e "s/^SELECT pg_catalog.set_config('search_path', '', false);$//" \
 # Dump PATCH data into "INSERT INTO ... ON CONFLICT DO NOTHING";
 # SQL statements to be applied to the BASE data
 echo "Exporting PATCH-state"
-pg_dump -a -h "$HOST_PATCH" -f "$HOST_PATCH_DUMP" --column-inserts \
-    --on-conflict-do-nothing -T table_updates -T gomus_daily_entry \
-    -T gomus_expected_daily_entry
+pg_dump -a -h "$HOST_PATCH" -f "$HOST_PATCH_DUMP" \
+    --column-inserts --on-conflict-do-nothing \
+    -T table_updates \  # database specific logs only
+    -T gomus_daily_entry -T gomus_expected_daily_entry \
+      # TODO: not necessary at the moment (will be fetched manually)
 
 # Put data into local DB (so it isn't altered on the remote host)
 # first put BASE-data, then add PATCH-data
