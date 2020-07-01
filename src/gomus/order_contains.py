@@ -2,7 +2,7 @@ from csv_to_db import CsvToDb
 from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
 
 
-class OrderContainsToDB(CsvToDb):
+class OrderContainsToDb(CsvToDb):
 
     table = 'gomus_order_contains'
 

@@ -105,7 +105,7 @@ class TestFetchGtrends(DatabaseTestCase):
                 "Numbers are cool! They must be trending.")
 
 
-class TestGtrendsValuesToDB(DatabaseTestCase):
+class TestGtrendsValuesToDb(DatabaseTestCase):
 
     @patch.object(gtrends_values.GtrendsTopics, 'run')
     @patch.object(gtrends_values.GtrendsTopics, 'output')
@@ -126,7 +126,7 @@ class TestGtrendsValuesToDB(DatabaseTestCase):
             )
         )
 
-        self.task = gtrends_values.GtrendsValuesToDB()
+        self.task = gtrends_values.GtrendsValuesToDb()
         self.run_task(self.task)
 
         self.assertCountEqual([(0,)], self.db_connector.query('''
@@ -155,7 +155,7 @@ class TestGtrendsValuesToDB(DatabaseTestCase):
             )
         )
 
-        self.task = gtrends_values.GtrendsValuesToDB()
+        self.task = gtrends_values.GtrendsValuesToDb()
         self.task.run()
 
         self.assertCountEqual([(1,)], self.db_connector.query('''

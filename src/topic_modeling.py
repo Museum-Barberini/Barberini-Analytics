@@ -5,18 +5,18 @@ from collections import defaultdict
 import langdetect
 import luigi
 import pandas as pd
-from apple_appstore import AppstoreReviewsToDB
+from apple_appstore import AppstoreReviewsToDb
 from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 from db_connector import db_connector
-from facebook import FbPostCommentsToDB
-from google_maps import GoogleMapsReviewsToDB
-from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
+from facebook import FbPostCommentsToDb
+from google_maps import GoogleMapsReviewsToDb
+from gplay.gplay_reviews import GooglePlaystoreReviewsToDb
 from gsdmm import MovieGroupProcess
 from luigi.format import UTF8
 from nltk.tokenize import word_tokenize
 from stop_words import get_stop_words
-from twitter import TweetsToDB
+from twitter import TweetsToDb
 
 logger = logging.getLogger('luigi-interface')
 
@@ -353,11 +353,11 @@ class TopicModelingCreateCorpus(DataPreparationTask):
 
     def requires(self):
         # make sure that the most recent posts are available
-        yield AppstoreReviewsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield GooglePlaystoreReviewsToDB()
-        yield TweetsToDB()
-        yield FbPostCommentsToDB()
+        yield AppstoreReviewsToDb()
+        yield GoogleMapsReviewsToDb()
+        yield GooglePlaystoreReviewsToDb()
+        yield TweetsToDb()
+        yield FbPostCommentsToDb()
 
     def output(self):
         return luigi.LocalTarget(
