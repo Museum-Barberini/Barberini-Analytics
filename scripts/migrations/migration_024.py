@@ -1,4 +1,4 @@
 #!/usr/bin/env python3
-import scripts.update.condense_performance as condense
+from ..update.condense_performance import main
 
-condense.main()
+main()
