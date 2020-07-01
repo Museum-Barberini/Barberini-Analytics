@@ -47,7 +47,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDb(),
+            CustomersToDb(today=self.today),
             super()._requires()
         ])
 
@@ -69,7 +69,6 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
             df = pd.read_csv(input_csv)
 
         df = df.filter(['Nummer', 'E-Mail'])
-        df['tourism_mail'] = df['E-Mail'].apply(self.check_mail)
         df.columns = self.columns
 
         df['gomus_id'] = df['gomus_id'].apply(int)
@@ -82,18 +81,3 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
         with self.output().open('w') as output_csv:
             df.to_csv(output_csv, index=False, header=True)
-
-    def check_mail(self, mail):
-        tourism_tags = [
-            'reise', 'kultur', 'freunde', 'förder', 'foerder',
-            'guide', 'hotel', 'travel', 'event', 'visit',
-            'verein', 'stiftung'
-        ]
-
-        contained_tags = []
-        for tag in tourism_tags:
-            print(tag, mail)
-            if tag in mail:
-                contained_tags.append(tag)
-
-        return contained_tags
