@@ -73,7 +73,7 @@ psql -h "localhost" \
 # ensure performance data is condensed
 echo "Condensing performance data"
 docker exec -it "$USER"-barberini_analytics_luigi bash -c \
-    "POSTGRES_DB=\"$PGDATABASE\" /app/scripts/migrations/migration_024.py"
+    "POSTGRES_DB=\"$PGDATABASE\" /app/scripts/update/condense_performance.py"
 
 echo "Exporting MERGED state"
 pg_dump -Fc -h "localhost" -f "$MERGE_DUMP"
