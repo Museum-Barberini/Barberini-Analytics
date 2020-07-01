@@ -1,12 +1,12 @@
 import luigi
 
-from gomus.bookings import BookingsToDB
-from gomus.customers import CustomersToDB, GomusToCustomerMappingToDB
-from gomus.daily_entries import DailyEntriesToDB, ExpectedDailyEntriesToDB
+from gomus.bookings import BookingsToDb
+from gomus.customers import CustomersToDb, GomusToCustomerMappingToDb
+from gomus.daily_entries import DailyEntriesToDb, ExpectedDailyEntriesToDb
 from gomus.exhibitions import ExhibitionTimesToDb
-from gomus.events import EventsToDB
-from gomus.order_contains import OrderContainsToDB
-from gomus.orders import OrdersToDB
+from gomus.events import EventsToDb
+from gomus.order_contains import OrderContainsToDb
+from gomus.orders import OrdersToDb
 
 
 class GomusToDb(luigi.WrapperTask):
@@ -19,14 +19,14 @@ class GomusToDb(luigi.WrapperTask):
 
     def requires(self):
 
-        yield DailyEntriesToDB()
+        yield DailyEntriesToDb()
         yield ExhibitionTimesToDb()
-        yield ExpectedDailyEntriesToDB()
+        yield ExpectedDailyEntriesToDb()
 
         if not self.light_mode:
-            yield BookingsToDB()
-            yield CustomersToDB()
-            yield EventsToDB()
-            yield GomusToCustomerMappingToDB()
-            yield OrderContainsToDB()
-            yield OrdersToDB()
+            yield BookingsToDb()
+            yield CustomersToDb()
+            yield EventsToDb()
+            yield GomusToCustomerMappingToDb()
+            yield OrderContainsToDb()
+            yield OrdersToDb()

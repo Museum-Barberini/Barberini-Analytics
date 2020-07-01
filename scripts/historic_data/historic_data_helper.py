@@ -19,7 +19,7 @@ def run_luigi_task(module_name, task_name, parameter='', value=''):
         param_string = f'--{parameter} {value}'
     sp.run(
         f"luigi --module gomus.{module_name} "
-        f"{task_name}ToDB {param_string}".split()
+        f"{task_name}ToDb {param_string}".split()
     )
 
 
