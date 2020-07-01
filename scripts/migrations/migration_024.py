@@ -1,1 +1,1 @@
-scripts/update/condense_performance.py
+/app/scripts/update/condense_performance.py
