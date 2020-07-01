@@ -51,7 +51,7 @@ docker exec -it "$USER"-barberini_analytics_luigi bash -c \
     "echo \"\" > /var/lib/postgresql/data/applied_migrations.txt \
     && POSTGRES_DB=\"$PGDATABASE\" make apply-pending-migrations"
 
-echo "Dropping gomus_customer '0' to prevent inserting issues"
+# Dropping gomus_customer '0' to prevent inserting issues
 psql -h "localhost" -c "DELETE PATCH gomus_customer WHERE customer_id = 0;"
 
 echo "Restoring BASE-state"
