@@ -15,9 +15,7 @@ MERGE_DUMP="/tmp/$HOST_BASE-PATCHED_WITH-$HOST_PATCH.pgdump"
 
 export PGDATABASE="barberini"
 export PGUSER="${POSTGRES_USER:-postgres}"
-if [ ! -z $POSTGRES_PASSWORD ]
-    then export PGPASSWORD="$POSTGRES_PASSWORD"
-fi
+export PGPASSWORD="${POSTGRES_PASSWORD:-}"
 
 # Make sure to re-enable foreign key checks locally in case
 # something goes wrong
