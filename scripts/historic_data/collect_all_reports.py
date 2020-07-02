@@ -24,7 +24,7 @@ today = dt.date.today()
 first_date = dt.date(2016, 1, 1)
 
 delta = today - first_date
-weeks = math.ceil(delta.days/7)
+weeks = delta.days//7
 print(weeks)
 
 # weeks contains the number of weeks that have passed until today
