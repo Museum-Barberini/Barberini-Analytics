@@ -87,7 +87,8 @@ class TestCustomerTransformation(GomusTransformationTest):
             'annual_ticket',
             'valid_mail',
             'cleansed_postal_code',
-            'cleansed_country'],
+            'cleansed_country',
+            'tourism_tags'],
             ExtractCustomerData,
             *args, **kwargs)
 
@@ -102,7 +103,7 @@ class TestCustomerTransformation(GomusTransformationTest):
             'customers_in.csv')
 
         self.execute_task()
-
+        self.maxDiff = None
         self.check_result(output_target, 'customers_out.csv')
 
     @patch.object(ExtractGomusToCustomerMapping, 'output')
