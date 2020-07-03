@@ -95,7 +95,7 @@ BEGIN;
             left join b_common_category on c.customer_id=b_common_category.customer_id
             left join e_general on c.customer_id=e_general.customer_id
             left join e_common_name on c.customer_id=e_common_name.customer_id
-            left join e_common_category on c.customer_id=e_common_category.customer_id;
+            left join e_common_category on c.customer_id=e_common_category.customer_id
         );
 
 COMMIT;
