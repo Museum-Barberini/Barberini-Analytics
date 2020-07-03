@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import datetime as dt
-import math
 import sys
 
 from historic_data_helper import prepare_task, run_luigi_task, rename_output
