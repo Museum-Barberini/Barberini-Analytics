@@ -28,6 +28,5 @@ def rename_output(name, offset):
     try:
         shutil.move(base_path + name,
                     'historic_output/' + f'{offset}_' + name)
-
     except FileNotFoundError:
         print(name, 'could not be found!')
