@@ -34,13 +34,16 @@ class FetchGomusReport(luigi.Task):
             )
 
     def requires(self):
+        unique = 'unique' in self.report_name
+
         if REPORT_IDS[f'{self.report_name}'] > 0:  # report refreshable
             start_time, end_time = parse_timespan(
                 self.suffix.replace('_', ''), self.today)
             yield EditGomusReport(
                 report=REPORT_IDS[self.report_name],
                 start_at=start_time,
-                end_at=end_time)
+                end_at=end_time,
+                unique_entries=unique)
 
     def run(self):
         sess_id = os.environ['GOMUS_SESS_ID']

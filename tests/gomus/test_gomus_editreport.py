@@ -30,7 +30,8 @@ class TestGomusEditReport(DatabaseTestCase):
             EditGomusReport(
                 report=REPORT_IDS['customers_7days'],
                 start_at=start_at,
-                end_at=start_at + dt.timedelta(days=7)).run()
+                end_at=start_at + dt.timedelta(days=7),
+                unique_entries=False).run()
             FetchGomusReport(report='customers').run()
 
             with mock_target.open('r') as output:

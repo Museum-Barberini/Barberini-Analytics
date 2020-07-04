@@ -11,7 +11,7 @@ from data_preparation import DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class DailyEntriesToDB(CsvToDb):
+class DailyEntriesToDb(CsvToDb):
     table = 'gomus_daily_entry'
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -23,7 +23,7 @@ class DailyEntriesToDB(CsvToDb):
             today=self.today)
 
 
-class ExpectedDailyEntriesToDB(CsvToDb):
+class ExpectedDailyEntriesToDb(CsvToDb):
     table = 'gomus_expected_daily_entry'
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -42,11 +42,13 @@ class ExtractDailyEntryData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        return FetchGomusReport(
-            report='entries',
-            suffix='_1day',
-            sheet_indices=[0, 1] if not self.expected else [2, 3],
-            today=self.today)
+
+        for report in ['entries', 'entries_unique']:
+            yield FetchGomusReport(
+                report=report,
+                suffix='_1day',
+                sheet_indices=[0, 1] if not self.expected else [2, 3],
+                today=self.today)
 
     def output(self):
         return luigi.LocalTarget(
@@ -55,8 +57,10 @@ class ExtractDailyEntryData(DataPreparationTask):
         )
 
     def run(self):
+
+        all_inputs = self.input()
         # get date from first sheet
-        inputs = self.input()
+        inputs = all_inputs[0]
         with next(inputs).open('r') as first_sheet:
             while True:
                 try:
@@ -67,32 +71,47 @@ class ExtractDailyEntryData(DataPreparationTask):
                 except ValueError:
                     continue
 
-        # get remaining data from second sheet
-        with next(inputs).open('r') as second_sheet:
-            df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
-            entries_df = pd.DataFrame(columns=self.columns)
+        entries = {}
+        # parse normal and unique entries to equivalent data frames
+        for report_number in range(0, 2):
+            # get remaining data from second sheet
+            if report_number == 1:
+                next(all_inputs[report_number])
 
-            for index, row in df.iterrows():
-                for i in range(24):
-                    row_index = index * 24 + i
-                    entries_df.at[row_index, 'id'] = int(
-                        np.nan_to_num(row['ID']))
-                    entries_df.at[row_index, 'ticket'] = row['Ticket']
+            with next(all_inputs[report_number]).open('r') as second_sheet:
+                df = pd.read_csv(second_sheet, skipfooter=1, engine='python')
+                current_df = pd.DataFrame(columns=self.columns)
 
-                    time = dt.time(hour=i)
-                    entries_df.at[row_index, 'datetime'] = \
-                        dt.datetime.combine(date, time)
+                for index, row in df.iterrows():
+                    for i in range(24):
+                        row_index = index * 24 + i
+                        current_df.at[row_index, 'id'] = int(
+                            np.nan_to_num(row['ID']))
+                        current_df.at[row_index, 'ticket'] = row['Ticket']
 
-                    # handle different hour formats for expected/actual entries
-                    if self.expected:
-                        count_index = str(i) + ':00'
-                    else:
-                        count_index = str(float(i))
-                    entries_df.at[row_index, 'count'] = self.safe_parse_int(
-                        row[count_index])
+                        time = dt.time(hour=i)
+                        current_df.at[row_index, 'datetime'] = \
+                            dt.datetime.combine(date, time)
 
-            with self.output().open('w') as output_csv:
-                entries_df.to_csv(output_csv, index=False, header=True)
+                        # different hour formats for expected/actual entries
+                        if self.expected:
+                            count_index = str(i) + ':00'
+                        else:
+                            count_index = str(float(i))
+                        current_df.at[row_index, 'count'] = \
+                            self.safe_parse_int(row[count_index])
+
+                entries[report_number] = current_df
+
+        # combine the data frames
+        entries[1]['unique_count'] = entries[1]['count']
+        entries[1] = entries[1].drop(['count'], axis=1)
+        entries[0] = entries[0].drop(['unique_count'], axis=1)
+
+        combined_df = pd.merge(entries[0], entries[1])
+
+        with self.output().open('w') as output_csv:
+            combined_df.to_csv(output_csv, index=False, header=True)
 
     def safe_parse_int(self, val):
         return int(np.nan_to_num(val))
