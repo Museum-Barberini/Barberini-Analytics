@@ -110,7 +110,6 @@ class CleansePostalCodes(DataPreparationTask):
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
         )
-                self.skip_count/self.total_count)
 
         logger.info('')
         logger.info('-------------------------------------------------')
