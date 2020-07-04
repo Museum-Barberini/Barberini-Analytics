@@ -19,8 +19,6 @@ class CustomersToDb(CsvToDb):
 
     table = 'gomus_customer'
 
-    primary_key = 'customer_id'
-
     def requires(self):
         return CleansePostalCodes(
             amount=self.amount,

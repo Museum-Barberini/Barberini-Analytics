@@ -3,6 +3,7 @@
 set -e
 
 export BARBERINI_ANALYTICS_CONTEXT=DEBUG
+export OUTPUT_DIR=output-minimal
 . ./scripts/tests/gitlab_log.sh
 
 
@@ -27,7 +28,7 @@ start_section apply_migrations "Applying all migrations ..."
 end_section apply_migrations
 
 start_section luigi_minimal "Running minimal pipeline ..."
-    make docker-do do="POSTGRES_DB=$POSTGRES_DB make luigi-minimal"
+    make docker-do do="POSTGRES_DB=$POSTGRES_DB OUTPUT_DIR=$OUTPUT_DIR make luigi-minimal"
 end_section luigi_minimal
 
 start_section check_schema "Checking schema ..."

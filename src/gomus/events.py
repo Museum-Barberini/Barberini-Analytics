@@ -35,17 +35,12 @@ class ExtractEventData(DataPreparationTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.events_df = None
-        self.categories = get_categories()
 
     def _requires(self):
         return luigi.task.flatten([
             BookingsToDb(),
             super()._requires()
         ])
-
-    def requires(self):
-        for category in self.categories:
-            yield FetchCategoryReservations(category=category)
 
     def output(self):
         return luigi.LocalTarget(
@@ -54,12 +49,14 @@ class ExtractEventData(DataPreparationTask):
         )
 
     def run(self):
+        self.categories = get_categories()
+
         self.events_df = pd.DataFrame(columns=self.columns)
 
         # for every kind of category
-        for index, event_files in enumerate(self.input()):
-            category = self.categories[index]
-            with event_files.open('r') as events:
+        for category in self.categories:
+            event_file = yield FetchCategoryReservations(category=category)
+            with event_file.open('r') as events:
                 # for every event that falls into that category
                 for i, path in enumerate(events):
                     path = path.replace('\n', '')

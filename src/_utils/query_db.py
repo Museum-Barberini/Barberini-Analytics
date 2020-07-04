@@ -71,8 +71,10 @@ class QueryDb(DataPreparationTask):
             query, *args, **kwargs
         )
         df = pd.DataFrame(rows, columns=columns)
-        with self.output().open('w') as output_stream:
-            df.to_csv(output_stream, index=False, header=True)
+
+        df = self.transform(df)
+
+        self.write_output(df)
 
     def build_query(self):
 
@@ -84,3 +86,15 @@ class QueryDb(DataPreparationTask):
         if self.limit and self.limit != -1:
             query += f' LIMIT {self.limit}'
         return query
+
+    def transform(self, df):
+        """
+        Hook for subclasses.
+        """
+
+        return df
+
+    def write_output(self, df):
+
+        with self.output().open('w') as output_stream:
+            df.to_csv(output_stream, index=False, header=True)

@@ -42,8 +42,7 @@ lint:
   tags:
     - barberini
   script:
-    - python3 -m pip install flake8 --user
-    - python3 -m flake8 -v --show-source --exclude migration_024.py .
+    - python3 -m flake8 -v --show-source .
 
 minimal-mining-pipeline:
   stage: test

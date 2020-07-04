@@ -2,46 +2,48 @@ import os
 import pickle
 import sys
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import luigi
 import pandas as pd
-from db_connector import db_connector
+
 from db_test import DatabaseTestCase
 from luigi.mock import MockTarget
-from topic_modeling import Doc, TopicModelingFindTopics,\
+from topic_modeling import (
+    Doc, TopicModelingFindTopics,
     TopicModelingPreprocessCorpus, TopicModelingCreateCorpus
+)
 
 
 class TestDoc(DatabaseTestCase):
 
     def test_guess_language(self):
 
-        doc = Doc('english text goes here')
+        doc = Doc("english text goes here")
         lang = doc.guess_language()
         self.assertEqual(lang, 'en')
 
-        doc = Doc('hier ist ein deutscher Text')
+        doc = Doc("hier ist ein deutscher Text")
         lang = doc.guess_language()
         self.assertEqual(lang, 'de')
 
-        doc = Doc('https://blablabla.de')
+        doc = Doc("https://blablabla.de")
         lang = doc.guess_language()
         self.assertIsNone(lang)
 
     def test_too_short(self):
 
-        doc = Doc('Text with many tokens')
+        doc = Doc("Text with many tokens")
         doc.tokens = ['Text', 'with', 'many', 'tokens']
         self.assertFalse(doc.too_short())
 
-        doc = Doc('short')
+        doc = Doc("short")
         doc.tokens = ['short']
         self.assertTrue(doc.too_short())
 
     def test_in_year(self):
 
-        doc = Doc('some text', post_date=datetime(2019, 8, 30, 0, 0))
+        doc = Doc("some text", post_date=datetime(2019, 8, 30, 0, 0))
         self.assertTrue(doc.in_year("2019"))
         self.assertFalse(doc.in_year("2020"))
         self.assertFalse(doc.in_year("2018"))
@@ -56,23 +58,24 @@ class TestCreateCorpus(DatabaseTestCase):
         # -------- SET UP MOCK DATA ------------
         output_target = MockTarget('corpus_out', format=luigi.format.Nop)
         output_mock.return_value = output_target
-        db_connector().execute('''
-            INSERT INTO tweet(user_id,tweet_id,text,response_to,post_date)
-            VALUES ('user_id', 'tweet_id', 'tweet text', NULL,
-                    '2020-05-24 10:56:21')
-        ''')
-        db_connector().execute('''
-            INSERT INTO fb_post_comment(post_id,comment_id,post_date,
-                text,is_from_museum,response_to)
-            VALUES ('post1','comment1','2020-05-24 10:56:21',
-                    'text1',false,NULL),
-                   ('post2','comment2','2018-05-24 10:56:21',
-                    'text2',true,NULL)
-        ''')
+        self.db_connector.execute(
+            '''
+                INSERT INTO tweet(user_id,tweet_id,text,response_to,post_date)
+                VALUES ('user_id', 'tweet_id', 'tweet text', NULL,
+                        '2020-05-24 10:56:21')
+            ''',
+            '''
+                INSERT INTO fb_post_comment(post_id,comment_id,post_date,
+                    text,is_from_museum,response_to)
+                VALUES ('post1','comment1','2020-05-24 10:56:21',
+                        'text1',false,NULL),
+                    ('post2','comment2','2018-05-24 10:56:21',
+                        'text2',true,NULL)
+            '''
+        )
 
         # ------- RUN TASK UNDER TEST --------
         task = TopicModelingCreateCorpus()
-        task.requires = MagicMock(return_value=None)  # don't run other tasks
         task.run()
 
         # ------- INSPECT OUTPUT -------
@@ -98,14 +101,14 @@ class TestPreprocessing(DatabaseTestCase):
         with input_target.open('w') as fp:
             pickle.dump(
                 [
-                    Doc('Ich bin der erste Post über ein Kulturinstitut'
-                        'in der Landeshauptstadt'),
-                    Doc('Ich bin der 2 Post über mit Bezug zur '
-                        'Landeshauptstadt. toll '),
-                    Doc('Trallala noch ein Post 2 zum Museum'),
-                    Doc('noch weitere Posts zum weitere testen.'
+                    Doc("Ich bin der erste Post über ein Kulturinstitut"
+                        "in der Landeshauptstadt"),
+                    Doc("Ich bin der 2 Post über mit Bezug zur "
+                        "Landeshauptstadt. toll "),
+                    Doc("Trallala noch ein Post 2 zum Museum"),
+                    Doc("noch weitere Posts zum weitere testen."
                         'Barberini toll'),
-                    Doc('this document is in english')
+                    Doc("this document is in english")
                 ],
                 fp
             )

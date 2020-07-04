@@ -19,6 +19,7 @@ from gomus._utils.fetch_report import FetchEventReservations
 
 
 class GomusTransformationTest(DatabaseTestCase):
+
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.columns = columns
@@ -55,15 +56,14 @@ class GomusTransformationTest(DatabaseTestCase):
     def prepare_mock_targets(self, input_mock, output_mock, infile):
         # Overwrite input and output of target task with MockTargets
         self.prepare_input_target(input_mock, infile)
-        output_target = self.prepare_output_target(output_mock)
-
-        return output_target
+        return self.prepare_output_target(output_mock)
 
     def execute_task(self, **kwargs):
         try:
-            return self.task(columns=self.columns, **kwargs).run()
+            task = self.task(columns=self.columns, **kwargs)
         except UnknownParameterException:  # no columns parameter
-            return self.task(**kwargs).run()
+            task = self.task(**kwargs)
+        return task.run()
 
     def check_result(self, output_target, outfile):
         outfile = self.test_data_path + outfile
@@ -73,6 +73,7 @@ class GomusTransformationTest(DatabaseTestCase):
 
 
 class TestCustomerTransformation(GomusTransformationTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__([
             'customer_id',
@@ -134,6 +135,7 @@ class TestCustomerTransformation(GomusTransformationTest):
 
 
 class TestOrderTransformation(GomusTransformationTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__([
             'order_id',
@@ -199,6 +201,7 @@ BOOKING_COLUMNS = [
 
 # This tests only ExtractGomusBookings, the scraper should be tested elsewhere
 class TestBookingTransformation(GomusTransformationTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             BOOKING_COLUMNS,
@@ -237,6 +240,7 @@ class TestBookingTransformation(GomusTransformationTest):
 
 
 class TestDailyEntryTransformation(GomusTransformationTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__([
             'id',
@@ -312,6 +316,7 @@ class TestDailyEntryTransformation(GomusTransformationTest):
 
 
 class TestEventTransformation(GomusTransformationTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__([
             'event_id',
@@ -324,8 +329,12 @@ class TestEventTransformation(GomusTransformationTest):
             ExtractEventData,
             *args, **kwargs)
 
-        self.categories = get_categories()
         self.test_data_path += 'events/'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.categories = get_categories()
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
@@ -338,34 +347,40 @@ class TestEventTransformation(GomusTransformationTest):
             '{dt.datetime.today()}',
             DEFAULT, DEFAULT)''')
 
+    def prepare_input_target(self, input_mock, infile):
+        input_target = MockTarget('data_in', format=UTF8)
+
+        input_mock.return_value = input_target
+
+        self.write_file_to_target(input_target, infile)
+
     @patch.object(ExtractEventData, 'output')
-    @patch.object(ExtractEventData, 'input')
-    def test_events_transformation(self, input_mock, output_mock):
-        def generate_input_targets():
-            for category in self.categories:
-                target = MockTarget(cleanse_umlauts(category), format=UTF8)
-                self.write_file_to_target(target, category + '_in.csv')
-                yield target
-
-        input_mock.return_value = generate_input_targets()
-
+    def test_events_transformation(self, output_mock):
         output_target = self.prepare_output_target(output_mock)
 
-        self.execute_task()
+        gen = self.execute_task()
+        try:
+            dep = next(gen)
+            while True:
+                target = MockTarget(cleanse_umlauts(dep.category), format=UTF8)
+                self.write_file_to_target(target, f'{dep.category}_in.csv')
+                dep = gen.send(target)
+        except StopIteration:
+            pass
 
         self.check_result(
             output_target,
             'events_out.csv')
 
     @patch.object(ExtractEventData, 'output')
-    @patch.object(ExtractEventData, 'input')
-    def test_empty_events(self, input_mock, output_mock):
-        output_target = self.prepare_mock_targets(
-            input_mock,
-            output_mock,
-            'events_empty_in.csv')
+    @patch('gomus.events.get_categories')
+    def test_empty_events(self, categories_mock, output_mock):
+        output_target = self.prepare_output_target(output_mock)
+        categories_mock.return_value = []
 
-        self.execute_task()
+        gen = self.execute_task()
+        for _, _ in enumerate(gen):  # iterate generator to its end
+            pass
 
         self.check_result(
             output_target,
