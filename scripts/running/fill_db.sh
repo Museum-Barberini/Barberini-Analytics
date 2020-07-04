@@ -2,15 +2,15 @@
 
 case $1 in
     daily)
-        TASK=FillDBDaily
+        TASK=FillDbDaily
         export OUTPUT_DIR="output_daily"
         ;;
     hourly)
-        TASK=FillDBHourly
+        TASK=FillDbHourly
         export OUTPUT_DIR="output_hourly"
         ;;
     *)
-        TASK=FillDB
+        TASK=FillDb
         ;;
 esac
 

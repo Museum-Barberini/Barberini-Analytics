@@ -19,10 +19,10 @@ logger = logging.getLogger('luigi-interface')
 API_VER = 'v6.0'
 API_BASE = f'https://graph.facebook.com/{API_VER}'
 
-# ======= ToDB Tasks =======
+# ======= ToDb Tasks =======
 
 
-class FbPostsToDB(CsvToDb):
+class FbPostsToDb(CsvToDb):
 
     table = 'fb_post'
 
@@ -30,7 +30,7 @@ class FbPostsToDB(CsvToDb):
         return FetchFbPosts()
 
 
-class FbPostPerformanceToDB(CsvToDb):
+class FbPostPerformanceToDb(CsvToDb):
 
     table = 'fb_post_performance'
 
@@ -38,7 +38,7 @@ class FbPostPerformanceToDB(CsvToDb):
         return FetchFbPostPerformance(table=self.table)
 
 
-class FbPostCommentsToDB(CsvToDb):
+class FbPostCommentsToDb(CsvToDb):
 
     table = 'fb_post_comment'
 
@@ -130,7 +130,7 @@ class FetchFbPostDetails(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            FbPostsToDB(),
+            FbPostsToDb(),
             super()._requires()
         ])
 
@@ -301,7 +301,7 @@ class FetchFbPostComments(FetchFbPostDetails):
 
         else:
             """
-            This whole else block is a dirty workaround, because the ToDB tasks
+            This whole else block is a dirty workaround, because the ToDb tasks
             currently cannot deal with completely empty CSV files as input,
             they assume that at least the header row exists.
             """
