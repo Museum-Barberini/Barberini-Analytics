@@ -20,9 +20,14 @@ report_type = sys.argv[1]
 cap_type = report_type.capitalize()
 
 today = dt.date.today()
+first_date = dt.date(2016, 1, 1)
+
+# the number of days to export daily entry reports
+delta = today - first_date
+print(delta.weeks)
 
 # 250 weeks should be sufficient for getting all the data
-for week_offset in range(0, 250):
+for week_offset in range(0, delta.weeks):
 
     print(report_type, week_offset, today)
 

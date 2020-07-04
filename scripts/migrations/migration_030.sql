@@ -1,20 +1,8 @@
--- ABSA: Add sentence_index to post_word and post_ngram relations (!257)
--- Also raise word_idnex to start at 1.
+-- Gomus: Add unique entries to entry tables (!264)
 
 BEGIN;
 
-    TRUNCATE absa.post_word CASCADE;
-    ALTER TABLE absa.post_word
-        ADD COLUMN sentence_index INT NOT NULL
-            CHECK (sentence_index > 0),
-        ADD CONSTRAINT post_word_word_index_check
-            CHECK (word_index > 0);
-
-    TRUNCATE absa.post_ngram;
-    ALTER TABLE absa.post_ngram
-        ADD COLUMN sentence_index INT NOT NULL
-            CHECK (sentence_index > 0),
-        ADD CONSTRAINT post_ngram_word_index_check
-            CHECK (word_index > 0);
+    ALTER TABLE gomus_daily_entry ADD COLUMN unique_count INTEGER;
+    ALTER TABLE gomus_expected_daily_entry ADD COLUMN unique_count INTEGER;
 
 COMMIT;

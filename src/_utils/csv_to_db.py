@@ -41,14 +41,19 @@ class CsvToDb(CopyToTable):
     host = database = user = password = None
 
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
+
         # Set db connection parameters using env vars
         self.db_connector = db_connector.db_connector()
         self.host = self.db_connector.host
         self.database = self.db_connector.database
         self.user = self.db_connector.user
         self.password = self.db_connector.password
-        self._columns = None  # lazy property
+
+        # lazy properties
+        self._columns = None
+        self._primary_constraint_name = None
 
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
@@ -106,6 +111,25 @@ class CsvToDb(CopyToTable):
 
         return self._columns
 
+    @property
+    def primary_constraint_name(self):
+        if not self._primary_constraint_name:
+            table_path = self.table_path
+            self._primary_constraint_name = self.db_connector.query(f'''
+                SELECT
+                    constraint_name
+                FROM
+                    information_schema.table_constraints
+                WHERE
+                    constraint_type = 'PRIMARY KEY'
+                    AND (table_schema, table_name)
+                        = ('{table_path[0]}', '{table_path[1]}')
+            ''', only_first=True)[0]
+            if not self._primary_constraint_name:
+                raise UndefinedTable(self.table)
+
+        return self._primary_constraint_name
+
     def copy(self, cursor, file):
 
         if self.replace_content:
@@ -115,6 +139,7 @@ class CsvToDb(CopyToTable):
         query = self.load_sql_script(
             'copy',
             *self.table_path,
+            self.primary_constraint_name,
             ', '.join([col[0] for col in self.columns]),
             ', '.join(
                 [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))

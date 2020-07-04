@@ -106,6 +106,31 @@ class TestCsvToDb(DatabaseTestCase):
         actual_columns = list(self.dummy.columns)
         self.assertListEqual(expected_columns, actual_columns)
 
+    def test_primary_key(self):
+
+        # Set up database samples
+        constraint_name = 'custom_primary_name'
+        self.db_connector.execute(
+            f'''
+                INSERT INTO {self.table_name}
+                VALUES (1, 2, 'i-am-a-deprecated-value', 'xy,"z')
+            ''',
+            f'''
+                ALTER INDEX {self.table_name}_pkey
+                RENAME TO {constraint_name}
+            '''
+        )
+
+        self.assertEqual(constraint_name, self.dummy.primary_constraint_name)
+
+        # Execute code under test
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}')
+        self.assertEqual(EXPECTED_DATA, actual_data)
+
     def test_array_columns(self):
 
         COMPLEX_DATA = [
