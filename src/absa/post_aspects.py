@@ -70,7 +70,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
                             absa.post_ngram
                                 NATURAL JOIN new_post_id
                         WHERE
-                            {self.pre_filter_query('ngram')}
+                            {self.pre_filter_query('phrase')}
                     )
                 SELECT
                     source, post_id, word_index, aspect_id,
