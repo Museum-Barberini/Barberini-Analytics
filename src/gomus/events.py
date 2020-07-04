@@ -12,12 +12,12 @@ from csv_to_db import CsvToDb
 from data_preparation import DataPreparationTask
 from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchEventReservations
-from gomus.bookings import BookingsToDB
+from gomus.bookings import BookingsToDb
 
 logger = logging.getLogger('luigi-interface')
 
 
-class EventsToDB(CsvToDb):
+class EventsToDb(CsvToDb):
 
     table = 'gomus_event'
 
@@ -39,7 +39,7 @@ class ExtractEventData(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            BookingsToDB(),
+            BookingsToDb(),
             super()._requires()
         ])
 
@@ -164,7 +164,7 @@ class FetchCategoryReservations(DataPreparationTask):
         )
 
     def requires(self):
-        yield BookingsToDB()
+        yield BookingsToDb()
 
 
 # this function should not have to exist, but luigi apparently

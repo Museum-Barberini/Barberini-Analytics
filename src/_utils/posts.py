@@ -1,11 +1,11 @@
 import luigi
 
-from apple_appstore import AppstoreReviewsToDB
-from facebook import FbPostsToDB, FbPostCommentsToDB, FbPostPerformanceToDB
-from google_maps import GoogleMapsReviewsToDB
-from gplay.gplay_reviews import GooglePlaystoreReviewsToDB
-from instagram import IgToDBWrapper, IgPostPerformanceToDB
-from twitter import TweetsToDB, TweetPerformanceToDB, TweetAuthorsToDB
+from apple_appstore import AppstoreReviewsToDb
+from facebook import FbPostsToDb, FbPostCommentsToDb, FbPostPerformanceToDb
+from google_maps import GoogleMapsReviewsToDb
+from gplay.gplay_reviews import GooglePlaystoreReviewsToDb
+from instagram import IgToDb, IgPostPerformanceToDb
+from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
 
 
 class PostsToDb(luigi.WrapperTask):
@@ -16,14 +16,14 @@ class PostsToDb(luigi.WrapperTask):
     )
 
     def requires(self):
-        yield AppstoreReviewsToDB()
-        yield FbPostsToDB()
-        yield FbPostCommentsToDB()
-        yield GoogleMapsReviewsToDB()
-        yield GooglePlaystoreReviewsToDB()
-        yield IgToDBWrapper()
-        yield TweetAuthorsToDB()
-        yield TweetsToDB()
+        yield AppstoreReviewsToDb()
+        yield FbPostsToDb()
+        yield FbPostCommentsToDb()
+        yield GoogleMapsReviewsToDb()
+        yield GooglePlaystoreReviewsToDb()
+        yield IgToDb()
+        yield TweetAuthorsToDb()
+        yield TweetsToDb()
 
         if self.fetch_performance:
             yield PostPerformanceToDb()
@@ -32,6 +32,6 @@ class PostsToDb(luigi.WrapperTask):
 class PostPerformanceToDb(luigi.WrapperTask):
 
     def requires(self):
-        yield FbPostPerformanceToDB()
-        yield IgPostPerformanceToDB()
-        yield TweetPerformanceToDB()
+        yield FbPostPerformanceToDb()
+        yield IgPostPerformanceToDb()
+        yield TweetPerformanceToDb()

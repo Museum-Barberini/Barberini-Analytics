@@ -61,7 +61,7 @@ try:
         args='''make
             luigi-restart-scheduler
             luigi-clean
-            luigi-task LMODULE=facebook LTASK=FbPostsToDB
+            luigi-task LMODULE=facebook LTASK=FbPostsToDb
             luigi-clean
         '''.split()
     )

@@ -54,15 +54,23 @@ class CollectPostAspectsAlgorithm(QueryDb):
         return f'''
             CREATE TEMPORARY TABLE aspect_match AS (
                 WITH
-                    known_post_id AS (SELECT post_id FROM {self.table}),
+                    new_post_id AS (
+                        SELECT post_id
+                        FROM post
+                        WHERE post_date > ANY(
+                            SELECT max(post_date)
+                            FROM {self.table}
+                            NATURAL JOIN post
+                        ) IS NOT FALSE
+                    ),
                     post_ngram AS (
                         SELECT
                             *
                         FROM
                             absa.post_ngram
+                                NATURAL JOIN new_post_id
                         WHERE
-                            post_id NOT IN (SELECT * FROM known_post_id)
-                            AND {self.pre_filter_query('ngram')}
+                            {self.pre_filter_query('ngram')}
                     )
                 SELECT
                     source, post_id, word_index, aspect_id,

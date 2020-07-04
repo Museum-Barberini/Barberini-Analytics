@@ -12,7 +12,7 @@ from data_preparation import DataPreparationTask
 from museum_facts import MuseumFacts
 
 
-class TweetsToDB(CsvToDb):
+class TweetsToDb(CsvToDb):
 
     table = 'tweet'
 
@@ -20,7 +20,7 @@ class TweetsToDB(CsvToDb):
         return ExtractTweets()
 
 
-class TweetPerformanceToDB(CsvToDb):
+class TweetPerformanceToDb(CsvToDb):
 
     table = 'tweet_performance'
 
@@ -28,7 +28,7 @@ class TweetPerformanceToDB(CsvToDb):
         return ExtractTweetPerformance(table=self.table)
 
 
-class TweetAuthorsToDB(CsvToDb):
+class TweetAuthorsToDb(CsvToDb):
 
     table = 'tweet_author'
 
@@ -76,7 +76,7 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            TweetsToDB(),
+            TweetsToDb(),
             super()._requires()
         ])
 
