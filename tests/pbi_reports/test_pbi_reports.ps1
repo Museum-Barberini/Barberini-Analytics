@@ -15,8 +15,10 @@ Param(
     [timespan] $timeout = [timespan]::FromSeconds(420),
     # Delay between checks
     [timespan] $interval = [timespan]::FromSeconds(10),
+    # Time to wait for PBI to show the initial splash screen
+    [timespan] $preLoadDelay = [timespan]::FromSeconds(20),
     # Time to wait for PBI to show possible loading windows after model has been created
-    [timespan] $loadDelay = [timespan]::FromSeconds(40)
+    [timespan] $loadDelay = [timespan]::FromSeconds(55)
 )
 
 
@@ -34,16 +36,23 @@ $assemblies = (
 ) | ForEach-Object {[System.Reflection.Assembly]::LoadFrom($_)}
 Copy-Item "nuget\Magick.NET-Q8-AnyCPU.7.19.0\runtimes\win-x86\native\Magick.Native-Q8-x86.dll" .
 Copy-Item "nuget\Magick.NET-Q8-AnyCPU.7.19.0\runtimes\win-x64\native\Magick.Native-Q8-x64.dll" .
-Add-Type -CodeDomProvider $csharpProvider -ReferencedAssemblies $assemblies -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
+Add-Type `
+    -CodeDomProvider $csharpProvider `
+    -ReferencedAssemblies $assemblies `
+    -TypeDefinition (Get-Content -Path tests/pbi_reports/test_pbi_reports.cs | Out-String)
 if (!$?) {
     exit 2  # Error loading C# component
 }
+$testClass = [MuseumBarberini.Analytics.Tests.PbiReportTestCase]
 
 
 $maxIntervalCount = [Math]::Ceiling($timeout.TotalMilliseconds / $interval.TotalMilliseconds)
 $timeout = [timespan]::FromMilliseconds($interval.TotalMilliseconds * $maxIntervalCount)
 
-$global:runs = $global:passes = $global:failures = $global:errors = 0
+$global:runs = New-Object System.Collections.Generic.List[$testClass]
+$global:passes = New-Object System.Collections.Generic.List[$testClass]
+$global:failures = New-Object System.Collections.Generic.List[$testClass]
+$global:errors = New-Object System.Collections.Generic.List[$testClass]
 
 function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) {
     Write-Progress -Id 2 -Activity "Testing report" -CurrentOperation "Opening report file"
@@ -55,7 +64,7 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) 
             $elapsed = (Get-Date) - ($startTime)
             if ($elapsed -gt $timeout) {
                 Write-Error "⚠ TIMEOUT: $test"
-                $global:errors++
+                $global:errors.Add($test)
                 return
             }
 
@@ -66,7 +75,7 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) 
 
             if ($test.HasPassed) {
                 Write-Output "✅ PASS: $test"
-                $global:passes++
+                $global:passes.Add($test)
                 return
             } elseif ($test.HasFailed) {
                 $err = @("❌ FAILED: $test")
@@ -74,7 +83,7 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) 
                     $err += $test.ResultReason
                 }
                 Write-Error ($err -join "`n")
-                $global:failures++
+                $global:failures.Add($test)
                 return
             }
         }
@@ -88,23 +97,36 @@ function Invoke-Test([MuseumBarberini.Analytics.Tests.PbiReportTestCase] $test) 
 
 
 # Prepare test cases
-$tests = $reports | ForEach-Object `
-    {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new($_, $pbi, $loadDelay)}
+$tests = $reports | ForEach-Object {[MuseumBarberini.Analytics.Tests.PbiReportTestCase]::new(
+        $_, $pbi, $preLoadDelay, $loadDelay
+    )}
 mkdir -Force output/test_pbi | Out-Null
 
 # Run tests
 foreach ($test in $tests) {
+    $runs.Add($test)
     Write-Progress -Id 1 -Activity "Testing Power BI reports" `
-        -CurrentOperation $test -PercentComplete (($runs++).Length / $tests.Length)
+        -CurrentOperation $test -PercentComplete ($runs.Count / $tests.Count)
     Invoke-Test $test
 }
 Write-Progress -Id 1 -Completed "Testing Power BI reports"
 
 # Summary
-Write-Output "Power BI Test summary: $passes passes, $failures failures, $errors errors."
-$unknown = $runs - ($passes + $failures + $errors)
-if ($unknown) {
-    Write-Error "Warning: $unknown tests have an unknown result!"
+Write-Output "`nPower BI Test summary:"
+if ($runs) {
+    @('passes', 'failures', 'errors') | ForEach-Object {
+        $testGroup = (Get-Variable $_).Value
+        $runs = [Linq.Enumerable]::ToList([Linq.Enumerable]::Except($runs, $testGroup))
+        [PSCustomObject]@{
+            Group = $_
+            Count = $testGroup.Count
+            Tests = (($testGroup | ForEach-Object Name) -join ', ')
+    }} | Where-Object {$_.Count}
+} else {
+    Write-Output "No tests have been executed."
+}
+if ($runs) {
+    Write-Error "Warning: $($runs.Count) tests have an unknown result: $runs"
 }
 $unsuccessful = $failures + $errors
 Write-Output "Screenshots of all opened reports have been stored in output/test_pbi."

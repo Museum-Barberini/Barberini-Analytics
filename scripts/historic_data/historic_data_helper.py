@@ -7,6 +7,9 @@ def prepare_task():
     sp.run(
         "make luigi-scheduler".split()
     )
+    sp.run(
+        "mkdir historic_output/".split()
+    )
 
 
 def run_luigi_task(module_name, task_name, parameter='', value=''):
@@ -16,11 +19,14 @@ def run_luigi_task(module_name, task_name, parameter='', value=''):
         param_string = f'--{parameter} {value}'
     sp.run(
         f"luigi --module gomus.{module_name} "
-        f"{task_name}ToDB {param_string}".split()
+        f"{task_name}ToDb {param_string}".split()
     )
 
 
 def rename_output(name, offset):
     base_path = f'{os.environ["OUTPUT_DIR"]}/gomus/'
-    shutil.move(base_path + name,
-                base_path + f'{offset}_' + name)
+    try:
+        shutil.move(base_path + name,
+                    'historic_output/' + f'{offset}_' + name)
+    except FileNotFoundError:
+        print(name, 'could not be found!')

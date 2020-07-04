@@ -8,7 +8,6 @@ import luigi
 from luigi.format import UTF8
 from nltk.tokenize import word_tokenize
 import pandas as pd
-
 from csv_to_db import CsvToDb
 from logutils import StreamToLogger
 from posts import PostsToDb

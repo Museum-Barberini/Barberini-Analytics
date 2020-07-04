@@ -245,7 +245,8 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             'id',
             'ticket',
             'datetime',
-            'count'],
+            'count',
+            'unique_count'],
             ExtractDailyEntryData,
             *args, **kwargs)
 
@@ -253,14 +254,22 @@ class TestDailyEntryTransformation(GomusTransformationTest):
 
     # Don't prepare targets like usual because two inputs are expected
     def prepare_mock_targets(
-            self, input_mock, output_mock, infile_1, infile_2):
+            self, input_mock, output_mock,
+            infile_1, infile_2, infile_3, infile_4):
         input_target_1 = MockTarget('data_in_1', format=UTF8)
         input_target_2 = MockTarget('data_in_2', format=UTF8)
-        input_mock.return_value = iter([input_target_1, input_target_2])
+        input_target_3 = MockTarget('data_in_3', format=UTF8)
+        input_target_4 = MockTarget('data_in_4', format=UTF8)
+
+        input_mock.return_value = \
+            [iter([input_target_1, input_target_2]),
+             iter([input_target_3, input_target_4])]
         output_target = self.prepare_output_target(output_mock)
 
         self.write_file_to_target(input_target_1, infile_1)
         self.write_file_to_target(input_target_2, infile_2)
+        self.write_file_to_target(input_target_3, infile_3)
+        self.write_file_to_target(input_target_4, infile_4)
 
         return output_target
 
@@ -273,7 +282,10 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             input_mock,
             output_mock,
             'daily_entry_actual_in_1.csv',
-            'daily_entry_actual_in_2.csv')
+            'daily_entry_actual_in_2.csv',
+            'daily_entry_unique_actual_1.csv',
+            'daily_entry_unique_actual_2.csv'
+        )
 
         self.execute_task(expected=False)
 
@@ -290,7 +302,10 @@ class TestDailyEntryTransformation(GomusTransformationTest):
             input_mock,
             output_mock,
             'daily_entry_expected_in_1.csv',
-            'daily_entry_expected_in_2.csv')
+            'daily_entry_expected_in_2.csv',
+            'daily_entry_unique_expected_1.csv',
+            'daily_entry_unique_expected_2.csv'
+        )
 
         self.execute_task(expected=True)
 

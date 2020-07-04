@@ -72,7 +72,7 @@ luigi-restart-scheduler:
 	make luigi-scheduler
 	
 luigi:
-	make luigi-task LMODULE=fill_db LTASK=FillDB
+	make luigi-task LMODULE=fill_db LTASK=FillDb
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder

@@ -12,7 +12,7 @@ from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class CustomersToDB(CsvToDb):
+class CustomersToDb(CsvToDb):
 
     amount = luigi.parameter.Parameter(default='regular')
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -26,7 +26,7 @@ class CustomersToDB(CsvToDb):
             today=self.today)
 
 
-class GomusToCustomerMappingToDB(CsvToDb):
+class GomusToCustomerMappingToDb(CsvToDb):
 
     table = 'gomus_to_customer_mapping'
 
@@ -45,7 +45,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            CustomersToDb(),
             super()._requires()
         ])
 

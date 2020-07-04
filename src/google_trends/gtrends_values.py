@@ -11,20 +11,20 @@ from csv_to_db import CsvToDb
 from data_preparation import OUTPUT_DIR
 from db_connector import db_connector
 from google_trends.gtrends_topics import GtrendsTopics
-from json_to_csv import JsonToCsv
+from json_converters import JsonToCsv
 from museum_facts import MuseumFacts
 
 logger = logging.getLogger('luigi-interface')
 
 
-class GtrendsValuesToDB(luigi.WrapperTask):
+class GtrendsValuesToDb(luigi.WrapperTask):
 
     def requires(self):
-        yield GtrendsValuesClearDB()
-        yield GtrendsValuesAddToDB()
+        yield GtrendsValuesClearDb()
+        yield GtrendsValuesAddToDb()
 
 
-class GtrendsValuesClearDB(luigi.Task):
+class GtrendsValuesClearDb(luigi.Task):
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
@@ -35,7 +35,7 @@ class GtrendsValuesClearDB(luigi.Task):
     def output(self):
         # Pseudo output file to signal completion of the task
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/GtrendsValuesClearDB',
+            f'{OUTPUT_DIR}/{type(self).__name__}',
             format=UTF8
         )
 
@@ -60,7 +60,7 @@ class GtrendsValuesClearDB(luigi.Task):
             output.write('Done')
 
 
-class GtrendsValuesAddToDB(CsvToDb):
+class GtrendsValuesAddToDb(CsvToDb):
 
     table = 'gtrends_value'
 

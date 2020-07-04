@@ -26,10 +26,18 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public string Report { get; }
 
+        public string Name => Path.GetFileName(Report);
+
         /// <summary>
         /// The path to the PBI Desktop executable file.
         /// </summary>
         public string Desktop { get; }
+
+        /// <summary>
+        /// The delay Power BI is granted to hang before the first window is opened. If exceeded,
+        /// the test will timeout.
+        /// </summary>
+        public TimeSpan PreLoadDelay { get; }
 
         /// <summary>
         /// The delay Power BI is granted to hang after all data sources have been adapted
@@ -55,10 +63,12 @@ namespace MuseumBarberini.Analytics.Tests
         
         protected PbiProcessSnapshot Snapshot { get; private set; }
         
-        public PbiReportTestCase(string report, string desktop, TimeSpan loadDelay) {
+        public PbiReportTestCase(
+                string report, string desktop,
+                TimeSpan preLoadDelay, TimeSpan loadDelay) {
             Report = report;
             Desktop = desktop;
-            LoadDelay = loadDelay;
+            (PreLoadDelay, LoadDelay) = (preLoadDelay, loadDelay);
         }
 
         /// <summary>
@@ -73,6 +83,8 @@ namespace MuseumBarberini.Analytics.Tests
                     }
                 };
                 Process.Start();
+
+                System.Threading.Thread.Sleep(LoadDelay);
 
                 Snapshot = new PbiProcessSnapshot(Process);
             });
@@ -104,7 +116,8 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public void Stop()
             => _logExceptions(() => {
-                Process.Kill();
+                if (!Process.HasExited)
+                    Process.Kill();
             });
 
         /// <summary>
@@ -116,7 +129,7 @@ namespace MuseumBarberini.Analytics.Tests
             });
 
         public override string ToString() {
-            return $"PBI Report Test: {Path.GetFileName(Report)}";
+            return $"PBI Report Test: {Name}";
         }
 
         private void _check(Action handlePass, Action<string> handleFail) {
@@ -178,7 +191,7 @@ namespace MuseumBarberini.Analytics.Tests
         /// </summary>
         public IEnumerable<PbiWindowSnapshot> Windows => _windows;
         
-        private List<PbiWindowSnapshot> _windows;
+        private List<PbiWindowSnapshot> _windows = new List<PbiWindowSnapshot>();
 
         /// <summary>
         /// Update this snapshot.

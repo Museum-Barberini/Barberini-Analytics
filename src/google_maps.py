@@ -14,7 +14,7 @@ from data_preparation import DataPreparationTask
 logger = logging.getLogger('luigi-interface')
 
 
-class GoogleMapsReviewsToDB(CsvToDb):
+class GoogleMapsReviewsToDb(CsvToDb):
 
     table = 'google_maps_review'
 

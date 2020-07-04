@@ -129,20 +129,27 @@ class CollectPostNgrams(DataPreparationTask):
                     WHERE   word NOT IN (
                         SELECT word
                         FROM {self.stopword_table}
-                    )),
+                    )
+                ),
                 /* TODO Discuss: Do we really want to drop ngrams such as
                 "van Gogh" that include stopwords ("in") at any place? */
-                known_post_ids AS (
+                new_post_id AS (
                     SELECT post_id
-                    FROM {self.table})
+                    FROM post
+                    WHERE post_date > ANY(
+                        SELECT max(post_date)
+                        FROM {self.table}
+                        NATURAL JOIN post
+                    ) IS NOT FALSE
+                )
             SELECT  word{0}.source AS source,
                     word{0}.post_id AS post_id,
                     {n} AS n,
                     word{0}.word_index AS word_index,
                     CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS ngram
-            FROM    {mult_exp(f'word_relevant AS word{{i}}')}
+            FROM    {mult_exp('word_relevant AS word{i}')}
             WHERE   {mult_join('(word{i}.source, word{i}.post_id) ='
                                '(word{j}.source, word{j}.post_id)')}
             AND     {mult_join('word{i}.word_index + 1 = word{j}.word_index')}
-            AND     word{0}.post_id NOT IN (SELECT * FROM known_post_ids)
+            AND     word{0}.post_id IN (SELECT * FROM new_post_id)
         '''

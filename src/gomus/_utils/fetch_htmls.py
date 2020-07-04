@@ -8,7 +8,7 @@ import requests
 from luigi.format import UTF8
 
 from data_preparation import DataPreparationTask
-from gomus.orders import OrdersToDB
+from gomus.orders import OrdersToDb
 from gomus._utils.extract_bookings import ExtractGomusBookings
 
 
@@ -100,7 +100,7 @@ class FetchOrdersHTML(DataPreparationTask):
         self.order_ids = []
 
     def requires(self):
-        return OrdersToDB()
+        return OrdersToDb()
 
     def output(self):
         return luigi.LocalTarget(

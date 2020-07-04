@@ -1,21 +1,35 @@
--- Reorganize topic_modeling tables (!231)
+-- Tables for aspect mining baseline (!214)
 
 BEGIN;
 
-    CREATE SCHEMA topic_modeling;
+    -- Activate extensions for fuzzy search
+    CREATE EXTENSION fuzzystrmatch;
+    CREATE EXTENSION pg_trgm;
 
-    ALTER TABLE topic_modeling_texts
-        SET SCHEMA topic_modeling;
-    ALTER TABLE topic_modeling.topic_modeling_texts
-        RENAME TO topic_text;
-    ALTER TABLE topic_modeling.topic_text
-        RENAME CONSTRAINT topic_modeling_texts_pkey TO topic_text_pkey;
 
-    ALTER TABLE topic_modeling_topics
-        SET SCHEMA topic_modeling;
-    ALTER TABLE topic_modeling.topic_modeling_topics
-        RENAME TO topic;
-    ALTER TABLE topic_modeling.topic
-        RENAME CONSTRAINT topic_modeling_topics_pkey TO topic_pkey;
+    -- Create tables
+    CREATE TABLE absa.target_aspect (
+        aspect_id SERIAL PRIMARY KEY,
+        aspect text[]
+    );
+
+    CREATE TABLE absa.target_aspect_word (
+        aspect_id int REFERENCES absa.target_aspect,
+        word text,
+        PRIMARY KEY (aspect_id, word)
+    );
+
+    CREATE TABLE absa.post_aspect (
+        source TEXT,
+        post_id TEXT,
+        word_index INT,
+        FOREIGN KEY (source, post_id, word_index) REFERENCES absa.post_word,
+        aspect_id INT REFERENCES absa.target_aspect,
+        target_aspect_word TEXT,
+        FOREIGN KEY (aspect_id, target_aspect_word)
+            REFERENCES absa.target_aspect_word(aspect_id, word),
+        match_algorithm TEXT,
+        PRIMARY KEY (match_algorithm, source, post_id, word_index, aspect_id)
+    );
 
 COMMIT;
