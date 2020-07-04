@@ -73,7 +73,7 @@ class QueryDb(DataPreparationTask):
         df = pd.DataFrame(rows, columns=columns)
 
         df = self.transform(df)
-        
+
         self.write_output(df)
 
     def build_query(self):
