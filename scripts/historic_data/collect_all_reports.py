@@ -31,16 +31,12 @@ for week_offset in range(0, weeks):
 
     print(report_type, week_offset, today)
 
-    if report_type == 'orders':
-        run_luigi_task(report_type,
-                       cap_type,
-                       'today',
-                       today)
-    else:
-        run_luigi_task(report_type,
-                       'GomusToCustomerMapping',
-                       'today',
-                       today)
+    run_luigi_task(
+        report_type,
+        cap_type if report_type == 'orders' else 'GomusToCustomerMapping',
+        'today',
+        today
+    )
 
     rename_output(f'{report_type}.csv', week_offset)
     rename_output(f'{report_type}_7days.0.csv', week_offset)
