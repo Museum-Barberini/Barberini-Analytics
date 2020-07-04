@@ -99,14 +99,10 @@ class ExtractCustomerData(DataPreparationTask):
             'verein', 'stiftung'
         ]
 
-        contained_tags = []
+        if pd.isnull(mail):
+            return []
 
-        if not pd.isnull(mail):
-            for tag in tourism_tags:
-                if tag in mail:
-                    contained_tags.append(tag)
-
-        return contained_tags
+        return [tag for tag in tourism_tags if tag in mail]
 
 
 # Return hash for e-mail value, or alternative (usually original gomus_id
