@@ -359,10 +359,11 @@ class TestEventTransformation(GomusTransformationTest):
 
         gen = self.execute_task()
         try:
-            for dep in gen:
+            dep = next(gen)
+            while True:
                 target = MockTarget(cleanse_umlauts(dep.category), format=UTF8)
                 self.write_file_to_target(target, f'{dep.category}_in.csv')
-                gen.send(target)
+                dep = gen.send(target)
         except StopIteration:
             pass
 
