@@ -107,10 +107,9 @@ class CleansePostalCodes(DataPreparationTask):
 
             customer_df = customer_df.drop('result', axis=1)
 
-        if self.total_count == 0:
-            skip_percentage = '{0:.0%}'.format(0)
-        else:
-            skip_percentage = '{0:.0%}'.format(
+        skip_percentage = '{0:.0%}'.format(
+            self.skip_count / self.total_count if self.total_count else 0
+        )
                 self.skip_count/self.total_count)
 
         logger.info('')
