@@ -64,7 +64,7 @@ BEGIN;
                     gomus_customer as c,
                     gomus_booking as b
                 where 
-                    c.customer_id=b.customer_id
+                    c.customer_id = b.customer_id
                 group by 
                     c.customer_id
             ),
