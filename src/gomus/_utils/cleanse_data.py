@@ -104,7 +104,7 @@ class CleansePostalCodes(DataPreparationTask):
                 [result[0] for result in results]
             customer_df['cleansed_country'] = \
                 [result[1] for result in results]
-        
+
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
         )
