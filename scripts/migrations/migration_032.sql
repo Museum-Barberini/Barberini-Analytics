@@ -2,7 +2,7 @@
 
 BEGIN;
 
-    ALTER TABLE gomus_customer ADD COLUMN tourism_tags TEXT [];
+    ALTER TABLE gomus_customer ADD COLUMN tourism_tags TEXT[];
 
     CREATE VIEW customer_characteristics as (
         with 
