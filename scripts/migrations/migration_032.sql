@@ -1,4 +1,4 @@
--- add attribute and view for customer characteristics (!269)
+-- Add attribute and view for customer characteristics (!269)
 
 BEGIN;
 
