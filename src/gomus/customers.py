@@ -45,7 +45,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDb(),
+            CustomersToDb(today=self.today),
             super()._requires()
         ])
 
