@@ -33,9 +33,9 @@ BEGIN;
             o_common as (
                 select 
                     customer_id,
-                    (array_agg(
+                    array_agg(
                         ticket_name ORDER BY ticket_quantity DESC
-                    ))[1] as most_common_ticket
+                    )[1] as most_common_ticket
                 from (
                     select 
                         o.customer_id as customer_id,
