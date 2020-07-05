@@ -22,7 +22,7 @@ BEGIN;
                         gomus_order as o,
                         gomus_order_contains as oc 
                     where 
-                        o.order_id=oc.order_id
+                        o.order_id = oc.order_id
                     group by 
                         o.order_id,
                         o.customer_id
