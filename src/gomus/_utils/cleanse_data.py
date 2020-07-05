@@ -93,7 +93,7 @@ class CleansePostalCodes(DataPreparationTask):
         self.total_count = len(customer_df)
 
         if not customer_df.empty:
-            customer_df['result'] = customer_df.apply(
+            results = customer_df.apply(
                     lambda x: self.match_postal_code(
                         postal_code=x['postal_code'],
                         country=x['country'],
@@ -101,12 +101,10 @@ class CleansePostalCodes(DataPreparationTask):
                     ), axis=1)
 
             customer_df['cleansed_postal_code'] = \
-                [result[0] for result in customer_df['result']]
+                [result[0] for result in results]
             customer_df['cleansed_country'] = \
-                [result[1] for result in customer_df['result']]
-
-            customer_df = customer_df.drop('result', axis=1)
-
+                [result[1] for result in results]
+        
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
         )
