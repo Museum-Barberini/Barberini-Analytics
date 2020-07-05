@@ -9,14 +9,14 @@ BEGIN;
             o_general AS (
                 SELECT 
                     goc.customer_id AS customer_id,
-                    count(goc.o_id) AS order_count,
-                    sum(goc.quantity_sum) AS ordered_article_count, 
-                    sum(goc.order_price) AS sum_order_price 
+                    COUNT(goc.o_id) AS order_count,
+                    SUM(goc.quantity_sum) AS ordered_article_count, 
+                    SUM(goc.order_price) AS sum_order_price 
                 FROM (
                     SELECT 
                         o.order_id AS o_id,
-                        sum(oc.quantity) AS quantity_sum,
-                        sum(oc.price) AS order_price,
+                        SUM(oc.quantity) AS quantity_sum,
+                        SUM(oc.price) AS order_price,
                         o.customer_id AS customer_id 
                     FROM 
                         gomus_order AS o
@@ -38,7 +38,7 @@ BEGIN;
                     SELECT 
                         o.customer_id AS customer_id,
                         oc.ticket AS ticket_name,
-                        sum(quantity) AS ticket_quantity
+                        SUM(quantity) AS ticket_quantity
                     FROM
                         gomus_customer AS c
                         JOIN gomus_order AS o USING (customer_id)
@@ -53,8 +53,8 @@ BEGIN;
             b_general AS (
                 SELECT 
                     c.customer_id AS customer_id,
-                    count(b.booking_id) AS booking_count, 
-                    sum(b.participants) AS sum_booked_participants
+                    COUNT(b.booking_id) AS booking_count, 
+                    SUM(b.participants) AS sum_booked_participants
                 FROM 
                     gomus_customer AS c
                     JOIN gomus_booking AS b USING (customer_id)
@@ -71,7 +71,7 @@ BEGIN;
                     SELECT 
                         customer_id,
                         title,
-                        count(*) AS title_count
+                        COUNT(*) AS title_count
                     FROM 
                         gomus_booking AS b 
                     GROUP BY 
@@ -90,7 +90,7 @@ BEGIN;
                     SELECT
                         customer_id,
                         category,
-                        count(*) AS category_count
+                        COUNT(*) AS category_count
                     FROM 
                         gomus_booking AS b 
                     GROUP BY 
@@ -102,8 +102,8 @@ BEGIN;
             e_general AS (
                 SELECT 
                     c.customer_id AS customer_id,
-                    count(e.event_id) AS event_count, 
-                    sum(e.reservation_count) AS sum_event_reservations
+                    COUNT(e.event_id) AS event_count, 
+                    SUM(e.reservation_count) AS sum_event_reservations
                 FROM
                     gomus_customer AS c
                     JOIN gomus_event AS e USING (customer_id)
@@ -120,7 +120,7 @@ BEGIN;
                     SELECT 
                         customer_id,
                         booking_id,
-                        count(*) AS booking_reservations_count
+                        COUNT(*) AS booking_reservations_count
                     FROM 
                         gomus_event AS e
                     GROUP BY 
@@ -141,7 +141,7 @@ BEGIN;
                     SELECT 
                         customer_id,
                         category,
-                        count(*) AS category_count
+                        COUNT(*) AS category_count
                     FROM 
                         gomus_event AS e
                     GROUP BY 
