@@ -27,7 +27,10 @@ class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
                 source, post_id,
                 aspect_id,
                 avg(linear_distance) AS linear_distance,
-                avg(polarity) AS sentiment,
+                CASE
+                    WHEN sum(polarity) = 0 THEN NULL
+                    ELSE sum(polarity ^ 2) / sum(polarity)
+                END AS sentiment,
                 count(DISTINCT aspect_word_index) AS aspect_count,
                 count(DISTINCT polarity_word_index) AS polarity_count,
                 dataset,
@@ -51,6 +54,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
 
         return PostPhraseAspectPolaritiesLinearDistanceToDb()
 
+    #TODO: Decide whether we want to square polarity (commit from 2020-07-06)
     @property
     def query(self):
 
@@ -68,7 +72,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                 source, post_id,
                 aspect_id,
                 avg(linear_distance) AS linear_distance,
-                sum(polarity * linear_weight) / sum(linear_weight)
+                sum(polarity ^ 2 * linear_weight) / sum(polarity * linear_weight)
                     AS sentiment,
                 count(DISTINCT aspect_word_index) AS aspect_count,
                 count(DISTINCT polarity_word_index) AS polarity_count,
@@ -105,7 +109,10 @@ class PostPhraseAspectPolaritiesLinearDistanceToDb(QueryCacheToDb):
                     aspect_id,
                     aspect_word_index,  -- TODO: Add missing n
                     polarity_phrase_n, polarity_word_index,
-                    avg(polarity) AS polarity,
+                    CASE
+                        WHEN sum(polarity) = 0 THEN NULL
+                        ELSE sum(polarity ^ 2) / sum(polarity)
+                    END AS sentiment,
                     least(
                         min(abs(polarity_word_index - (
                             aspect_word_index + aspect_phrase_n - 1)
@@ -163,7 +170,10 @@ class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):
                 polarity_phrase.n AS polarity_phrase_n,
                 polarity_phrase.word_index AS polarity_word_index,
                 polarity_phrase.sentence_index AS polarity_sentence_index,
-                avg(polarity) AS polarity,
+                CASE
+                    WHEN sum(polarity) = 0 THEN NULL
+                    ELSE sum(polarity ^ 2) / sum(polarity)
+                END AS sentiment,
                 count(DISTINCT {self.aspect_table}.word_index) AS count,
                 dataset,
                 {self.aspect_table}.match_algorithm AS aspect_match_algorithm,

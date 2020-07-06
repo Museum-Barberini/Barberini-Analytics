@@ -169,7 +169,7 @@ BEGIN;
         SELECT
             source, post_id,
             aspect_id,
-            avg(polarity) AS sentiment,
+            sum(polarity ^ 2) / sum(polarity) AS sentiment,
             count(DISTINCT polarity_word_index) AS count,
             dataset,
             aspect_match_algorithm,
@@ -186,7 +186,7 @@ BEGIN;
         SELECT
             source, post_id,
             aspect_id,
-            avg(polarity) AS sentiment,
+            sum(polarity ^ 2) / sum(polarity) AS sentiment,
             count(DISTINCT polarity_word_index) AS count,
             dataset,
             aspect_match_algorithm,
