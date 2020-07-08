@@ -24,7 +24,7 @@ class GooglePlaystoreReviewsToDb(CsvToDb):
 class FetchGplayReviews(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
-        
+
         super().__init__(*args, **kwargs)
 
         self._app_id = None
