@@ -17,20 +17,25 @@ class GooglePlaystoreReviewsToDb(CsvToDb):
     table = 'gplay_review'
 
     def requires(self):
+
         return FetchGplayReviews()
 
 
 class FetchGplayReviews(DataPreparationTask):
 
     def __init__(self, *args, **kwargs):
+        
         super().__init__(*args, **kwargs)
+
         self._app_id = None
         self._url = None
 
     def requires(self):
+
         return MuseumFacts()
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/gplay_reviews.csv',
             format=luigi.format.UTF8
@@ -71,6 +76,7 @@ class FetchGplayReviews(DataPreparationTask):
         return reviews_df.drop_duplicates()
 
     def get_language_codes(self):
+
         language_codes_df = pd.read_csv('src/gplay/language_codes_gplay.csv')
         return language_codes_df['code'].to_list()
 
@@ -102,11 +108,11 @@ class FetchGplayReviews(DataPreparationTask):
         reviews_reduced = [
             {
                 **{
-                    key: r[key] for key in keep_values
+                    key: review[key] for key in keep_values
                 },
                 'app_id': self.app_id
             }
-            for r in reviews
+            for review in reviews
         ]
 
         return reviews_reduced
@@ -120,6 +126,7 @@ class FetchGplayReviews(DataPreparationTask):
         Note that the container name and the CONTAINER_USER
         environment variable are set in the docker-compose.yml.
         """
+
         if self._url:
             return self._url
 
@@ -130,6 +137,7 @@ class FetchGplayReviews(DataPreparationTask):
 
     @property
     def app_id(self):
+
         if self._app_id:
             return self._app_id
 
