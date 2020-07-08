@@ -30,6 +30,16 @@ class FetchGplayReviews(DataPreparationTask):
         self._app_id = None
         self._url = None
 
+    column_names = {
+        'id': 'playstore_review_id',
+        'date': 'date',
+        'score': 'rating',
+        'text': 'text',
+        'thumbsUp': 'likes',
+        'version': 'app_version',
+        'app_id': 'app_id'
+    }
+
     def requires(self):
 
         return MuseumFacts()
@@ -55,7 +65,7 @@ class FetchGplayReviews(DataPreparationTask):
 
         # Different languages have different reviews. Iterate over
         # the language codes to fetch all reviews.
-        language_codes = self.get_language_codes()
+        language_codes = self.load_language_codes()
         if self.minimal_mode:
             random_num = random.randint(0, len(language_codes) - 2)
             language_codes = list({
@@ -70,12 +80,11 @@ class FetchGplayReviews(DataPreparationTask):
         reviews_flattened = list(chain.from_iterable(reviews_nested))
         reviews_df = pd.DataFrame(
             reviews_flattened,
-            columns=['id', 'date', 'score', 'text',
-                     'title', 'thumbsUp', 'version', 'app_id']
+            columns=self.column_names.keys()
         )
         return reviews_df.drop_duplicates()
 
-    def get_language_codes(self):
+    def load_language_codes(self):
 
         language_codes_df = pd.read_csv('src/gplay/language_codes_gplay.csv')
         return language_codes_df['code'].to_list()
@@ -93,29 +102,23 @@ class FetchGplayReviews(DataPreparationTask):
             url=self.url,
             params={
                 'lang': language_code,
-                # num: max number of reviews to be fetched. We want all reviews
+                # max number of reviews to be fetched. We want all reviews.
                 'num': 1000000 if not self.minimal_mode else 12
             }
         )
-        # task should fail if request is not successful
         response.raise_for_status()
 
         reviews = response.json()['results']
 
-        # only return the values we want to keep
-        keep_values = ['id', 'date', 'score',
-                       'text', 'title', 'thumbsUp', 'version']
-        reviews_reduced = [
-            {
+        for review in reviews:
+            yield {
                 **{
-                    key: review[key] for key in keep_values
+                    key: review[key]
+                    for key in self.column_names
+                    if key != 'app_id'
                 },
                 'app_id': self.app_id
             }
-            for review in reviews
-        ]
-
-        return reviews_reduced
 
     @property
     def url(self):
@@ -153,19 +156,13 @@ class FetchGplayReviews(DataPreparationTask):
         types explicitly.
         """
 
-        reviews = reviews.rename(columns={
-            'id': 'playstore_review_id',
-            'score': 'rating',
-            'version': 'app_version',
-            'thumbsUp': 'likes'
-        })
+        reviews = reviews.rename(columns=self.column_names)
         columns = {
             'playstore_review_id': str,
             'text': str,
             'rating': int,
             'app_version': str,
             'likes': int,
-            'title': str,
             'date': str,
             'app_id': str
         }
