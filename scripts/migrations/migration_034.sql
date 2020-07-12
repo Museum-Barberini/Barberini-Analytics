@@ -1,10 +1,13 @@
--- Add post_sentiment relations (!253)
+-- Add post_aspect_sentiment relations (!253)
 
 BEGIN;
 
+    -- 1. Rename post_ngram.ngram column
     ALTER TABLE absa.post_ngram
         RENAME COLUMN ngram TO phrase;
 
+
+    -- 2. Add post_phrase_polarity table
 
     -- TODO consider: Reference to polarity phrase from here?
     CREATE TABLE absa.post_phrase_polarity (
@@ -23,6 +26,8 @@ BEGIN;
     );
 
 
+    -- 3. Add post_sentiment relations
+
     -- TODO consider: Merge with post_sentiment_sentence and make sentence_index nullable?
     CREATE TABLE absa.post_sentiment_document (
         source TEXT,
@@ -37,8 +42,6 @@ BEGIN;
         match_algorithm TEXT,
         PRIMARY KEY (source, post_id, dataset, match_algorithm)
     );
-
-
 
     CREATE TABLE absa.post_sentiment_sentence (
         source TEXT,
@@ -90,6 +93,8 @@ BEGIN;
     );
 
 
+    -- 4. Add post_phrase_aspect relations
+
     CREATE TABLE absa.post_phrase_aspect_polarity (
         source TEXT, post_id TEXT,
         aspect_id INT REFERENCES absa.target_aspect,
@@ -114,7 +119,6 @@ BEGIN;
         )
     );
 
-
     CREATE TABLE absa.post_phrase_aspect_polarity_linear_distance (
         source TEXT, post_id TEXT,
         aspect_id INT REFERENCES absa.target_aspect,
@@ -137,6 +141,9 @@ BEGIN;
             dataset, aspect_match_algorithm, sentiment_match_algorithm
         )
     );
+
+
+    -- 5. Add post_aspect_sentiment relations
 
     CREATE VIEW absa.post_aspect_sentiment_max_sentence AS (
         SELECT
@@ -233,7 +240,6 @@ BEGIN;
                 absa.post_aspect_sentiment_linear_distance_weight
         )
     );
-
 
     CREATE VIEW absa.post_aspect_sentiment AS (
         (
