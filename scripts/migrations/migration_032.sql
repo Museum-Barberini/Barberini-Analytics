@@ -169,7 +169,11 @@ BEGIN;
         SELECT
             source, post_id,
             aspect_id,
-            sum(polarity ^ 2) / sum(polarity) AS sentiment,
+             CASE
+                WHEN sum(polarity) > 0
+                THEN sum(polarity ^ 2) / sum(polarity)
+                ELSE NULL
+            END AS sentiment,
             count(DISTINCT polarity_word_index) AS count,
             dataset,
             aspect_match_algorithm,
@@ -186,7 +190,11 @@ BEGIN;
         SELECT
             source, post_id,
             aspect_id,
-            sum(polarity ^ 2) / sum(polarity) AS sentiment,
+            CASE
+                WHEN sum(polarity) > 0
+                THEN sum(polarity ^ 2) / sum(polarity)
+                ELSE NULL
+            END AS sentiment,
             count(DISTINCT polarity_word_index) AS count,
             dataset,
             aspect_match_algorithm,
