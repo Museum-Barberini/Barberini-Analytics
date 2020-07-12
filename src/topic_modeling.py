@@ -65,10 +65,7 @@ class TopicModelingTextsToDb(CsvToDb):
 
     table = 'topic_modeling.topic_text'
 
-    replace_content = True
-
     def requires(self):
-
         return TopicModelingTextDf()
 
 
@@ -81,10 +78,7 @@ class TopicModelingTopicsToDb(CsvToDb):
 
     table = 'topic_modeling.topic'
 
-    replace_content = True
-
     def requires(self):
-
         return TopicModelingTopicsDf()
 
 
@@ -113,6 +107,13 @@ class TopicModelingTopicsDf(DataPreparationTask):
         with self.output().open('w') as output_file:
             data.to_csv(output_file, index=True)
 
+        # delete existing topics data to make sure
+        # there are no inconsistencies after the new
+        # topics data is inserted.
+        db_connector().execute(
+            'TRUNCATE topic_modeling_topics'
+        )
+
 
 class TopicModelingTextDf(DataPreparationTask):
     """
@@ -138,6 +139,13 @@ class TopicModelingTextDf(DataPreparationTask):
             data = pd.read_csv(text_file)
         with self.output().open('w') as output_file:
             data.to_csv(output_file, index=True)
+
+        # delete existing topics data to make sure
+        # there are no inconsistencies after the new
+        # topics data is inserted.
+        db_connector().execute(
+            'TRUNCATE topic_modeling_texts'
+        )
 
 
 class TopicModelingFindTopics(DataPreparationTask):
