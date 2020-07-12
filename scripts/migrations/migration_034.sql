@@ -138,22 +138,6 @@ BEGIN;
         )
     );
 
-    /* CREATE TABLE absa.post_aspect_sentiment (
-        source TEXT, post_id TEXT,
-        --FOREIGN KEY (source, post_id) REFERENCES post,
-        aspect_id INT REFERENCES absa.target_aspect,
-        sentiment REAL,
-        count INT NOT NULL,
-        dataset TEXT NOT NULL,
-        aspect_match_algorithm TEXT NOT NULL,
-        sentiment_match_algorithm TEXT NOT NULL,
-        sentiment_model TEXT NOT NULL,
-        PRIMARY KEY (
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm,
-            sentiment_match_algorithm, sentiment_model
-        )
-    ); */
     CREATE VIEW absa.post_aspect_sentiment_max_sentence AS (
         SELECT
             source, post_id,
