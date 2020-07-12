@@ -144,7 +144,7 @@ class TopicModelingTextDf(DataPreparationTask):
         # there are no inconsistencies after the new
         # topics data is inserted.
         db_connector().execute(
-            'TRUNCATE topic_modeling.text'
+            'TRUNCATE topic_modeling.topic_text'
         )
 
 
