@@ -224,5 +224,6 @@ class QueryCacheToDb(DataPreparationTask):
 
         count = self.db_connector.query(f'SELECT COUNT(*) FROM {self.table}')
 
+        # Write dummy output for sake of complete()
         with self.output().open('w') as file:
             file.write(f"Cache of {count} rows")
