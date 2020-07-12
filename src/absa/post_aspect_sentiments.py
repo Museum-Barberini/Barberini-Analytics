@@ -15,13 +15,20 @@ class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
         return PostPhraseAspectPolaritiesLinearDistanceToDb()
 
     @property
+    def kwargs(self):
+
+        return dict(threshold=self.threshold)
+
+    threshold = 4
+
+    @property
     def query(self):
 
         return f'''
             WITH linear_distance AS (
                 SELECT *
                 FROM {self.phrase_aspect_table}
-                WHERE linear_distance <= 4
+                WHERE linear_distance <= %(threshold)
             )
             SELECT
                 source, post_id,
@@ -54,7 +61,15 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
 
         return PostPhraseAspectPolaritiesLinearDistanceToDb()
 
-    #TODO: Decide whether we want to square polarity (commit from 2020-07-06)
+    @property
+    def kwargs(self):
+
+        return dict(weight_alpha=self.weight_alpha)
+
+    weight_alpha = 5
+
+    # TODO: Decide whether we want to square polarity
+    # (See commit 99193460503243ae893d837a58470e7c93995448)
     @property
     def query(self):
 
@@ -63,7 +78,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                 SELECT
                     *,
                     round(
-                        exp(-((linear_distance::numeric / 5) ^ 2)),
+                        exp(-((linear_distance::numeric / %(weight_alpha)) ^ 2)),
                         6
                     ) AS linear_weight
                 FROM {self.phrase_aspect_table}

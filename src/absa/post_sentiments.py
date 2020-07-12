@@ -259,9 +259,7 @@ class CollectPostPhrasePolarities(QueryDb):
     @property
     def kwargs(self):
 
-        return {
-            'match_algorithm': self.match_algorithm.name
-        }
+        return dict(match_algorithm=self.match_algorithm.name)
 
     def requires(self):
 
