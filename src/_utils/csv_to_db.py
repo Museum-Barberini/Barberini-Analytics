@@ -90,6 +90,9 @@ class CsvToDb(CopyToTable):
             None if np.isnan(value) else str(int(value))
     }
 
+    """
+    If True, the table will be truncated before copying the new values.
+    """
     replace_content = False
 
     @property
