@@ -92,21 +92,23 @@ class CleansePostalCodes(DataPreparationTask):
 
         self.total_count = len(customer_df)
 
-        customer_df['result'] = customer_df.apply(
-                lambda x: self.match_postal_code(
-                    postal_code=x['postal_code'],
-                    country=x['country'],
-                    customer_id=x['customer_id']
-                ), axis=1)
+        if not customer_df.empty:
+            results = customer_df.apply(
+                    lambda x: self.match_postal_code(
+                        postal_code=x['postal_code'],
+                        country=x['country'],
+                        customer_id=x['customer_id']
+                    ), axis=1)
 
-        customer_df['cleansed_postal_code'] = \
-            [result[0] for result in customer_df['result']]
-        customer_df['cleansed_country'] = \
-            [result[1] for result in customer_df['result']]
+            customer_df['cleansed_postal_code'] = \
+                [result[0] for result in results]
+            customer_df['cleansed_country'] = \
+                [result[1] for result in results]
 
-        customer_df = customer_df.drop('result', axis=1)
+        skip_percentage = '{0:.0%}'.format(
+            self.skip_count / self.total_count if self.total_count else 0
+        )
 
-        skip_percentage = '{0:.0%}'.format(self.skip_count/self.total_count)
         logger.info('')
         logger.info('-------------------------------------------------')
         logger.info(f'Skipped {self.skip_count} of {self.total_count} '

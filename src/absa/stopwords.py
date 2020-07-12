@@ -14,12 +14,6 @@ class StopwordsToDb(CsvToDb):
 
     table = 'absa.stopword'
 
-    columns = [
-        ('word', 'TEXT'),
-    ]
-
-    primary_key = 'word'
-
 
 class LoadStopwords(DataPreparationTask):
 
