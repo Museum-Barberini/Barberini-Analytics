@@ -1,278 +1,180 @@
--- Add post_sentiment relations (!253)
+-- Add attribute and view for customer characteristics (!269)
 
 BEGIN;
 
-    ALTER TABLE absa.post_ngram
-        RENAME COLUMN ngram TO phrase;
+    ALTER TABLE gomus_customer ADD COLUMN tourism_tags TEXT[];
 
-
-    -- TODO consider: Reference to polarity phrase from here?
-    CREATE TABLE absa.post_phrase_polarity (
-        source TEXT, post_id TEXT,
-        n INT, word_index INT,
-        FOREIGN KEY (source, post_id, n, word_index)
-            REFERENCES absa.post_ngram,
-        polarity REAL,
-        stddev REAL,
-        dataset TEXT,
-        match_algorithm TEXT,
-        PRIMARY KEY (
-            source, post_id, n, word_index,
-            dataset, match_algorithm
-        )
-    );
-
-
-    -- TODO consider: Merge with post_sentiment_sentence and make sentence_index nullable?
-    CREATE TABLE absa.post_sentiment_document (
-        source TEXT,
-        post_id TEXT,
-        sentiment REAL,
-        CHECK (sentiment BETWEEN -1 AND 1),
-        stddev REAL,
-        subjectivity REAL,
-        CHECK (subjectivity BETWEEN -1 AND 1),
-        count INT,
-        dataset TEXT,
-        match_algorithm TEXT,
-        PRIMARY KEY (source, post_id, dataset, match_algorithm)
-    );
-
-
-
-    CREATE TABLE absa.post_sentiment_sentence (
-        source TEXT,
-        post_id TEXT,
-        sentence_index INT NOT NULL,
-        CHECK (sentence_index >= 0),
-        sentiment REAL,
-        CHECK (sentiment BETWEEN -1 AND 1),
-        stddev REAL,
-        subjectivity REAL,
-        CHECK (subjectivity BETWEEN -1 AND 1),
-        count INT,
-        dataset TEXT,
-        match_algorithm TEXT,
-        PRIMARY KEY (
-            source, post_id, sentence_index,
-            dataset, match_algorithm
-        )
-    );
-
-    CREATE VIEW absa.post_sentiment AS (
-        (
-            SELECT
-                source, post_id,
-                NULL AS sentence_index,
-                sentiment,
-                stddev,
-                subjectivity,
-                count,
-                dataset,
-                match_algorithm,
-                'same_document' AS sentiment_model
-            FROM
-                absa.post_sentiment_document
-        ) UNION (
-            SELECT
-                source, post_id,
-                sentence_index,
-                sentiment,
-                stddev,
-                subjectivity,
-                count,
-                dataset,
-                match_algorithm,
-                'same_sentence' AS sentiment_model
-            FROM
-                absa.post_sentiment_sentence
-        )
-    );
-
-
-    CREATE TABLE absa.post_phrase_aspect_polarity (
-        source TEXT, post_id TEXT,
-        aspect_id INT REFERENCES absa.target_aspect,
-        aspect_phrase_n INT, aspect_word_index INT,
-        FOREIGN KEY (source, post_id, aspect_phrase_n, aspect_word_index)
-           REFERENCES absa.post_ngram (source, post_id, n, word_index),
-        aspect_sentence_index INT,
-        polarity_phrase_n INT, polarity_word_index INT,
-        FOREIGN KEY (source, post_id, polarity_phrase_n, polarity_word_index)
-           REFERENCES absa.post_ngram (source, post_id, n, word_index),
-        polarity_sentence_index INT,
-        polarity REAL,
-        count INT,
-        dataset TEXT,
-        aspect_match_algorithm TEXT,
-        sentiment_match_algorithm TEXT,
-        PRIMARY KEY (
-            source, post_id, aspect_id,
-            aspect_phrase_n, aspect_word_index,
-            polarity_phrase_n, polarity_word_index,
-            dataset, aspect_match_algorithm, sentiment_match_algorithm
-        )
-    );
-
-
-    CREATE TABLE absa.post_phrase_aspect_polarity_linear_distance (
-        source TEXT, post_id TEXT,
-        aspect_id INT REFERENCES absa.target_aspect,
-        aspect_word_index INT,
-        FOREIGN KEY (source, post_id, aspect_word_index)
-            REFERENCES absa.post_word,  -- TODO: Add missing n
-        polarity_phrase_n INT, polarity_word_index INT,
-        FOREIGN KEY (source, post_id, polarity_phrase_n, polarity_word_index)
-            REFERENCES absa.post_ngram (source, post_id, n, word_index),
-        polarity REAL,
-        linear_distance INT,
-        count INT,
-        dataset TEXT,
-        aspect_match_algorithm TEXT,
-        sentiment_match_algorithm TEXT,
-        PRIMARY KEY (
-            source, post_id, aspect_id,
-            aspect_word_index,
-            polarity_word_index, polarity_phrase_n,
-            dataset, aspect_match_algorithm, sentiment_match_algorithm
-        )
-    );
-
-    /* CREATE TABLE absa.post_aspect_sentiment (
-        source TEXT, post_id TEXT,
-        --FOREIGN KEY (source, post_id) REFERENCES post,
-        aspect_id INT REFERENCES absa.target_aspect,
-        sentiment REAL,
-        count INT NOT NULL,
-        dataset TEXT NOT NULL,
-        aspect_match_algorithm TEXT NOT NULL,
-        sentiment_match_algorithm TEXT NOT NULL,
-        sentiment_model TEXT NOT NULL,
-        PRIMARY KEY (
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm,
-            sentiment_match_algorithm, sentiment_model
-        )
-    ); */
-    CREATE VIEW absa.post_aspect_sentiment_max_sentence AS (
-        SELECT
-            source, post_id,
-            aspect_id,
-             CASE
-                WHEN sum(polarity) > 0
-                THEN sum(polarity ^ 2) / sum(polarity)
-                ELSE NULL
-            END AS sentiment,
-            count(DISTINCT polarity_word_index) AS count,
-            dataset,
-            aspect_match_algorithm,
-            sentiment_match_algorithm
-        FROM absa.post_phrase_aspect_polarity
-        WHERE polarity_sentence_index = aspect_sentence_index
-        GROUP BY
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm,
-            sentiment_match_algorithm
-    );
-
-    CREATE VIEW absa.post_aspect_sentiment_max_document AS (
-        SELECT
-            source, post_id,
-            aspect_id,
-            CASE
-                WHEN sum(polarity) > 0
-                THEN sum(polarity ^ 2) / sum(polarity)
-                ELSE NULL
-            END AS sentiment,
-            count(DISTINCT polarity_word_index) AS count,
-            dataset,
-            aspect_match_algorithm,
-            sentiment_match_algorithm
-        FROM absa.post_phrase_aspect_polarity
-        GROUP BY
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm,
-            sentiment_match_algorithm
-    );
-
-    CREATE VIEW absa.post_aspect_sentiment_max AS (
-        (
-            SELECT *, 'same_document' AS sentiment_model
-            FROM absa.post_aspect_sentiment_max_document
-        ) UNION (
-            SELECT *, 'same_sentence' AS sentiment_model
-            FROM absa.post_aspect_sentiment_max_sentence
-        )
-    );
-
-
-    CREATE TABLE absa.post_aspect_sentiment_linear_distance_limit (
-        source TEXT, post_id TEXT,
-        aspect_id INT REFERENCES absa.target_aspect,
-        linear_distance INT,
-        sentiment REAL,
-        aspect_count INT, polarity_count INT,
-        dataset TEXT,
-        aspect_match_algorithm TEXT, sentiment_match_algorithm TEXT,
-        PRIMARY KEY (
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm, sentiment_match_algorithm
-        )
-    );
-
-    CREATE TABLE absa.post_aspect_sentiment_linear_distance_weight (
-        source TEXT, post_id TEXT,
-        aspect_id INT REFERENCES absa.target_aspect,
-        linear_distance INT,
-        sentiment REAL,
-        aspect_count INT, polarity_count INT,
-        dataset TEXT,
-        aspect_match_algorithm TEXT, sentiment_match_algorithm TEXT,
-        PRIMARY KEY (
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm, sentiment_match_algorithm
-        )
-    );
-
-    CREATE VIEW absa.post_aspect_sentiment_linear_distance AS (
-        (
-            SELECT
-                *,
-                'limit' AS distance_method
-            FROM
-                absa.post_aspect_sentiment_linear_distance_limit
-        ) UNION (
-            SELECT
-                *,
-                'weight' AS distance_method
-            FROM
-                absa.post_aspect_sentiment_linear_distance_weight
-        )
-    );
-
-
-    CREATE VIEW absa.post_aspect_sentiment AS (
-        (
-            SELECT
-                source, post_id, aspect_id,
-                sentiment,
-                dataset,
-                aspect_match_algorithm,
-                sentiment_match_algorithm,
-                sentiment_model
-            FROM
-                absa.post_aspect_sentiment_max
-        ) UNION (
-            SELECT
-                source, post_id, aspect_id,
-                sentiment,
-                dataset,
-                aspect_match_algorithm,
-                sentiment_match_algorithm,
-                'linear_distance_' || distance_method AS sentiment_model
-            FROM
-                absa.post_aspect_sentiment_linear_distance
-        )
+    CREATE VIEW customer_characteristics AS (
+        WITH 
+            o_general AS (
+                SELECT 
+                    goc.customer_id AS customer_id,
+                    COUNT(goc.o_id) AS order_count,
+                    SUM(goc.quantity_sum) AS ordered_article_count, 
+                    SUM(goc.order_price) AS sum_order_price 
+                FROM (
+                    SELECT 
+                        o.order_id AS o_id,
+                        SUM(oc.quantity) AS quantity_sum,
+                        SUM(oc.price) AS order_price,
+                        o.customer_id AS customer_id 
+                    FROM 
+                        gomus_order AS o
+                        JOIN gomus_order_contains AS oc USING (order_id)
+                    GROUP BY 
+                        o.order_id,
+                        o.customer_id
+                    ) AS goc
+                GROUP BY 
+                    goc.customer_id
+            ),
+            o_common AS (
+                SELECT 
+                    customer_id,
+                    (array_agg(
+                        ticket_name ORDER BY ticket_quantity DESC
+                    ))[1] AS most_common_ticket
+                FROM (
+                    SELECT 
+                        o.customer_id AS customer_id,
+                        oc.ticket AS ticket_name,
+                        SUM(quantity) AS ticket_quantity
+                    FROM
+                        gomus_customer AS c
+                        JOIN gomus_order AS o USING (customer_id)
+                        JOIN gomus_order_contains AS oc USING (order_id)
+                    GROUP BY 
+                        o.customer_id,
+                        oc.ticket
+                    ) AS grouped_ticket
+                GROUP BY 
+                    customer_id
+            ),
+            b_general AS (
+                SELECT 
+                    c.customer_id AS customer_id,
+                    COUNT(b.booking_id) AS booking_count, 
+                    SUM(b.participants) AS sum_booked_participants
+                FROM 
+                    gomus_customer AS c
+                    JOIN gomus_booking AS b USING (customer_id)
+                GROUP BY 
+                    c.customer_id
+            ),
+            b_common_name AS (
+                SELECT 
+                    customer_id,
+                    (array_agg(
+                        title ORDER BY title_count DESC
+                    ))[1] AS most_common_booking
+                FROM (
+                    SELECT 
+                        customer_id,
+                        title,
+                        COUNT(*) AS title_count
+                    FROM 
+                        gomus_booking AS b 
+                    GROUP BY 
+                        customer_id,
+                        title
+                    ) AS grouped_booking
+                GROUP BY customer_id
+            ), 
+            b_common_category AS (
+                SELECT 
+                    customer_id,
+                    (array_agg(
+                        category ORDER BY category_count DESC
+                    ))[1] AS most_common_booking_category
+                FROM (
+                    SELECT
+                        customer_id,
+                        category,
+                        COUNT(*) AS category_count
+                    FROM 
+                        gomus_booking AS b 
+                    GROUP BY 
+                        customer_id,
+                        category
+                    ) AS grouped_booking
+                GROUP BY customer_id
+            ),
+            e_general AS (
+                SELECT 
+                    c.customer_id AS customer_id,
+                    COUNT(e.event_id) AS event_count, 
+                    SUM(e.reservation_count) AS sum_event_reservations
+                FROM
+                    gomus_customer AS c
+                    JOIN gomus_event AS e USING (customer_id)
+                GROUP BY 
+                    c.customer_id
+            ),
+            e_common_name AS (
+                SELECT 
+                    grouped_event.customer_id AS customer_id,
+                    (array_agg(
+                        b.title ORDER BY booking_reservations_count DESC
+                    ))[1] AS most_common_event
+                FROM (
+                    SELECT 
+                        customer_id,
+                        booking_id,
+                        COUNT(*) AS booking_reservations_count
+                    FROM 
+                        gomus_event AS e
+                    GROUP BY 
+                        customer_id,
+                        booking_id
+                    ) AS grouped_event
+                    JOIN gomus_booking AS b USING (booking_id)
+                GROUP BY 
+                    grouped_event.customer_id
+            ),
+            e_common_category AS (
+                SELECT 
+                    customer_id,
+                    (array_agg(
+                        category ORDER BY category_count DESC
+                    ))[1] AS most_common_event_category
+                FROM (
+                    SELECT 
+                        customer_id,
+                        category,
+                        COUNT(*) AS category_count
+                    FROM 
+                        gomus_event AS e
+                    GROUP BY 
+                        customer_id,
+                        category
+                    ) AS grouped_event
+                GROUP BY 
+                    customer_id
+            )
+        SELECT 
+            c.*,
+            order_count,
+            ordered_article_count,
+            sum_order_price,
+            booking_count,
+            sum_booked_participants,
+            event_count,
+            sum_event_reservations,
+            most_common_ticket,
+            most_common_booking,
+            most_common_event,
+            most_common_booking_category,
+            most_common_event_category
+        FROM 
+            gomus_customer AS c
+            LEFT JOIN o_general USING (customer_id)
+            LEFT JOIN o_common USING (customer_id)
+            LEFT JOIN b_general USING (customer_id)
+            LEFT JOIN b_common_name USING (customer_id)
+            LEFT JOIN b_common_category USING (customer_id)
+            LEFT JOIN e_general USING (customer_id)
+            LEFT JOIN e_common_name USING (customer_id)
+            LEFT JOIN e_common_category USING (customer_id)
     );
 
 COMMIT;
