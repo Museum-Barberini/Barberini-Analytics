@@ -5,19 +5,8 @@ BEGIN;
     ALTER TABLE absa.post_ngram
         RENAME COLUMN ngram TO phrase;
 
-    /** TODO NEXT:
-      * [done] post_word_polarity als Tabelle in DB
-      * [done] post_aspect_sentiment_linear_distance
-      * für distances nur threshold oder auch weight function? weitere variation: weight vs limit
-      * Committen ...
-      * View post_aspect_sentiment muss dann nochmal aufgefächert werden: post_aspect_sentiment_always, post_aspect_sentiment_linear_distance, post_aspect_sentiment_grammar_distance
-            * STEHENGEBLIEBEN! Links stehendes View post_phrase_aspect_sentiment schön machen und in migration script. Einmal dist ignorieren und für linear_distance tresholden (z. B. 3).
-      * Sollen wir in post_phrase_polarity auf polarity phrase verweisen (mit in Primary key?)
-      * should post_aspect contain n?
-      * Lohnen sich separate Tabellen post_sentiment_document und post_sentiment_sentence wirklich? Vllt einfach sentence_index bei Bedarf auf NULL
-      * 
-      */
 
+    -- TODO consider: Reference to polarity phrase from here?
     CREATE TABLE absa.post_phrase_polarity (
         source TEXT, post_id TEXT,
         n INT, word_index INT,
@@ -34,7 +23,7 @@ BEGIN;
     );
 
 
-    -- TODO: Zusammmenlegen mit post_sentiment_sentence?
+    -- TODO consider: Merge with post_sentiment_sentence and make sentence_index nullable?
     CREATE TABLE absa.post_sentiment_document (
         source TEXT,
         post_id TEXT,

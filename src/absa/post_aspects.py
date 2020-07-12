@@ -20,6 +20,7 @@ class CollectPostAspects(ConcatCsvs):
     """
     TODO: Drop topological ancestors ("Ausstellungen" if there is
     also "Ausstellungen/van Gogh")
+    TODO: Add column "n" to table post_aspect
     """
 
     def requires(self):
