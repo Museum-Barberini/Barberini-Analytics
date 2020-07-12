@@ -1,7 +1,8 @@
 import luigi
 from luigi.mock import MockTarget
+import psycopg2.errors
 
-from csv_to_db import CsvToDb
+from csv_to_db import CsvToDb, QueryCacheToDb
 from db_test import DatabaseTestCase
 
 
@@ -164,6 +165,85 @@ tuple,array,str
         self.assertEqual(
             [(list(row[0]), *row[1:]) for row in COMPLEX_DATA],
             actual_data
+        )
+
+class TestQueryCacheToDb(DatabaseTestCase):
+
+    table = 'my_cool_cache'
+
+    def setUp(self):
+
+        super().setUp()
+
+        self.db_connector.execute(f'''
+            CREATE TABLE {self.table} (
+                spam INT,
+                eggs TEXT
+            )
+        ''')
+
+        self.task = QueryCacheToDb()
+        self.task.table = self.table
+
+    def test_simple(self):
+
+        self.task.query = f'''
+            SELECT * FROM (VALUES
+                (1, 'foo'),
+                (2, 'bar')
+            ) v(x, y)
+        '''
+
+        self.assertFalse(
+            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            msg="Cache table should be empty before running the task"
+        )
+
+        self.run_task(self.task)
+
+        self.assertSequenceEqual(
+            [(1, 'foo'), (2, 'bar')],
+            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            msg="Cache table should have been filled after running the task"
+        )
+
+        self.run_task(self.task)
+
+        self.assertSequenceEqual(
+            [(1, 'foo'), (2, 'bar')],
+            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            msg="Cache table should have been replaced after running the task"
+        )
+
+    def test_errorneous_query(self):
+
+        self.task.query = f'''
+            SELECT x / x * x, y FROM (VALUES
+                (0, 'foo'),
+                (2, 'bar')
+            ) v(x, y)
+        '''
+        self.db_connector.query(
+            f'''
+                INSERT INTO {self.table} VALUES (%s, %s);
+                SELECT NULL;  -- workaround for passing *args
+            ''',
+            42, "🥳"
+        )
+
+        self.assertEqual(
+            [(42, "🥳")],
+            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            msg="Cache table should contain old values before running the task"
+        )
+
+        with self.assertRaises(psycopg2.errors.DivisionByZero):
+            self.run_task(self.task)
+
+        self.assertEqual(
+            [(42, "🥳")],
+            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            msg="Cache table should still contain old values after the task failed"
         )
 
 

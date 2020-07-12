@@ -212,7 +212,6 @@ class CsvToDb(CopyToTable):
             return sql_file.read().format(*args)
 
 
-# TODO: Test
 class QueryCacheToDb(DataPreparationTask):
 
     def output(self):
