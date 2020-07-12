@@ -269,7 +269,7 @@ BEGIN;
                 dataset,
                 aspect_match_algorithm,
                 sentiment_match_algorithm,
-                'linear_distance' AS sentiment_model
+                'linear_distance_' || distance_method AS sentiment_model
             FROM
                 absa.post_aspect_sentiment_linear_distance
         )
