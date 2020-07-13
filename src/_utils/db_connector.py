@@ -7,7 +7,10 @@ from typing import Callable, Dict, Iterable, List, Tuple, TypeVar, Union
 logger = logging.getLogger('luigi-interface')
 
 T = TypeVar('T')
-TQueryAndArgs = Union[Iterable[object], Union[Iterable[object], Dict[str, object]]]
+TQueryAndArgs = Tuple[
+    str,
+    Union[Iterable[object], Dict[str, object]]
+]
 
 
 class DbConnector:
@@ -45,7 +48,10 @@ class DbConnector:
 
         return f'{type(self).__name__}(db={self.database})'
 
-    def execute(self, *queries: List[str]) -> List[Tuple]:
+    def execute(
+                self,
+                *queries: List[Union[str, TQueryAndArgs]]
+            ) -> List[Tuple]:
         """
         Execute one or multiple queries as one atomic operation and returns
         the results of all queries. If any query fails, all will be reverted
@@ -144,7 +150,7 @@ class DbConnector:
 
     def _execute_queries(
                 self,
-                queries_and_args: List[Tuple[str, TQueryAndArgs]],
+                queries_and_args: List[Union[str, TQueryAndArgs]],
                 result_function: Callable[[psycopg2.extensions.cursor], T]
             ) -> List[T]:
         """

@@ -18,14 +18,12 @@ class AspectBasedSentimentAnalysis(luigi.WrapperTask):
         yield PhrasePolaritiesToDb()
         yield PostAspectsToDb()
         yield PostNgramsToDb()
-        yield PostSentimentsToDb()  # TODO: Do we need this at all???
-                                    # Currently not referenced by
-                                    # PostAspectSentimentsToDb.
-                                    # Used by https://gitlab.hpi.de/
-                                    # bp-barberini/thesis-absa/
-                                    # absa-experiments/-/blob/master/
-                                    # compare_subjectivity.ipynb, which again
-                                    # is not referenced in https://
-                                    # gitlab.hpi.de/bp-barberini/thesis-absa/
-                                    # thesis-absa/-/blob/thesis/chapters/
-                                    # 05_evaluation/evaluation.tex ... 🤯
+
+        yield PostSentimentsToDb()
+        # TODO: Do we need this one at all???
+        # Currently not referenced by PostAspectSentimentsToDb. Used by
+        # https://gitlab.hpi.de/bp-barberini/thesis-absa/absa-experiments/-/
+        # blob/master/compare_subjectivity.ipynb, which again is not
+        # referenced in https://gitlab.hpi.de/bp-barberini/thesis-absa/
+        # thesis-absa/-/blob/thesis/chapters/05_evaluation/evaluation.tex ...
+        # 🤯
