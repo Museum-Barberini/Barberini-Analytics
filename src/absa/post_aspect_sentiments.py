@@ -113,7 +113,7 @@ class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
             WITH linear_distance AS (
                 SELECT *
                 FROM {self.phrase_aspect_table}
-                WHERE linear_distance <= %(threshold)
+                WHERE linear_distance <= %(threshold)s
             )
             SELECT
                 source, post_id,
@@ -164,7 +164,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                     *,
                     round(
                         exp(-(
-                            (linear_distance::numeric / %(weight_alpha)) ^ 2)
+                            (linear_distance::numeric / %(weight_alpha)s) ^ 2)
                         )),
                         6
                     ) AS linear_weight
