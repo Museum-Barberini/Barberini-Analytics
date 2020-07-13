@@ -14,11 +14,29 @@
 
 ## Tasks
 
+### Update project dependencies
+
+#### Motivation
+
+All installed (python) packages are specified by using a fixed version.
+This protects our solution against breaking changes from any package updates.
+However, updating packages, in general, is a good idea, because relying on old packages a) impedes further development as new features in libraries cannot be used, b) can break the connection to external access points whose interface has changed, and c) may leave recently discovered security leaks unfixed.
+Thus, updates should be carried out on a regular schedule.
+
+#### Action
+
+1. Check out a new branch.
+2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
+3. Create a merge request with your changes and make sure the CI passes.
+4. Once it passes, merge the branch.
+
 ### Update gomus version
 
 #### Motivation
 
-From time to time, Giant Monkey uses to publish a new version of go~mus. As we are scraping certain contents from the gomus web interface, each of these changes can possibly break our gomus tasks. The `TestGomusVersion` assertions will report any version change.
+From time to time, Giant Monkey uses to publish a new version of go~mus.
+As we are scraping certain contents from the gomus web interface, each of these changes can possibly break our gomus tasks.
+The `TestGomusVersion` assertions will report any version change.
 
 #### Action
 
@@ -29,4 +47,5 @@ From time to time, Giant Monkey uses to publish a new version of go~mus. As we a
 
 #### Remarks
 
-- In the past, we have experienced a few changes in the gomus HTML format without the version number being incremented. In this case, the `test_gomus_version` scraper needs to be updated. See !169.
+- In the past, we have experienced a few changes in the gomus HTML format without the version number being incremented.
+  In this case, the `test_gomus_version` scraper needs to be updated. See !169.
