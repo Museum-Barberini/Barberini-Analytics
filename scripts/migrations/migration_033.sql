@@ -1,4 +1,4 @@
--- add column is_cancelled (!281)
+-- add column is_cancelled (!283)
 
 BEGIN;
 
