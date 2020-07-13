@@ -76,6 +76,24 @@ class TestCsvToDb(DatabaseTestCase):
             f'SELECT * FROM {self.table_name}')
         self.assertEqual(EXPECTED_DATA, actual_data)
 
+    def test_replace_content(self):
+
+        # Set up database samples
+        self.db_connector.execute(f'''
+                INSERT INTO {self.table_name}
+                VALUES (0, 1, 'a', 'b');
+            ''')
+
+        # Execute code under test
+        self.dummy.replace_content = True
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual(EXPECTED_DATA, actual_data)
+
     def test_columns(self):
 
         self.run_task(self.dummy)
