@@ -15,6 +15,9 @@ google-api-python-client==1.7.11
 git+https://github.com/twollnik/twitterscraper.git#egg=twitterscraper
 
 # Analysis tools
+## ABSA
+spacy==2.3.1
+## topic_modeling
 git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
 langdetect==1.0.8
 nltk==3.5

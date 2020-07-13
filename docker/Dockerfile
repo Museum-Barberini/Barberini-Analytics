@@ -43,8 +43,11 @@ RUN $INSTALL libpq-dev
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
 
-# Install required nltk resource
+# Install required resources
+## nltk
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
+## spacy
+RUN python3 -m spacy download de_core_news_sm
 
 # Enable bash completion for best dev convenience
 # The following command uncomments a section in the bash.bashrc file which is

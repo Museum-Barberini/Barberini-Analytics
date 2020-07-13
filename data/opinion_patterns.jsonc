@@ -1,0 +1,25 @@
+{
+	"adj_noun": [
+		{
+			"pos": "ADJ",
+			"isSentiment": true
+		},
+		{
+			"pos": "NOUN",
+			"isAspect": true
+		}
+	],
+	"adj_adp_noun": [
+		{
+			"pos": "ADJ",
+			"isSentiment": true
+		},
+		{
+			"pos": "APD"
+		},
+		{
+			"pos": "NOUN",
+			"isAspect": true
+		}
+	]
+}
