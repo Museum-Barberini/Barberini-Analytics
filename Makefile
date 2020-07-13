@@ -139,3 +139,10 @@ db-restore:
 
 db-schema-report:
 	docker exec barberini_analytics_db pg_dump -U postgres -d barberini -s
+
+# --- Maintenance ---
+
+upgrade-requirements:
+	pip-upgrade docker/requirements.txt --skip-virtualenv-check -p all
+	echo "Upgrade successful, please run the CI now before merging the" \
+		 "upgrades into the master!"

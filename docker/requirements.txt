@@ -1,3 +1,6 @@
+# Helper to upgrade these requirements
+pip-upgrader==1.4.15
+
 # Framework
 luigi==2.8.12
 psycopg2==2.8.4
