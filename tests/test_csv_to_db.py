@@ -76,6 +76,24 @@ class TestCsvToDb(DatabaseTestCase):
             f'SELECT * FROM {self.table_name}')
         self.assertEqual(EXPECTED_DATA, actual_data)
 
+    def test_replace_content(self):
+
+        # Set up database samples
+        self.db_connector.execute(f'''
+                INSERT INTO {self.table_name}
+                VALUES (0, 1, 'a', 'b');
+            ''')
+
+        # Execute code under test
+        self.dummy.replace_content = True
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual(EXPECTED_DATA, actual_data)
+
     def test_columns(self):
 
         self.run_task(self.dummy)
@@ -149,6 +167,7 @@ tuple,array,str
             actual_data
         )
 
+
 class TestQueryCacheToDb(DatabaseTestCase):
 
     table = 'my_cool_cache'
@@ -164,17 +183,17 @@ class TestQueryCacheToDb(DatabaseTestCase):
             )
         ''')
 
-        self.task = QueryCacheToDb()
-        self.task.table = self.table
-
     def test_simple(self):
 
-        self.task.query = f'''
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
             SELECT * FROM (VALUES
                 (1, 'foo'),
                 (2, 'bar')
             ) v(x, y)
-        '''
+            '''
+        )
 
         self.assertFalse(
             self.db_connector.query(f'SELECT * FROM {self.table}'),
@@ -199,24 +218,25 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
     def test_errorneous_query(self):
 
-        self.task.query = f'''
-            SELECT x / x * x, y FROM (VALUES
-                (0, 'foo'),
-                (2, 'bar')
-            ) v(x, y)
-        '''
-        self.db_connector.query(
-            f'''
-                INSERT INTO {self.table} VALUES (%s, %s);
-                SELECT NULL;  -- workaround for passing *args
-            ''',
-            42, "🥳"
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
+                SELECT x / x * x, y FROM (VALUES
+                    (0, 'foo'),
+                    (2, 'bar')
+                ) v(x, y)
+            '''
         )
+        self.db_connector.execute((
+            f'INSERT INTO {self.table} VALUES (%s, %s)',
+            (42, "🥳")
+        ))
 
         self.assertEqual(
             [(42, "🥳")],
             self.db_connector.query(f'SELECT * FROM {self.table}'),
-            msg="Cache table should contain old values before running the task"
+            msg="Cache table should contain old values before running the "
+                "task"
         )
 
         with self.assertRaises(psycopg2.errors.DivisionByZero):
@@ -225,7 +245,51 @@ class TestQueryCacheToDb(DatabaseTestCase):
         self.assertEqual(
             [(42, "🥳")],
             self.db_connector.query(f'SELECT * FROM {self.table}'),
-            msg="Cache table should still contain old values after the task failed"
+            msg="Cache table should still contain old values after the task "
+                "failed"
+        )
+
+    def test_args(self):
+
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
+                SELECT * FROM (VALUES
+                    (%s, %s),
+                    (%s, '%%')
+                ) v(x, y)
+            ''',
+            args=(1, 'foo', 2)
+        )
+        self.task.output = lambda: \
+            luigi.mock.MockTarget(f'output/{self.table}')
+
+        self.run_task(self.task)
+
+        self.assertSequenceEqual(
+            [(1, 'foo'), (2, '%')],
+            self.db_connector.query(f'SELECT * FROM {self.table}')
+        )
+
+    def test_kwargs(self):
+
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
+                SELECT * FROM (VALUES
+                    (%(spam)s, %(eggs)s)
+                ) v(x, y)
+            ''',
+            kwargs={'spam': 42, 'eggs': 'foo'}
+        )
+        self.task.output = lambda: \
+            luigi.mock.MockTarget(f'output/{self.table}')
+
+        self.run_task(self.task)
+
+        self.assertSequenceEqual(
+            [(42, 'foo')],
+            self.db_connector.query(f'SELECT * FROM {self.table}')
         )
 
 
