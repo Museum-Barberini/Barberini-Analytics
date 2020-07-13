@@ -145,6 +145,26 @@ BEGIN;
 
     -- 5. Add post_aspect_sentiment relations
 
+    CREATE VIEW absa.post_aspect_sentiment_max_document AS (
+        SELECT
+            source, post_id,
+            aspect_id,
+            CASE
+                WHEN sum(polarity) > 0
+                THEN sum(polarity ^ 2) / sum(polarity)
+                ELSE NULL
+            END AS sentiment,
+            count(DISTINCT polarity_word_index) AS count,
+            dataset,
+            aspect_match_algorithm,
+            sentiment_match_algorithm
+        FROM absa.post_phrase_aspect_polarity
+        GROUP BY
+            source, post_id, aspect_id,
+            dataset, aspect_match_algorithm,
+            sentiment_match_algorithm
+    );
+
     CREATE VIEW absa.post_aspect_sentiment_max_sentence AS (
         SELECT
             source, post_id,
@@ -160,26 +180,6 @@ BEGIN;
             sentiment_match_algorithm
         FROM absa.post_phrase_aspect_polarity
         WHERE polarity_sentence_index = aspect_sentence_index
-        GROUP BY
-            source, post_id, aspect_id,
-            dataset, aspect_match_algorithm,
-            sentiment_match_algorithm
-    );
-
-    CREATE VIEW absa.post_aspect_sentiment_max_document AS (
-        SELECT
-            source, post_id,
-            aspect_id,
-            CASE
-                WHEN sum(polarity) > 0
-                THEN sum(polarity ^ 2) / sum(polarity)
-                ELSE NULL
-            END AS sentiment,
-            count(DISTINCT polarity_word_index) AS count,
-            dataset,
-            aspect_match_algorithm,
-            sentiment_match_algorithm
-        FROM absa.post_phrase_aspect_polarity
         GROUP BY
             source, post_id, aspect_id,
             dataset, aspect_match_algorithm,

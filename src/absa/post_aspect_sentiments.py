@@ -4,6 +4,89 @@ from .post_ngrams import PostNgramsToDb
 from .post_sentiments import PostPhrasePolaritiesToDb
 
 
+class PostAspectSentimentsToDb(luigi.WrapperTask):
+
+    def requires(self):
+
+        # For post_aspect_sentiment_max
+        yield PostPhraseAspectPolaritiesToDb()
+
+        yield PostAspectSentimentsLinearDistanceToDb()
+
+
+class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):
+
+    table = 'absa.post_phrase_aspect_polarity'
+
+    aspect_table = 'absa.post_aspect'
+
+    polarity_table = 'absa.post_phrase_polarity'
+
+    phrase_table = 'absa.post_ngram'
+
+    def requires(self):
+
+        yield PostAspectsToDb()
+        yield PostPhrasePolaritiesToDb()
+        yield PostNgramsToDb()
+
+    @property
+    def query(self):
+
+        return f'''
+            SELECT
+                polarity_phrase.source, polarity_phrase.post_id,
+                aspect_id,
+                aspect_phrase.n AS aspect_phrase_n,
+                aspect_phrase.word_index AS aspect_word_index,
+                aspect_phrase.sentence_index AS aspect_sentence_index,
+                polarity_phrase.n AS polarity_phrase_n,
+                polarity_phrase.word_index AS polarity_word_index,
+                polarity_phrase.sentence_index AS polarity_sentence_index,
+                CASE
+                    WHEN sum(polarity) = 0 THEN NULL
+                    ELSE sum(polarity ^ 2) / sum(polarity)
+                END AS sentiment,
+                count(DISTINCT {self.aspect_table}.word_index) AS count,
+                dataset,
+                {self.aspect_table}.match_algorithm AS aspect_match_algorithm,
+                post_phrase_polarity.match_algorithm
+                    AS sentiment_match_algorithm
+            FROM {self.polarity_table} AS post_phrase_polarity
+                JOIN {self.phrase_table} AS polarity_phrase
+                    USING (source, post_id, n, word_index)
+                JOIN {self.aspect_table}
+                    USING (source, post_id)
+                JOIN {self.phrase_table} AS aspect_phrase ON
+                    (
+                        aspect_phrase.source,
+                        aspect_phrase.post_id,
+                        aspect_phrase.word_index
+                    ) = (
+                        {self.aspect_table}.source,
+                        {self.aspect_table}.post_id,
+                        {self.aspect_table}.word_index
+                    )
+            GROUP BY
+                polarity_phrase.source, polarity_phrase.post_id,
+                aspect_id,
+                aspect_phrase.n, aspect_phrase.word_index,
+                polarity_phrase.n, polarity_phrase.word_index,
+                dataset, aspect_match_algorithm,
+                sentiment_match_algorithm,
+                -- Pseudo joins:
+                aspect_phrase.sentence_index, polarity_phrase.sentence_index
+        '''
+
+
+class PostAspectSentimentsLinearDistanceToDb(luigi.WrapperTask):
+
+    def requires(self):
+
+        yield PostAspectSentimentsLinearDistanceLimitToDb()
+        yield PostAspectSentimentsLinearDistanceWeightToDb()
+
+
 class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
 
     table = 'absa.post_aspect_sentiment_linear_distance_limit'
@@ -153,69 +236,4 @@ class PostPhraseAspectPolaritiesLinearDistanceToDb(QueryCacheToDb):
             )
             SELECT *
             FROM linear_distance
-        '''
-
-
-class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):
-
-    table = 'absa.post_phrase_aspect_polarity'
-
-    aspect_table = 'absa.post_aspect'
-
-    polarity_table = 'absa.post_phrase_polarity'
-
-    phrase_table = 'absa.post_ngram'
-
-    def requires(self):
-
-        yield PostAspectsToDb()
-        yield PostPhrasePolaritiesToDb()
-        yield PostNgramsToDb()
-
-    @property
-    def query(self):
-
-        return f'''
-            SELECT
-                polarity_phrase.source, polarity_phrase.post_id,
-                aspect_id,
-                aspect_phrase.n AS aspect_phrase_n,
-                aspect_phrase.word_index AS aspect_word_index,
-                aspect_phrase.sentence_index AS aspect_sentence_index,
-                polarity_phrase.n AS polarity_phrase_n,
-                polarity_phrase.word_index AS polarity_word_index,
-                polarity_phrase.sentence_index AS polarity_sentence_index,
-                CASE
-                    WHEN sum(polarity) = 0 THEN NULL
-                    ELSE sum(polarity ^ 2) / sum(polarity)
-                END AS sentiment,
-                count(DISTINCT {self.aspect_table}.word_index) AS count,
-                dataset,
-                {self.aspect_table}.match_algorithm AS aspect_match_algorithm,
-                post_phrase_polarity.match_algorithm
-                    AS sentiment_match_algorithm
-            FROM {self.polarity_table} AS post_phrase_polarity
-                JOIN {self.phrase_table} AS polarity_phrase
-                    USING (source, post_id, n, word_index)
-                JOIN {self.aspect_table}
-                    USING (source, post_id)
-                JOIN {self.phrase_table} AS aspect_phrase ON
-                    (
-                        aspect_phrase.source,
-                        aspect_phrase.post_id,
-                        aspect_phrase.word_index
-                    ) = (
-                        {self.aspect_table}.source,
-                        {self.aspect_table}.post_id,
-                        {self.aspect_table}.word_index
-                    )
-            GROUP BY
-                polarity_phrase.source, polarity_phrase.post_id,
-                aspect_id,
-                aspect_phrase.n, aspect_phrase.word_index,
-                polarity_phrase.n, polarity_phrase.word_index,
-                dataset, aspect_match_algorithm,
-                sentiment_match_algorithm,
-                -- Pseudo joins:
-                aspect_phrase.sentence_index, polarity_phrase.sentence_index
         '''
