@@ -183,17 +183,17 @@ class TestQueryCacheToDb(DatabaseTestCase):
             )
         ''')
 
-        self.task = QueryCacheToDb()
-        self.task.table = self.table
-
     def test_simple(self):
 
-        self.task.query = '''
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
             SELECT * FROM (VALUES
                 (1, 'foo'),
                 (2, 'bar')
             ) v(x, y)
-        '''
+            '''
+        )
 
         self.assertFalse(
             self.db_connector.query(f'SELECT * FROM {self.table}'),
@@ -218,19 +218,19 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
     def test_errorneous_query(self):
 
-        self.task.query = '''
-            SELECT x / x * x, y FROM (VALUES
-                (0, 'foo'),
-                (2, 'bar')
-            ) v(x, y)
-        '''
-        self.db_connector.query(
-            f'''
-                INSERT INTO {self.table} VALUES (%s, %s);
-                SELECT NULL;  -- workaround for passing *args
-            ''',
-            42, "🥳"
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
+                SELECT x / x * x, y FROM (VALUES
+                    (0, 'foo'),
+                    (2, 'bar')
+                ) v(x, y)
+            '''
         )
+        self.db_connector.execute((
+            f'INSERT INTO {self.table} VALUES (%s, %s)',
+            (42, "🥳")
+        ))
 
         self.assertEqual(
             [(42, "🥳")],
@@ -247,6 +247,49 @@ class TestQueryCacheToDb(DatabaseTestCase):
             self.db_connector.query(f'SELECT * FROM {self.table}'),
             msg="Cache table should still contain old values after the task "
                 "failed"
+        )
+
+    def test_args(self):
+
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
+                SELECT * FROM (VALUES
+                    (%s, %s),
+                    (%s, '%%')
+                ) v(x, y)
+            ''',
+            args=(1, 'foo', 2)
+        )
+        self.task.output = lambda: \
+            luigi.mock.MockTarget(f'output/{self.table}')
+
+        self.run_task(self.task)
+
+        self.assertSequenceEqual(
+            [(1, 'foo'), (2, '%')],
+            self.db_connector.query(f'SELECT * FROM {self.table}')
+        )
+
+    def test_kwargs(self):
+
+        self.task = QueryCacheToDb(
+            table=self.table,
+            query='''
+                SELECT * FROM (VALUES
+                    (%(spam)s, %(eggs)s)
+                ) v(x, y)
+            ''',
+            kwargs={'spam': 42, 'eggs': 'foo'}
+        )
+        self.task.output = lambda: \
+            luigi.mock.MockTarget(f'output/{self.table}')
+
+        self.run_task(self.task)
+
+        self.assertSequenceEqual(
+            [(42, 'foo')],
+            self.db_connector.query(f'SELECT * FROM {self.table}')
         )
 
 
