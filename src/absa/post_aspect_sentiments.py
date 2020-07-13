@@ -164,7 +164,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                     *,
                     round(
                         exp(-(
-                            (linear_distance::numeric / %(weight_alpha)s) ^ 2)
+                            (linear_distance::numeric / %(weight_alpha)s) ^ 2
                         )),
                         6
                     ) AS linear_weight
