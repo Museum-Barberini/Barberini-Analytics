@@ -1,3 +1,5 @@
+import luigi
+
 from csv_to_db import QueryCacheToDb
 from .post_aspects import PostAspectsToDb
 from .post_ngrams import PostNgramsToDb
