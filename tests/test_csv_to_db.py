@@ -149,6 +149,7 @@ tuple,array,str
             actual_data
         )
 
+
 class TestQueryCacheToDb(DatabaseTestCase):
 
     table = 'my_cool_cache'
@@ -169,7 +170,7 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
     def test_simple(self):
 
-        self.task.query = f'''
+        self.task.query = '''
             SELECT * FROM (VALUES
                 (1, 'foo'),
                 (2, 'bar')
@@ -199,7 +200,7 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
     def test_errorneous_query(self):
 
-        self.task.query = f'''
+        self.task.query = '''
             SELECT x / x * x, y FROM (VALUES
                 (0, 'foo'),
                 (2, 'bar')
@@ -216,7 +217,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
         self.assertEqual(
             [(42, "🥳")],
             self.db_connector.query(f'SELECT * FROM {self.table}'),
-            msg="Cache table should contain old values before running the task"
+            msg="Cache table should contain old values before running the "
+                "task"
         )
 
         with self.assertRaises(psycopg2.errors.DivisionByZero):
@@ -225,7 +227,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
         self.assertEqual(
             [(42, "🥳")],
             self.db_connector.query(f'SELECT * FROM {self.table}'),
-            msg="Cache table should still contain old values after the task failed"
+            msg="Cache table should still contain old values after the task "
+                "failed"
         )
 
 

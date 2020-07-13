@@ -161,7 +161,9 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                 SELECT
                     *,
                     round(
-                        exp(-((linear_distance::numeric / %(weight_alpha)) ^ 2)),
+                        exp(-(
+                            (linear_distance::numeric / %(weight_alpha)) ^ 2)
+                        )),
                         6
                     ) AS linear_weight
                 FROM {self.phrase_aspect_table}
@@ -170,7 +172,8 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                 source, post_id,
                 aspect_id,
                 avg(linear_distance) AS linear_distance,
-                sum(polarity ^ 2 * linear_weight) / sum(polarity * linear_weight)
+                sum(polarity ^ 2 * linear_weight)
+                        / sum(polarity * linear_weight)
                     AS sentiment,
                 count(DISTINCT aspect_word_index) AS aspect_count,
                 count(DISTINCT polarity_word_index) AS polarity_count,
