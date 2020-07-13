@@ -292,6 +292,15 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                             ",", ".").replace(
                             "€", ""))
 
+                    storno_mention = re.findall(
+                        r'(S|s)torn(o|ier)',
+                        html.tostring(  # mostly matches with "Stornogebühr"
+                            article,
+                            method='text',
+                            encoding='unicode')
+                    )
+                    new_article['is_cancelled'] = len(storno_mention) > 0
+
                     order_details.append(new_article)
 
         df = pd.DataFrame(order_details)
