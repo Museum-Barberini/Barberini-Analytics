@@ -1,4 +1,5 @@
 import json
+import logging
 
 import luigi
 from luigi.format import UTF8
@@ -11,6 +12,11 @@ from query_db import QueryDb
 from json_converters import JsoncToJson
 from data_preparation import DataPreparationTask
 from posts import PostsToDb
+
+
+logger = logging.getLogger('luigi-interface')
+
+tqdm.pandas()
 
 
 """
@@ -95,12 +101,29 @@ class CollectPostOpinionPhrases(DataPreparationTask):
         )
 
     def run(self):
-        # TODO: Submethods! Display progress?
 
-        inputs = self.input()
-        with inputs[0].open() as stream:
+        pattern_df, post_df = self.load_input()
+
+        logger.info("Analyzing posts ...")
+        post_df = self.analyze_grammar(post_df)
+        logger.info("Collecting opinion phrases ...")
+        post_pattern_df = self.collect_phrases(pattern_df, post_df)
+        logger.info("Storing ...")
+        post_pattern_df = post_pattern_df[[
+            'source', 'post_id', 'pattern_name',
+            'aspect_phrase', 'sentiment_phrase'
+        ]]
+
+        with self.output().open('w') as output:
+            post_pattern_df.to_csv(output, index=False)
+        logger.info("Done.")
+
+    def load_input(self):
+
+        input_ = self.input()
+        with input_[0].open() as stream:
             patterns = json.load(stream)
-        with inputs[1].open() as stream:
+        with input_[1].open() as stream:
             post_df = pd.read_csv(stream)
 
         pattern_df = pd.DataFrame(
@@ -109,16 +132,23 @@ class CollectPostOpinionPhrases(DataPreparationTask):
         )
         if self.minimal_mode:
             post_df = post_df.head(25)
-        tqdm.pandas()
+
+        return pattern_df, post_df
+
+    def analyze_grammar(self, post_df):
 
         nlp = spacy.load(self.spacy_model)
 
-        post_df['doc'] = post_df['text'].progress_apply(nlp)
-        post_df['pos_tags'] = post_df['doc'].apply(lambda doc:
-            [token.pos_ for token in doc]
+        return post_df.assign(doc=lambda post:
+            post.text.progress_apply(nlp)
+        ).assign(pos_tags=lambda post:
+            post.doc.apply(lambda doc: [token.pos_ for token in doc])
         )
 
+    def collect_phrases(self, pattern_df, post_df):
+
         post_pattern_df = cross_join(post_df, pattern_df)
+
         post_pattern_df['tokens_list'] = post_pattern_df.apply(
             lambda row: list(self.extract_opinions(row.pattern, row)),
             axis=1
@@ -128,6 +158,7 @@ class CollectPostOpinionPhrases(DataPreparationTask):
         ).rename(
             columns={'tokens_list': 'tokens'}
         )
+
         post_pattern_df['aspect_phrase'] = post_pattern_df.apply(
             lambda row: self.extract_segment(row.pattern, row, 'isAspect'),
             axis=1
@@ -136,13 +167,9 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             lambda row: self.extract_segment(row.pattern, row, 'isSentiment'),
             axis=1
         )
-        post_pattern_df = post_pattern_df[[
-            'source', 'post_id', 'pattern_name',
-            'aspect_phrase', 'sentiment_phrase'
-        ]]
 
-        with self.output().open('w') as output:
-            post_pattern_df.to_csv(output, index=False)
+        post_pattern_df.drop('tokens', axis=1)
+        return post_pattern_df
 
     def extract_opinions(self, pattern, post):
 
