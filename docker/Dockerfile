@@ -57,6 +57,7 @@ WORKDIR /app
 # Install python packages
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
+RUN pip3 check
 
 # Install required nltk resource
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
