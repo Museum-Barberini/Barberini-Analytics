@@ -21,5 +21,15 @@
 			"pos": "NOUN",
 			"isAspect": true
 		}
+	],
+	"noun_verb": [
+		{
+			"pos": "NOUN",
+			"isAspect": true
+		},
+		{
+			"pos": "VERB",
+			"isSentiment": true
+		}
 	]
 }
