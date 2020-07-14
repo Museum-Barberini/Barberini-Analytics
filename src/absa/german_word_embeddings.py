@@ -15,9 +15,9 @@ class FetchGermanWordEmbeddings(DataPreparationTask):
 
     def output(self):
 
-		# This file is about about 600 MB large, thus cache it in secret_files
+        # This file is about about 600 MB large, thus cache it in secret_files
         return luigi.LocalTarget(
-            f'secret_files/absa/german_word_embeddings.model',
+            'secret_files/absa/german_word_embeddings.model',
             format=Nop
         )
 

@@ -1,6 +1,5 @@
 import json
 import logging
-from tempfile import NamedTemporaryFile
 
 import gensim
 import luigi
@@ -9,7 +8,6 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN
 import spacy
-from spacy.tokens import Doc, Token
 from tqdm import tqdm
 
 from query_db import QueryDb
@@ -27,11 +25,13 @@ tqdm.pandas()
 """
 STEPS:
 - [x] one task that matches patterns and outputs aspect-sentiment-pairs
-- [x] one task that reads aspect-sentiment-pairs, matches sentiment weights and groups them by aspect
+- [x] one task that reads aspect-sentiment-pairs, matches sentiment weights
+      and groups them by aspect
 - [x] grouping
 - [ ] NEXT: create another table without foreign keys and write ToCsv task.
 
-- rename aspect_sentiment to opinion globally? rather no, but refine namings. what about opinion_phrase here?
+- rename aspect_sentiment to opinion globally? rather no, but refine namings.
+  what about opinion_phrase here?
 """
 
 
@@ -72,8 +72,11 @@ class CollectPostOpinionAspects(DataPreparationTask):
         df = nonnoise
 
         logger.info("Labelling clusters ...")
-        bins = df.groupby('bin')[['vec']].agg(lambda vecs:
-            np.array(list(np.average(list(vecs.apply(tuple)), axis=0)))
+        bins = df.groupby('bin')[['vec']].agg(
+            lambda vecs: np.array(list(np.average(
+                list(vecs.apply(tuple)),
+                axis=0
+            )))
         )
         bins['target_aspect_words'] = bins['vec'].apply(
             lambda vec: next(zip(*self.model.similar_by_vector(vec, topn=3)))
@@ -233,10 +236,12 @@ class CollectPostOpinionPhrases(DataPreparationTask):
 
         nlp = spacy.load(self.spacy_model)
 
-        return post_df.assign(doc=lambda post:
-            post.text.progress_apply(nlp)
-        ).assign(pos_tags=lambda post:
-            post.doc.apply(lambda doc: [token.pos_ for token in doc])
+        return post_df.assign(
+            doc=lambda post:
+                post.text.progress_apply(nlp)
+        ).assign(
+            pos_tags=lambda post:
+                post.doc.apply(lambda doc: [token.pos_ for token in doc])
         )
 
     def collect_phrases(self, pattern_df, post_df):
@@ -316,6 +321,7 @@ def cross_join(df1, df2):
         df2.assign(**{magic_name: None}),
         on=magic_name
     ).drop(magic_name, axis=1)
+
 
 def find_subseqs(seq, sub):
     """
