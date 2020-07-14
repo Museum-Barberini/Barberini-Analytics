@@ -56,7 +56,8 @@ class ExtractCustomerData(DataPreparationTask):
             'Sprache', 'Land', 'Typ',
             'Erstellt am', 'Jahreskarte',
             'Gültige E-Mail', 'Bereinigte PLZ',
-            'Bereinigtes Land', 'Tourismus Tags'])
+            'Bereinigtes Land', 'Tourismus Tags'
+            ])
 
         df.columns = self.columns
 
