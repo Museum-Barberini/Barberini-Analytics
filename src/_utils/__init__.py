@@ -15,10 +15,8 @@ from utils import ConcatCsvs, StreamToLogger        # noqa: E402
 
 # Backwards compatibility
 from _database import db_connector                  # noqa: E402
-                                                    # TODO: We might want to
-                                                    # use
-                                                    # flake8-per-file-ignores
-                                                    # at some time ...
+# TODO: At some time, we might want to use flake8-per-file-ignores or so ...
+
 
 __all__ = [
     DataPreparationTask,
