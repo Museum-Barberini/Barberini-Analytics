@@ -49,7 +49,7 @@ connect:
 # runs a command in the barberini_analytics_luigi container
 # example: sudo make docker-do do='make luigi'
 docker-do:
-	docker exec -i "${USER}-barberini_analytics_luigi" bash -c "$(do)"
+	docker exec -i "${USER}-barberini_analytics_luigi" $(SHELL) -c "$(do)"
 
 docker-clean-cache:
 	$(DOCKER_COMPOSE) -p ${USER} build --no-cache
