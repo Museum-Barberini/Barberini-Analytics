@@ -96,7 +96,7 @@ test ?= tests/**/test*.py
 # optional argument: testmodule
 # Usually you don't want to change this. All database tests in this solution
 # require DatabaseTestSuite from db_test. Only exception is tests/schema/**.
-test: export OUTPUT_DIR="output_test"
+test: export OUTPUT_DIR=output_test
 test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via **
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
