@@ -28,7 +28,7 @@ RUN wget --quiet --no-check-certificate -O - \
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ \
     `lsb_release -cs`-pgdg main" \
   | tee /etc/apt/sources.list.d/pgdg.list
-# scan new sources
+# Scan new sources
 RUN apt-get update
 RUN $INSTALL postgresql-client-12
 
