@@ -27,8 +27,10 @@ Thus, updates should be carried out on a regular schedule.
 
 1. Check out a new branch.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
-3. Create a merge request with your changes and make sure the CI passes.
-4. Once it passes, merge the branch.
+3. If `pip check` fails, you need to manually add the required dependencies to `docker/requirements.txt`.
+   This is neccessary because of https://github.com/pypa/pip/issues/988.
+4. Create a merge request with your changes and make sure the CI passes.
+5. Once it passes, merge the branch.
 
 ### Update gomus version
 
