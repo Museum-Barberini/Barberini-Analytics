@@ -1,7 +1,7 @@
--- Add attribute for whether customer is assumed to work in tourism
+-- add column is_cancelled (!283)
 
 BEGIN;
 
-    ALTER TABLE gomus_customer ADD COLUMN tourism_specialist BOOLEAN;
+    ALTER TABLE gomus_order_contains ADD COLUMN is_cancelled TEXT;
 
 COMMIT;
