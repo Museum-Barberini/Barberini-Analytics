@@ -23,7 +23,7 @@ class FetchGermanWordEmbeddings(DataPreparationTask):
 
     def run(self):
 
-        logger.info("Download german_word_embeddings")
+        logger.info("Downloading german_word_embeddings")
         response = urlopen(self.url)
 
         logger.info("Writing german_word_embeddings to file")

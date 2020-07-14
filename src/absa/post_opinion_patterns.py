@@ -1,9 +1,13 @@
 import json
 import logging
+from tempfile import NamedTemporaryFile
 
+import gensim
 import luigi
 from luigi.format import UTF8
+import numpy as np
 import pandas as pd
+from sklearn.cluster import DBSCAN
 import spacy
 from spacy.tokens import Doc, Token
 from tqdm import tqdm
@@ -12,6 +16,7 @@ from query_db import QueryDb
 from json_converters import JsoncToJson
 from data_preparation import DataPreparationTask
 from posts import PostsToDb
+from .german_word_embeddings import FetchGermanWordEmbeddings
 
 
 logger = logging.getLogger('luigi-interface')
@@ -22,12 +27,102 @@ tqdm.pandas()
 """
 STEPS:
 - [x] one task that matches patterns and outputs aspect-sentiment-pairs
-- [ ] one task that reads aspect-sentiment-pairs, matches sentiment weights and groups them by aspect
-    - where to put dbscan?
-- NEXT: Try again how good grouping works. Apply if any success. Then, create another table without foreign keys and write ToCsv task.
+- [x] one task that reads aspect-sentiment-pairs, matches sentiment weights and groups them by aspect
+- [x] grouping
+- [ ] NEXT: create another table without foreign keys and write ToCsv task.
 
 - rename aspect_sentiment to opinion globally? rather no, but refine namings. what about opinion_phrase here?
 """
+
+
+# TODO: Rename (sth with sentiment)
+# TODO: Split run()
+class CollectPostOpinionAspects(DataPreparationTask):
+
+    def requires(self):
+
+        yield CollectPostOpinionSentiments()
+        yield FetchGermanWordEmbeddings()
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/absa/post_opinion_aspects.csv',
+            format=UTF8
+        )
+
+    def run(self):
+
+        logger.info("Loading input ...")
+        df, self.model = self.load_input()
+
+        logger.info("Computing word vectors ...")
+        df['vec'] = df['aspect_phrase'].progress_apply(self.word2vec)
+        df = df.dropna(subset=['vec'])
+
+        logger.info("Clustering aspect phrases ...")
+        dbscan = DBSCAN(metric='cosine', eps=0.37, min_samples=2)
+        df['bin'] = dbscan.fit(list(df['vec'])).labels_
+
+        noise, nonnoise = (subdf for _, subdf in df.groupby(df['bin'] > -1))
+        logger.info(
+            f"DBSCAN: Created {len(nonnoise)} bins, "
+            f"{len(noise) / len(df) * 100 :.2f}% noise."
+        )
+        df = nonnoise
+
+        logger.info("Labelling clusters ...")
+        bins = df.groupby('bin')[['vec']].agg(lambda vecs:
+            np.array(list(np.average(list(vecs.apply(tuple)), axis=0)))
+        )
+        bins['target_aspect_words'] = bins['vec'].apply(
+            lambda vec: next(zip(*self.model.similar_by_vector(vec, topn=3)))
+        )
+        bins['target_aspect_word'] = bins['target_aspect_words'].apply(
+            lambda words: words[0]
+        )
+
+        df = df.merge(bins, on='bin')
+        df = df[[
+            'source', 'post_id', 'dataset',
+            'aspect_phrase', 'target_aspect_word', 'target_aspect_words',
+            'count', 'sentiment'
+        ]]
+
+        logger.info("Storing ...")
+        with self.output().open('w') as stream:
+            df.to_csv(stream, index=False)
+        logger.info("Done.")
+
+    def load_input(self):
+
+        input_ = self.input()
+        with input_[0].open() as stream:
+            df = pd.read_csv(stream)
+        model = gensim.models.KeyedVectors.load_word2vec_format(
+            input_[1].path,
+            binary=True
+        )
+        return df, model
+
+    word2vec_trans = str.maketrans({
+        " ": '_',
+        "ä": 'ae',
+        "ö": 'oe',
+        "ü": 'ue',
+        "Ä": 'Ae',
+        "Ö": 'Oe',
+        "Ü": 'Ue',
+        "ß": 'ss'
+    })
+
+    def word2vec(self, word):
+
+        word = word.translate(self.word2vec_trans)
+        try:
+            return self.model.get_vector(word)
+        except KeyError:
+            return None
 
 
 class CollectPostOpinionSentiments(DataPreparationTask):
