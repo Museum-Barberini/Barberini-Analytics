@@ -14,17 +14,61 @@ from posts import PostsToDb
 
 
 """
-NEXT STEPS:
+STEPS:
 - [x] one task that matches patterns and outputs aspect-sentiment-pairs
 - [ ] one task that reads aspect-sentiment-pairs, matches sentiment weights and groups them by aspect
     - where to put dbscan?
+- NEXT: Try again how good grouping works. Apply if any success. Then, create another table without foreign keys and write ToCsv task.
 
 - rename aspect_sentiment to opinion globally? rather no, but refine namings. what about opinion_phrase here?
 """
 
-class CollectPostOpinions(DataPreparationTask):
+
+class CollectPostOpinionSentiments(DataPreparationTask):
+
+    polarity_table = 'absa.phrase_polarity'
+
+    def requires(self):
+
+        yield CollectPostOpinionPhrases()
+        yield QueryDb(query=f'''
+            SELECT dataset, phrase, weight
+            FROM {self.polarity_table}
+        ''')
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/absa/post_opinion_sentiments.csv',
+            format=UTF8
+        )
+
+    def run(self):
+
+        input = self.input()
+        with input[0].open() as stream:
+            opinion_phrases = pd.read_csv(stream)
+        with input[1].open() as stream:
+            polarity_phrases = pd.read_csv(stream)
+
+        opinion_sentiments = pd.merge(
+            opinion_phrases,
+            polarity_phrases,
+            left_on='sentiment_phrase',
+            right_on='phrase'
+        ).groupby(by=['source', 'post_id', 'dataset', 'aspect_phrase'])[
+            'weight'
+        ].agg(sentiment='mean', count='count')
+
+        with self.output().open('w') as stream:
+            opinion_sentiments.to_csv(stream, index=True)
+
+
+class CollectPostOpinionPhrases(DataPreparationTask):
 
     spacy_model = 'de_core_news_sm'
+
+    post_table = 'post'
 
     def _requires(self):
 
@@ -36,9 +80,9 @@ class CollectPostOpinions(DataPreparationTask):
     def requires(self):
 
         yield LoadOpinionPatterns()
-        yield QueryDb(query='''
+        yield QueryDb(query=f'''
             SELECT source, post_id, text
-            FROM post
+            FROM {self.post_table}
             WHERE NOT is_from_museum
             AND text IS NOT NULL
         ''')
@@ -46,11 +90,12 @@ class CollectPostOpinions(DataPreparationTask):
     def output(self):
 
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/post_opinions.csv',
+            f'{self.output_dir}/absa/post_opinion_phrases.csv',
             format=UTF8
         )
 
     def run(self):
+        # TODO: Submethods! Display progress?
 
         inputs = self.input()
         with inputs[0].open() as stream:
@@ -83,17 +128,17 @@ class CollectPostOpinions(DataPreparationTask):
         ).rename(
             columns={'tokens_list': 'tokens'}
         )
-        post_pattern_df['aspect_word'] = post_pattern_df.apply(
+        post_pattern_df['aspect_phrase'] = post_pattern_df.apply(
             lambda row: self.extract_segment(row.pattern, row, 'isAspect'),
             axis=1
         )
-        post_pattern_df['sentiment_word'] = post_pattern_df.apply(
+        post_pattern_df['sentiment_phrase'] = post_pattern_df.apply(
             lambda row: self.extract_segment(row.pattern, row, 'isSentiment'),
             axis=1
         )
         post_pattern_df = post_pattern_df[[
             'source', 'post_id', 'pattern_name',
-            'aspect_word', 'sentiment_word'
+            'aspect_phrase', 'sentiment_phrase'
         ]]
 
         with self.output().open('w') as output:
