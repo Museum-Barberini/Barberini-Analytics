@@ -5,7 +5,7 @@ from luigi.mock import MockTarget
 import pandas as pd
 from unittest.mock import patch
 
-from data_preparation import ConcatCsvs, DataPreparationTask
+from _utils import ConcatCsvs, DataPreparationTask
 from db_test import DatabaseTestCase
 
 TABLE_NAME = 'test_table'

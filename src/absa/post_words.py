@@ -4,10 +4,8 @@ import luigi
 import pandas as pd
 import regex
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from posts import PostsToDb
-from query_db import QueryDb
+from _utils import CsvToDb, DataPreparationTask, QueryDb
+from _posts import PostsToDb
 
 
 regex_type = type(regex.compile(''))

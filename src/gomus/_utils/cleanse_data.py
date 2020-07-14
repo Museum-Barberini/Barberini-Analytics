@@ -6,11 +6,10 @@ import pandas as pd
 import re
 from luigi.format import UTF8
 
-from data_preparation import DataPreparationTask
-from gomus._utils.extract_customers import ExtractCustomerData
-from _utils.german_postal_codes import GermanPostalCodes
+from _utils import DataPreparationTask, logger
+from .extract_customers import ExtractCustomerData
+from german_postal_codes import GermanPostalCodes
 
-logger = logging.getLogger('luigi-interface')
 
 COUNTRY_TO_DATA = {
     'Deutschland':

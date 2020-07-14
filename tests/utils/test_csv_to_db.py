@@ -1,7 +1,7 @@
 import luigi
 from luigi.mock import MockTarget
 
-from csv_to_db import CsvToDb
+from _utils import CsvToDb
 from db_test import DatabaseTestCase
 
 

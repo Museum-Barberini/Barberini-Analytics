@@ -3,13 +3,9 @@ import luigi
 import luigi.format
 import pandas as pd
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from query_db import QueryDb
+from _utils import CsvToDb, DataPreparationTask, QueryDb, logger
 from .post_words import PostWordsToDb
 from .stopwords import StopwordsToDb
-
-logger = logging.getLogger('luigi-interface')
 
 
 class PostNgramsToDb(CsvToDb):

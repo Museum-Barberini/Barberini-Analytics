@@ -8,13 +8,10 @@ import requests
 from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from gomus._utils.extract_customers import hash_id
-from gomus._utils.fetch_report import FetchEventReservations
-from gomus.bookings import BookingsToDb
-
-logger = logging.getLogger('luigi-interface')
+from _utils import CsvToDb, DataPreparationTask, logger
+from ._utils.extract_customers import hash_id
+from ._utils.fetch_report import FetchEventReservations
+from .bookings import BookingsToDb
 
 
 class EventsToDb(CsvToDb):

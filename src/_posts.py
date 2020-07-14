@@ -16,6 +16,7 @@ class PostsToDb(luigi.WrapperTask):
     )
 
     def requires(self):
+
         yield AppstoreReviewsToDb()
         yield FbPostsToDb()
         yield FbPostCommentsToDb()

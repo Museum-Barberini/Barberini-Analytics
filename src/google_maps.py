@@ -8,10 +8,7 @@ import oauth2client.client
 import pandas as pd
 from oauth2client.file import Storage
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-
-logger = logging.getLogger('luigi-interface')
+from _utils import CsvToDb, DataPreparationTask, logger
 
 
 class GoogleMapsReviewsToDb(CsvToDb):

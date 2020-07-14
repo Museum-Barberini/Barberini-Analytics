@@ -3,7 +3,7 @@ import time
 
 import psycopg2
 
-from db_connector import DbConnector
+from _utils import DbConnector
 from db_test import DatabaseTestCase
 
 

@@ -2,8 +2,7 @@ import json
 import luigi
 import random
 
-from data_preparation import DataPreparationTask
-from museum_facts import MuseumFacts
+from _utils import DataPreparationTask, MuseumFacts
 
 
 class GtrendsTopics(DataPreparationTask):

@@ -2,6 +2,9 @@ from ast import literal_eval
 import datetime as dt
 from io import StringIO
 import logging
+import os
+import psycopg2
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
@@ -9,10 +12,11 @@ import numpy as np
 import pandas as pd
 from psycopg2.errors import UndefinedTable
 
-import db_connector
-from data_preparation import minimal_mode
+import _utils
 
-logger = logging.getLogger('luigi-interface')
+logger = _utils.logger
+
+T = TypeVar('T')
 
 
 class CsvToDb(CopyToTable):
@@ -23,7 +27,7 @@ class CsvToDb(CopyToTable):
     """
 
     minimal_mode = luigi.parameter.BoolParameter(
-        default=minimal_mode,
+        default=_utils.minimal_mode,
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
 
@@ -44,7 +48,7 @@ class CsvToDb(CopyToTable):
         super().__init__(*args, **kwargs)
 
         # Set db connection parameters using env vars
-        self.db_connector = db_connector.db_connector()
+        self.db_connector = _utils.db_connector()
         self.host = self.db_connector.host
         self.database = self.db_connector.database
         self.user = self.db_connector.user
@@ -97,6 +101,7 @@ class CsvToDb(CopyToTable):
 
     @property
     def columns(self):
+
         if not self._columns:
             table_path = self.table_path
             self._columns = self.db_connector.query(f'''
@@ -115,6 +120,7 @@ class CsvToDb(CopyToTable):
 
     @property
     def primary_constraint_name(self):
+
         if not self._primary_constraint_name:
             table_path = self.table_path
             self._primary_constraint_name = self.db_connector.query(f'''
@@ -182,6 +188,7 @@ class CsvToDb(CopyToTable):
             yield (line,)
 
     def read_csv(self, input_csv):
+
         with input_csv.open('r') as file:
             # Optimization. We're only interested in the column names, no
             # need to read the whole file.
@@ -210,5 +217,100 @@ class CsvToDb(CopyToTable):
         )
 
     def load_sql_script(self, name, *args):
+
         with open(self.sql_file_path_pattern.format(name)) as sql_file:
             return sql_file.read().format(*args)
+
+
+class QueryDb(_utils.DataPreparationTask):
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        try:
+            self.args = str(self.args)
+        except AttributeError:
+            pass  # args was overridden and does not need conversion
+        try:
+            self.kwargs = str(self.kwargs)
+        except AttributeError:
+            pass  # kwargs was overridden and does not need conversion
+
+    query = luigi.Parameter(
+        description="The SQL query to perform on the DB"
+    )
+
+    # Don't use a ListParameter here to preserve free typing of arguments
+    # TODO: Fix warnings
+    args = luigi.Parameter(
+        default=(),
+        description="The SQL query's positional arguments"
+    )
+
+    # Don't use a DictParameter here to preserve free typing of arguments
+    # TODO: Fix warnings
+    kwargs = luigi.Parameter(
+        default={},
+        description="The SQL query's named arguments"
+    )
+
+    limit = luigi.parameter.IntParameter(
+        default=-1,
+        description="The maximum number posts to fetch. Optional. If -1, "
+                    "all posts will be fetched.")
+
+    shuffle = luigi.BoolParameter(
+        default=False,
+        description="If True, all posts will be shuffled. For debugging and "
+                    "exploration purposes. Might impact performance.")
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/{self.task_id}.csv',
+            format=luigi.format.UTF8
+        )
+
+    def run(self):
+
+        args, kwargs = self.args, self.kwargs
+        if isinstance(args, str):
+            # Unpack luigi-serialized parameter
+            args = literal_eval(args)
+        if isinstance(kwargs, str):
+            # Unpack luigi-serialized parameter
+            kwargs = literal_eval(kwargs)
+
+        query = self.build_query()
+        rows, columns = self.db_connector.query_with_header(
+            query, *args, **kwargs
+        )
+        df = pd.DataFrame(rows, columns=columns)
+
+        df = self.transform(df)
+
+        self.write_output(df)
+
+    def build_query(self):
+
+        query = self.query
+        if self.shuffle:
+            query += ' ORDER BY RANDOM()'
+        if self.minimal_mode and self.limit == -1:
+            self.limit = 50
+        if self.limit and self.limit != -1:
+            query += f' LIMIT {self.limit}'
+        return query
+
+    def transform(self, df):
+        """
+        Hook for subclasses.
+        """
+
+        return df
+
+    def write_output(self, df):
+
+        with self.output().open('w') as output_stream:
+            df.to_csv(output_stream, index=False, header=True)

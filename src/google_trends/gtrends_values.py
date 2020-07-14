@@ -7,24 +7,21 @@ from luigi.format import UTF8
 
 from luigi.contrib.external_program import ExternalProgramTask
 
-from csv_to_db import CsvToDb
-from data_preparation import OUTPUT_DIR
-from db_connector import db_connector
-from google_trends.gtrends_topics import GtrendsTopics
-from json_converters import JsonToCsv
-from museum_facts import MuseumFacts
+import _utils
+from .gtrends_topics import GtrendsTopics
 
-logger = logging.getLogger('luigi-interface')
+logger = _utils.logger
 
 
 class GtrendsValuesToDb(luigi.WrapperTask):
 
     def requires(self):
+
         yield GtrendsValuesClearDb()
         yield GtrendsValuesAddToDb()
 
 
-class GtrendsValuesClearDb(luigi.Task):
+class GtrendsValuesClearDb(_utils.DataPreparationTask):
     """
     Each time we acquire gtrends values, their scaling may have changed. Thus
     we need to delete old data to avoid inconsistent scaling of the values.
@@ -33,20 +30,23 @@ class GtrendsValuesClearDb(luigi.Task):
     table = 'gtrends_value'
 
     def output(self):
+
         # Pseudo output file to signal completion of the task
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/{type(self).__name__}',
+            f'{_utils.OUTPUT_DIR}/{type(self).__name__}',
             format=UTF8
         )
 
     def requires(self):
+
         return GtrendsTopics()
 
     def run(self):
+
         with self.input().open('r') as topics_file:
             topics = json.load(topics_file)
         try:
-            db_connector().execute(f'''
+            self.db_connector.execute(f'''
                 DELETE FROM {self.table}
                 WHERE topic IN ({
                     ','.join([f"'{topic}'" for topic in topics])
@@ -60,20 +60,23 @@ class GtrendsValuesClearDb(luigi.Task):
             output.write('Done')
 
 
-class GtrendsValuesAddToDb(CsvToDb):
+class GtrendsValuesAddToDb(_utils.CsvToDb):
 
     table = 'gtrends_value'
 
     def requires(self):
+
         return ConvertGtrendsValues()
 
 
-class ConvertGtrendsValues(JsonToCsv):
+class ConvertGtrendsValues(_utils.JsonToCsv):
 
     def requires(self):
+
         return FetchGtrendsValues()
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/google_trends/values.csv',
             format=UTF8
@@ -86,16 +89,19 @@ class FetchGtrendsValues(ExternalProgramTask):
     js_path = './src/google_trends/gtrends_values.js'
 
     def requires(self):
-        yield MuseumFacts()
+
+        yield _utils.MuseumFacts()
         yield GtrendsTopics()
 
     def output(self):
+
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/google_trends/values.json',
+            f'{_utils.OUTPUT_DIR}/google_trends/values.json',
             format=UTF8
         )
 
     def program_args(self):
+
         with self.input()[0].open('r') as facts_file:
             facts = json.load(facts_file)
 

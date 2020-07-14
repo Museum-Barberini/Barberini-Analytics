@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 import logging
 import pandas as pd
-from db_connector import db_connector
+from _utils import db_connector, logger
 
-logger = logging.getLogger('luigi-interface')
-
+CONNECTOR = db_connector()
 PERFORMANCE_TABLES = [
     'tweet_performance',
     'ig_post_performance',
     'fb_post_performance'
 ]
 TIMESTAMP_COLUMN = 'timestamp'
-CONNECTOR = db_connector()
 
 
 # Utilities copied from DataPreparationTask.condense_performance_values
 # ------------------------------------------
 def get_key_columns(table):
+
     primary_key_columns = CONNECTOR.query(
         f'''
         SELECT a.attname, format_type(a.atttypid, a.atttypmod)
@@ -34,8 +33,11 @@ def get_key_columns(table):
 
 
 def get_performance_columns(table, key_columns):
-    # This simply returns all columns except the key
-    # and timestamp columns of the target table
+    """
+    This simply returns all columns except the key and timestamp columns of
+    the target table
+    """
+
     db_columns = CONNECTOR.query(
         f'''
         SELECT column_name
@@ -50,6 +52,7 @@ def get_performance_columns(table, key_columns):
 
 
 def main():
+
     for table in PERFORMANCE_TABLES:
         key_columns = get_key_columns(table)
         performance_columns = get_performance_columns(table, key_columns)

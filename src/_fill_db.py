@@ -1,6 +1,6 @@
 import luigi
 
-from posts import PostsToDb, PostPerformanceToDb
+from _posts import PostsToDb, PostPerformanceToDb
 from gomus.gomus import GomusToDb
 from google_trends.gtrends_values import GtrendsValuesToDb
 from absa.post_aspects import PostAspectsToDb
@@ -12,6 +12,7 @@ from topic_modeling import TopicModeling
 class FillDb(luigi.WrapperTask):
 
     def requires(self):
+
         yield FillDbDaily()
         yield FillDbHourly()
 
@@ -19,6 +20,7 @@ class FillDb(luigi.WrapperTask):
 class FillDbDaily(luigi.WrapperTask):
 
     def requires(self):
+
         # Public sources
         yield GtrendsValuesToDb()
         yield PostsToDb()
@@ -37,5 +39,6 @@ class FillDbDaily(luigi.WrapperTask):
 class FillDbHourly(luigi.WrapperTask):
 
     def requires(self):
+
         # Public sources
         yield PostPerformanceToDb()

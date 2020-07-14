@@ -1,10 +1,11 @@
 import logging
 import os
-import psycopg2
-
 from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
-logger = logging.getLogger('luigi-interface')
+import psycopg2
+
+import _utils
+logger = _utils.logger
 
 T = TypeVar('T')
 
@@ -202,6 +203,7 @@ class DbConnector:
 
 
 def db_connector(database=None):
+
     connector = default_connector()
     if database is None:
         database = os.environ['POSTGRES_DB']
@@ -210,6 +212,7 @@ def db_connector(database=None):
 
 
 def default_connector():
+
     return DbConnector(
         host=os.environ['POSTGRES_HOST'],
         database='postgres',
@@ -226,6 +229,7 @@ def register_array_type(type_name, namespace_name):
     will be answered with strings like '{pg_type}' rather than with a true
     array of objects.
     """
+
     connector = default_connector()
     typarray, typcategory = connector.query(f'''
             SELECT typarray, typcategory

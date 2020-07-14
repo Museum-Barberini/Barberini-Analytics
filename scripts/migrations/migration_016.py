@@ -10,10 +10,9 @@ import logging
 import os
 import subprocess as sp
 
-import db_connector
-db_connector = db_connector.db_connector()
+from _utils import db_connector, logger
+CONNECTOR = db_connector()
 
-logger = logging.getLogger('luigi-interface')
 logging.basicConfig(level=logging.INFO)
 
 
@@ -21,12 +20,12 @@ REFERENCING_TABLES = ['fb_post_comment', 'fb_post_performance']
 
 # Are there any existing data to preserve?
 if not any(
-            db_connector.exists(f'SELECT * FROM {table}')
+            CONNECTOR.exists(f'SELECT * FROM {table}')
             for table in REFERENCING_TABLES
         ):
     # Nothing to preserve, get into the fast lane
     logger.info("Truncating fb_post in the fast line")
-    db_connector.execute('''
+    CONNECTOR.execute('''
         TRUNCATE TABLE fb_post CASCADE
     ''')
     exit(0)
@@ -36,7 +35,7 @@ if not any(
 logger.info("Truncating fb_post in the long line")
 
 try:
-    with db_connector._create_connection() as conn:
+    with CONNECTOR._create_connection() as conn:
         with conn.cursor() as cur:
 
             # 1. Decouple performance table from post table
