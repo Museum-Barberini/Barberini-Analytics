@@ -42,7 +42,6 @@ class ExtractCustomerData(DataPreparationTask):
 
         # Check whether email contains interesting tags
         df['Tourismus Tags'] = df['E-Mail'].apply(self.check_mail)
-        df['Touristiker'] = False
 
         # Insert Hash of E-Mail into E-Mail field,
         # or original ID if there is none
@@ -57,9 +56,10 @@ class ExtractCustomerData(DataPreparationTask):
             'Sprache', 'Land', 'Typ',
             'Erstellt am', 'Jahreskarte',
             'Gültige E-Mail', 'Bereinigte PLZ',
-            'Bereinigtes Land', 'Tourismus Tags',
-            'Touristiker'])
+            'Bereinigtes Land', 'Tourismus Tags'
+            ])
 
+        print(df.columns, self.columns)
         df.columns = self.columns
 
         df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
@@ -68,9 +68,6 @@ class ExtractCustomerData(DataPreparationTask):
         df['register_date'] = pd.to_datetime(
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
-
-        # check whether customer has a tourism-related category
-        df['tourism_specialist'] = df['category'].apply(self.parse_tourism)
 
         # Drop duplicate occurences of customers with same mail,
         # keeping the most recent one
@@ -108,16 +105,6 @@ class ExtractCustomerData(DataPreparationTask):
             return []
 
         return [tag for tag in tourism_tags if tag in mail]
-
-    def parse_tourism(self, category):
-
-        tourism_categories = ['Reiseveranstalter', 'Hotel',
-                              'Verein', 'Stiftung', 'Verband']
-
-        if [cat for cat in tourism_categories if cat in category]:
-            return True
-
-        return False
 
 
 # Return hash for e-mail value, or alternative (usually original gomus_id
