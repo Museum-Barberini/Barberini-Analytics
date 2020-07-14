@@ -165,16 +165,14 @@ BEGIN;
             most_common_event,
             most_common_booking_category,
             most_common_event_category,
-            CASE 
-                WHEN category = 'Reiseveranstalter' 
-                    OR category LIKE '%Hotel%' 
-                    OR category = 'Verband'
-                    OR category = 'Verein' 
-                    OR category = 'Stiftung' 
-                    OR tourism_tags != '{}' 
-                    OR booking_count > 1 THEN TRUE
-                ELSE FALSE
-            END AS is_tourism_specialist
+            (category = 'Reiseveranstalter'
+                OR category LIKE '%Hotel%'
+                OR category = 'Verband' 
+                OR category = 'Verein'
+                OR category = 'Stiftung'
+                OR tourism_tags != '{}'
+                OR booking_count > 1
+            ) IS TRUE AS is_tourism_specialist
         FROM 
             gomus_customer AS c
             LEFT JOIN o_general USING (customer_id)
