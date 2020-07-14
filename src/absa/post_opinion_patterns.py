@@ -40,7 +40,7 @@ class CollectPostOpinionSentiments(DataPreparationTask):
         yield QueryDb(query=f'''
             SELECT dataset, phrase, weight
             FROM {self.polarity_table}
-        ''')
+        ''', limit=-2)
 
     def output(self):
 
@@ -108,14 +108,15 @@ class CollectPostOpinionPhrases(DataPreparationTask):
         post_df = self.analyze_grammar(post_df)
         logger.info("Collecting opinion phrases ...")
         post_pattern_df = self.collect_phrases(pattern_df, post_df)
+
         logger.info("Storing ...")
         post_pattern_df = post_pattern_df[[
             'source', 'post_id', 'pattern_name',
             'aspect_phrase', 'sentiment_phrase'
         ]]
-
         with self.output().open('w') as output:
             post_pattern_df.to_csv(output, index=False)
+
         logger.info("Done.")
 
     def load_input(self):
@@ -130,8 +131,6 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             patterns.items(),
             columns=['pattern_name', 'pattern']
         )
-        if self.minimal_mode:
-            post_df = post_df.head(25)
 
         return pattern_df, post_df
 
