@@ -2,7 +2,7 @@ image: docker:latest
 
 variables:
   BARBERINI_ANALYTICS_CONTEXT: CI
-  USER: "$(USER)_$(CI_PIPELINE_ID)"
+  USER: "$USER_$CI_PIPELINE_ID"
 
 workflow:
   rules:
@@ -28,10 +28,10 @@ coverage:
   tags:
     - barberini
   script:
-    - container=$(docker ps -f name=$(USER)-barberini_analytics_luigi -q)
+    - container=$(docker ps -f name=$USER-barberini_analytics_luigi -q)
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - make startup
-    - docker exec --env FULL_TEST=$FULL_TEST $(USER)-barberini_analytics_luigi make coverage  
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage  
     - make shutdown
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:
