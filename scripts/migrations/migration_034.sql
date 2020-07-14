@@ -1,4 +1,4 @@
--- Add attribute for whether customer is assumed to work in tourism (!277)
+-- Gomus: Add attribute for whether customer is assumed to work in tourism (!277)
 
 BEGIN;
 
