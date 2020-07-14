@@ -55,6 +55,7 @@ RUN npm audit fix
 WORKDIR /app
 
 # Install python packages
+RUN echo foo reset docker
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
 RUN pip3 check
