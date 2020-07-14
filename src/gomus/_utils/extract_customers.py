@@ -59,7 +59,6 @@ class ExtractCustomerData(DataPreparationTask):
             'Bereinigtes Land', 'Tourismus Tags'
             ])
 
-        print(df.columns, self.columns)
         df.columns = self.columns
 
         df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
