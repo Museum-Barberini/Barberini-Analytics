@@ -210,7 +210,8 @@ class TestScrapeOrderContains(DatabaseTestCase):
                 str(actual_row['ticket']),
                 str(actual_row['date']),
                 str(actual_row['quantity']),
-                str(actual_row['price'])])
+                str(actual_row['price']),
+                str(actual_row['is_cancelled'])])
             actual_hash = mmh3.hash(hash_string, seed=self.hash_seed)
             self.assertEqual(
                 actual_hash,
