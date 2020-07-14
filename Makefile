@@ -116,6 +116,9 @@ coverage: luigi-clean
 	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
 	python3 -m coverage html
 
+lint:
+	python3 -m flake8 -v --show-source .
+
 # --- To access postgres ---
 
 db = barberini
