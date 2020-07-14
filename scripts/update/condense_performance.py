@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import logging
 import pandas as pd
 from _utils import db_connector, logger
 

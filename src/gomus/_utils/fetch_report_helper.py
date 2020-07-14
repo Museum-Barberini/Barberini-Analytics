@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import csv
 import datetime as dt
-import logging
 
 import requests
 import xlrd

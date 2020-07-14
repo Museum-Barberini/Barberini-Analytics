@@ -1,6 +1,5 @@
 import csv
 import datetime as dt
-import logging
 
 import luigi
 import pandas as pd

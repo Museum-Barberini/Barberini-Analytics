@@ -1,10 +1,7 @@
 from ast import literal_eval
 import datetime as dt
 from io import StringIO
-import logging
-import os
-import psycopg2
-from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
+from typing import TypeVar
 
 import luigi
 from luigi.contrib.postgres import CopyToTable

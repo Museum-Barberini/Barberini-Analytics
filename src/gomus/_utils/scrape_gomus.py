@@ -1,5 +1,4 @@
 import csv
-import logging
 import re
 
 import dateparser

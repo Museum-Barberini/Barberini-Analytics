@@ -1,7 +1,6 @@
 from abc import abstractmethod
 import datetime as dt
 import json
-import logging
 import os
 
 import luigi

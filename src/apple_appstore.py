@@ -1,5 +1,4 @@
 import json
-import logging
 
 import luigi
 import pandas as pd

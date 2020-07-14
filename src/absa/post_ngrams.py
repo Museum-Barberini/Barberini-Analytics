@@ -1,4 +1,3 @@
-import logging
 import luigi
 import luigi.format
 import pandas as pd

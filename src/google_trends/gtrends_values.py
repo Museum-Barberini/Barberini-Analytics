@@ -1,5 +1,4 @@
 import json
-import logging
 import luigi
 import os
 import psycopg2
