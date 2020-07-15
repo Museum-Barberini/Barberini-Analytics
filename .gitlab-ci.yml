@@ -22,32 +22,12 @@ build:
   script:
     - docker build -t test ./docker
 
-coverage:
-  stage: test
-  tags:
-    - barberini
-  script:
-    - container=$(docker ps -f name=gitlab-runner-barberini_analytics_luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
-    - make startup
-    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-barberini_analytics_luigi make coverage  
-    - make shutdown
-  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
-  artifacts:
-    paths: 
-      - htmlcov
-
 lint:
   stage: analyze
   tags:
     - barberini
   script:
     - make lint
-
-minimal-mining-pipeline:
-  stage: test
-  script:
-    - ./scripts/tests/run_minimal_mining_pipeline.sh
 
 test-pbi-reports:
   stage: test
