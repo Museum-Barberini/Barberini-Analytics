@@ -89,7 +89,9 @@ class TestCustomerTransformation(GomusTransformationTest):
             'valid_mail',
             'cleansed_postal_code',
             'cleansed_country',
-            'tourism_tags'],
+            'tourism_tags',
+            'latitude',
+            'longitude'],
             ExtractCustomerData,
             *args, **kwargs)
 
