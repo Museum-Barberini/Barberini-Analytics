@@ -30,6 +30,8 @@ class CustomersToDb(CsvToDb):
         # This is necessary to prevent pandas from adding
         # '.0' to some postal codes
         df['cleansed_postal_code'] = \
+            df['cleansed_postal_code'].apply(str)
+        df['cleansed_postal_code'] = \
             df['cleansed_postal_code'].str.replace('.0', '')
         return df
 
