@@ -4,7 +4,7 @@
 # more information, read the MR description of !157.
 # $@ = %O %A %B %P = ancestor theirs ours path
 
-echo "merge-migrations $4"
+echo "$0 $4"
 set -e
 
 o=$(pwd)
@@ -26,6 +26,6 @@ cd "$o"
 mv "$2" "$(dirname "$4")/migration_$i$ext"
 mv "$3" "$2"
 
-echo "merge-migrations: Resolved"
+echo "-$0: Resolved"
 trap '>&2 echo -e "☝ Please try again: \n $ git add \"migration_$i$ext\""' ERR
 git add "migration_$i$ext"    
