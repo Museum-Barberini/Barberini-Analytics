@@ -20,7 +20,7 @@ Overview:
 - `smtp.env`: Contains access parameters for mailer service.
   The mailer is used to send notification emails about failures in the mining pipeline or CI pipeline.
 
-  If you need to fix the mailer, you should be able to log in account.google.com using these credentials.
+  If you need to fix the mailer, you should be able to log in on [account.google.com](https://account.google.com) using these credentials.
   Otherwise, just exchange the credentials to use another account.
 - `secret_files/`: Various files that should be available in the luigi container.
   Used to store intended amounts of global state.
@@ -37,3 +37,42 @@ Our recommended consists of:
 - a new **merge request** for every change
 - a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/))
 
+## Repository overview
+
+- `luigi.cfg`: Configuration file for [Luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration.
+  See [the official documentation](https://luigi.readthedocs.io/en/stable/configuration.html).
+- `data/`: Configuration files and constants for several components.
+  See [`CONFIGURATION.md`](CONFIGURATION.md).
+- `docker/`: Stuff for container configuration
+  * `docker-compose*.yml`:
+    Configuration files for all docker containers.
+  * `Dockerfile`: Scripts to be executed when building the luigi container.
+  * `Dockerfile_gplay_api`: Scripts to be executed when building the gplay_api container.
+  * `package*.json`: node.js dependencies.
+    Necessary for `src/google_trends`.
+  * `requirements.txt`: pip dependencies.
+  See also: [Update project dependencies](MAINTENANCE.md/#update-project-dependencies).
+- (`output*`: Pipeline artifacts.
+  Not actually part of this repository.
+  Excluded via `.gitignore`.)
+- `power_bi/`: Data analytics reports for [Power BI](https://powerbi.microsoft.com/en-us/).
+
+  These reports are stored as [template files](https://docs.microsoft.com/en-us/power-bi/create-reports/desktop-templates) to avoid storing secrets in the repository.
+- `scripts/`: Smorgasbord of scripts for development, operations, and manual data manipulations.
+  * `migrations/`: Migration scripts for separate DB schema changes.
+  * `running/`: Scripts for automated pipeline operations.
+  * `setup/`: Scripts for setting up the solution on another VM/workstation.
+
+    No claim on completeness.
+    See [installation](README.md/#installation).
+  * `tests/`: Scripts used as part of CI tests.
+    * `run_minimal_mining_pipeline.sh`: Tests setup and running of the entire pipeline in a minimal mode, providing an isolated context against production data.
+  * `update/`: Scripts for occasional use.
+    See particular docmuentations.
+    * `historic_data/`: Scripts to scrape all data from the gomus system again.
+
+      Regularly, we only scrape data of the latest few weeks in the daily pipeline.
+      This script can be used if older changes have to be respected (e. g. after the VM has been down for a while, or after any retroactive changes in the booking system have been made that go beyond simple cancellations).
+
+## Migration system
+tbd
