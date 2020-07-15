@@ -39,11 +39,19 @@ Our recommended consists of:
 
 ## Repository overview
 
+- `.gitlab-ci.yml`: Configuration file for [GitLab CI](https://docs.gitlab.com/ee/ci/).
+  See [Workflow](#workflow).
 - `luigi.cfg`: Configuration file for [Luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration.
   See [the official documentation](https://luigi.readthedocs.io/en/stable/configuration.html).
+- `Makefile`: Smorgasbord of every-day commands used during development.
+  It is recommended to scan this file once in order to get a brief overview.
+
+  To run any of these targets, for example, type `make connect` to open a connection to the luigi docker container.
+  You can also use bash completion for showing all make targets.
 - `data/`: Configuration files and constants for several components.
   See [`CONFIGURATION.md`](CONFIGURATION.md).
-- `docker/`: Stuff for container configuration
+- `docker/`: Stuff for container configuration.
+  See [Docker containers](#docker-containers).
   * `docker-compose*.yml`:
     Configuration files for all docker containers.
   * `Dockerfile`: Scripts to be executed when building the luigi container.
@@ -73,6 +81,25 @@ Our recommended consists of:
 
       Regularly, we only scrape data of the latest few weeks in the daily pipeline.
       This script can be used if older changes have to be respected (e. g. after the VM has been down for a while, or after any retroactive changes in the booking system have been made that go beyond simple cancellations).
+- `src/`: Source code of data integration and analysis tasks.
+
+  The rough structure follows different data sources or analysis fields.  
+  In particular, the following paths are of special relevance:
+
+  * `_utils/`: Miscellaneous helper methods and classes used for database access and preprocessing.
+  * `gomus/`: Component for integration of the go~mus booking system.
+    Museum data are accessed by using webscrapers, undocumented HTTP calls to download reports, and the public API.
+    * `_utils/`: Webscrapers.
+- `tests/`: Unit tests and acceptance tests for the solution.
+
+  The rough structure follows the `src/` tree.  
+  In particular, the following paths are of special relevance:
+
+  * `_utils/`: Classes for our domain-specific test framework
+  * `schema/`: Acceptance tests for the database schema
+  * `test_data/`: Contains sample files used as mocking inputs or expected outputs of units under test.
+- `visualizations/sigma/`: Custom Power BI Visual for the sigma text graph.
+  See [documentation there](visualizations/sigma/README.md).
 
 ## Migration system
 tbd
