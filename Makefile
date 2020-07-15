@@ -118,7 +118,7 @@ coverage: luigi-clean
 	$(PYTHON) -m coverage html
 
 lint:
-	$(PYTHON) -m flake8 -v --show-source .
+	flake8 -v --show-source .
 
 # --- To access postgres ---
 
