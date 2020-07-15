@@ -33,3 +33,4 @@ PyYAML==5.3
 requests==2.23.0
 xlrd==1.2.0
 xmltodict==0.12.0
+pgeocode==0.2.1
