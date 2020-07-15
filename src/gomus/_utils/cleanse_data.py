@@ -2,7 +2,6 @@
 import datetime as dt
 import logging
 import luigi
-import numpy as np
 import pandas as pd
 import pgeocode
 import re

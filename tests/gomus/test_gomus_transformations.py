@@ -24,6 +24,7 @@ class GomusTransformationTest(DatabaseTestCase):
         super().__init__(*args, **kwargs)
         self.columns = columns
         self.task = task
+        self.task_two = kwargs.get('task_two')
 
         self.test_data_path = 'tests/test_data/gomus/'
 
