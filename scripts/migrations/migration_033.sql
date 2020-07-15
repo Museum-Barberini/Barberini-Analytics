@@ -1,8 +1,7 @@
--- Nuke empty gplay reviews title (!278)
+-- Gomus: Add column is_cancelled (!283)
 
 BEGIN;
 
-    ALTER TABLE gplay_review
-        DROP COLUMN title;
+    ALTER TABLE gomus_order_contains ADD COLUMN is_cancelled TEXT;
 
 COMMIT;
