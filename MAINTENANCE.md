@@ -38,6 +38,7 @@ Thus, updates should be carried out on a regular schedule.
 #### Update docker images
 
 Each used docker image is specified either in `docker/docker-compose.yml` or in the linked Dockerfile.
+For more information about the docker containers, please refer to the [documentation](DOCUMENTATION.md/#docker-containers).
 
 1. To update a docker image, edit the `image` key in the yaml file respectively the `FROM` command in the Dockerfile.
    Be careful to watch for any breaking changes in the updates.
