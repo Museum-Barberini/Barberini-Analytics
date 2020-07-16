@@ -18,12 +18,15 @@
 
 #### Motivation
 
-All installed (python) packages are specified by using a fixed version.
+Nearly all project dependencies are specified by using a fixed version.
 This protects our solution against breaking changes from any package updates.
-However, updating packages, in general, is a good idea, because relying on old packages a) impedes further development as new features in libraries cannot be used, b) can break the connection to external access points whose interface has changed, and c) may leave recently discovered security leaks unfixed.
+However, updating packages, in general, is a good idea, because relying on old packages
+a) impedes further development as new features in libraries cannot be used,
+b) can break the connection to external access points whose interface has changed, and
+c) may leave recently discovered security leaks unfixed.
 Thus, updates should be carried out on a regular schedule.
 
-#### Action
+#### Update pip dependencies
 
 1. Check out a new branch.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
@@ -31,6 +34,14 @@ Thus, updates should be carried out on a regular schedule.
    This is neccessary because of https://github.com/pypa/pip/issues/988.
 4. Create a merge request with your changes and make sure the CI passes.
 5. Once it passes, merge the branch.
+
+#### Update docker images
+
+Each used docker image is specified either in `docker/docker-compose.yml` or in the linked Dockerfile.
+
+1. To update a docker image, edit the `image` key in the yaml file respectively the `FROM` command in the Dockerfile.
+   Be careful to watch for any breaking changes in the updates.
+2. Restart the container by running `make shutdown-<docker> startup-<docker>`.
 
 ### Update gomus version
 
