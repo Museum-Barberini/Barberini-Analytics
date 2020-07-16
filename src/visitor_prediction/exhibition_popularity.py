@@ -4,10 +4,21 @@ import datetime as dt
 import pandas as pd
 import luigi
 
+from gomus.exhibitions import ExhibitionsToDb
+from facebook import FbPostsToDb, FbPostPerformanceToDb
+
 
 class ExhibitionPopularity(DataPreparationTask):
 
-    def requires(self): # TODO: _require related ToDb
+    # def _requires(self):
+    #     return luigi.task.flatten([
+    #         ExhibitionsToDb(),
+    #         FbPostsToDb(),
+    #         FbPostPerformanceToDb(),
+    #         super()._requires()
+    #     ])
+
+    def requires(self):
         yield QueryDb(  # exhibitions
             query='''
                 SELECT *
@@ -28,12 +39,13 @@ class ExhibitionPopularity(DataPreparationTask):
 
     def run(self):
         # load data
-        with open('raw_exhibitions.csv', encoding='utf-8') as exhibitions_file:
+        with self.input()[0].open('r') as exhibitions_file:
             exhibitions = pd.read_csv(
                 exhibitions_file,
-                parse_dates=['start_date', 'end_date']
+                parse_dates=['start_date', 'end_date'],
+                keep_default_na=False
             )
-        with open('fb_post.csv', encoding='utf-8') as posts_file:
+        with self.input()[1].open('r') as posts_file:
             posts = pd.read_csv(
                 posts_file,
                 parse_dates=['post_date']

@@ -52,9 +52,9 @@ def preprocess_entries(entries, exhibitions):
     entries = _add_is_closed(entries, exhibitions)
     entries = _add_exhibition_progress(
         entries,
-        exhibitions[exhibitions['special']])
+        exhibitions[exhibitions['special'] == ''])
     entries = _add_exhibition_popularity(
         entries,
-        exhibitions[exhibitions['special']])
+        exhibitions[exhibitions['special'] == ''])
     entries = _add_weekdays(entries)
     return entries
