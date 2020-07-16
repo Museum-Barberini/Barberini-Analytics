@@ -83,7 +83,7 @@ luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	POSTGRES_DB=barberini_test MINIMAL=True $(MAKE) luigi
+	MINIMAL=True $(MAKE) luigi
 
 # TODO: Custom output folder per test and minimal?
 output-folder:
