@@ -1,4 +1,4 @@
--- Gomus: Add columns longitude, latitude for postal code analysis
+-- Gomus: Add columns latitude, longitude for postal code analysis
 
 BEGIN;
 
