@@ -11,7 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from visitor_prediction.exhibition_popularity import ExhibitionPopularity
 from visitor_prediction.preprocessing import preprocess_entries
-# from gomus.daily_entries import DailyEntriesToDb
+from gomus.daily_entries import DailyEntriesToDb
 
 
 N_NEIGHBORS = 5
@@ -61,11 +61,11 @@ class PredictVisitors(DataPreparationTask):
         description="if sample_prediction, predict the last"
         "days_to_predict days instead")
 
-    # def _requires(self):
-    #     return luigi.task.flatten([
-    #         DailyEntriesToDb(),
-    #         super()._requires()
-    #     ])
+    def _requires(self):
+        return luigi.task.flatten([
+            DailyEntriesToDb(),
+            super()._requires()
+        ])
 
     def requires(self):
         yield QueryDb(  # daily entries

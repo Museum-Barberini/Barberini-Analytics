@@ -4,19 +4,19 @@ import datetime as dt
 import pandas as pd
 import luigi
 
-# from gomus.exhibitions import ExhibitionsToDb
-# from facebook import FbPostsToDb, FbPostPerformanceToDb
+from gomus.exhibitions import ExhibitionsToDb
+from facebook import FbPostsToDb, FbPostPerformanceToDb
 
 
 class ExhibitionPopularity(DataPreparationTask):
 
-    # def _requires(self):
-    #     return luigi.task.flatten([
-    #         ExhibitionsToDb(),
-    #         FbPostsToDb(),
-    #         FbPostPerformanceToDb(),
-    #         super()._requires()
-    #     ])
+    def _requires(self):
+        return luigi.task.flatten([
+            ExhibitionsToDb(),
+            FbPostsToDb(),
+            FbPostPerformanceToDb(),
+            super()._requires()
+        ])
 
     def requires(self):
         yield QueryDb(  # exhibitions
