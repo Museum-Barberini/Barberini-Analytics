@@ -32,9 +32,9 @@ startup: startup-db
 startup-db:
 	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-			 $(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
+			$(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
 		else\
-			 $(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
+			$(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
 		fi;\
 	fi
 
