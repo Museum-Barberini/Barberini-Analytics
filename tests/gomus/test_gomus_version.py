@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 
 import requests
@@ -13,7 +12,7 @@ class TestGomusVersion(DatabaseTestCase):
 
     def test_session_id_is_valid(self):
         """
-        test if GOMUS_SESS_ID env variable contains a valid session id
+        Test if GOMUS_SESS_ID env variable contains a valid session id
         """
 
         response = requests.get(
@@ -30,13 +29,19 @@ class TestGomusVersion(DatabaseTestCase):
 
         response = requests.get(
             'https://barberini.gomus.de/',
-            cookies=dict(
-                _session_id=GOMUS_SESS_ID))
-        if not response.ok:
-            response.raise_for_status()
+            cookies={'_session_id': GOMUS_SESS_ID})
+        response.raise_for_status()
 
-        # currently, the version tag is in this particular line in the HTML
+        # Currently, the version tag is in this particular line in the HTML
         # if this line no. changes, that also means that adjustments to Gomus
-        # have been made
+        # have been made.
         version_tag = response.text.splitlines()[774]
-        self.assertEqual(EXPECTED_VERSION_TAG, version_tag)
+
+        self.assertRegex(version_tag, r'^v\d', msg=(
+            "Gomus version number could not be identified. Most likely Gomus "
+            "was updated and the scrapers need to be adjusteed."
+        ))
+        self.assertEqual(
+            EXPECTED_VERSION_TAG, version_tag,
+            "Gomus version number has changed"
+        )
