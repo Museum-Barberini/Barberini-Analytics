@@ -23,19 +23,6 @@ logger = logging.getLogger('luigi-interface')
 tqdm.pandas()
 
 
-"""
-STEPS:
-- [x] one task that matches patterns and outputs aspect-sentiment-pairs
-- [x] one task that reads aspect-sentiment-pairs, matches sentiment weights
-      and groups them by aspect
-- [x] grouping
-- [x] write ToCsv task
-- [x] create migration script
-
-- rename aspect_sentiment to opinion globally? rather no, but refine namings.
-  what about opinion_phrase here?
-"""
-
 class PostOpinionSentimentsToDb(CsvToDb):
 
     table = 'absa.post_opinion_sentiment'
@@ -164,8 +151,8 @@ class GroupPostOpinionSentiments(DataPreparationTask):
         dbscan = DBSCAN(metric='cosine', eps=0.37, min_samples=2)
         df['bin'] = dbscan.fit(list(df['vec'])).labels_
 
-        isnoise = df['bin'] == -1
-        noise, nonnoise = df[isnoise], df[~isnoise]
+        is_noise = df['bin'] == -1
+        noise, nonnoise = df[is_noise], df[~is_noise]
         logger.info(
             f"DBSCAN: Created {len(nonnoise)} bins, "
             f"{len(noise) / len(df) * 100 :.2f}% noise."
