@@ -103,6 +103,26 @@ Our recommended consists of:
 - `visualizations/sigma/`: Custom Power BI Visual for the sigma text graph.
   See [documentation there](visualizations/sigma/README.md).
 
+## Docker containers
+
+[Docker](https://www.docker.com/) is a state-of-the-art technology used for containerizing package dependencies.
+This project uses multiple dockers for several purposes.
+They are all defined from within the `docker/` folder.
+At the moment, our solution includes three docker containers:
+
+- `barberini_analytics_luigi` (aka "luigi container" or "the docker"): Primary docker container used for all execution of source code.
+  Will be set up and destroyed automatically as part of every automated pipeline run (see `cron.sh`).
+
+  To manually start up the docker, use `make startup`.
+  To open a bash shell on the docker, run `make connect`.
+  To stop the docker again, use `make shutdown`.
+
+- `barberini_analytics_db` (aka "database container"): Postgres container intended to run permanently.
+  If not running, it will be started automatically as part of every automated pipeline runs.
+
+- `gplay_api`: Special docker container used to host the Google Play API scraper.
+  See `docker/Dockerfile_gplay_api` and `src/gplay/gplay_reviews` for further information.
+
 ## Migration system
 
 During the development of this solution, a lot of database schema changes accrued.
@@ -123,23 +143,3 @@ This is done automatically via `cron.sh`.
 **Remark:** A migration system is characterized by the immutability of all previously defined versions.
 This induces the policy that you **never must change any existing migration script** that could already have been applied elsewhere.
 **To revert an existing migration script,** create a new migration script in which you implement how to revert the changes of the migration to revert.
-
-## Docker containers
-
-[Docker](https://www.docker.com/) is a state-of-the-art technology used for containerizing package dependencies.
-This project uses multiple dockers for several purposes.
-They are all defined from within the `docker/` folder.
-At the moment, our solution includes three docker containers:
-
-- `barberini_analytics_luigi` (aka "luigi container" or "the docker"): Primary docker container used for all execution of source code.
-  Will be set up and destroyed automatically as part of every automated pipeline run (see `cron.sh`).
-
-  To manually start up the docker, use `make startup`.
-  To open a bash shell on the docker, run `make connect`.
-  To stop the docker again, use `make shutdown`.
-
-- `barberini_analytics_db` (aka "database container"): Postgres container intended to run permanently.
-  If not running, it will be started automatically as part of every automated pipeline runs.
-
-- `gplay_api`: Special docker container used to host the Google Play API scraper.
-  See `docker/Dockerfile_gplay_api` and `src/gplay/gplay_reviews` for further information.
