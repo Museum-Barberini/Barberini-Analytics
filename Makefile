@@ -4,9 +4,10 @@
 
 # ------ Internal variables ------
 
+DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
+PYTHON := python3
 SHELL := /bin/bash
 SSL_CERT_DIR := /var/barberini-analytics/db-data
-DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
 
 # ------ For use outside of containers ------
 
@@ -69,10 +70,10 @@ luigi-scheduler:
 
 luigi-restart-scheduler:
 	killall luigid || true
-	make luigi-scheduler
+	$(MAKE) luigi-scheduler
 	
 luigi:
-	make luigi-task LMODULE=fill_db LTASK=FillDb
+	$(MAKE) luigi-task LMODULE=fill_db LTASK=FillDb
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
@@ -82,7 +83,7 @@ luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	POSTGRES_DB=barberini_test MINIMAL=True make luigi
+	POSTGRES_DB=barberini_test MINIMAL=True $(MAKE) luigi
 
 # TODO: Custom output folder per test and minimal?
 output-folder:
@@ -101,20 +102,23 @@ test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via **
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m db_test $(test) -v \
-		&& make luigi-clean
+		&& $(PYTHON) -m db_test $(test) -v \
+		&& $(MAKE) luigi-clean
 
 test-full:
-	FULL_TEST=True make test
+	FULL_TEST=True $(MAKE) test
 
 coverage: luigi-clean
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m coverage run --source ./src -m db_test -v --catch tests/**/test*.py -v
+		&& $(PYTHON) -m coverage run --source ./src -m db_test -v --catch tests/**/test*.py -v
 	# print coverage results to screen. Parsed by gitlab CI regex to determine MR code coverage.
-	python3 -m coverage report
+	$(PYTHON) -m coverage report
 	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
-	python3 -m coverage html
+	$(PYTHON) -m coverage html
+
+lint:
+	flake8 -v --show-source .
 
 # --- To access postgres ---
 

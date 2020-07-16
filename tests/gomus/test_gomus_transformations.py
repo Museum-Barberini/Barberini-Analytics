@@ -24,6 +24,7 @@ class GomusTransformationTest(DatabaseTestCase):
         super().__init__(*args, **kwargs)
         self.columns = columns
         self.task = task
+        self.task_two = kwargs.get('task_two')
 
         self.test_data_path = 'tests/test_data/gomus/'
 
@@ -89,7 +90,9 @@ class TestCustomerTransformation(GomusTransformationTest):
             'valid_mail',
             'cleansed_postal_code',
             'cleansed_country',
-            'tourism_tags'],
+            'tourism_tags',
+            'latitude',
+            'longitude'],
             ExtractCustomerData,
             *args, **kwargs)
 
