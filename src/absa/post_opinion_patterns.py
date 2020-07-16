@@ -10,9 +10,9 @@ from sklearn.cluster import DBSCAN
 import spacy
 from tqdm import tqdm
 
+from data_preparation import ConcatCsvs, DataPreparationTask
 from query_db import QueryDb
 from json_converters import JsoncToJson
-from data_preparation import DataPreparationTask
 from posts import PostsToDb
 from .german_word_embeddings import FetchGermanWordEmbeddings
 
@@ -34,18 +34,55 @@ STEPS:
   what about opinion_phrase here?
 """
 
+class ConcatPostOpinionSentiments(ConcatCsvs):
 
-class GroupPostOpinionSentiments(DataPreparationTask):
+    sentiment_match_algorithms = ['identity', 'inflected']
 
     def requires(self):
 
-        yield CollectPostOpinionSentiments()
-        yield FetchGermanWordEmbeddings()
+        for match_algorithm in self.sentiment_match_algorithms:
+            yield GroupPostOpinionSentiments(
+                sentiment_match_algorithm=match_algorithm
+            )
 
     def output(self):
 
         return luigi.LocalTarget(
             f'{self.output_dir}/absa/post_opinion_sentiments_grouped.csv',
+            format=UTF8
+        )
+
+    def collect_csvs(self):
+
+        for match_algorithm, target in zip(
+                    self.sentiment_match_algorithms,
+                    self.input()
+                ):
+            yield self.read_csv(target).assign(
+                sentiment_match_algorithm=match_algorithm
+            )
+
+    def read_csv(self, target):
+
+        return super().read_csv(target)
+
+
+class GroupPostOpinionSentiments(DataPreparationTask):
+
+    sentiment_match_algorithm = luigi.Parameter()
+
+    def requires(self):
+
+        yield CollectPostOpinionSentiments(
+            sentiment_match_algorithm=self.sentiment_match_algorithm
+        )
+        yield FetchGermanWordEmbeddings()
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/absa/post_opinion_sentiments_'
+            f'{self.sentiment_match_algorithm}_grouped.csv',
             format=UTF8
         )
 
@@ -140,27 +177,45 @@ class CollectPostOpinionSentiments(DataPreparationTask):
 
     polarity_table = 'absa.phrase_polarity'
 
+    sentiment_match_algorithm = luigi.Parameter()
+
     def requires(self):
 
-        yield CollectPostOpinionPhrases()
-        yield QueryDb(query=f'''
-            SELECT dataset, phrase, weight
-            FROM {self.polarity_table}
-        ''', limit=-2)
+        return CollectPostOpinionPhrases()
 
     def output(self):
 
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/post_opinion_sentiments.csv',
+            f'{self.output_dir}/absa/'
+            f'post_opinion_sentiments_{self.sentiment_match_algorithm}.csv',
             format=UTF8
         )
 
     def run(self):
 
-        input = self.input()
-        with input[0].open() as stream:
+        with self.input().open() as stream:
             opinion_phrases = pd.read_csv(stream)
-        with input[1].open() as stream:
+
+        # TODO: Generator does not work here
+        polarities = yield QueryDb(
+            query={
+                'identity': f'''
+                    SELECT dataset, phrase, weight
+                    FROM {self.polarity_table}
+                ''',
+                'inflected': f'''
+                    SELECT pp.dataset, inflected AS phrase, weight
+                    FROM absa.phrase_polarity AS pp
+                    JOIN absa.inflection ON (
+                        pp.dataset, phrase
+                    ) = (
+                        inflection.dataset, word
+                    )
+                '''
+            }[self.sentiment_match_algorithm],
+            limit=-2
+        )
+        with polarities.open() as stream:
             polarity_phrases = pd.read_csv(stream)
 
         opinion_sentiments = pd.merge(
