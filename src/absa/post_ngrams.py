@@ -41,6 +41,7 @@ class PostNgramsToDb(CsvToDb):
                     "the database will be respected.")
 
     def requires(self):
+
         return CollectPostNgrams(
             n_min=self.n_min,
             n_max=self.n_max,
@@ -80,6 +81,7 @@ class CollectPostNgrams(DataPreparationTask):
     stopword_table = 'absa.stopword'
 
     def _requires(self):
+
         return luigi.task.flatten([
             PostWordsToDb(
                 limit=self.limit,
@@ -90,11 +92,13 @@ class CollectPostNgrams(DataPreparationTask):
         ])
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/absa/post_ngrams.csv',
             format=luigi.format.UTF8)
 
     def run(self):
+
         dfs = []
         for n in range(self.n_min, self.n_max + 1):
             logger.info(f"Collecting n={n}-grams ...")
@@ -114,12 +118,19 @@ class CollectPostNgrams(DataPreparationTask):
                 template.format(i=i)
                 for i in range(n)])
 
-        def mult_join(template):
+        def mult_join_constraint(template):
             if n < 2:
                 return 'TRUE'
             return ' AND '.join([
                 template.format(i=i, j=i + 1)
                 for i in range(n - 1)])
+
+        def mult_join_key(template, key):
+            exps = (template.format(i=i) for i in range(n))
+            mult = next(exps)
+            for exp in exps:
+                mult += f' JOIN {exp} USING {key}'
+            return mult
 
         return f'''
             WITH
@@ -146,10 +157,14 @@ class CollectPostNgrams(DataPreparationTask):
                     word{0}.post_id AS post_id,
                     {n} AS n,
                     word{0}.word_index AS word_index,
-                    CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS ngram
-            FROM    {mult_exp('word_relevant AS word{i}')}
-            WHERE   {mult_join('(word{i}.source, word{i}.post_id) ='
-                               '(word{j}.source, word{j}.post_id)')}
-            AND     {mult_join('word{i}.word_index + 1 = word{j}.word_index')}
+                    CONCAT_WS(' ', {mult_exp('word{i}.word')}) AS phrase,
+                    word{0}.sentence_index AS sentence_index
+            FROM    {mult_join_key(
+                        template='word_relevant AS word{i}',
+                        key='(source, post_id, sentence_index)'
+                    )}
+            WHERE   {mult_join_constraint(
+                        'word{i}.word_index + 1 = word{j}.word_index'
+                    )}
             AND     word{0}.post_id IN (SELECT * FROM new_post_id)
         '''
