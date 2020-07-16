@@ -4,7 +4,7 @@
 
 Overview:
 - **Private configuration:** `/etc/barberini-analytics/`
-  * `secrets/`: [Secret files](#Secrets).
+  * `secrets/`: [Secret files](#secrets).
 - **Database**: `/var/barberini-analytics/db-data/`
   * `applied_migrations.txt`: Local version registry of the migration system.
     See [Migration system](#migration-system).
@@ -27,13 +27,13 @@ Overview:
   Used to store intended amounts of global state.
 
   Note that from within the luigi container (`make connect`), you can access these files in `/app/secret_files/`!
-  * `absa/`: Large external datasets used for the implementation of the bachelor thesis ABSA.
+  * `absa/`: Large external datasets used for the implementation of the bachelor thesis about ABSA.
   * `google_gmb_*.json`: Required for the Google Maps task.
     See implementation.
 
 ## Workflow
 
-Our recommended consists of:
+Our recommended workflow consists of the following policies:
 - a **protected `master`** branch
 - a new **merge request** for every change
 - a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/))
