@@ -57,8 +57,6 @@ Our recommended consists of:
     Configuration files for all docker containers.
   * `Dockerfile`: Scripts to be executed when building the luigi container.
   * `Dockerfile_gplay_api`: Scripts to be executed when building the gplay_api container.
-  * `package*.json`: node.js dependencies.
-    Necessary for `src/google_trends`.
   * `requirements.txt`: pip dependencies.
   See also: [Update project dependencies](MAINTENANCE.md/#update-project-dependencies).
 - (`output*`: Pipeline artifacts.
