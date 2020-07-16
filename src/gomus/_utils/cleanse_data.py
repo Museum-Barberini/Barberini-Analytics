@@ -106,13 +106,16 @@ class CleansePostalCodes(DataPreparationTask):
             customer_df['cleansed_country'] = \
                 [result[1] for result in results]
 
-            postal_analysis = \
-                customer_df['cleansed_postal_code'].apply(self.add_lat_long)
+            customer_df[['latitude', 'longitude']] = \
+                customer_df['cleansed_postal_code'].apply(self.query_lat_long)
 
-            customer_df['latitude'] = \
-                [lat_long[0] for lat_long in postal_analysis]
-            customer_df['longitude'] = \
-                [lat_long[1] for lat_long in postal_analysis]
+            # postal_analysis = \
+            #     customer_df['cleansed_postal_code'].apply(self.add_lat_long)
+
+            # customer_df['latitude'] = \
+            #     [lat_long[0] for lat_long in postal_analysis]
+            # customer_df['longitude'] = \
+            #     [lat_long[1] for lat_long in postal_analysis]
 
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
@@ -277,13 +280,12 @@ class CleansePostalCodes(DataPreparationTask):
                 return result_code
         return None
 
-    def add_lat_long(self, postal_code):
+    def query_lat_long(self, postal_code):
 
         nomi = pgeocode.Nominatim('DE')
-
         postal_code_data = nomi.query_postal_code(postal_code)
 
-if postal_code_data.empty:
+        if postal_code_data.empty:
             return None, None
 
         return postal_code_data['latitude'], postal_code_data['longitude']
