@@ -83,7 +83,7 @@ class QueryDb(DataPreparationTask):
             query += ' ORDER BY RANDOM()'
         if self.minimal_mode and self.limit == -1:
             self.limit = 50
-        if self.limit and self.limit >= 0:
+        if self.limit and self.limit > -1:
             query += f' LIMIT {self.limit}'
         return query
 

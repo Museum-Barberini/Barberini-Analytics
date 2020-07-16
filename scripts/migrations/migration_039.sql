@@ -1,3 +1,5 @@
+-- ABSA: Add table for pattern-based approach (!284)
+
 BEGIN;
 
     CREATE TABLE absa.post_opinion_sentiment (

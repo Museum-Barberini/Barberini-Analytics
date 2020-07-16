@@ -28,6 +28,8 @@ class FetchGermanWordEmbeddings(DataPreparationTask):
 
         logger.info("Writing german_word_embeddings to file")
         with self.output().open('wb') as output:
+            # Optimized version of output.write(response.read()).
+            # Use blocks to reduce required RAM.
             while True:
                 data = response.read(4096)
                 if data:
