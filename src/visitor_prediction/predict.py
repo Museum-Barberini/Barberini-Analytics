@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from visitor_prediction.exhibition_popularity import ExhibitionPopularity
 from visitor_prediction.preprocessing import preprocess_entries
-from gomus.daily_entries import DailyEntriesToDb
+# from gomus.daily_entries import DailyEntriesToDb
 
 
 N_NEIGHBORS = 5
@@ -21,10 +21,35 @@ SEQUENCE_LENGTH = 1
 
 
 class PredictNext1Day(CsvToDb):
-    table = 'next_1_day_prediction'
+    table = 'visitor_predictions'
 
     def requires(self):
-        return PredictVisitors(days_to_predict=1)
+        return CombinePredictions()
+
+
+class CombinePredictions(DataPreparationTask):
+
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/visitor_prediction/all_predictions.csv',
+            format=luigi.format.UTF8)
+
+    def run(self):
+        all_predictions = pd.DataFrame(
+            columns=['is_sample', 'timespan', 'date', 'entries'])
+        for is_sample in [False, True]:
+            for timespan in [1, 7, 30]:
+                target = yield PredictVisitors(
+                    days_to_predict=timespan,
+                    sample_prediction=is_sample
+                )
+                with target.open('r') as prediction_file:
+                    new_predictions = pd.read_csv(prediction_file)
+                new_predictions['is_sample'] = is_sample
+                new_predictions['timespan'] = timespan
+                all_predictions = all_predictions.append(new_predictions)
+        with self.output().open('w') as output_file:
+            all_predictions.to_csv(output_file, index=False, header=True)
 
 
 class PredictVisitors(DataPreparationTask):

@@ -4,8 +4,8 @@ import datetime as dt
 import pandas as pd
 import luigi
 
-from gomus.exhibitions import ExhibitionsToDb
-from facebook import FbPostsToDb, FbPostPerformanceToDb
+# from gomus.exhibitions import ExhibitionsToDb
+# from facebook import FbPostsToDb, FbPostPerformanceToDb
 
 
 class ExhibitionPopularity(DataPreparationTask):
