@@ -87,8 +87,8 @@ Our recommended workflow consists of the following policies:
   In particular, the following paths are of special relevance:
 
   * `_utils/`: Miscellaneous helper methods and classes used for database access and preprocessing.
-  * `gomus/`: Component for integration of the go~mus booking system.
-    Museum data are accessed by using webscrapers, undocumented HTTP calls to download reports, and the public API.
+  * `gomus/`: Component for the integration of the go~mus booking system.
+    Museum data are accessed by using web scrapers, undocumented HTTP calls to download reports, and the public API.
     * `_utils/`: Webscrapers.
 - `tests/`: Unit tests and acceptance tests for the solution.
 
@@ -116,7 +116,7 @@ At the moment, our solution includes three docker containers:
   To stop the docker again, use `make shutdown`.
 
 - `barberini_analytics_db` (aka "database container"): Postgres container intended to run permanently.
-  If not running, it will be started automatically as part of every automated pipeline runs.
+  If not running, it will be started automatically as part of every automated pipeline run.
 
 - `gplay_api`: Special docker container used to host the Google Play API scraper.
   See `docker/Dockerfile_gplay_api` and `src/gplay/gplay_reviews` for further information.
