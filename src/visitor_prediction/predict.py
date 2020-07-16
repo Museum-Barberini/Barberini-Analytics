@@ -4,6 +4,7 @@ from _utils.csv_to_db import CsvToDb
 from _utils.query_db import QueryDb
 import datetime as dt
 import pandas as pd
+import numpy as np
 
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
@@ -20,8 +21,9 @@ SEQUENCE_LENGTH = 1
 # https://gitlab.hpi.de/georg.tennigkeit/ba-visitor-prediction
 
 
-class PredictNext1Day(CsvToDb):
-    table = 'visitor_predictions'
+class PredictionsToDb(CsvToDb):
+    table = 'visitor_prediction'
+    replace_content = True
 
     def requires(self):
         return CombinePredictions()
@@ -85,6 +87,7 @@ class PredictVisitors(DataPreparationTask):
             format=luigi.format.UTF8)
 
     def run(self):
+        # --- load data ---
         with self.input()[0].open('r') as entries_file:
             all_entries = pd.read_csv(
                 entries_file,
@@ -92,6 +95,7 @@ class PredictVisitors(DataPreparationTask):
                 index_col='date'
             )
         all_entries.sort_index(inplace=True, ascending=True)
+
         with self.input()[1].open('r') as exhibitions_file:
             exhibitions = pd.read_csv(
                 exhibitions_file,
@@ -124,6 +128,7 @@ class PredictVisitors(DataPreparationTask):
             'exhibition_popularity',
             'exhibition_progress']
 
+        # --- normalize ---
         scaler_dict = dict()
         for col in to_be_rescaled:
             scaler = MinMaxScaler()
@@ -149,6 +154,7 @@ class PredictVisitors(DataPreparationTask):
             train_entries.filter(feature_columns),
             train_entries['entries'])
 
+        # --- predict ---
         previous_entries = list(train_entries['entries'].values)
         predictions = []
         for i in range(len(to_be_predicted_entries)):
@@ -164,12 +170,20 @@ class PredictVisitors(DataPreparationTask):
 
             previous_entries.append(new_prediction)
             predictions.append(new_prediction)
-        import numpy as np
+
         predicted_entries = pd.DataFrame(
             data=np.swapaxes([
                 to_be_predicted_entries.index,
                 predictions],
                 0, 1),
             columns=['date', 'entries'])
+
+        # --- denormalize results ---
+        predicted_entries[['entries']] = \
+            scaler_dict['entries'].inverse_transform(
+                predicted_entries[['entries']])
+        predicted_entries['entries'] = predicted_entries['entries'].apply(int)
+
+        # --- write output ---
         with self.output().open('w') as output_file:
             predicted_entries.to_csv(output_file, index=False, header=True)
