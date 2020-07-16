@@ -30,7 +30,7 @@ coverage:
     - USER="gitlab_runner_${CI_PIPELINE_ID}"
     - make startup
   script:
-    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage  
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
   after_script:
     - make shutdown
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
