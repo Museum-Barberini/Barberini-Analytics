@@ -30,7 +30,7 @@ STEPS:
       and groups them by aspect
 - [x] grouping
 - [x] write ToCsv task
-- [ ] NEXT: create migration script
+- [x] create migration script
 
 - rename aspect_sentiment to opinion globally? rather no, but refine namings.
   what about opinion_phrase here?
@@ -39,6 +39,8 @@ STEPS:
 class PostOpinionSentimentsToDb(CsvToDb):
 
     table = 'absa.post_opinion_sentiment'
+
+    replace_content = True
 
     def requires(self):
 
@@ -71,7 +73,11 @@ class ConcatPostOpinionSentiments(ConcatCsvs):
                 ):
             yield self.read_csv(target).assign(
                 sentiment_match_algorithm=match_algorithm
-            )
+            )[[
+                'source', 'post_id', 'target_aspect_words',
+                'count', 'sentiment', 'aspect_phrase',
+                'dataset', 'sentiment_match_algorithm'
+            ]]
 
     def read_csv(self, target):
 
@@ -112,15 +118,15 @@ class GroupPostOpinionSentiments(DataPreparationTask):
         logger.info("Labelling clusters ...")
         df = self.label_clusters(df)
 
-        df = df[[
-            'source', 'post_id', 'dataset',
-            'aspect_phrase', 'target_aspect_word', 'target_aspect_words',
-            'count', 'sentiment'
-        ]]
+        df = df.groupby(['source', 'post_id', 'dataset', 'target_aspect_words']).agg({
+            'aspect_phrase': list,
+            'sentiment': 'mean',
+            'count': 'sum'
+        }).rename({'aspect_phrases': 'aspect_phrase'})
 
         logger.info("Storing ...")
         with self.output().open('w') as stream:
-            df.to_csv(stream, index=False)
+            df.to_csv(stream, index=True)
         logger.info("Done.")
 
     def load_input(self):
@@ -177,9 +183,6 @@ class GroupPostOpinionSentiments(DataPreparationTask):
         bins['target_aspect_words'] = bins['vec'].apply(
             lambda vec: next(zip(*self.model.similar_by_vector(vec, topn=3)))
         )
-        bins['target_aspect_word'] = bins['target_aspect_words'].apply(
-            lambda words: words[0]
-        )
 
         return df.merge(bins, on='bin')
 
@@ -207,7 +210,6 @@ class CollectPostOpinionSentiments(DataPreparationTask):
         with self.input().open() as stream:
             opinion_phrases = pd.read_csv(stream)
 
-        # TODO: Generator does not work here
         polarities = yield QueryDb(
             query={
                 'identity': f'''
