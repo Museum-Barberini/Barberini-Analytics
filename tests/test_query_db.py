@@ -2,7 +2,6 @@ import time
 
 import luigi.mock
 import pandas as pd
-import pandas.testing
 
 from db_test import DatabaseTestCase
 from query_db import QueryDb
