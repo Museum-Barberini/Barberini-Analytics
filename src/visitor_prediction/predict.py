@@ -105,8 +105,7 @@ class PredictVisitors(DataPreparationTask):
 
         if self.minimal_mode:
             all_entries = pd.DataFrame(
-                index=[dt.date(2020, 1, 1) + dt.timedelta(days=offset)
-                       for offset in range(40)],
+                index=pd.date_range(start=dt.date(2020, 1, 1), periods=40),
                 data=[[i] for i in range(40)],
                 columns=['entries'])
 
