@@ -26,13 +26,13 @@ coverage:
   stage: test
   tags:
     - barberini
-  before_script:
+  before_script:  # prepare docker
     - USER="gitlab_runner_${CI_PIPELINE_ID}"
     - container_name=$USER-barberini_analytics_luigi
     - make startup
-  script:
+  script:  # run coverage tests
     - docker exec --env FULL_TEST=$FULL_TEST $container_name make coverage
-  after_script:
+  after_script:  # cleanup docker
     - make shutdown
     - container_id=$(docker ps -f name=$container_name -q)
     - if [ -n "$container" ]; then docker rm $container; fi
