@@ -19,7 +19,7 @@ end_section setup_database
 
 start_section start_container "Starting luigi container ..."
     make startup
-    trap "make shutdown" EXIT
+    trap "make docker-cleanup" EXIT
 end_section start_container
 
 # Basically, we are emulating fill_db.sh now, just without backups.

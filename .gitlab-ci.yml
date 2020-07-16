@@ -28,16 +28,11 @@ coverage:
     - barberini
   before_script:  # prepare docker
     - USER="gitlab_runner_${CI_PIPELINE_ID}"
-    - container_name=$USER-barberini_analytics_luigi
     - make startup
   script:  # run coverage tests
-    - docker exec --env FULL_TEST=$FULL_TEST $container_name make coverage
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
   after_script:  # cleanup docker
-    - make shutdown
-    - container_id=$(docker ps -f name=$container_name -q)
-    - if [ -n "$container" ]; then docker rm $container; fi
-    - image_ids=$(docker images ${USER}* -q)
-    - if [ -n "$image_ids" ]; then docker image rm $image_ids; fi
+    - make docker-cleanup
 
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:

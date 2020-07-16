@@ -52,7 +52,17 @@ connect:
 docker-do:
 	docker exec -i "${USER}-barberini_analytics_luigi" $(SHELL) -c "$(do)"
 
-docker-clean-cache:
+# Remove all docker containers
+# Keep images for optimization
+docker-cleanup: shutdown
+	$(SHELL) -c '\
+		containers=$$(docker ps -f name=$$USER-* -q);\
+		if [ -n "$$containers" ]; then docker rm $$containers; fi;\
+	'
+
+# Rebuild docker containers without cache (useful after changing
+# requirements.txt has changed, for example)
+docker-rebuild:
 	$(DOCKER_COMPOSE) -p ${USER} build --no-cache
 
 
