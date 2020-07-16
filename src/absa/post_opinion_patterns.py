@@ -105,7 +105,9 @@ class GroupPostOpinionSentiments(DataPreparationTask):
         logger.info("Labelling clusters ...")
         df = self.label_clusters(df)
 
-        df = df.groupby(['source', 'post_id', 'dataset', 'target_aspect_words']).agg({
+        df = df.groupby([
+            'source', 'post_id', 'dataset', 'target_aspect_words'
+        ]).agg({
             'aspect_phrase': list,
             'sentiment': 'mean',
             'count': 'sum'
@@ -206,7 +208,7 @@ class CollectPostOpinionSentiments(DataPreparationTask):
                 ''',
                 'inflected': f'''
                     SELECT pp.dataset, inflected AS phrase, weight
-                    FROM absa.phrase_polarity AS pp
+                    FROM {self.polarity_table} AS pp
                     JOIN absa.inflection ON (
                         pp.dataset, phrase
                     ) = (
