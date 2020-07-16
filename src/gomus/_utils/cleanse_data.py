@@ -106,16 +106,13 @@ class CleansePostalCodes(DataPreparationTask):
             customer_df['cleansed_country'] = \
                 [result[1] for result in results]
 
-            customer_df[['latitude', 'longitude']] = \
+            postal_analysis = \
                 customer_df['cleansed_postal_code'].apply(self.query_lat_long)
 
-            # postal_analysis = \
-            #     customer_df['cleansed_postal_code'].apply(self.add_lat_long)
-
-            # customer_df['latitude'] = \
-            #     [lat_long[0] for lat_long in postal_analysis]
-            # customer_df['longitude'] = \
-            #     [lat_long[1] for lat_long in postal_analysis]
+            customer_df['latitude'] = \
+                [lat_long[0] for lat_long in postal_analysis]
+            customer_df['longitude'] = \
+                [lat_long[1] for lat_long in postal_analysis]
 
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
