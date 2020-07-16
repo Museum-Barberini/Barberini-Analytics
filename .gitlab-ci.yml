@@ -27,7 +27,7 @@ coverage:
   tags:
     - barberini
   before_script:
-    - USER="${USER}_${CI_PIPELINE_ID}"
+    - USER="$gitlab_runner_${CI_PIPELINE_ID}"
     - make startup
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage  
