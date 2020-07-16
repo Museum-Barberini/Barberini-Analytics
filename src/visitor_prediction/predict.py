@@ -103,6 +103,13 @@ class PredictVisitors(DataPreparationTask):
                 keep_default_na=False
             )
 
+        if self.minimal_mode:
+            all_entries = pd.DataFrame(
+                index=[dt.date(2020, 1, 1) + dt.timedelta(days=offset)
+                       for offset in range(40)],
+                data=[[i] for i in range(40)],
+                columns=['entries'])
+
         if self.sample_prediction:
             all_entries = all_entries.iloc[:-self.days_to_predict].copy()
 
