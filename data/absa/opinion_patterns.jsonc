@@ -1,3 +1,4 @@
+/* POS tag patterns for detecting opinion phrases in posts. See post_opinion_patterns.py. */
 {
 	"adj_noun": [
 		{
