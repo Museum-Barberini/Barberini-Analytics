@@ -50,7 +50,7 @@ minimal-mining-pipeline:
   tags:
     - barberini
   before_script:
-    - export USER="gitlab_runner_${CI_PIPELINE_ID}"
+    - USER="gitlab_runner_${CI_PIPELINE_ID}"
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
