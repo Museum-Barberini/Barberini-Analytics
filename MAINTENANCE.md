@@ -26,7 +26,7 @@ b) can break the connection to external access points whose interface has change
 c) may leave recently discovered security leaks unfixed.
 Thus, updates should be carried out on a regular schedule.
 
-#### Update pip dependencies
+#### Update python (pip) dependencies
 
 1. Check out a new branch.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
