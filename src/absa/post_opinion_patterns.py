@@ -36,7 +36,6 @@ STEPS:
 
 
 # TODO: Rename (sth with sentiment)
-# TODO: Split run()
 class CollectPostOpinionAspects(DataPreparationTask):
 
     def requires(self):
@@ -61,31 +60,11 @@ class CollectPostOpinionAspects(DataPreparationTask):
         df = df.dropna(subset=['vec'])
 
         logger.info("Clustering aspect phrases ...")
-        dbscan = DBSCAN(metric='cosine', eps=0.37, min_samples=2)
-        df['bin'] = dbscan.fit(list(df['vec'])).labels_
-
-        noise, nonnoise = (subdf for _, subdf in df.groupby(df['bin'] > -1))
-        logger.info(
-            f"DBSCAN: Created {len(nonnoise)} bins, "
-            f"{len(noise) / len(df) * 100 :.2f}% noise."
-        )
-        df = nonnoise
+        df = self.cluster_aspects(df)
 
         logger.info("Labelling clusters ...")
-        bins = df.groupby('bin')[['vec']].agg(
-            lambda vecs: np.array(list(np.average(
-                list(vecs.apply(tuple)),
-                axis=0
-            )))
-        )
-        bins['target_aspect_words'] = bins['vec'].apply(
-            lambda vec: next(zip(*self.model.similar_by_vector(vec, topn=3)))
-        )
-        bins['target_aspect_word'] = bins['target_aspect_words'].apply(
-            lambda words: words[0]
-        )
+        df = self.label_clusters(df)
 
-        df = df.merge(bins, on='bin')
         df = df[[
             'source', 'post_id', 'dataset',
             'aspect_phrase', 'target_aspect_word', 'target_aspect_words',
@@ -126,6 +105,36 @@ class CollectPostOpinionAspects(DataPreparationTask):
             return self.model.get_vector(word)
         except KeyError:
             return None
+
+    def cluster_aspects(self, df):
+
+        dbscan = DBSCAN(metric='cosine', eps=0.37, min_samples=2)
+        df['bin'] = dbscan.fit(list(df['vec'])).labels_
+
+        noise, nonnoise = (subdf for _, subdf in df.groupby(df['bin'] > -1))
+        logger.info(
+            f"DBSCAN: Created {len(nonnoise)} bins, "
+            f"{len(noise) / len(df) * 100 :.2f}% noise."
+        )
+
+        return nonnoise
+
+    def label_clusters(self, df):
+
+        bins = df.groupby('bin')[['vec']].agg(
+            lambda vecs: np.array(list(np.average(
+                list(vecs.apply(tuple)),
+                axis=0
+            )))
+        )
+        bins['target_aspect_words'] = bins['vec'].apply(
+            lambda vec: next(zip(*self.model.similar_by_vector(vec, topn=3)))
+        )
+        bins['target_aspect_word'] = bins['target_aspect_words'].apply(
+            lambda words: words[0]
+        )
+
+        return df.merge(bins, on='bin')
 
 
 class CollectPostOpinionSentiments(DataPreparationTask):
