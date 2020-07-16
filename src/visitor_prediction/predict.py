@@ -1,7 +1,7 @@
 import luigi
-from _utils.data_preparation import DataPreparationTask
-from _utils.csv_to_db import CsvToDb
-from _utils.query_db import QueryDb
+from data_preparation import DataPreparationTask
+from csv_to_db import CsvToDb
+from query_db import QueryDb
 import datetime as dt
 import pandas as pd
 import numpy as np
@@ -9,8 +9,8 @@ import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 
-from visitor_prediction.exhibition_popularity import ExhibitionPopularity
-from visitor_prediction.preprocessing import preprocess_entries
+from .exhibition_popularity import ExhibitionPopularity
+from .preprocessing import preprocess_entries
 from gomus.daily_entries import DailyEntriesToDb
 
 

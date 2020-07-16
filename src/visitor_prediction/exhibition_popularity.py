@@ -1,5 +1,5 @@
-from _utils.data_preparation import DataPreparationTask
-from _utils.query_db import QueryDb
+from data_preparation import DataPreparationTask
+from query_db import QueryDb
 import datetime as dt
 import pandas as pd
 import luigi
