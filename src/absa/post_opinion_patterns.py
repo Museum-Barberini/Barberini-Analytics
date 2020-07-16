@@ -164,7 +164,8 @@ class GroupPostOpinionSentiments(DataPreparationTask):
         dbscan = DBSCAN(metric='cosine', eps=0.37, min_samples=2)
         df['bin'] = dbscan.fit(list(df['vec'])).labels_
 
-        noise, nonnoise = (subdf for _, subdf in df.groupby(df['bin'] > -1))
+        isnoise = df['bin'] == -1
+        noise, nonnoise = df[isnoise], df[~isnoise]
         logger.info(
             f"DBSCAN: Created {len(nonnoise)} bins, "
             f"{len(noise) / len(df) * 100 :.2f}% noise."
