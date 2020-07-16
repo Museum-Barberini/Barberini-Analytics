@@ -1,7 +1,7 @@
 import luigi
 
 from posts import PostsToDb, PostPerformanceToDb
-from gomus.gomus import GomusToDb
+from gomus import GomusToDb
 from google_trends.gtrends_values import GtrendsValuesToDb
 from absa import AspectBasedSentimentAnalysis
 from topic_modeling import TopicModeling
