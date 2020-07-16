@@ -2,7 +2,6 @@ import luigi
 
 from posts import PostsToDb, PostPerformanceToDb
 from gomus import GomusToDb
-from google_trends.gtrends_values import GtrendsValuesToDb
 from absa.post_aspects import PostAspectsToDb
 from absa.post_ngrams import PostNgramsToDb
 from absa.phrase_polarity import PhrasePolaritiesToDb
@@ -20,7 +19,6 @@ class FillDbDaily(luigi.WrapperTask):
 
     def requires(self):
         # Public sources
-        yield GtrendsValuesToDb()
         yield PostsToDb()
 
         # Internal sources
