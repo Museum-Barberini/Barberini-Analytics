@@ -1,3 +1,4 @@
+
 # Extension files:
 #       docker-compose-enable-ssl.yml
 
@@ -41,7 +42,7 @@ services:
 
     barberini_analytics_db:
         container_name: barberini_analytics_db
-        image: postgres
+        image: postgres:12.3
         restart: always
         shm_size: 1g
         ports:

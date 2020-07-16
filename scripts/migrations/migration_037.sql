@@ -1,4 +1,4 @@
--- nuke gtrends right out of this plane of existence (#289)
+-- Nuke gtrends right out of this plane of existence (#289)
 
 BEGIN;
 
