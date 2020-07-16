@@ -35,8 +35,7 @@ STEPS:
 """
 
 
-# TODO: Rename (sth with sentiment)
-class CollectPostOpinionAspects(DataPreparationTask):
+class GroupPostOpinionSentiments(DataPreparationTask):
 
     def requires(self):
 
@@ -46,7 +45,7 @@ class CollectPostOpinionAspects(DataPreparationTask):
     def output(self):
 
         return luigi.LocalTarget(
-            f'{self.output_dir}/absa/post_opinion_aspects.csv',
+            f'{self.output_dir}/absa/post_opinion_sentiments_grouped.csv',
             format=UTF8
         )
 
