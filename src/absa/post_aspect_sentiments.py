@@ -3,6 +3,7 @@ import luigi
 from csv_to_db import QueryCacheToDb
 from .post_aspects import PostAspectsToDb
 from .post_ngrams import PostNgramsToDb
+from .post_opinion_patterns import PostOpinionSentimentsToDb
 from .post_sentiments import PostPhrasePolaritiesToDb
 
 
@@ -14,6 +15,7 @@ class PostAspectSentimentsToDb(luigi.WrapperTask):
         yield PostPhraseAspectPolaritiesToDb()
 
         yield PostAspectSentimentsLinearDistanceToDb()
+        yield PostOpinionSentimentsToDb()
 
 
 class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):

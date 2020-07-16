@@ -10,6 +10,7 @@ from sklearn.cluster import DBSCAN
 import spacy
 from tqdm import tqdm
 
+from csv_to_db import CsvToDb
 from data_preparation import ConcatCsvs, DataPreparationTask
 from query_db import QueryDb
 from json_converters import JsoncToJson
@@ -28,11 +29,21 @@ STEPS:
 - [x] one task that reads aspect-sentiment-pairs, matches sentiment weights
       and groups them by aspect
 - [x] grouping
-- [ ] NEXT: create another table without foreign keys and write ToCsv task.
+- [x] write ToCsv task
+- [ ] NEXT: create migration script
 
 - rename aspect_sentiment to opinion globally? rather no, but refine namings.
   what about opinion_phrase here?
 """
+
+class PostOpinionSentimentsToDb(CsvToDb):
+
+    table = 'absa.post_opinion_sentiment'
+
+    def requires(self):
+
+        return ConcatPostOpinionSentiments()
+
 
 class ConcatPostOpinionSentiments(ConcatCsvs):
 
