@@ -283,10 +283,7 @@ class CleansePostalCodes(DataPreparationTask):
 
         postal_code_data = nomi.query_postal_code(postal_code)
 
-        latitude = postal_code_data['latitude']
-        longitude = postal_code_data['longitude']
-
-        if postal_code_data.empty:
+if postal_code_data.empty:
             return None, None
 
-        return latitude, longitude
+        return postal_code_data['latitude'], postal_code_data['longitude']
