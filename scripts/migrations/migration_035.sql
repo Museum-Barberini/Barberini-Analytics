@@ -2,7 +2,8 @@
 
 BEGIN;
 
-    ALTER TABLE gomus_customer ADD COLUMN latitude FLOAT;
-    ALTER TABLE gomus_customer ADD COLUMN longitude FLOAT;
+    ALTER TABLE gomus_customer
+        ADD COLUMN latitude FLOAT,
+        ADD COLUMN longitude FLOAT;
 
 COMMIT;
