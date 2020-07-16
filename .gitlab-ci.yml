@@ -2,7 +2,7 @@ image: docker:latest
 
 variables:
   BARBERINI_ANALYTICS_CONTEXT: CI
-  USER: "$USER_$CI_PIPELINE_ID"
+  USER: "${USER}_${CI_PIPELINE_ID}"
 
 workflow:
   rules:
