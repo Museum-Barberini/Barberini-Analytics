@@ -8,6 +8,7 @@ Overview:
 - **Database**: `/var/barberini-analytics/db-data/`
   * `applied_migrations.txt`: Local version registry of the migration system.
     See [Migration system](#migration-system).
+  * `server.key`: Let's Encrypt certificate.
   * `pg-data/`: Postgres internals of the database container.
 - **Logs:** `/var/log/barberini-analytics/`
 
