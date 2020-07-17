@@ -1,4 +1,4 @@
--- visitor prediction - add essential relations
+-- Visitor prediction - add essential relations (!301)
 
 BEGIN;
 
