@@ -65,7 +65,9 @@ class ExhibitionPopularity(DataPreparationTask):
                     exhib.start_date - dt.timedelta(days=360) \
                         < post['post_date'] < exhib.start_date:
                     mentioned_exhibitions.append(exhib.title)
-            if len(mentioned_exhibitions) == 1:  # avoid ambiguity
+            return mentioned_exhibitions[0] \
+                if len(mentioned_exhibitions) == 1\
+                else ''  # avoid ambiguity
                 return mentioned_exhibitions[0]
             else:
                 return ''
