@@ -1,17 +1,17 @@
-import luigi
-from data_preparation import DataPreparationTask
-from csv_to_db import CsvToDb
-from query_db import QueryDb
 import datetime as dt
-import pandas as pd
-import numpy as np
 
+import luigi
+import numpy as np
+import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 
+from csv_to_db import CsvToDb
+from data_preparation import DataPreparationTask
+from gomus.daily_entries import DailyEntriesToDb
+from query_db import QueryDb
 from .exhibition_popularity import ExhibitionPopularity
 from .preprocessing import preprocess_entries
-from gomus.daily_entries import DailyEntriesToDb
 
 
 N_NEIGHBORS = 5

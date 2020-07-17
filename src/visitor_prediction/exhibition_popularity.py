@@ -1,11 +1,12 @@
-from data_preparation import DataPreparationTask
-from query_db import QueryDb
 import datetime as dt
-import pandas as pd
-import luigi
 
-from gomus.exhibitions import ExhibitionsToDb
+import luigi
+import pandas as pd
+
+from data_preparation import DataPreparationTask
 from facebook import FbPostsToDb, FbPostPerformanceToDb
+from gomus.exhibitions import ExhibitionsToDb
+from query_db import QueryDb
 
 
 class ExhibitionPopularity(DataPreparationTask):
