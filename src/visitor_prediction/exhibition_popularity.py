@@ -58,10 +58,7 @@ class ExhibitionPopularity(DataPreparationTask):
                 if exhib.special:
                     continue
 
-                if '.' in exhib.title:
-                    first_title_half = exhib.title.split('.')[0]
-                else:
-                    first_title_half = exhib.title
+                first_title_half = exhib.title.split('.')[0]
                 simple_text = simplify_text(str(post['text']))
                 simple_title = simplify_text(first_title_half)
                 if simple_title in simple_text and \
