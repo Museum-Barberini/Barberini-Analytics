@@ -116,7 +116,7 @@ class FetchGplayReviews(DataPreparationTask):
         """
         The webserver that serves the gplay api runs in a different
         container. The container name is user specific:
-            [CONTAINER_USER]-gplay-api
+            [CONTAINER_USER]-barberini_analytics-gplay_api
         Note that the container name and the CONTAINER_USER
         environment variable are set in the docker-compose.yml.
         """
@@ -124,8 +124,10 @@ class FetchGplayReviews(DataPreparationTask):
             return self._url
 
         user = os.getenv('CONTAINER_USER')
-        self._url = \
-            f'http://{user}-gplay-api:3000/api/apps/{self.app_id}/reviews'
+        self._url = (
+            f'http://{user}-barberini_analytics-gplay_api:3000/api/apps/'
+            f'{self.app_id}/reviews'
+        )
         return self._url
 
     @property
