@@ -67,10 +67,6 @@ class ConcatPostOpinionSentiments(ConcatCsvs):
                 'dataset', 'sentiment_match_algorithm'
             ]]
 
-    def read_csv(self, target):
-
-        return super().read_csv(target)
-
 
 class GroupPostOpinionSentiments(DataPreparationTask):
 
