@@ -61,6 +61,14 @@ docker-clean-cache:
 apply-pending-migrations:
 	./scripts/migrations/migrate.sh /var/lib/postgresql/data/applied_migrations.txt
 
+EXT ?= sql
+create-migration:
+	${SHELL} -c "touch $$(find scripts/migrations/ -name 'migration_*' -type f \
+		| sed -n 's/\(migration_[[:digit:]]\+\).*$$/\1.$(EXT)/p' \
+		| sort -r \
+		| head -n 1 \
+		| perl -lpe 's/(\d+)/sprintf("%0@{[length($$1)]}d", $$1+1)/e')"
+
 # --- Control luigi ---
 
 luigi-scheduler:
