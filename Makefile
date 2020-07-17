@@ -22,7 +22,7 @@ startup: startup-db
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
-		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi barberini_analytics_gplay_api
 	
 	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
 		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$( \
@@ -39,7 +39,7 @@ startup-db:
 	fi
 
 shutdown:
-	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
+	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi barberini_analytics_gplay_api
 
 shutdown-db:
 	$(DOCKER_COMPOSE) rm -sf barberini_analytics_db

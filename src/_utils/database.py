@@ -5,6 +5,7 @@ from typing import TypeVar
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+from luigi.format import UTF8
 import numpy as np
 import pandas as pd
 from psycopg2.errors import UndefinedTable
@@ -254,19 +255,19 @@ class QueryDb(_utils.DataPreparationTask):
 
     limit = luigi.parameter.IntParameter(
         default=-1,
-        description="The maximum number posts to fetch. Optional. If -1, "
-                    "all posts will be fetched.")
+        description="The maximum number of rows to fetch. Optional. If -1, "
+                    "all rows will be fetched.")
 
     shuffle = luigi.BoolParameter(
         default=False,
-        description="If True, all posts will be shuffled. For debugging and "
+        description="If True, all rows will be shuffled. For debugging and "
                     "exploration purposes. Might impact performance.")
 
     def output(self):
 
         return luigi.LocalTarget(
             f'{self.output_dir}/{self.task_id}.csv',
-            format=luigi.format.UTF8
+            format=UTF8
         )
 
     def run(self):
@@ -311,3 +312,30 @@ class QueryDb(_utils.DataPreparationTask):
 
         with self.output().open('w') as output_stream:
             df.to_csv(output_stream, index=False, header=True)
+
+
+class QueryCacheToDb(QueryDb):
+
+    def run(self):
+
+        args, kwargs = self.args, self.kwargs
+        if isinstance(args, str):
+            # Unpack luigi-serialized parameter
+            args = literal_eval(args)
+        if isinstance(kwargs, str):
+            # Unpack luigi-serialized parameter
+            kwargs = literal_eval(kwargs)
+        assert not args or not kwargs, "cannot combine args and kwargs"
+        all_args = next(filter(bool, [args, kwargs]), None)
+
+        query = self.build_query()
+        self.db_connector.execute(
+            f'TRUNCATE TABLE {self.table}',
+            (f'INSERT INTO {self.table} {query}', all_args)
+        )
+
+        count = self.db_connector.query(f'SELECT COUNT(*) FROM {self.table}')
+
+        # Write dummy output for sake of complete()
+        with self.output().open('w') as file:
+            file.write(f"Cache of {count} rows")

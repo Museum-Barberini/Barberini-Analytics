@@ -3,7 +3,7 @@ import luigi
 from apple_appstore import AppstoreReviewsToDb
 from facebook import FbPostsToDb, FbPostCommentsToDb, FbPostPerformanceToDb
 from google_maps import GoogleMapsReviewsToDb
-from gplay.gplay_reviews import GooglePlaystoreReviewsToDb
+from gplay import GooglePlaystoreReviewsToDb
 from instagram import IgToDb, IgPostPerformanceToDb
 from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
 
