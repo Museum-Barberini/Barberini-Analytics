@@ -76,7 +76,8 @@ class ExhibitionPopularity(DataPreparationTask):
         # calculate popularity per exhibition
         popul_per_exhib = announcing_posts.filter(
             ['announces', 'likes']).groupby(['announces']).max()
-        average_max_likes = popul_per_exhib['likes'].mean()
+        average_max_likes = popul_per_exhib['likes'].mean() \
+            if len(announcing_posts) > 0 else 0.0
 
         # assign to exhibitions
         for exhibition in exhibitions.itertuples():
