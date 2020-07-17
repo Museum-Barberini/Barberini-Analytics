@@ -16,6 +16,7 @@ from query_db import QueryDb
 from json_converters import JsoncToJson
 from posts import PostsToDb
 from .german_word_embeddings import FetchGermanWordEmbeddings
+from .phrase_polarity import PhrasePolaritiesToDb
 
 
 logger = logging.getLogger('luigi-interface')
@@ -182,6 +183,13 @@ class CollectPostOpinionSentiments(DataPreparationTask):
     polarity_table = 'absa.phrase_polarity'
 
     sentiment_match_algorithm = luigi.Parameter()
+
+    def _requires(self):
+
+        return luigi.task.flatten([
+            PhrasePolaritiesToDb(),
+            super()._requires()
+        ])
 
     def requires(self):
 
