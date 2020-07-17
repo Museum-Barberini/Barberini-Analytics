@@ -69,9 +69,6 @@ class ExhibitionPopularity(DataPreparationTask):
             return mentioned_exhibitions[0] \
                 if len(mentioned_exhibitions) == 1\
                 else ''  # avoid ambiguity
-                return mentioned_exhibitions[0]
-            else:
-                return ''
         posts['announces'] = posts.apply(find_related_exhib, axis=1)
 
         announcing_posts = posts[posts['announces'] != '']
