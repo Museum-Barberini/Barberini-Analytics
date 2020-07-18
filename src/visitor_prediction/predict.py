@@ -104,6 +104,7 @@ class PredictVisitors(DataPreparationTask):
             )
 
         if self.minimal_mode:
+            # Generate fake data because gomus_daily_entry does not provide enough data in minimal mode
             all_entries = pd.DataFrame(
                 index=pd.date_range(start=dt.date(2020, 1, 1), periods=40),
                 data=[[i] for i in range(40)],
