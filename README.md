@@ -100,7 +100,7 @@ make shutdown
 
 ## Maintenance
 
-See `MAINTENANCE.md`.
+See [`MAINTENANCE.md`](MAINTENANCE.md).
 
 ## Credits
 
