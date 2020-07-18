@@ -83,7 +83,7 @@ class PredictVisitors(DataPreparationTask):
         return luigi.LocalTarget(
             f'{self.output_dir}/visitor_prediction/prediction'
             f'{"_sample" if self.sample_prediction else ""}'
-            f'{self.days_to_predict}_days_ahead.csv',
+            f'_{self.days_to_predict}_days_ahead.csv',
             format=luigi.format.UTF8)
 
     def run(self):
