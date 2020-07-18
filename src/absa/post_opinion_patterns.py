@@ -145,9 +145,11 @@ class GroupPostOpinionSentiments(DataPreparationTask):
         except KeyError:
             return None
 
+    dbscan_eps, dbscan_minsamples = 0.37, 2
+
     def cluster_aspects(self, df):
 
-        dbscan = DBSCAN(metric='cosine', eps=0.37, min_samples=2)
+        dbscan = DBSCAN(metric='cosine', eps=self.dbscan_eps, min_samples=self.dbscan_minsamples)
         df['bin'] = dbscan.fit(list(df['vec'])).labels_
 
         is_noise = df['bin'] == -1
@@ -159,6 +161,8 @@ class GroupPostOpinionSentiments(DataPreparationTask):
 
         return nonnoise
 
+    cluster_label_topn = 3
+
     def label_clusters(self, df):
 
         bins = df.groupby('bin')[['vec']].agg(
@@ -168,7 +172,9 @@ class GroupPostOpinionSentiments(DataPreparationTask):
             )))
         )
         bins['target_aspect_words'] = bins['vec'].apply(
-            lambda vec: next(zip(*self.model.similar_by_vector(vec, topn=3)))
+            lambda vec: next(zip(*self.model.similar_by_vector(
+                vec, topn=self.cluster_label_topn
+            )))
         )
 
         return df.merge(bins, on='bin')
