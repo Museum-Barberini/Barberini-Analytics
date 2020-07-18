@@ -22,7 +22,7 @@ build:
   script:
     - docker build -t test ./docker
 
-coverage:
+unittest:
   stage: test
   tags:
     - barberini

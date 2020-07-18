@@ -3,6 +3,7 @@ import datetime as dt
 import logging
 import luigi
 import pandas as pd
+import pgeocode
 import re
 from luigi.format import UTF8
 
@@ -104,6 +105,30 @@ class CleansePostalCodes(DataPreparationTask):
                 [result[0] for result in results]
             customer_df['cleansed_country'] = \
                 [result[1] for result in results]
+
+            unique_postal = \
+                customer_df.loc[
+                    customer_df['cleansed_country'] == 'Deutschland',
+                    'cleansed_postal_code'].sort_values().unique()
+            unique_postal = unique_postal[~pd.isnull(unique_postal)]
+
+            nomi = pgeocode.Nominatim('DE')
+
+            lat_list = []
+            long_list = []
+            for postal in unique_postal:
+                data = nomi.query_postal_code(postal)
+                lat_list.append(data['latitude'])
+                long_list.append(data['longitude'])
+
+            lat_dict = dict(zip(unique_postal, lat_list))
+            long_dict = dict(zip(unique_postal, long_list))
+
+            customer_df['latitude'] = \
+                customer_df['cleansed_postal_code'].map(lat_dict)
+
+            customer_df['longitude'] = \
+                customer_df['cleansed_postal_code'].map(long_dict)
 
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
@@ -267,3 +292,13 @@ class CleansePostalCodes(DataPreparationTask):
             else:
                 return result_code
         return None
+
+    def query_lat_long(self, postal_code):
+
+        nomi = pgeocode.Nominatim('DE')
+        postal_code_data = nomi.query_postal_code(postal_code)
+
+        if postal_code_data.empty:
+            return None, None
+
+        return postal_code_data['latitude'], postal_code_data['longitude']

@@ -1,4 +1,4 @@
--- ABSA: Introduce relations for sentiment baseline (!235)
+-- Introduce relations for sentiment baseline (!235)
 
 BEGIN;
 
