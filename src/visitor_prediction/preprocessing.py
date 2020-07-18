@@ -18,7 +18,7 @@ def _add_exhibition_progress(entries, exhibitions):
         for exhibition in exhibitions.itertuples():
             start = exhibition.start_date
             end = exhibition.end_date
-            if start <= date and date <= end:
+            if start <= date <= end:
                 return (date - start).days / (end - start).days
         return -1
     entries['exhibition_progress'] = \
