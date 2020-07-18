@@ -106,13 +106,29 @@ class CleansePostalCodes(DataPreparationTask):
             customer_df['cleansed_country'] = \
                 [result[1] for result in results]
 
-            postal_analysis = \
-                customer_df['cleansed_postal_code'].apply(self.query_lat_long)
+            unique_postal = \
+                customer_df.loc[
+                    customer_df['cleansed_country'] == 'Deutschland',
+                    'cleansed_postal_code'].sort_values().unique()
+            unique_postal = unique_postal[~pd.isnull(unique_postal)]
+
+            nomi = pgeocode.Nominatim('DE')
+
+            lat_list = []
+            long_list = []
+            for postal in unique_postal:
+                data = nomi.query_postal_code(postal)
+                lat_list.append(data['latitude'])
+                long_list.append(data['longitude'])
+
+            lat_dict = dict(zip(unique_postal, lat_list))
+            long_dict = dict(zip(unique_postal, long_list))
 
             customer_df['latitude'] = \
-                [lat_long[0] for lat_long in postal_analysis]
+                customer_df['cleansed_postal_code'].map(lat_dict)
+
             customer_df['longitude'] = \
-                [lat_long[1] for lat_long in postal_analysis]
+                customer_df['cleansed_postal_code'].map(long_dict)
 
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0

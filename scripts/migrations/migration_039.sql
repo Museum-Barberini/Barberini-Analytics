@@ -1,8 +1,17 @@
--- Nuke empty gplay reviews title (!278)
+-- Visitor prediction - add essential relations (!301)
 
 BEGIN;
 
-    ALTER TABLE gplay_review
-        DROP COLUMN title;
+    --- multiple independent sets of predictions are stored in the same relation
+    --- with different timespans and sometimes predicting past values (samples)
+    --- to provide a reference
+    CREATE TABLE visitor_prediction (
+        is_sample BOOLEAN,
+        date DATE,
+        entries INT,
+        PRIMARY KEY (
+            is_sample, date
+        )
+    );
 
 COMMIT;
