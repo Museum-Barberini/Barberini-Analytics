@@ -74,7 +74,8 @@ class ExhibitionPopularity(DataPreparationTask):
         announcing_posts = posts.dropna(subset=['announces'])
 
         # calculate popularity per exhibition
-        popul_per_exhib = announcing_posts.groupby(['announces'])['likes'].max()
+        popul_per_exhib = announcing_posts.filter(
+            ['announces', 'likes']).groupby(['announces']).max()
         average_max_likes = popul_per_exhib['likes'].mean() \
             if len(announcing_posts) > 0 else 0.0
 

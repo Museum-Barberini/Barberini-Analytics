@@ -75,7 +75,8 @@ class PredictVisitors(DataPreparationTask):
                 WHERE datetime > date('2017-01-01')
                 GROUP BY DATE(datetime)
                 ORDER BY DATE(datetime)
-            '''
+            '''  # values before 2017 are not representative as there were
+                 # two exhibitions in parallel and very high visitor numbers
         )
         yield ExhibitionPopularity()
 
@@ -94,7 +95,6 @@ class PredictVisitors(DataPreparationTask):
                 parse_dates=['date'],
                 index_col='date'
             )
-        all_entries.sort_index(inplace=True, ascending=True)
 
         with self.input()[1].open('r') as exhibitions_file:
             exhibitions = pd.read_csv(
