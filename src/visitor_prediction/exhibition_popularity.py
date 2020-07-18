@@ -68,10 +68,10 @@ class ExhibitionPopularity(DataPreparationTask):
                     mentioned_exhibitions.append(exhib.title)
             return mentioned_exhibitions[0] \
                 if len(mentioned_exhibitions) == 1\
-                else ''  # avoid ambiguity
+                else None  # avoid ambiguity
         posts['announces'] = posts.apply(find_related_exhib, axis=1)
 
-        announcing_posts = posts[posts['announces'] != '']
+        announcing_posts = posts.dropna(subset=['announces'])
 
         # calculate popularity per exhibition
         popul_per_exhib = announcing_posts.filter(
