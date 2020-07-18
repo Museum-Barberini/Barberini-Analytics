@@ -1,6 +1,19 @@
 import pandas as pd
 
 
+def preprocess_entries(entries, exhibitions):
+
+    entries = _add_is_closed(entries, exhibitions)
+    entries = _add_exhibition_progress(
+        entries,
+        exhibitions[exhibitions['special'] == ''])
+    entries = _add_exhibition_popularity(
+        entries,
+        exhibitions[exhibitions['special'] == ''])
+    entries = _add_weekdays(entries)
+    return entries
+
+
 def _add_is_closed(entries, exhibitions):
     entries['is_closed'] = 0
     for exhibition in exhibitions[
@@ -44,17 +57,4 @@ def _add_weekdays(entries):
     weekdays = pd.get_dummies(weekdays_series, prefix='weekday')
     for col in weekdays.columns:
         entries[col] = weekdays[col]
-    return entries
-
-
-def preprocess_entries(entries, exhibitions):
-
-    entries = _add_is_closed(entries, exhibitions)
-    entries = _add_exhibition_progress(
-        entries,
-        exhibitions[exhibitions['special'] == ''])
-    entries = _add_exhibition_popularity(
-        entries,
-        exhibitions[exhibitions['special'] == ''])
-    entries = _add_weekdays(entries)
     return entries
