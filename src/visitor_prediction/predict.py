@@ -153,8 +153,7 @@ class PredictVisitors(DataPreparationTask):
             train_entries[f'e-{i}'] = train_entries['entries'].shift(periods=i)
 
         # --- train ---
-        feature_columns = [col for col in train_entries.columns
-                           if col not in ['entries']]
+        feature_columns = [col for col in train_entries.columns if col != 'entries']
 
         model = KNeighborsRegressor(n_neighbors=N_NEIGHBORS)
         model = model.fit(
