@@ -46,7 +46,7 @@ If no crontab exists before, create it using `crontab -e`.
 
 #### Configuration
 
-See `CONFIGURATION.md`.
+See [`CONFIGURATION.md`](CONFIGURATION.md).
 
 
 ### Usage
