@@ -66,6 +66,6 @@ class TestGomusVersion(DatabaseTestCase):
             logger.warn(
                 f"Gomus HTML format has changed (line number of version tag "
                 f"has changed from {EXPECTED_VERSION_NUMBER} to {ln}), but "
-                 "version number is still the same. Did they push some "
-                 "undocumented changes?"
+                f"version number is still the same. Did they push some "
+                f"undocumented changes?"
             )
