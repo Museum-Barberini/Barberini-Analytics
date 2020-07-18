@@ -19,6 +19,7 @@ SEQUENCE_LENGTH = 1
 # These parameters as well as conventions
 # in training models were optimized as part of
 # https://gitlab.hpi.de/georg.tennigkeit/ba-visitor-prediction
+TIMESPAN = 30  # days
 
 
 class PredictionsToDb(CsvToDb):
@@ -38,18 +39,16 @@ class CombinePredictions(DataPreparationTask):
 
     def run(self):
         all_predictions = pd.DataFrame(
-            columns=['is_sample', 'timespan', 'date', 'entries'])
+            columns=['is_sample', 'date', 'entries'])
         for is_sample in [False, True]:
-            for timespan in [1, 7, 30]:
-                target = yield PredictVisitors(
-                    days_to_predict=timespan,
-                    sample_prediction=is_sample
-                )
-                with target.open('r') as prediction_file:
-                    new_predictions = pd.read_csv(prediction_file)
-                new_predictions['is_sample'] = is_sample
-                new_predictions['timespan'] = timespan
-                all_predictions = all_predictions.append(new_predictions)
+            target = yield PredictVisitors(
+                days_to_predict=TIMESPAN,
+                sample_prediction=is_sample
+            )
+            with target.open('r') as prediction_file:
+                new_predictions = pd.read_csv(prediction_file)
+            new_predictions['is_sample'] = is_sample
+            all_predictions = all_predictions.append(new_predictions)
         with self.output().open('w') as output_file:
             all_predictions.to_csv(output_file, index=False, header=True)
 
@@ -104,7 +103,8 @@ class PredictVisitors(DataPreparationTask):
             )
 
         if self.minimal_mode:
-            # Generate fake data because gomus_daily_entry does not provide enough data in minimal mode
+            # Generate fake data because gomus_daily_entry does
+            # not provide enough data in minimal mode
             all_entries = pd.DataFrame(
                 index=pd.date_range(start=dt.date(2020, 1, 1), periods=40),
                 data=[[i] for i in range(40)],
@@ -153,10 +153,11 @@ class PredictVisitors(DataPreparationTask):
             train_entries[f'e-{i}'] = train_entries['entries'].shift(periods=i)
 
         # --- train ---
-        feature_columns = [col for col in train_entries.columns if col != 'entries']
+        feature_columns = [col for col in train_entries.columns
+                           if col != 'entries']
 
         model = KNeighborsRegressor(n_neighbors=N_NEIGHBORS)
-        model = model.fit(
+        model.fit(
             train_entries.filter(feature_columns),
             train_entries['entries'])
 

@@ -7,11 +7,10 @@ BEGIN;
     --- to provide a reference
     CREATE TABLE visitor_prediction (
         is_sample BOOLEAN,
-        timespan INT,
         date DATE,
         entries INT,
         PRIMARY KEY (
-            is_sample, timespan, date
+            is_sample, date
         )
     );
 
