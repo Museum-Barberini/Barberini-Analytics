@@ -106,9 +106,6 @@ class CleansePostalCodes(DataPreparationTask):
             customer_df['cleansed_country'] = \
                 [result[1] for result in results]
 
-            customer_df['cleansed_postal_code'] = \
-                customer_df['cleansed_postal_code'].replace('nan', '')
-
             unique_postal = \
                 customer_df.loc[
                     customer_df['cleansed_country'] == 'Deutschland',
