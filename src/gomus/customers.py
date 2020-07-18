@@ -30,10 +30,11 @@ class CustomersToDb(CsvToDb):
         # '.0' to some postal codes
         # TODO: Fix this in super
         df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].apply(str)
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].str.replace('.0', '')
+            df['cleansed_postal_code'].apply(self.parse_string)
         return df
+
+    def parse_string(self, value):
+        return str(value).replace('.0', '') if value else None
 
 
 class GomusToCustomerMappingToDb(CsvToDb):
