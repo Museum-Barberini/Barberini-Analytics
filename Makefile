@@ -22,7 +22,7 @@ startup: startup-db
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
-		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi barberini_analytics_gplay_api
 	
 	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
 		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$( \
@@ -39,7 +39,7 @@ startup-db:
 	fi
 
 shutdown:
-	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
+	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi barberini_analytics_gplay_api
 
 shutdown-db:
 	$(DOCKER_COMPOSE) rm -sf barberini_analytics_db
@@ -60,6 +60,14 @@ docker-clean-cache:
 
 apply-pending-migrations:
 	./scripts/migrations/migrate.sh /var/lib/postgresql/data/applied_migrations.txt
+
+EXT ?= sql
+create-migration:
+	${SHELL} -c "touch $$(find scripts/migrations/ -name 'migration_*' -type f \
+		| sed -n 's/\(migration_[[:digit:]]\+\).*$$/\1.$(EXT)/p' \
+		| sort -r \
+		| head -n 1 \
+		| perl -lpe 's/(\d+)/sprintf("%0@{[length($$1)]}d", $$1+1)/e')"
 
 # --- Control luigi ---
 

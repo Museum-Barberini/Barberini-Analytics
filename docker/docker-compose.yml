@@ -1,3 +1,4 @@
+
 # Extension files:
 #       docker-compose-enable-ssl.yml
 
@@ -20,7 +21,7 @@ services:
             - PYTHONIOENCODING=utf-8
             - PYTHONUNBUFFERED=1
             - PYTHONPATH=./src/:./src/_utils/
-            # used to determine name of gplay_api container
+            # used to determine name of barberini_analytics_gplay_api container
             - CONTAINER_USER=${USER}
             # to control whether email notifications should be sent
             - LUIGI_EMAIL_FORMAT=${LUIGI_EMAIL_FORMAT}
@@ -41,7 +42,7 @@ services:
 
     barberini_analytics_db:
         container_name: barberini_analytics_db
-        image: postgres
+        image: postgres:12.3
         restart: always
         shm_size: 1g
         ports:
@@ -53,10 +54,10 @@ services:
         networks:
             - barberini_analytics_database_network
 
-    gplay_api:
+    barberini_analytics_gplay_api:
         # consider how the gplay api is called from gplay_reviews.py before
         # renaming the container.
-        container_name: ${USER}-gplay-api
+        container_name: ${USER}-barberini_analytics-gplay_api
         build:
             dockerfile: Dockerfile_gplay_api
             context: .

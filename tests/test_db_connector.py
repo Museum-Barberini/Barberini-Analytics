@@ -96,6 +96,23 @@ class TestDbConnector(DatabaseTestCase):
 
         self.assertEqual([(3, 4)], table_content)
 
+    def test_execute_with_arg(self):
+
+        self.connector.execute((
+            f'''
+                DELETE FROM {self.temp_table}
+                WHERE col1 = %s
+            ''',
+            (1,)
+        ))
+
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'SELECT * FROM {self.temp_table}')
+                table_content = cur.fetchall()
+
+        self.assertEqual([(3, 4)], table_content)
+
     def test_execute_multiple(self):
 
         self.connector.execute(
@@ -103,6 +120,25 @@ class TestDbConnector(DatabaseTestCase):
                 DELETE FROM {self.temp_table}
                 WHERE col1 = 1
             ''',
+            f'''
+                DELETE FROM {self.temp_table}
+                WHERE col1 = 3
+            ''')
+
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'SELECT * FROM {self.temp_table}')
+                table_content = cur.fetchall()
+
+        self.assertFalse(table_content)  # empty
+
+    def test_execute_multiple_with_args(self):
+
+        self.connector.execute(
+            (f'''
+                DELETE FROM {self.temp_table}
+                WHERE col1 = %(foo)s - %(bar)s
+            ''', {'foo': 7, 'bar': 6}),
             f'''
                 DELETE FROM {self.temp_table}
                 WHERE col1 = 3
