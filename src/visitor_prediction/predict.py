@@ -1,7 +1,6 @@
 import datetime as dt
 
 import luigi
-import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
@@ -179,11 +178,10 @@ class PredictVisitors(DataPreparationTask):
             predictions.append(new_prediction)
 
         predicted_entries = pd.DataFrame(
-            data=np.swapaxes([
-                to_be_predicted_entries.index,
-                predictions],
-                0, 1),
-            columns=['date', 'entries'])
+            index=to_be_predicted_entries.index,
+            data=predictions)
+        predicted_entries.reset_index(inplace=True)
+        predicted_entries.columns = ['date', 'entries']
 
         # --- denormalize results ---
         predicted_entries[['entries']] = \
