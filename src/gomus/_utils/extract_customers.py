@@ -37,11 +37,16 @@ class ExtractCustomerData(DataPreparationTask):
 
         df['Gültige E-Mail'] = df['E-Mail'].apply(isinstance, args=(str,))
 
+        # Will be filled during CleansePostalCodes
         df['Bereinigte PLZ'] = None
         df['Bereinigtes Land'] = None
 
         # Check whether email contains interesting tags
         df['Tourismus Tags'] = df['E-Mail'].apply(self.check_mail)
+
+        # Prepare columns for latitude and longitude
+        df['Breitengrad'] = None
+        df['Längengrad'] = None
 
         # Insert Hash of E-Mail into E-Mail field,
         # or original ID if there is none
@@ -56,7 +61,8 @@ class ExtractCustomerData(DataPreparationTask):
             'Sprache', 'Land', 'Typ',
             'Erstellt am', 'Jahreskarte',
             'Gültige E-Mail', 'Bereinigte PLZ',
-            'Bereinigtes Land', 'Tourismus Tags'
+            'Bereinigtes Land', 'Tourismus Tags',
+            'Breitengrad', 'Längengrad'
             ])
 
         df.columns = self.columns

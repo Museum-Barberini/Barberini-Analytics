@@ -4,17 +4,6 @@
 	"countryCode": "DE", // Must be uppercase value from http://country.io/names.json
 	"foundingDate": "2017-01-01T00:00:00.000Z",
 	
-	"gtrends": {
-		"museumNames": [
-			"barberini",
-			"museum barberini"
-		],
-		"topics": [ // search phrases to be googled with "barberini"
-			"van Gogh",
-			"Picasso"
-		]
-	},
-	
 	"ids": {
 		"apple": {
 			"appId": 1150432552

@@ -20,6 +20,7 @@ class CollectPostAspects(ConcatCsvs):
     """
     TODO: Drop topological ancestors ("Ausstellungen" if there is
     also "Ausstellungen/van Gogh")
+    TODO: Add column "n" to table post_aspect
     """
 
     def requires(self):
@@ -70,11 +71,11 @@ class CollectPostAspectsAlgorithm(QueryDb):
                             absa.post_ngram
                                 NATURAL JOIN new_post_id
                         WHERE
-                            {self.pre_filter_query('ngram')}
+                            {self.pre_filter_query('phrase')}
                     )
                 SELECT
                     source, post_id, word_index, aspect_id,
-                    {self.value_query('ngram', 'target_aspect_word.word')}
+                    {self.value_query('phrase', 'target_aspect_word.word')}
                         AS {self.match_name}
                 FROM
                     post_ngram,
@@ -96,7 +97,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
                 aspect_match
                     NATURAL JOIN absa.post_ngram
             WHERE
-                {self.post_filter_query('ngram')}
+                {self.post_filter_query('phrase')}
             GROUP BY
                 source, post_id, word_index;
 

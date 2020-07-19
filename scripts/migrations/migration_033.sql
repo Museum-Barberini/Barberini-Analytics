@@ -1,4 +1,4 @@
--- add column is_cancelled (!283)
+-- Gomus: Add column is_cancelled (!283)
 
 BEGIN;
 
