@@ -64,7 +64,7 @@ Our recommended workflow consists of the following policies:
   * `Dockerfile`: Scripts to be executed when building the luigi container.
   * `Dockerfile_gplay_api`: Scripts to be executed when building the gplay_api container.
   * `requirements.txt`: pip dependencies.
-  See also: [Update project dependencies](MAINTENANCE.md/#update-project-dependencies).
+  See also: [Update project dependencies](MAINTENANCE.md#update-project-dependencies).
 - (`output*`: Pipeline artifacts.
   Not actually part of this repository.
   Excluded via `.gitignore`.)
@@ -78,7 +78,7 @@ Our recommended workflow consists of the following policies:
   * `setup/`: Scripts for setting up the solution on another VM/workstation.
 
     No claim on completeness.
-    See [installation](README.md/#installation).
+    See [installation](README.md#installation).
   * `tests/`: Scripts used as part of CI tests.
     * `run_minimal_mining_pipeline.sh`: See the minimal mining description in [CI stages](#continuous-integration).
   * `update/`: Scripts for occasional use.
