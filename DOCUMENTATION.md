@@ -44,6 +44,10 @@ Our recommended workflow consists of the following policies:
 - `.gitlab-ci.yml`: Configuration file for [GitLab CI](https://docs.gitlab.com/ee/ci/).
   See [Workflow](#workflow).
 - `luigi.cfg`: Configuration file for [Luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration.
+
+  In particular, you can configure timeouts and notification emails on failures here.
+  By the way: If desired, it is also possible to reduce the number of notification mails by [bundling](https://luigi.readthedocs.io/en/stable/configuration.html#batch-notifier) them.
+
   See [the official documentation](https://luigi.readthedocs.io/en/stable/configuration.html).
 - `Makefile`: Smorgasbord of every-day commands used during development.
   It is recommended to scan this file once in order to get a brief overview.
