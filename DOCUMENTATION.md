@@ -132,9 +132,10 @@ Pipelines will automatically scan for newly added migration versions and apply t
 All applied migration versions are stored in `/var/barberini-analytics/db-data/applied_migrations.txt`.
 Usually you do not want to touch that file manually.
 
-**To add a new migration,** check out the latest version name `nnn` under `scripts/migrations/` and create a new script file named `migration_nnn.xxx`.
+**To add a new migration,** check out the latest version name `nnn` under `scripts/migrations/` and create a new script file named `migration_{nnn + 1}.xxx`.
 The script file can have an arbitrary extension, but it must be either an `.sql` transaction, or provide a valid [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)).
-Make sure to `chmod +x` that file.  
+If you use a shebang, make sure to `chmod +x` that file.
+You can also run `make migration` to create a new SQL migration script.  
 **To apply all pending migrations,** run `make apply-pendining-migrations`.
 This is done automatically via `cron.sh`.  
 **To apply *all* migrations without respecting the applied-file,** run `scripts/migrations/migrate.sh` without any arguments.
