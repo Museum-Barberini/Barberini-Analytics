@@ -37,12 +37,13 @@ Overview:
 Our recommended workflow consists of the following policies:
 - a **protected `master`** branch
 - a new **merge request** for every change
-- a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/))
+- a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/)).
+  For more information about our CI pipeline, head [here](#continuous-integration)
 
 ## Repository overview
 
 - `.gitlab-ci.yml`: Configuration file for [GitLab CI](https://docs.gitlab.com/ee/ci/).
-  See [Workflow](#workflow).
+  See [Continuous Integration](#continuous-integration).
 - `luigi.cfg`: Configuration file for [luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration which is used for our central [mining pipeline](#data-mining-pipeline).
 
   In particular, you can configure timeouts and notification emails on failures here.
@@ -79,7 +80,7 @@ Our recommended workflow consists of the following policies:
     No claim on completeness.
     See [installation](README.md/#installation).
   * `tests/`: Scripts used as part of CI tests.
-    * `run_minimal_mining_pipeline.sh`: Tests setup and running of the entire pipeline in a minimal mode, providing an isolated context against production data.
+    * `run_minimal_mining_pipeline.sh`: See the minimal mining description in [CI stages](#continuous-integration).
   * `update/`: Scripts for occasional use.
     See particular docmuentations.
     * `historic_data/`: Scripts to scrape all data from the gomus system again.
@@ -101,6 +102,8 @@ Our recommended workflow consists of the following policies:
   In particular, the following paths are of special relevance:
 
   * `_utils/`: Classes for our domain-specific test framework
+  * `pbi_reports/`: Crash tests for our Power BI report files.
+    See the documentation of the [CI stage](#continuous-integration).
   * `schema/`: Acceptance tests for the database schema
   * `test_data/`: Contains sample files used as mocking inputs or expected outputs of units under test.
 - `visualizations/sigma/`: Custom Power BI Visual for the sigma text graph.
@@ -126,7 +129,7 @@ At the moment, our solution includes three docker containers:
 - `gplay_api`: Special docker container used to host the Google Play API scraper.
   See `docker/Dockerfile_gplay_api` and `src/gplay/gplay_reviews` for further information.
 
-## Data-Mining Pipeline
+## Data-mining pipeline
 
 Our whole data-mining pipeline is build using the pipeline orchestration framework [Luigi](https://luigi.readthedocs.io/en/stable/index.html).
 It can be configured via the `luigi.cfg` file (see [above](#repository-overview)).
@@ -145,6 +148,22 @@ Here is a short crash course about how it works:
 To run our whole pipeline, we define some [`WrapperTask`s](https://luigi.readthedocs.io/en/stable/luigi_patterns.html?highlight=wrappertask#triggering-many-tasks) in the `fill_db` module.
 See `make luigi` and `scripts/running/fill_db.sh` to trigger the whole pipeline to run.
 To rerun a certain task in development, you need to remove its output file and trigger the pipeline again.
+
+## Continuous integration
+
+Our CI pipeline is designed to work for GitLab and it is controlled via the `.gitlab-ci.yml` file.
+These are our different CI stages (non-exhaustive list):
+
+- **build:** Test the tech stack set up, especially the Dockerfiles and dependencies.
+- **unittest:** Run all unit tests in our `test/` directory.
+  See [Repository overview](#repository-overview).
+- **minimal-mining-pipeline:** Test setup and running of the entire pipeline in a minimal mode, providing an isolated context against production data.
+  See `scripts/test/run_minimal_mining_pipeline.sh`.
+- **test-pbi-reports:** Contains crash tests for loading every single `power_bi/` report file in Power BI Desktop.
+
+  Requires a GitLab Runner on Windows to be available.
+  See `tests/power_bi`.
+- **lint:** Makes sure all Python code in the repository follows the [PEP8 coding style guide](https://www.python.org/dev/peps/pep-0008/).
 
 ## Migration system
 
