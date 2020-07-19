@@ -43,7 +43,7 @@ Our recommended workflow consists of the following policies:
 
 - `.gitlab-ci.yml`: Configuration file for [GitLab CI](https://docs.gitlab.com/ee/ci/).
   See [Workflow](#workflow).
-- `luigi.cfg`: Configuration file for [Luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration.
+- `luigi.cfg`: Configuration file for [luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration which is used for our central [mining pipeline](#data-mining-pipeline).
 
   In particular, you can configure timeouts and notification emails on failures here.
   By the way: If desired, it is also possible to reduce the number of notification mails by [bundling](https://luigi.readthedocs.io/en/stable/configuration.html#batch-notifier) them.
@@ -125,6 +125,26 @@ At the moment, our solution includes three docker containers:
 
 - `gplay_api`: Special docker container used to host the Google Play API scraper.
   See `docker/Dockerfile_gplay_api` and `src/gplay/gplay_reviews` for further information.
+
+## Data-Mining Pipeline
+
+Our whole data-mining pipeline is build using the pipeline orchestration framework [Luigi](https://luigi.readthedocs.io/en/stable/index.html).
+It can be configured via the `luigi.cfg` file (see [above](#repository-overview)).
+Here is a short crash course about how it works:
+
+- For each script, you can define a *task* by subclassing `luigi.Task`.
+- Every task can define three main points of information by overriding the corresponding methods:
+  1. **an output target (`output()`):** The name of the file the task will produce.
+
+     A task is defined as `complete()` iff its output file exists.
+
+  2. **dependencies (`requires()`):** A collection of tasks that need to be completed before the requiring task is allowed to run.
+  3. **`run()` method:** Contains the actual task logic.
+    A task can also yield dynamic dependencies simply by implementing the `run()` as a generator yielding other task instances.
+
+To run our whole pipeline, we define some [`WrapperTask`s](https://luigi.readthedocs.io/en/stable/luigi_patterns.html?highlight=wrappertask#triggering-many-tasks) in the `fill_db` module.
+See `make luigi` and `scripts/running/fill_db.sh` to trigger the whole pipeline to run.
+To rerun a certain task in development, you need to remove its output file and trigger the pipeline again.
 
 ## Migration system
 
