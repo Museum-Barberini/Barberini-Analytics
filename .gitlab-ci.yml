@@ -82,6 +82,6 @@ validate-markdown:
     - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
     - make startup
   script:
-    - docker exec gitlab-runner-barberini_analytics_luigi /node_modules/remark-cli/cli.js -u validate-links .
+    - docker exec gitlab-runner-barberini_analytics_luigi /node_modules/remark-cli/cli.js -f -u validate-links .
   after_script:
     - make shutdown
