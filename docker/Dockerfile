@@ -39,7 +39,7 @@ RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev \
 # Install psycopg2 (incl. system dependencies)
 RUN $INSTALL libpq-dev
 
-# Install node.js
+# Install node.js (required for npm)
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN $INSTALL nodejs
 
