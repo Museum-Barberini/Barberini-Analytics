@@ -1,19 +1,20 @@
-#!/usr/bin/env python3
 import os
+import re
 
 import requests
 
-from db_test import DatabaseTestCase
+from db_test import DatabaseTestCase, logger
 
-GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
+EXPECTED_VERSION_NUMBER = 774
 EXPECTED_VERSION_TAG = 'v4.1.4.5 – Premium Edition'
+GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
 class TestGomusVersion(DatabaseTestCase):
 
     def test_session_id_is_valid(self):
         """
-        test if GOMUS_SESS_ID env variable contains a valid session id
+        Test if GOMUS_SESS_ID env variable contains a valid session id
         """
 
         response = requests.get(
@@ -30,13 +31,41 @@ class TestGomusVersion(DatabaseTestCase):
 
         response = requests.get(
             'https://barberini.gomus.de/',
-            cookies=dict(
-                _session_id=GOMUS_SESS_ID))
-        if not response.ok:
-            response.raise_for_status()
+            cookies={'_session_id': GOMUS_SESS_ID})
+        response.raise_for_status()
 
-        # currently, the version tag is in this particular line in the HTML
-        # if this line no. changes, that also means that adjustments to Gomus
-        # have been made
-        version_tag = response.text.splitlines()[774]
-        self.assertEqual(EXPECTED_VERSION_TAG, version_tag)
+        version_hits = {
+            ln: match
+            for ln, match in [
+                (ln, re.match(r'^v\d+\.\d+\.\d+\.\d+ – .+ Edition$', line))
+                for ln, line in enumerate(response.text.splitlines())
+            ]
+            if match
+        }
+
+        self.assertTrue(
+            version_hits,
+            msg="Gomus version number could not be found in HTML string"
+        )
+        self.assertEqual(
+            1,
+            len(version_hits),
+            msg="Ambiguous version info in gomus HTML"
+        )
+        ln = list(version_hits.keys())[0]
+        version_tag = list(version_hits.values())[0][0]
+
+        self.assertEqual(
+            EXPECTED_VERSION_TAG,
+            version_tag,
+            msg="Gomus version number in HTML string has changed! Please "
+                "make sure that all scrapers still work as expected before "
+                "updating this test."
+        )
+        if EXPECTED_VERSION_NUMBER != ln:
+            logger.error(
+                f"Gomus HTML format has changed (line number of version tag "
+                f"has changed from {EXPECTED_VERSION_NUMBER} to {ln}), but "
+                f"version number is still the same. Did they push some "
+                f"undocumented changes?"
+            )
