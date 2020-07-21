@@ -148,7 +148,7 @@ class CollectPostNgrams(DataPreparationTask):
                 word_relevant AS (
                     SELECT  *
                     FROM    {self.word_table}
-                    WHERE   word IN (SELECT * FROM new_post_id)
+                    WHERE   post_id IN (SELECT * FROM new_post_id)
                     AND     word NOT IN (
                         SELECT word
                         FROM {self.stopword_table}
