@@ -72,16 +72,3 @@ lint:
     - barberini
   script:
     - make lint
-
-validate-markdown:
-  stage: analyze
-  tags:
-    - barberini
-  before_script:
-    - container=$(docker ps -f name=gitlab-runner-barberini_analytics_luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
-    - make startup
-  script:
-    - docker exec gitlab-runner-barberini_analytics_luigi /node_modules/remark-cli/cli.js -f -u validate-links .
-  after_script:
-    - make shutdown
