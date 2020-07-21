@@ -303,7 +303,18 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
                     order_details.append(new_article)
 
-        df = pd.DataFrame(order_details)
+        df = pd.DataFrame(
+            order_details,
+            columns=[
+                'article_id',
+                'article_type',
+                'order_id',
+                'ticket',
+                'date',
+                'quantity',
+                'price',
+                'is_cancelled'
+            ])
         df = self.filter_fkey_violations(df)
 
         with self.output().open('w') as output_file:
