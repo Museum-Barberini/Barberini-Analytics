@@ -167,28 +167,28 @@ This project currently collects and integrates data from the following sources:
     <td rowspan="5"><b>Gomus</b></td>
     <td>Exhibitions</td>
     <td>
-      <li>Gomus API</li>
+      - Gomus API
     </td>
     <td>None</td>
   </tr>
   <tr>
     <td>Customers</td>
     <td>
-      <li>Excel report</li>
-      <li>HTML scraper</li>
+      - Excel report<br>
+      - HTML scraper
     </td>
     <td rowspan="4">Gomus session ID</td>
   </tr>
   <tr>
     <td>Daily entries</td>
     <td>
-      <li>Excel report</li>
+      - Excel report
     </td>
   </tr>
   <tr>
     <td>Bookings</td>
     <td>
-      <li>HTML scraper</li>
+      - HTML scraper
     </td>
   </tr>
   <tr>
@@ -206,10 +206,10 @@ This project currently collects and integrates data from the following sources:
   <tr>
     <td><b>Facebook</b></td>
     <td>
-       <li>Posts by the museum</li>
-       <li>Performance data (likes etc.) for each post</li>
-       <li>Comments on each post</li>
-      </td>
+       - Posts by the museum<br>
+       - Performance data (likes etc.) for each post<br>
+       - Comments on each post
+    </td>
     <td>Facebook Graph API</td>
     <td>Facebook Access Token</td>
   </tr>
@@ -228,10 +228,10 @@ This project currently collects and integrates data from the following sources:
   <tr>
     <td><b>Instagram</b></td>
     <td>
-       <li>Posts by the museum</li>
-       <li>Performance data (likes etc.) for each post</li>
-       <li>Profile metrics (impressions, clicks, follower count)</li>
-       <li>Audience data (origin, gender)</li>
+       - Posts by the museum<br>
+       - Performance data (likes etc.) for each post<br>
+       - Profile metrics (impressions, clicks, follower count)<br>
+       - Audience data (origin, gender)
       </td>
     <td>Facebook Graph API</td>
     <td>Facebook Access Token</td>
