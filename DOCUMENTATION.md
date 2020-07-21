@@ -89,7 +89,7 @@ Our recommended workflow consists of the following policies:
       This script can be used if older changes have to be respected (e. g. after the VM has been down for a while, or after any retroactive changes in the booking system have been made that go beyond simple cancellations).
 - `src/`: Source code of data integration and analysis tasks.
 
-  The rough structure follows different data sources or analysis fields.  
+  The rough structure follows different data sources (see [Data sources](#data-sources)) or analysis fields.  
   In particular, the following paths are of special relevance:
 
   * `_utils/`: Miscellaneous helper methods and classes used for database access and preprocessing.
@@ -148,6 +148,102 @@ Here is a short crash course about how it works:
 To run our whole pipeline, we define some [`WrapperTask`s](https://luigi.readthedocs.io/en/stable/luigi_patterns.html?highlight=wrappertask#triggering-many-tasks) in the `fill_db` module.
 See `make luigi` and `scripts/running/fill_db.sh` to trigger the whole pipeline to run.
 To rerun a certain task in development, you need to remove its output file and trigger the pipeline again.
+
+## Data Sources
+
+This project currently collects and integrates data from the following sources:
+
+<div class="tg-wrap"><table id="tg-5z1p4">
+<thead>
+  <tr>
+    <th>Data source</th>
+    <th>Relevant data</th>
+    <th>Access point</th>
+    <th>Authentication</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td rowspan="5"><b>Gomus</b></td>
+    <td>Exhibitions</td>
+    <td>
+      <li>Gomus API</li>
+    </td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td>Customers</td>
+    <td>
+      <li>Excel report</li>
+      <li>HTML scraper</li>
+    </td>
+    <td rowspan="4">Gomus session ID</td>
+  </tr>
+  <tr>
+    <td>Daily entries</td>
+    <td>
+      <li>Excel report</li>
+    </td>
+  </tr>
+  <tr>
+    <td>Bookings</td>
+    <td>
+      <li>HTML scraper</li>
+    </td>
+  </tr>
+  <tr>
+    <td>Orders</td>
+    <td>
+      <i>tbd</i>
+    </td>
+  </tr>
+  <tr>
+    <td><b>Apple App Store</b></td>
+    <td>Ratings and comments about the app</td>
+    <td>RSS feed</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td><b>Facebook</b></td>
+    <td>
+       <li>Posts by the museum</li>
+       <li>Performance data (likes etc.) for each post</li>
+       <li>Comments on each post</li>
+      </td>
+    <td>Facebook Graph API</td>
+    <td>Facebook Access Token</td>
+  </tr>
+  <tr>
+    <td><b>Google Maps Reviews</b></td>
+    <td>Ratings and comments</td>
+    <td>Google My Business API</td>
+    <td>GMB API Key</td>
+  </tr>
+  <tr>
+    <td><b>Google Play Reviews</b></td>
+    <td>Ratings and comments about the app</td>
+    <td>Scraper</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td><b>Instagram</b></td>
+    <td>
+       <li>Posts by the museum</li>
+       <li>Performance data (likes etc.) for each post</li>
+       <li>Profile metrics (impressions, clicks, follower count)</li>
+       <li>Audience data (origin, gender)</li>
+      </td>
+    <td>Facebook Graph API</td>
+    <td>Facebook Access Token</td>
+  </tr>
+  <tr>
+    <td><b>Twitter</b></td>
+    <td>All tweets related to the museum</td>
+    <td>Scraper</td>
+    <td>None</td>
+  </tr>
+</tbody>
+</table></div>
 
 ## Continuous integration
 
