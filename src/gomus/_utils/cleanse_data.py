@@ -302,8 +302,9 @@ class CleansePostalCodes(DataPreparationTask):
             nomi = pgeocode.Nominatim('DE')
             postal_code_data = nomi.query_postal_code(postal_code)
 
-        except urllib2.HTTPError:
-            logger.error(urllib.HTTPError)
+        except urllib.error.HTTPError as err:
+            if err.code == 404:
+                logger.error(err)
 
         if not postal_code_data.empty:
             return postal_code_data['latitude'], postal_code_data['longitude']
