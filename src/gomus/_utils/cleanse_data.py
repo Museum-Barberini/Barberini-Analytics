@@ -305,6 +305,8 @@ class CleansePostalCodes(DataPreparationTask):
         except urllib.error.HTTPError as err:
             if err.code == 404:
                 logger.error(err)
+            else:
+                raise urllib.error.HTTPError(err)
 
         if not postal_code_data.empty:
             return postal_code_data['latitude'], postal_code_data['longitude']
