@@ -164,40 +164,6 @@ This project currently collects and integrates data from the following sources:
 </thead>
 <tbody>
   <tr>
-    <td rowspan="5"><b>Gomus</b></td>
-    <td>Exhibitions</td>
-    <td>
-      - Gomus API
-    </td>
-    <td>None</td>
-  </tr>
-  <tr>
-    <td>Customers</td>
-    <td>
-      - Excel report<br>
-      - HTML scraper
-    </td>
-    <td rowspan="4">Gomus session ID</td>
-  </tr>
-  <tr>
-    <td>Daily entries</td>
-    <td>
-      - Excel report
-    </td>
-  </tr>
-  <tr>
-    <td>Bookings</td>
-    <td>
-      - HTML scraper
-    </td>
-  </tr>
-  <tr>
-    <td>Orders</td>
-    <td>
-      <i>tbd</i>
-    </td>
-  </tr>
-  <tr>
     <td><b>Apple App Store</b></td>
     <td>Ratings and comments about the app</td>
     <td>RSS feed</td>
@@ -224,6 +190,40 @@ This project currently collects and integrates data from the following sources:
     <td>Ratings and comments about the app</td>
     <td>Scraper</td>
     <td>None</td>
+  </tr>
+  <tr>
+    <td rowspan="5"><b>Gomus</b></td>
+    <td>Exhibitions</td>
+    <td>
+      - Gomus API
+    </td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td>Bookings</td>
+    <td>
+      - HTML scraper
+    </td>
+    <td rowspan="4">Gomus session ID</td>
+  </tr>
+  <tr>
+    <td>Customers</td>
+    <td>
+      - Excel report
+    </td>
+  </tr>
+  <tr>
+    <td>Daily entries</td>
+    <td>
+      - Excel report
+    </td>
+  </tr>
+  <tr>
+    <td>Orders</td>
+    <td>
+      - Excel report<br/>
+      - HTML scraper
+    </td>
   </tr>
   <tr>
     <td><b>Instagram</b></td>
