@@ -5,6 +5,7 @@ import luigi
 import pandas as pd
 import pgeocode
 import re
+import urllib
 from luigi.format import UTF8
 
 from data_preparation import DataPreparationTask
@@ -295,10 +296,16 @@ class CleansePostalCodes(DataPreparationTask):
 
     def query_lat_long(self, postal_code):
 
-        nomi = pgeocode.Nominatim('DE')
-        postal_code_data = nomi.query_postal_code(postal_code)
+        postal_code_data = pd.DataFrame()
 
-        if postal_code_data.empty:
-            return None, None
+        try:
+            nomi = pgeocode.Nominatim('DE')
+            postal_code_data = nomi.query_postal_code(postal_code)
 
-        return postal_code_data['latitude'], postal_code_data['longitude']
+        except urllib2.HTTPError:
+            logger.error(urllib.HTTPError)
+
+        if not postal_code_data.empty:
+            return postal_code_data['latitude'], postal_code_data['longitude']
+
+        return None, None
