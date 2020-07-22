@@ -100,7 +100,7 @@ make shutdown
 
 ## Complete documentation
 
-See `DOCUMENTATION.md`.
+See [`DOCUMENTATION.md`](DOCUMENTATION.md).
 
 ## Maintenance
 
