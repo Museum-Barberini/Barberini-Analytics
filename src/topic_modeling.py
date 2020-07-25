@@ -8,14 +8,11 @@ import luigi
 from luigi.format import UTF8
 from nltk.tokenize import word_tokenize
 import pandas as pd
-from csv_to_db import CsvToDb
-from logutils import StreamToLogger
-from posts import PostsToDb
-from data_preparation import DataPreparationTask
-from db_connector import db_connector
 from stop_words import get_stop_words
 
-logger = logging.getLogger('luigi-interface')
+from _utils import CsvToDb, DataPreparationTask, StreamToLogger, logger
+from _posts import PostsToDb
+
 
 """
 Flow of control
@@ -351,7 +348,7 @@ class TopicModelingCreateCorpus(DataPreparationTask):
 
     def run(self):
 
-        texts = db_connector().query('''
+        texts = self.db_connector.query('''
             SELECT text, source, post_date, post_id
             FROM post
             WHERE NOT is_from_museum AND text IS NOT NULL

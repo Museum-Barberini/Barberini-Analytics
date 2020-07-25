@@ -7,7 +7,7 @@ import luigi
 import requests
 from bs4 import BeautifulSoup
 
-from data_preparation import OUTPUT_DIR
+from _utils import OUTPUT_DIR
 from gomus._utils.fetch_report_helper import REPORT_IDS
 
 # These lists map directly to various Gomus attributes used for editing

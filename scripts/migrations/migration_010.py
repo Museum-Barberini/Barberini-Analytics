@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Rename constraints (#193)
-import db_connector
-db_connector = db_connector.db_connector()
+from _utils import db_connector
+CONNECTOR = db_connector()
 
 
 # 1. Rename primary keys
@@ -12,7 +12,7 @@ primkey_changes = [
         TO {table_name}_pkey;
     '''
     for constraint_name, table_schema, table_name
-    in db_connector.query('''
+    in CONNECTOR.query('''
         SELECT DISTINCT(tco.constraint_name),
             tco.table_schema,
             kcu.table_name
@@ -34,7 +34,7 @@ fkey_changes = [
         TO {table_name}_{column_name}_fkey
     '''
     for constraint_name, table_schema, table_name, column_name
-    in db_connector.query('''
+    in CONNECTOR.query('''
         SELECT DISTINCT(tco.constraint_name),
             tco.table_schema,
             tco.table_name,
@@ -52,4 +52,4 @@ fkey_changes = [
 ]
 
 # 3. Commit
-db_connector.execute(*primkey_changes, *fkey_changes)
+CONNECTOR.execute(*primkey_changes, *fkey_changes)

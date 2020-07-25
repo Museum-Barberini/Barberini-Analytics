@@ -1,7 +1,6 @@
 from abc import abstractmethod
 import datetime as dt
 import json
-import logging
 import os
 
 import luigi
@@ -10,11 +9,7 @@ import pandas as pd
 import requests
 from luigi.format import UTF8
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from museum_facts import MuseumFacts
-
-logger = logging.getLogger('luigi-interface')
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
 API_VER = 'v6.0'
 API_BASE = f'https://graph.facebook.com/{API_VER}'
