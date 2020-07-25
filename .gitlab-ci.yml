@@ -41,13 +41,6 @@ unittest:
     paths: 
       - htmlcov
 
-lint:
-  stage: analyze
-  tags:
-    - barberini
-  script:
-    - make lint
-
 minimal-mining-pipeline:
   stage: test
   tags:
@@ -76,3 +69,10 @@ test-pbi-reports:
     when: always
     paths:
       - ./output/test_pbi/
+
+lint:
+  stage: analyze
+  tags:
+    - barberini
+  script:
+    - make lint
