@@ -10,11 +10,8 @@ from sklearn.cluster import DBSCAN
 import spacy
 from tqdm import tqdm
 
-from csv_to_db import CsvToDb
-from data_preparation import ConcatCsvs, DataPreparationTask
-from query_db import QueryDb
-from json_converters import JsoncToJson
-from posts import PostsToDb
+from _posts import PostsToDb
+from _utils import ConcatCsvs, CsvToDb, DataPreparationTask, JsoncToJson, QueryDb
 from .german_word_embeddings import FetchGermanWordEmbeddings
 from .phrase_polarity import PhrasePolaritiesToDb
 

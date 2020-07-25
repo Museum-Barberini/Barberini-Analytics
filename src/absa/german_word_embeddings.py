@@ -4,7 +4,7 @@ from urllib.request import urlopen
 import luigi
 from luigi.format import Nop
 
-from data_preparation import DataPreparationTask
+from _utils import DataPreparationTask
 
 logger = logging.getLogger('luigi-interface')
 
