@@ -276,7 +276,7 @@ Usually you do not want to touch that file manually.
 The script file can have an arbitrary extension, but it must be either an `.sql` transaction, or provide a valid [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)).
 If you use a shebang, make sure to `chmod +x` that file.
 You can also run `make migration` to create a new SQL migration script.  
-**To apply all pending migrations,** run `make apply-pendining-migrations`.
+**To apply all pending migrations,** run `make apply-pending-migrations`.
 This is done automatically via `cron.sh`.  
 **To apply *all* migrations without respecting the applied-file,** run `scripts/migrations/migrate.sh` without any arguments.
 

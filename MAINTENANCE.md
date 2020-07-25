@@ -31,7 +31,7 @@ Thus, updates should be carried out on a regular schedule.
 1. Check out a new branch.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
 3. If `pip check` fails, you need to manually add the required dependencies to `docker/requirements.txt`.
-   This is neccessary because of https://github.com/pypa/pip/issues/988.
+   This is necessary because of https://github.com/pypa/pip/issues/988.
 
    **Remark:** You may need to "touch" the Dockerfile manually by editing it's first line in order to make sure that the previous docker cache is not reused, which would lead to the changes in `requirements.txt` are not checked at all!
 
@@ -41,7 +41,7 @@ Thus, updates should be carried out on a regular schedule.
 #### Update docker images
 
 Each used docker image is specified either in `docker/docker-compose.yml` or in the linked Dockerfile.
-For more information about the docker containers, please refer to the [documentation](DOCUMENTATION.md/#docker-containers).
+For more information about the docker containers, please refer to the [documentation](DOCUMENTATION.md#docker-containers).
 
 1. To update a docker image, edit the `image` key in the yaml file respectively the `FROM` command in the Dockerfile.
    Be careful to watch for any breaking changes in the updates.
