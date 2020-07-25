@@ -5,7 +5,7 @@ from typing import Callable, Dict, List, Tuple
 import luigi
 import pandas as pd
 
-from _database import register_array_type
+from ._database import register_array_type
 import _utils
 
 logger = _utils.logger

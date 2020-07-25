@@ -5,7 +5,7 @@ import sys
 import luigi
 import pandas as pd
 
-from data_preparation import DataPreparationTask
+from .data_preparation import DataPreparationTask
 
 
 class ConcatCsvs(DataPreparationTask):
