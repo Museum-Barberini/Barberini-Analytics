@@ -3,6 +3,7 @@ pip-upgrader==1.4.15
 
 # Indirect dependencies (explicitly listed because of
 # https://github.com/pypa/pip/issues/988)
+docutils<0.16,>=0.10  # for botocore
 setuptools>=40.3.0  # for google-auth
 
 # Framework
