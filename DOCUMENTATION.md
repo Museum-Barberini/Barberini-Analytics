@@ -101,10 +101,11 @@ Our recommended workflow consists of the following policies:
   The rough structure follows the `src/` tree.  
   In particular, the following paths are of special relevance:
 
-  * `_utils/`: Classes for our domain-specific test framework
+  * `_utils/`: Classes for our domain-specific test framework.
+  * `utils/`: Unit tests for `src/_utils`.
   * `pbi_reports/`: Crash tests for our Power BI report files.
     See the documentation of the [CI stage](#continuous-integration).
-  * `schema/`: Acceptance tests for the database schema
+  * `schema/`: Acceptance tests for the database schema.
   * `test_data/`: Contains sample files used as mocking inputs or expected outputs of units under test.
 - `visualizations/sigma/`: Custom Power BI Visual for the sigma text graph.
   See [documentation there](visualizations/sigma/README.md).
@@ -145,7 +146,7 @@ Here is a short crash course about how it works:
   3. **`run()` method:** Contains the actual task logic.
     A task can also yield dynamic dependencies simply by implementing the `run()` as a generator yielding other task instances.
 
-To run our whole pipeline, we define some [`WrapperTask`s](https://luigi.readthedocs.io/en/stable/luigi_patterns.html?highlight=wrappertask#triggering-many-tasks) in the `fill_db` module.
+To run our whole pipeline, we define some [`WrapperTask`s](https://luigi.readthedocs.io/en/stable/luigi_patterns.html?highlight=wrappertask#triggering-many-tasks) in the `_fill_db` module.
 See `make luigi` and `scripts/running/fill_db.sh` to trigger the whole pipeline to run.
 To rerun a certain task in development, you need to remove its output file and trigger the pipeline again.
 
