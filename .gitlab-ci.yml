@@ -22,7 +22,7 @@ build:
   script:
     - docker build -t test ./docker
 
-coverage:
+unittest:
   stage: test
   tags:
     - barberini
@@ -42,19 +42,25 @@ lint:
   tags:
     - barberini
   script:
-    - python3 -m flake8 -v --show-source .
+    - make lint
 
 minimal-mining-pipeline:
   stage: test
+  tags:
+    - barberini
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
 test-pbi-reports:
   stage: test
   rules:
+    - if: '$CI_SERVER_HOST != "gitlab.hpi.de"'
+      when: never  # WORKAROUND: bernd-windows currently only available at HPI
     - if: '$FULL_TEST'
       when: always
     - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /.*test-powerbi.*/ && $CI_MERGE_REQUEST_TITLE =~ /WIP: .*/'
+      when: always
+    - if: '$CI_MERGE_REQUEST_TITLE =~ /.*\[ci-test-pbi\].*/'
       when: always
   tags:
     - bernd-windows

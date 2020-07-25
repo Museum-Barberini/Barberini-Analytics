@@ -4,9 +4,10 @@
 
 # ------ Internal variables ------
 
+DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
+PYTHON := python3
 SHELL := /bin/bash
 SSL_CERT_DIR := /var/barberini-analytics/db-data
-DOCKER_COMPOSE := docker-compose -f ./docker/docker-compose.yml
 
 # ------ For use outside of containers ------
 
@@ -21,7 +22,7 @@ startup: startup-db
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
-		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi barberini_analytics_gplay_api
 	
 	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
 		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$( \
@@ -38,7 +39,7 @@ startup-db:
 	fi
 
 shutdown:
-	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
+	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi barberini_analytics_gplay_api
 
 shutdown-db:
 	$(DOCKER_COMPOSE) rm -sf barberini_analytics_db
@@ -60,6 +61,14 @@ docker-clean-cache:
 apply-pending-migrations:
 	./scripts/migrations/migrate.sh /var/lib/postgresql/data/applied_migrations.txt
 
+EXT ?= sql
+create-migration:
+	${SHELL} -c "touch $$(find scripts/migrations/ -name 'migration_*' -type f \
+		| sed -n 's/\(migration_[[:digit:]]\+\).*$$/\1.$(EXT)/p' \
+		| sort -r \
+		| head -n 1 \
+		| perl -lpe 's/(\d+)/sprintf("%0@{[length($$1)]}d", $$1+1)/e')"
+
 # --- Control luigi ---
 
 luigi-scheduler:
@@ -69,10 +78,10 @@ luigi-scheduler:
 
 luigi-restart-scheduler:
 	killall luigid || true
-	make luigi-scheduler
+	$(MAKE) luigi-scheduler
 	
 luigi:
-	make luigi-task LMODULE=fill_db LTASK=FillDb
+	$(MAKE) luigi-task LMODULE=fill_db LTASK=FillDb
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
@@ -82,7 +91,7 @@ luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	POSTGRES_DB=barberini_test MINIMAL=True make luigi
+	POSTGRES_DB=barberini_test MINIMAL=True $(MAKE) luigi
 
 # this target can be used to simply run one task inside the container
 luigi-task-in-container: startup
@@ -106,20 +115,23 @@ test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via **
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m db_test $(test) -v \
-		&& make luigi-clean
+		&& $(PYTHON) -m db_test $(test) -v \
+		&& $(MAKE) luigi-clean
 
 test-full:
-	FULL_TEST=True make test
+	FULL_TEST=True $(MAKE) test
 
 coverage: luigi-clean
 	PYTHONPATH=$${PYTHONPATH}:./tests/_utils/ \
 		&& shopt -s globstar \
-		&& python3 -m coverage run --source ./src -m db_test -v --catch tests/**/test*.py -v
+		&& $(PYTHON) -m coverage run --source ./src -m db_test -v --catch tests/**/test*.py -v
 	# print coverage results to screen. Parsed by gitlab CI regex to determine MR code coverage.
-	python3 -m coverage report
+	$(PYTHON) -m coverage report
 	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
-	python3 -m coverage html
+	$(PYTHON) -m coverage html
+
+lint:
+	flake8 -v --show-source .
 
 # --- To access postgres ---
 

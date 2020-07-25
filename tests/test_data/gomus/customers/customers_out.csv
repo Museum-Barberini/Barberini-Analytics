@@ -1,4 +1,5 @@
-customer_id,postal_code,newsletter,gender,category,language,country,type,register_date,annual_ticket,valid_mail,cleansed_postal_code,cleansed_country,tourism_tags
-958269592,14473,False,w,Universität,Elbisch,Deutschland,Shop,2019-12-20,False,True,,,[]
-1898359170,1277,False,,Konglomerat,Dütsch,Deutschland,Shop-Gast,2019-06-28,False,True,,,"['reise', 'kultur']"
-241129,Meine Postleitzahl ist die vier vier fünf drei zwei,True,m,Freundin,Klingonisch,Erde,Laura,2005-09-30,True,False,,,[]
+customer_id,postal_code,newsletter,gender,category,language,country,type,register_date,annual_ticket,valid_mail,cleansed_postal_code,cleansed_country,tourism_tags,latitude,longitude
+958269592,14473,False,w,Hotel,Elbisch,Deutschland,Shop,2019-12-20,False,True,,,[],,
+1898359170,1277,False,,Konglomerat,Dütsch,Deutschland,Shop-Gast,2019-06-28,False,True,,,"['reise', 'kultur']",,
+241129,Meine Postleitzahl ist die vier vier fünf drei zwei,True,m,Freundin,Klingonisch,Erde,Laura,2005-09-30,True,False,,,[],,
+920455217,14467Potsdam,True,m,Privatperson,Englisch,England,Normal,2011-01-01,False,True,,,[],,

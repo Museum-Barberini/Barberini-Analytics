@@ -46,7 +46,7 @@ If no crontab exists before, create it using `crontab -e`.
 
 #### Configuration
 
-See `CONFIGURATION.md`.
+See [`CONFIGURATION.md`](CONFIGURATION.md).
 
 
 ### Usage
@@ -100,7 +100,7 @@ make shutdown
 
 ## Maintenance
 
-See `MAINTENANCE.md`.
+See [`MAINTENANCE.md`](MAINTENANCE.md).
 
 ## Credits
 

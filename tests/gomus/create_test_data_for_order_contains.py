@@ -11,8 +11,8 @@ order_id = input("enter order_id\n").strip()
 expected_data = []
 print("\nEnter the data that you expect to be scraped in this format\n\
 (hit ENTER without entering text to finish):\n\
-article_id,ticket,date,quantity,price\n\
-123456,Eintritt regulär,2019-12-31 23:59:00,1,14.0\n")
+article_id,article_type,ticket,date,quantity,price,is_cancelled\n\
+123456,Ticket,Eintritt regulär,2019-12-31 23:59:00,1,14.0,False\n")
 while True:
     new_data = input().strip()
     if not new_data:

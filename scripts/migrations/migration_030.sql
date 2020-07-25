@@ -1,4 +1,4 @@
--- add unique entries to our entry tables (!264)
+-- Gomus: Add unique entries to entry tables (!264)
 
 BEGIN;
 
