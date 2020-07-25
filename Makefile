@@ -81,11 +81,12 @@ luigi-restart-scheduler:
 	$(MAKE) luigi-scheduler
 	
 luigi:
-	$(MAKE) luigi-task LMODULE=fill_db LTASK=FillDb
+	$(MAKE) luigi-task LMODULE=_fill_db LTASK=FillDb
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
-	luigi --module $(LMODULE) $(LTASK) $(LARGS)
+	$(SHELL) -c 'echo luigi "$${LMODULE+--module $$LMODULE}" $(LTASK) $(LARGS)'
+	$(SHELL) -c 'luigi $${LMODULE+--module $$LMODULE} $(LTASK) $(LARGS)'
 
 luigi-clean:
 	rm -rf $(OUTPUT_DIR)
@@ -104,7 +105,7 @@ output-folder:
 test ?= tests/**/test*.py
 # optional argument: testmodule
 # Usually you don't want to change this. All database tests in this solution
-# require DatabaseTestSuite from db_test. Only exception is tests/schema/**.
+# require DatabaseTestSuite from db_test.
 test: export OUTPUT_DIR=output_test
 test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via **

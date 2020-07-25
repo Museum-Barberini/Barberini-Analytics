@@ -3,10 +3,9 @@ import datetime as dt
 import luigi
 import pandas as pd
 
-from data_preparation import DataPreparationTask
+from _utils import DataPreparationTask, QueryDb
 from facebook import FbPostsToDb, FbPostPerformanceToDb
 from gomus.exhibitions import ExhibitionsToDb
-from query_db import QueryDb
 
 
 class ExhibitionPopularity(DataPreparationTask):

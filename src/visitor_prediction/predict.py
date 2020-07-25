@@ -5,10 +5,8 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
+from _utils import CsvToDb, DataPreparationTask, QueryDb
 from gomus.daily_entries import DailyEntriesToDb
-from query_db import QueryDb
 from .exhibition_popularity import ExhibitionPopularity
 from .preprocessing import preprocess_entries
 

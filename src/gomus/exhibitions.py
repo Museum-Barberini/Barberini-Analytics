@@ -4,8 +4,7 @@ from luigi.format import UTF8
 import pandas as pd
 import requests
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
+from _utils import CsvToDb, DataPreparationTask
 
 
 class ExhibitionsToDb(CsvToDb):

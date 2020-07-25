@@ -7,9 +7,9 @@ import pandas as pd
 import requests
 from luigi.format import UTF8
 
-from data_preparation import DataPreparationTask
-from gomus.orders import OrdersToDb
-from gomus._utils.extract_bookings import ExtractGomusBookings
+from _utils import DataPreparationTask
+from ..orders import OrdersToDb
+from .extract_bookings import ExtractGomusBookings
 
 
 class FetchGomusHTML(DataPreparationTask):

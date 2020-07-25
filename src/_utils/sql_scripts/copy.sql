@@ -1,4 +1,5 @@
-/** arguments:
+/** Script "upsert stdin into table"
+  * arguments:
   * {0}: target schema name
   * {1}: target table name
   * {2}: primary constraint name

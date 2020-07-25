@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import datetime as dt
-import logging
 import luigi
 import pandas as pd
 import pgeocode
@@ -8,11 +7,10 @@ import re
 import urllib
 from luigi.format import UTF8
 
-from data_preparation import DataPreparationTask
-from gomus._utils.extract_customers import ExtractCustomerData
-from _utils.german_postal_codes import GermanPostalCodes
+from _utils import DataPreparationTask, logger
+from .extract_customers import ExtractCustomerData
+from german_postal_codes import GermanPostalCodes
 
-logger = logging.getLogger('luigi-interface')
 
 COUNTRY_TO_DATA = {
     'Deutschland':
