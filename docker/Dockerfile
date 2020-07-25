@@ -28,7 +28,7 @@ RUN wget --quiet --no-check-certificate -O - \
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ \
     `lsb_release -cs`-pgdg main" \
   | tee /etc/apt/sources.list.d/pgdg.list
-# scan new sources
+# Scan new sources
 RUN apt-get update
 RUN $INSTALL postgresql-client-12
 
@@ -42,6 +42,7 @@ RUN $INSTALL libpq-dev
 # Install python packages
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
+RUN pip3 check
 
 # Install required nltk resource
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
