@@ -20,7 +20,11 @@ build:
   tags:
     - barberini
   script:
-    - docker build -t test ./docker
+    - docker build -t test ./docker $(
+        [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
+        && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
+        && echo '--no-cache' 
+      )
 
 unittest:
   stage: test

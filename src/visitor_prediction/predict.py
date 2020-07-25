@@ -1,15 +1,12 @@
 import datetime as dt
 
 import luigi
-import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
+from _utils import CsvToDb, DataPreparationTask, QueryDb
 from gomus.daily_entries import DailyEntriesToDb
-from query_db import QueryDb
 from .exhibition_popularity import ExhibitionPopularity
 from .preprocessing import preprocess_entries
 
@@ -179,11 +176,10 @@ class PredictVisitors(DataPreparationTask):
             predictions.append(new_prediction)
 
         predicted_entries = pd.DataFrame(
-            data=np.swapaxes([
-                to_be_predicted_entries.index,
-                predictions],
-                0, 1),
-            columns=['date', 'entries'])
+            index=to_be_predicted_entries.index,
+            data=predictions)
+        predicted_entries.reset_index(inplace=True)
+        predicted_entries.columns = ['date', 'entries']
 
         # --- denormalize results ---
         predicted_entries[['entries']] = \

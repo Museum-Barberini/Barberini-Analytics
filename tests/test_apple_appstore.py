@@ -5,7 +5,7 @@ import requests
 
 from apple_appstore import FetchAppstoreReviews, AppstoreReviewsToDb
 from db_test import DatabaseTestCase
-from museum_facts import MuseumFacts
+from _utils import MuseumFacts
 
 
 FAKE_COUNTRY_CODES = ['DE', 'US', 'PL', 'BB']

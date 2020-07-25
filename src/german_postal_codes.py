@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 import luigi
 import pandas as pd
 from luigi.format import UTF8
 
-from data_preparation import DataPreparationTask
+from _utils import DataPreparationTask
 
 
 class GermanPostalCodes(DataPreparationTask):

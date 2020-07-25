@@ -6,10 +6,11 @@ import luigi
 import requests
 from luigi.format import UTF8
 
-from data_preparation import OUTPUT_DIR
-from gomus._utils.edit_report import EditGomusReport
-from gomus._utils.fetch_report_helper import (REPORT_IDS, csv_from_excel,
-                                              parse_timespan, request_report)
+from _utils import OUTPUT_DIR
+from .edit_report import EditGomusReport
+from .fetch_report_helper import (
+    REPORT_IDS, csv_from_excel, parse_timespan, request_report
+)
 
 
 class FetchGomusReport(luigi.Task):

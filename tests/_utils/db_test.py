@@ -15,7 +15,7 @@ import luigi.notifications
 import psycopg2
 from psycopg2.errors import UndefinedObject
 
-import db_connector
+from _utils import db_connector
 import suitable
 
 
@@ -167,7 +167,7 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         # --- Set up template database ---
         # Check for template cache
         current_mhash = checksumdir.dirhash('./scripts/migrations')
-        connector = db_connector.db_connector(self.template_name)
+        connector = db_connector(self.template_name)
         try:
             latest_mhash, *_ = connector.query(
                 'SHOW database_test.migrations_hash',
@@ -241,7 +241,7 @@ class DatabaseTestCase(unittest.TestCase):
                 TEMPLATE {os.environ['POSTGRES_DB_TEMPLATE']}
             ''')
         # Instantiate connector
-        self.db_connector = db_connector.db_connector()
+        self.db_connector = db_connector()
 
         # Register cleanup
         self.addCleanup(

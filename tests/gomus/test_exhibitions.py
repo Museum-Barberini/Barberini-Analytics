@@ -14,6 +14,7 @@ class TestExhibitions(DatabaseTestCase):
     @patch('gomus.exhibitions.requests.get')
     @patch.object(FetchExhibitions, 'output')
     def test_exhibitions(self, output_mock, requests_get_mock):
+
         output_target = MockTarget('exhibition_out', format=UTF8)
         output_mock.return_value = output_target
 
@@ -43,6 +44,7 @@ class TestExhibitions(DatabaseTestCase):
     @patch('gomus.exhibitions.requests.get')
     @patch.object(FetchExhibitionTimes, 'output')
     def test_exhibition_times(self, output_mock, requests_get_mock):
+
         output_target = MockTarget('exhibition_out', format=UTF8)
         output_mock.return_value = output_target
 

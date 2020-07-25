@@ -7,9 +7,7 @@ import requests
 
 from itertools import chain
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from museum_facts import MuseumFacts
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts
 
 
 class GooglePlaystoreReviewsToDb(CsvToDb):
