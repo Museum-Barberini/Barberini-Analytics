@@ -164,7 +164,7 @@ class GroupPostOpinionSentiments(DataPreparationTask):
 
         bins = df.groupby('bin')[['vec']].agg(
             lambda vecs: np.array(list(np.average(
-                list(vecs.apply(tuple)),
+                np.array(vecs.apply(tuple), dtype=object),
                 axis=0
             )))
         )
