@@ -1,5 +1,3 @@
-import logging
-import os
 import sys
 from functools import reduce
 from typing import Callable, Dict, List, Tuple
@@ -7,33 +5,34 @@ from typing import Callable, Dict, List, Tuple
 import luigi
 import pandas as pd
 
-import db_connector
+from ._database import register_array_type
+import _utils
 
-logger = logging.getLogger('luigi-interface')
+logger = _utils.logger
 
-minimal_mode = os.getenv('MINIMAL') == 'True'
-OUTPUT_DIR = os.environ['OUTPUT_DIR']
-
-db_connector.register_array_type('SQL_IDENTIFIER', 'information_schema')
+register_array_type('SQL_IDENTIFIER', 'information_schema')
 
 
 class DataPreparationTask(luigi.Task):
+
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
-        self.db_connector = db_connector.db_connector()
+        self.db_connector = _utils.db_connector()
 
     table = luigi.parameter.OptionalParameter(
         description="The name of the table the data should be prepared for",
         default=None)
 
     minimal_mode = luigi.parameter.BoolParameter(
-        default=minimal_mode,
+        default=_utils.minimal_mode,
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
 
     @property
     def output_dir(self):
-        return OUTPUT_DIR
+
+        return _utils.OUTPUT_DIR
 
     def condense_performance_values(
             self,
@@ -221,6 +220,7 @@ class DataPreparationTask(luigi.Task):
                 str,
                 Tuple[List[str], str, List[str]]
             ]:
+
         if not self.table:
             return {}
 
@@ -270,6 +270,7 @@ class DataPreparationTask(luigi.Task):
             def iter_verbose(self, iterable):
                 return iterable
         """
+
         if not sys.stdout.isatty():
             yield from iterable
             return
@@ -319,6 +320,7 @@ class DataPreparationTask(luigi.Task):
         console if appropriate. Use next() to increment the progress or
         .send() to specify the current index.
         """
+
         index = 0
 
         def loop():
@@ -328,23 +330,3 @@ class DataPreparationTask(luigi.Task):
                 index = next_index if next_index else index + 1
         return self.iter_verbose(
             loop(), msg, size=size, index_fun=lambda: index)
-
-
-class ConcatCsvs(DataPreparationTask):
-
-    def run(self):
-
-        dfs = self.collect_csvs()
-        df = pd.concat(dfs)
-        with self.output().open('w') as output:
-            df.to_csv(output, index=False)
-
-    def collect_csvs(self):
-
-        for target in luigi.task.flatten(self.input()):
-            yield self.read_csv(target)
-
-    def read_csv(self, target: luigi.Target):
-
-        with target.open('r') as input:
-            return pd.read_csv(input)

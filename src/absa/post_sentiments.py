@@ -1,9 +1,7 @@
 import luigi
 from luigi.format import UTF8
 
-from csv_to_db import CsvToDb
-from data_preparation import ConcatCsvs
-from query_db import QueryDb
+from _utils import ConcatCsvs, CsvToDb, QueryDb
 from .phrase_matching import FuzzyJoinPhrases, FuzzyMatchPhrases
 from .phrase_polarity import PhrasePolaritiesToDb
 from .post_ngrams import PostNgramsToDb

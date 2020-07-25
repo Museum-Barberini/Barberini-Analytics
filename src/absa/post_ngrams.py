@@ -1,15 +1,10 @@
-import logging
 import luigi
 import luigi.format
 import pandas as pd
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from query_db import QueryDb
+from _utils import CsvToDb, DataPreparationTask, QueryDb, logger
 from .post_words import PostWordsToDb
 from .stopwords import StopwordsToDb
-
-logger = logging.getLogger('luigi-interface')
 
 
 class PostNgramsToDb(CsvToDb):
@@ -148,7 +143,7 @@ class CollectPostNgrams(DataPreparationTask):
                 word_relevant AS (
                     SELECT  *
                     FROM    {self.word_table}
-                    WHERE   word IN (SELECT * FROM new_post_id)
+                    WHERE   post_id IN (SELECT * FROM new_post_id)
                     AND     word NOT IN (
                         SELECT word
                         FROM {self.stopword_table}

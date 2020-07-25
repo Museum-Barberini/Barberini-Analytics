@@ -98,6 +98,10 @@ make shutdown
    2. Once you open any report, you will be asked to install R Visual for PBI.
       Confirm that.
 
+## Complete documentation
+
+See [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 ## Maintenance
 
 See [`MAINTENANCE.md`](MAINTENANCE.md).

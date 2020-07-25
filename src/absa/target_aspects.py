@@ -5,9 +5,7 @@ import luigi
 import pandas as pd
 from luigi.format import UTF8
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from json_converters import JsoncToJson
+from _utils import CsvToDb, DataPreparationTask, JsoncToJson
 
 # TODO: Respect exhibitions table here?
 

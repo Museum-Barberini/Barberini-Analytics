@@ -5,9 +5,7 @@ import numpy as np
 import pandas as pd
 from luigi.format import UTF8
 
-from csv_to_db import CsvToDb
-
-from data_preparation import DataPreparationTask
+from _utils import CsvToDb, DataPreparationTask
 from gomus._utils.fetch_report import FetchGomusReport
 
 

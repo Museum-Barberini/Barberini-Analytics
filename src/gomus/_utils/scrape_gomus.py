@@ -1,5 +1,4 @@
 import csv
-import logging
 import re
 
 import dateparser
@@ -8,14 +7,11 @@ import pandas as pd
 from luigi.format import UTF8
 from lxml import html
 
-from data_preparation import DataPreparationTask
-from gomus.customers import GomusToCustomerMappingToDb
-from gomus._utils.extract_bookings import ExtractGomusBookings
-from gomus._utils.extract_customers import hash_id
-from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
-                                      FetchOrdersHTML)
-
-logger = logging.getLogger('luigi-interface')
+from _utils import DataPreparationTask, logger
+from ..customers import GomusToCustomerMappingToDb
+from .extract_bookings import ExtractGomusBookings
+from .extract_customers import hash_id
+from .fetch_htmls import FetchBookingsHTML, FetchGomusHTML, FetchOrdersHTML
 
 
 # inherit from this if you want to scrape gomus (it might be wise to have
@@ -303,7 +299,18 @@ class ScrapeGomusOrderContains(GomusScraperTask):
 
                     order_details.append(new_article)
 
-        df = pd.DataFrame(order_details)
+        df = pd.DataFrame(
+            order_details,
+            columns=[
+                'article_id',
+                'article_type',
+                'order_id',
+                'ticket',
+                'date',
+                'quantity',
+                'price',
+                'is_cancelled'
+            ])
         df = self.filter_fkey_violations(df)
 
         with self.output().open('w') as output_file:

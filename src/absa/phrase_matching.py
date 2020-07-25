@@ -2,9 +2,8 @@ from typing import Callable
 
 import luigi
 
+from _utils import ConcatCsvs, QueryDb
 from .post_ngrams import PostNgramsToDb
-from data_preparation import ConcatCsvs
-from query_db import QueryDb
 
 
 class FuzzyJoinPhrases(QueryDb):

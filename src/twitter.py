@@ -7,9 +7,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 import tzlocal
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from museum_facts import MuseumFacts
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts
 
 
 class TweetsToDb(CsvToDb):
