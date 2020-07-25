@@ -1,12 +1,16 @@
-import logging
 import os
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar, Union
+
 import psycopg2
 
-from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
-
-logger = logging.getLogger('luigi-interface')
+import _utils
+logger = _utils.logger
 
 T = TypeVar('T')
+TQueryAndArgs = Tuple[
+    str,
+    Union[Iterable[object], Dict[str, object]]
+]
 
 
 class DbConnector:
@@ -44,7 +48,10 @@ class DbConnector:
 
         return f'{type(self).__name__}(db={self.database})'
 
-    def execute(self, *queries: List[str]) -> List[Tuple]:
+    def execute(
+                self,
+                *queries: List[Union[str, TQueryAndArgs]]
+            ) -> List[Tuple]:
         """
         Execute one or multiple queries as one atomic operation and returns
         the results of all queries. If any query fails, all will be reverted
@@ -52,7 +59,7 @@ class DbConnector:
         """
 
         return list(self._execute_queries(
-            queries=queries,
+            queries_and_args=queries,
             result_function=lambda cur: None
         ))
 
@@ -143,10 +150,8 @@ class DbConnector:
 
     def _execute_queries(
                 self,
-                queries: List[str],
-                result_function: Callable[[psycopg2.extensions.cursor], T],
-                args: Iterable[object] = (),
-                kwargs: Dict[str, object] = {}
+                queries_and_args: List[Union[str, TQueryAndArgs]],
+                result_function: Callable[[psycopg2.extensions.cursor], T]
             ) -> List[T]:
         """
         Executes all passed queries as one atomic operation and yields the
@@ -156,28 +161,25 @@ class DbConnector:
         commited once the generator has been enumerated.
         """
 
-        assert not args or not kwargs, "cannot combine args and kwargs"
-        all_args = next(
-            filter(bool, [args, kwargs]),
-            # always pass args for consistent
-            # resolution of percent escapings
-            None
-        )
         conn = self._create_connection()
         try:
             with conn:
                 with conn.cursor() as cur:
-                    for query in queries:
+                    for query_and_args in queries_and_args:
+                        query, args = \
+                            query_and_args \
+                            if isinstance(query_and_args, tuple) \
+                            else (query_and_args, ())
                         logger.debug(
                             "DbConnector: Executing query '''%s''' "
                             "with args: %s",
                             query,
-                            all_args
+                            args
                         )
                         try:
-                            cur.execute(query, all_args)
+                            cur.execute(query, args)
                         except psycopg2.Error:
-                            print(query, all_args)
+                            print(query, args)
                             raise
                         yield result_function(cur)
                 for notice in conn.notices:
@@ -198,10 +200,19 @@ class DbConnector:
         commited once the generator has been enumerated.
         """
 
-        return self._execute_queries([query], result_function, args, kwargs)
+        assert not args or not kwargs, "cannot combine args and kwargs"
+        all_args = next(
+            filter(bool, [args, kwargs]),
+            # always pass args for consistent
+            # resolution of percent escapings
+            None
+        )
+
+        return self._execute_queries([(query, all_args)], result_function)
 
 
 def db_connector(database=None):
+
     connector = default_connector()
     if database is None:
         database = os.environ['POSTGRES_DB']
@@ -210,6 +221,7 @@ def db_connector(database=None):
 
 
 def default_connector():
+
     return DbConnector(
         host=os.environ['POSTGRES_HOST'],
         database='postgres',
@@ -226,15 +238,21 @@ def register_array_type(type_name, namespace_name):
     will be answered with strings like '{pg_type}' rather than with a true
     array of objects.
     """
+
     connector = default_connector()
-    typarray, typcategory = connector.query(f'''
+    typarray, typcategory = connector.query(
+        '''
             SELECT typarray, typcategory
             FROM pg_type
             JOIN pg_namespace
                 ON typnamespace = pg_namespace.oid
-            WHERE typname ILIKE '{type_name}'
-                AND nspname ILIKE '{namespace_name}'
-        ''', only_first=True)
+            WHERE typname ILIKE %(type_name)s
+                AND nspname ILIKE %(namespace_name)s
+        ''',
+        only_first=True,
+        type_name=type_name,
+        namespace_name=namespace_name
+    )
     psycopg2.extensions.register_type(
         psycopg2.extensions.new_array_type(
             (typarray,),

@@ -1,4 +1,25 @@
 #!/bin/bash
+: <<DOCUMENTATION
+Merge instances of two separate states of a 'barberini' database.
+---------------------------------------------------------------
+Note that in this script, there are several arguably ugly workarounds to
+specific issues that occured when importing or exporting certain subsets of
+our data. At the moment, the following relations are SKIPPED:
+
+    gomus_daily_entry
+    gomus_expected_daily_entry
+
+For more information, see !268.
+
+Do also note that your local barberini database will be cleared in the process
+in order to merge the two databases from the hosts locally (therefore without
+affecting the remote ones).
+
+Example usage:
+
+    scripts/update/merge_databases.sh fbfn-barberini2020 barberini-analytics.westeurope.cloudapp.azure.com
+DOCUMENTATION
+
 set -e
 
 if [ -z "$1" ] || [ -z "$2" ]

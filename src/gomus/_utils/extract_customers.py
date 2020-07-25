@@ -6,9 +6,8 @@ import pandas as pd
 import numpy as np
 from luigi.format import UTF8
 
-from data_preparation import DataPreparationTask
-
-from gomus._utils.fetch_report import FetchGomusReport
+from _utils import DataPreparationTask
+from .fetch_report import FetchGomusReport
 
 
 class ExtractCustomerData(DataPreparationTask):

@@ -1,7 +1,7 @@
 import luigi
 from luigi.format import UTF8
 
-from json_converters import JsoncToJson
+from .json_converters import JsoncToJson
 
 
 class MuseumFacts(JsoncToJson):

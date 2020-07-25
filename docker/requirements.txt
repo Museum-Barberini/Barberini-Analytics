@@ -26,6 +26,7 @@ git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
 langdetect==1.0.8
 nltk==3.5
 pgeocode==0.2.1
+sklearn==0.0
 stop-words==2018.7.23
 
 # Helpers

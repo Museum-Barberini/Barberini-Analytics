@@ -22,7 +22,7 @@ startup: startup-db
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
 				&& echo "html" || echo "none") \
-		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi gplay_api
+		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi barberini_analytics_gplay_api
 	
 	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
 		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$( \
@@ -39,7 +39,7 @@ startup-db:
 	fi
 
 shutdown:
-	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi gplay_api
+	$(DOCKER_COMPOSE) -p ${USER} rm -sf barberini_analytics_luigi barberini_analytics_gplay_api
 
 shutdown-db:
 	$(DOCKER_COMPOSE) rm -sf barberini_analytics_db
@@ -61,6 +61,14 @@ docker-clean-cache:
 apply-pending-migrations:
 	./scripts/migrations/migrate.sh /var/lib/postgresql/data/applied_migrations.txt
 
+EXT ?= sql
+create-migration:
+	${SHELL} -c "touch $$(find scripts/migrations/ -name 'migration_*' -type f \
+		| sed -n 's/\(migration_[[:digit:]]\+\).*$$/\1.$(EXT)/p' \
+		| sort -r \
+		| head -n 1 \
+		| perl -lpe 's/(\d+)/sprintf("%0@{[length($$1)]}d", $$1+1)/e')"
+
 # --- Control luigi ---
 
 luigi-scheduler:
@@ -73,11 +81,12 @@ luigi-restart-scheduler:
 	$(MAKE) luigi-scheduler
 	
 luigi:
-	$(MAKE) luigi-task LMODULE=fill_db LTASK=FillDb
+	$(MAKE) luigi-task LMODULE=_fill_db LTASK=FillDb
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
-	luigi --module $(LMODULE) $(LTASK) $(LARGS)
+	$(SHELL) -c 'echo luigi "$${LMODULE+--module $$LMODULE}" $(LTASK) $(LARGS)'
+	$(SHELL) -c 'luigi $${LMODULE+--module $$LMODULE} $(LTASK) $(LARGS)'
 
 luigi-clean:
 	rm -rf $(OUTPUT_DIR)
@@ -96,7 +105,7 @@ output-folder:
 test ?= tests/**/test*.py
 # optional argument: testmodule
 # Usually you don't want to change this. All database tests in this solution
-# require DatabaseTestSuite from db_test. Only exception is tests/schema/**.
+# require DatabaseTestSuite from db_test.
 test: export OUTPUT_DIR=output_test
 test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via **

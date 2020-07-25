@@ -32,6 +32,9 @@ Thus, updates should be carried out on a regular schedule.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
 3. If `pip check` fails, you need to manually add the required dependencies to `docker/requirements.txt`.
    This is neccessary because of https://github.com/pypa/pip/issues/988.
+
+   **Remark:** You may need to "touch" the Dockerfile manually by editing it's first line in order to make sure that the previous docker cache is not reused, which would lead to the changes in `requirements.txt` are not checked at all!
+
 4. Create a merge request with your changes and make sure the CI passes.
 5. Once it passes, merge the branch.
 
