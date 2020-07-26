@@ -10,27 +10,24 @@
 			"isAspect": true
 		}
 	],
-	"adj_adp_noun": [
+	"noun_adj": [
+		{
+			"pos": "NOUN",
+			"isAspect": true
+		},
+		{
+			"pos": "ADJ",
+			"isSentiment": true
+		}
+	]/* ,
+	"adj_adj": [
 		{
 			"pos": "ADJ",
 			"isSentiment": true
 		},
 		{
-			"pos": "ADP"
-		},
-		{
-			"pos": "NOUN",
+			"pos": "ADJ",
 			"isAspect": true
 		}
-	],
-	"noun_verb": [
-		{
-			"pos": "NOUN",
-			"isAspect": true
-		},
-		{
-			"pos": "VERB",
-			"isSentiment": true
-		}
-	]
+	] */
 }
