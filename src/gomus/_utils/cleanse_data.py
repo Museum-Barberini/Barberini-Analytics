@@ -292,21 +292,21 @@ class CleansePostalCodes(DataPreparationTask):
                 return result_code
         return None
 
-    def query_lat_long(self, postal_code):
+    # def query_lat_long(self, postal_code):
 
-        postal_code_data = pd.DataFrame()
+    #     postal_code_data = pd.DataFrame()
 
-        try:
-            nomi = pgeocode.Nominatim('DE')
-            postal_code_data = nomi.query_postal_code(postal_code)
+    #     try:
+    #         nomi = pgeocode.Nominatim('DE')
+    #         postal_code_data = nomi.query_postal_code(postal_code)
 
-        except urllib.error.HTTPError as err:
-            if err.code == 404:
-                logger.error(err)
-            else:
-                raise urllib.error.HTTPError(err)
+    #     except urllib.error.HTTPError as err:
+    #         if err.code == 404:
+    #             logger.error(err)
+    #         else:
+    #             raise urllib.error.HTTPError(err)
 
-        if not postal_code_data.empty:
-            return postal_code_data['latitude'], postal_code_data['longitude']
+    #     if not postal_code_data.empty:
+    #         return postal_code_data['latitude'], postal_code_data['longitude']
 
-        return None, None
+    #     return None, None

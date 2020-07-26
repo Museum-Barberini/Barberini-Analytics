@@ -72,6 +72,7 @@ class ExtractCustomerData(DataPreparationTask):
         df['register_date'] = pd.to_datetime(
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
+        df['tourism_tags'] = df['tourism_tags'].fillna('[]')
 
         # Drop duplicate occurences of customers with same mail,
         # keeping the most recent one
