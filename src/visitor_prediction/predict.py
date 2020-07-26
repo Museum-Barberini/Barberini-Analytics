@@ -1,11 +1,12 @@
 import datetime as dt
+import json
 
 import luigi
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 
-from _utils import CsvToDb, DataPreparationTask, QueryDb
+from _utils import CsvToDb, DataPreparationTask, QueryDb, MuseumFacts
 from gomus.daily_entries import DailyEntriesToDb
 from .exhibition_popularity import ExhibitionPopularity
 from .preprocessing import preprocess_entries
@@ -75,6 +76,7 @@ class PredictVisitors(DataPreparationTask):
                  # two exhibitions in parallel and very high visitor numbers
         )
         yield ExhibitionPopularity()
+        yield MuseumFacts()
 
     def output(self):
         return luigi.LocalTarget(
@@ -98,6 +100,8 @@ class PredictVisitors(DataPreparationTask):
                 parse_dates=['start_date', 'end_date'],
                 keep_default_na=False
             )
+        with self.input()[2].open('r') as facts_file:
+            facts = json.load(facts_file)
 
         if self.minimal_mode:
             # Generate fake data because gomus_daily_entry does
@@ -125,7 +129,8 @@ class PredictVisitors(DataPreparationTask):
         # --- preprocess ---
         all_entries = preprocess_entries(
             all_entries,
-            exhibitions)
+            exhibitions,
+            facts)
 
         to_be_rescaled = [
             'entries',

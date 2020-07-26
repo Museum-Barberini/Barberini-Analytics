@@ -23,5 +23,11 @@
 		"twitter": {
 			"userId": 788400779556159488
 		}
-	}
+	},
+	"missing_closed_timespans": [ // closed timespans that are missing in gomus exhibition table
+		{"start": "2020-03-12", "end": "2020-05-05"} // start of COVID-19-pandemic
+	],
+	"limited_entry_timespans": [ // timespans in which only few visitors could enter (e.g. during a pandemic)
+		{"start": "2020-05-06", "end": "2021-05-05"} // COVID-19-restrictions WARNING: end will need to be updated.
+	]
 }
