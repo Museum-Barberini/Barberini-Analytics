@@ -33,6 +33,8 @@ class CustomersToDb(CsvToDb):
             df['cleansed_postal_code'].apply(str)
         df['cleansed_postal_code'] = \
             df['cleansed_postal_code'].str.replace('.0', '', regex=False)
+        df['cleansed_postal_code'] = \
+            df['cleansed_postal_code'].str.replace('nan', '')
         return df
 
 
