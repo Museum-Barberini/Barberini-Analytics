@@ -162,12 +162,13 @@ class GroupPostOpinionSentiments(DataPreparationTask):
 
     def label_clusters(self, df):
 
+        # NB: The tuple-array conversion is required because otherwise, pandas
+        # will send the aggregated DataFrame back to the lambda. Just don't
+        # touch it ¯\_(ツ)_/¯
         bins = df.groupby('bin')[['vec']].agg(
-            lambda vecs: np.array(list(np.average(
-                np.array(vecs.apply(tuple), dtype=object),
-                axis=0
-            )))
+            lambda cluster: tuple(np.average(cluster))
         )
+        bins['vec'] = bins['vec'].apply(np.array)
         bins['target_aspect_words'] = bins['vec'].apply(
             lambda vec: next(zip(*self.model.similar_by_vector(
                 vec, topn=self.cluster_label_topn
