@@ -94,6 +94,11 @@ luigi-clean:
 luigi-minimal: luigi-scheduler luigi-clean output-folder
 	POSTGRES_DB=barberini_test MINIMAL=True $(MAKE) luigi
 
+# this target can be used to simply run one task inside the container
+luigi-task-in-container: startup
+	docker exec $(USER)-barberini_analytics_luigi bash -c \
+	'make luigi-task LMODULE=$(LMODULE) LTASK=$(LTASK) LARGS=$(LARGS)'
+
 # TODO: Custom output folder per test and minimal?
 output-folder:
 	mkdir -p $(OUTPUT_DIR)
