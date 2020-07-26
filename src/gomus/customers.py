@@ -34,7 +34,7 @@ class CustomersToDb(CsvToDb):
         return df
 
     def parse_string(self, value):
-        return str(value).replace('.0', '') if value else None
+        return str(value).replace('.0', '', regex=False) if value else None
 
 
 class GomusToCustomerMappingToDb(CsvToDb):
