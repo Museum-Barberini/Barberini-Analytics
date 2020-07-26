@@ -248,6 +248,8 @@ class CollectPostOpinionPhrases(DataPreparationTask):
 
     post_table = 'post'
 
+    remove_stopwords = luigi.BoolParameter(True)
+
     def _requires(self):
 
         return luigi.task.flatten([
@@ -309,10 +311,15 @@ class CollectPostOpinionPhrases(DataPreparationTask):
     def analyze_grammar(self, post_df):
 
         nlp = spacy.load(self.spacy_model)
+        nlp_cleanse = lambda post: [
+            token
+            for token in nlp(post)
+            if not (self.remove_stopwords and token.is_stop)
+        ]
 
         return post_df.assign(
             doc=lambda post:
-                post.text.progress_apply(nlp)
+                post.text.progress_apply(nlp_cleanse)
         ).assign(
             pos_tags=lambda post:
                 post.doc.apply(lambda doc: [token.pos_ for token in doc])
