@@ -243,7 +243,7 @@ class CollectPostOpinionSentiments(DataPreparationTask):
 
 class CollectPostOpinionPhrases(DataPreparationTask):
 
-    spacy_model = 'de_core_news_sm'
+    spacy_model = 'de_core_news_lg'
 
     post_table = 'post'
 
