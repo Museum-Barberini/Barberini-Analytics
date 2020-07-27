@@ -1,0 +1,70 @@
+<html>
+<head>
+    <style>
+        table, td, th {
+            border: 1px solid black;
+            padding: 5px;
+            padding-top: 1px;
+            padding-bottom: 1px
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <p>Dear maintainers,</p>
+    <p>
+        this is your weekly report of error logs that have recently occurred
+        in the data-mining pipeline.
+    </p>
+
+    <h2>Summary</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Total warnings</th>
+                <th>Total errors</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log_group in log_summary.itertuples %}
+            <tr>
+                <td>{{ log_group.task_name }}</td>
+                <td style="text-align:right;">{{ log_group.warning_count }}</td>
+                <td style="text-align:right;">{{ log_group.error_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h2>Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Task</th>
+                <th>Log level</th>
+                <th>Log string</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs.itertuples %}
+            <tr>
+                <td style="white-space: nowrap;">{{ log.date }}</td>
+                <td>{{ log.task_name }} {{ log.task_params }}</td>
+                <td>{{ log.log_level }}</td>
+                <td><pre style="white-space: pre-wrap; margin: 0;">{{ log.log_string }}</pre></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        Some of these errors may be sporadic, but please make sure that they did not occur everytimes.
+        For more information, check out the log files or see the documentation.
+    </p>
+</body>
+</html>
