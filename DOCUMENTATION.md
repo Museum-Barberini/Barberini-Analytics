@@ -47,7 +47,7 @@ Our recommended workflow consists of the following policies:
 - `luigi.cfg`: Configuration file for [luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration which is used for our central [mining pipeline](#data-mining-pipeline).
 
   In particular, you can configure timeouts and notification emails on failures here.
-  By the way: If desired, it is also possible to reduce the number of notification mails by [bundling](https://luigi.readthedocs.io/en/stable/configuration.html#batch-notifier) them.
+  By the way: If desired, it is also possible to reduce the number of notification emails by [bundling](https://luigi.readthedocs.io/en/stable/configuration.html#batch-notifier) them.
 
   See [the official documentation](https://luigi.readthedocs.io/en/stable/configuration.html).
 - `Makefile`: Smorgasbord of every-day commands used during development.
