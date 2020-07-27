@@ -81,17 +81,23 @@ luigi-restart-scheduler:
 	$(MAKE) luigi-scheduler
 	
 luigi:
-	$(MAKE) luigi-task LMODULE=fill_db LTASK=FillDb
+	$(MAKE) luigi-task LMODULE=_fill_db LTASK=FillDb
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
-	luigi --module $(LMODULE) $(LTASK) $(LARGS)
+	$(SHELL) -c 'echo luigi "$${LMODULE+--module $$LMODULE}" $(LTASK) $(LARGS)'
+	$(SHELL) -c 'luigi $${LMODULE+--module $$LMODULE} $(LTASK) $(LARGS)'
 
 luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
 	POSTGRES_DB=barberini_test MINIMAL=True $(MAKE) luigi
+
+# this target can be used to simply run one task inside the container
+luigi-task-in-container: startup
+	docker exec $(USER)-barberini_analytics_luigi bash -c \
+	'make luigi-task LMODULE=$(LMODULE) LTASK=$(LTASK) LARGS=$(LARGS)'
 
 # TODO: Custom output folder per test and minimal?
 output-folder:
@@ -104,7 +110,7 @@ output-folder:
 test ?= tests/**/test*.py
 # optional argument: testmodule
 # Usually you don't want to change this. All database tests in this solution
-# require DatabaseTestSuite from db_test. Only exception is tests/schema/**.
+# require DatabaseTestSuite from db_test.
 test: export OUTPUT_DIR=output_test
 test: luigi-clean output-folder
 	# globstar needed to recursively find all .py-files via **
@@ -151,3 +157,12 @@ db-restore:
 
 db-schema-report:
 	docker exec barberini_analytics_db pg_dump -U postgres -d barberini -s
+
+# --- Maintenance ---
+
+# To be run from within the container
+upgrade-requirements:
+	pip-upgrade docker/requirements.txt --skip-virtualenv-check -p all
+	bash -c 'pip3 check || (echo "⚠ Please define these deps explicitely in requirements.txt" && false)'
+	echo "Upgrade successful, please run the CI now before merging the" \
+		 "upgrades into the master!"

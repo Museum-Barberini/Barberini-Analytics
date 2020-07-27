@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 import csv
 import datetime as dt
-import logging
 
 import requests
 import xlrd
 
-logger = logging.getLogger('luigi-interface')
+from _utils import logger
 
 # This dict maps 'report_types' to 'REPORT_IDS'
 # Data sheets that don't require a report to be generated or

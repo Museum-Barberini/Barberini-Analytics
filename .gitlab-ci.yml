@@ -20,7 +20,11 @@ build:
   tags:
     - barberini
   script:
-    - docker build -t test ./docker
+    - docker build -t test ./docker $(
+        [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
+        && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
+        && echo '--no-cache' 
+      )
 
 unittest:
   stage: test
@@ -36,13 +40,6 @@ unittest:
   artifacts:
     paths: 
       - htmlcov
-
-lint:
-  stage: analyze
-  tags:
-    - barberini
-  script:
-    - make lint
 
 minimal-mining-pipeline:
   stage: test
@@ -72,3 +69,10 @@ test-pbi-reports:
     when: always
     paths:
       - ./output/test_pbi/
+
+lint:
+  stage: analyze
+  tags:
+    - barberini
+  script:
+    - make lint

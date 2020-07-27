@@ -20,7 +20,7 @@ services:
         environment:
             - PYTHONIOENCODING=utf-8
             - PYTHONUNBUFFERED=1
-            - PYTHONPATH=./src/:./src/_utils/
+            - PYTHONPATH=./src/
             # used to determine name of barberini_analytics_gplay_api container
             - CONTAINER_USER=${USER}
             # to control whether email notifications should be sent
