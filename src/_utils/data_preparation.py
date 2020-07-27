@@ -263,23 +263,6 @@ class DataPreparationTask(luigi.Task):
             ''')
         }
 
-    def loop_verbose(self, msg, size=None):
-        """
-        Stream an infinite generator that prints progress updates to the
-        console if appropriate. Use next() to increment the progress or
-        .send() to specify the current index.
-        """
-
-        index = 0
-
-        def loop():
-            nonlocal index
-            while True:
-                next_index = yield index
-                index = next_index if next_index else index + 1
-        return self.iter_verbose(
-            loop(), msg, size=size, index_fun=lambda: index)
-
     def tqdm(self, iterable, **kwargs):
 
         pbar = tqdm(iterable)
