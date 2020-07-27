@@ -3,10 +3,13 @@
 # Luigi's default capability, so that external errors are noticed (make
 # startup is still assumed to work, since luigi's send_error_mail is used)
 
+import logging
 import socket
 import sys
 
 import luigi.notifications
+
+logging.basicConfig(level=logging.INFO)
 
 
 def send_error_mail(error_source):
