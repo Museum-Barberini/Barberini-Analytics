@@ -2,7 +2,7 @@ import datetime as dt
 
 import luigi
 
-from _utils import OUTPUT_DIR
+from _utils import minimal_mode, OUTPUT_DIR
 from .log_report import SendLogReport
 
 
@@ -16,7 +16,7 @@ class Diagnostics(luigi.Task):
 
         tasks = 0
 
-        if dt.date.today().isoweekday() == 7:  # sunday
+        if dt.date.today().isoweekday() == 7 or minimal_mode:  # sunday
             yield SendLogReport()
             tasks += 1
 
