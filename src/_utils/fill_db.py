@@ -1,40 +1,35 @@
 import luigi
 
 from posts import PostsToDb, PostPerformanceToDb
-from gomus.gomus import GomusToDb
-from google_trends.gtrends_values import GtrendsValuesToDB
-from absa.post_aspects import PostAspectsToDb
-from absa.post_ngrams import PostNgramsToDb
-from absa.phrase_polarity import PhrasePolaritiesToDb
+from gomus import GomusToDb
+from absa import AspectBasedSentimentAnalysis
 from topic_modeling import TopicModeling
+from visitor_prediction.predict import PredictionsToDb
 
 
-class FillDB(luigi.WrapperTask):
+class FillDb(luigi.WrapperTask):
 
     def requires(self):
-        yield FillDBDaily()
-        yield FillDBHourly()
+        yield FillDbDaily()
+        yield FillDbHourly()
 
 
-class FillDBDaily(luigi.WrapperTask):
+class FillDbDaily(luigi.WrapperTask):
 
     def requires(self):
         # Public sources
-        yield GtrendsValuesToDB()
         yield PostsToDb()
 
         # Internal sources
         yield GomusToDb()
 
         # Analysis tasks
-        yield PostAspectsToDb()
-        yield PostNgramsToDb()
-        yield PhrasePolaritiesToDb()
-
+        yield AspectBasedSentimentAnalysis()
         yield TopicModeling()
+        yield PredictionsToDb()
 
 
-class FillDBHourly(luigi.WrapperTask):
+class FillDbHourly(luigi.WrapperTask):
 
     def requires(self):
         # Public sources

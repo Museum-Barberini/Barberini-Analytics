@@ -5,12 +5,13 @@ import logging
 
 import luigi
 from luigi.contrib.postgres import CopyToTable
+from luigi.format import UTF8
 import numpy as np
 import pandas as pd
 from psycopg2.errors import UndefinedTable
 
 import db_connector
-from data_preparation import minimal_mode
+from data_preparation import DataPreparationTask, minimal_mode
 
 logger = logging.getLogger('luigi-interface')
 
@@ -40,14 +41,19 @@ class CsvToDb(CopyToTable):
     host = database = user = password = None
 
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
+
         # Set db connection parameters using env vars
         self.db_connector = db_connector.db_connector()
         self.host = self.db_connector.host
         self.database = self.db_connector.database
         self.user = self.db_connector.user
         self.password = self.db_connector.password
-        self._columns = None  # lazy property
+
+        # lazy properties
+        self._columns = None
+        self._primary_constraint_name = None
 
     seed = 666
     sql_file_path_pattern = 'src/_utils/sql_scripts/{0}.sql'
@@ -85,6 +91,11 @@ class CsvToDb(CopyToTable):
             None if np.isnan(value) else str(int(value))
     }
 
+    """
+    If True, the table will be truncated before copying the new values.
+    """
+    replace_content = False
+
     @property
     def columns(self):
         if not self._columns:
@@ -103,10 +114,35 @@ class CsvToDb(CopyToTable):
 
         return self._columns
 
+    @property
+    def primary_constraint_name(self):
+        if not self._primary_constraint_name:
+            table_path = self.table_path
+            self._primary_constraint_name = self.db_connector.query(f'''
+                SELECT
+                    constraint_name
+                FROM
+                    information_schema.table_constraints
+                WHERE
+                    constraint_type = 'PRIMARY KEY'
+                    AND (table_schema, table_name)
+                        = ('{table_path[0]}', '{table_path[1]}')
+            ''', only_first=True)[0]
+            if not self._primary_constraint_name:
+                raise UndefinedTable(self.table)
+
+        return self._primary_constraint_name
+
     def copy(self, cursor, file):
+
+        if self.replace_content:
+            # delete existing rows to avoid cache invalidation
+            cursor.execute(f'TRUNCATE {self.table}')
+
         query = self.load_sql_script(
             'copy',
             *self.table_path,
+            self.primary_constraint_name,
             ', '.join([col[0] for col in self.columns]),
             ', '.join(
                 [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
@@ -177,3 +213,68 @@ class CsvToDb(CopyToTable):
     def load_sql_script(self, name, *args):
         with open(self.sql_file_path_pattern.format(name)) as sql_file:
             return sql_file.read().format(*args)
+
+
+class QueryCacheToDb(DataPreparationTask):
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        try:
+            self.args = str(self.args)
+        except AttributeError:
+            pass  # args was overridden and does not need conversion
+        try:
+            self.kwargs = str(self.kwargs)
+        except AttributeError:
+            pass  # kwargs was overridden and does not need conversion
+
+    query = luigi.Parameter(
+        description="The SQL query to perform on the DB"
+    )
+
+    # Don't use a ListParameter here to preserve free typing of arguments
+    # TODO: Fix warnings
+    args = luigi.Parameter(
+        default=(),
+        description="The SQL query's positional arguments"
+    )
+
+    # Don't use a DictParameter here to preserve free typing of arguments
+    # TODO: Fix warnings
+    kwargs = luigi.Parameter(
+        default={},
+        description="The SQL query's named arguments"
+    )
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/{self.task_id}.csv',
+            format=UTF8
+        )
+
+    def run(self):
+
+        args, kwargs = self.args, self.kwargs
+        if isinstance(args, str):
+            # Unpack luigi-serialized parameter
+            args = literal_eval(args)
+        if isinstance(kwargs, str):
+            # Unpack luigi-serialized parameter
+            kwargs = literal_eval(kwargs)
+
+        assert not args or not kwargs, "cannot combine args and kwargs"
+        all_args = next(filter(bool, [args, kwargs]), None)
+
+        self.db_connector.execute(
+            f'TRUNCATE TABLE {self.table}',
+            (f'INSERT INTO {self.table} {self.query}', all_args)
+        )
+
+        count = self.db_connector.query(f'SELECT COUNT(*) FROM {self.table}')
+
+        # Write dummy output for sake of complete()
+        with self.output().open('w') as file:
+            file.write(f"Cache of {count} rows")

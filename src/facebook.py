@@ -19,10 +19,10 @@ logger = logging.getLogger('luigi-interface')
 API_VER = 'v6.0'
 API_BASE = f'https://graph.facebook.com/{API_VER}'
 
-# ======= ToDB Tasks =======
+# ======= ToDb Tasks =======
 
 
-class FbPostsToDB(CsvToDb):
+class FbPostsToDb(CsvToDb):
 
     table = 'fb_post'
 
@@ -30,7 +30,7 @@ class FbPostsToDB(CsvToDb):
         return FetchFbPosts()
 
 
-class FbPostPerformanceToDB(CsvToDb):
+class FbPostPerformanceToDb(CsvToDb):
 
     table = 'fb_post_performance'
 
@@ -38,7 +38,7 @@ class FbPostPerformanceToDB(CsvToDb):
         return FetchFbPostPerformance(table=self.table)
 
 
-class FbPostCommentsToDB(CsvToDb):
+class FbPostCommentsToDb(CsvToDb):
 
     table = 'fb_post_comment'
 
@@ -130,7 +130,7 @@ class FetchFbPostDetails(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            FbPostsToDB(),
+            FbPostsToDb(),
             super()._requires()
         ])
 
@@ -301,7 +301,7 @@ class FetchFbPostComments(FetchFbPostDetails):
 
         else:
             """
-            This whole else block is a dirty workaround, because the ToDB tasks
+            This whole else block is a dirty workaround, because the ToDb tasks
             currently cannot deal with completely empty CSV files as input,
             they assume that at least the header row exists.
             """
@@ -375,26 +375,27 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'response_to': None
                 }
 
-                if comment.get('comment_count'):
-                    try:
-                        # Handle each reply for the comment
-                        for reply in comment['comments']['data']:
-                            yield {
-                                'comment_id': reply.get('id').split('_')[1],
-                                'page_id': str(page_id),
-                                'post_id': str(post_id),
-                                'post_date': reply.get('created_time'),
-                                'text': reply.get('message'),
-                                'is_from_museum': self.from_barberini(reply),
-                                'response_to': str(comment_id)
-                            }
-                    except KeyError:
-                        # Sometimes, replies become unavailable. In this case,
-                        # the Graph API returns the true 'comment_count',
-                        # but does not provide a 'comments' field anyway
-                        logger.warning(
-                            f"Failed to retrieve replies for comment "
-                            f"{comment.get('id')}")
+                if not comment.get('comment_count'):
+                    continue
+                try:
+                    # Handle each reply for the comment
+                    for reply in comment['comments']['data']:
+                        yield {
+                            'comment_id': reply.get('id').split('_')[1],
+                            'page_id': str(page_id),
+                            'post_id': str(post_id),
+                            'post_date': reply.get('created_time'),
+                            'text': reply.get('message'),
+                            'is_from_museum': self.from_barberini(reply),
+                            'response_to': str(comment_id)
+                        }
+                except KeyError:
+                    # Sometimes, replies become unavailable. In this case,
+                    # the Graph API returns the true 'comment_count',
+                    # but does not provide a 'comments' field anyway
+                    logger.warning(
+                        f"Failed to retrieve replies for comment "
+                        f"{comment.get('id')}")
 
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")

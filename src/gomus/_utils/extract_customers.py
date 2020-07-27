@@ -37,6 +37,17 @@ class ExtractCustomerData(DataPreparationTask):
 
         df['Gültige E-Mail'] = df['E-Mail'].apply(isinstance, args=(str,))
 
+        # Will be filled during CleansePostalCodes
+        df['Bereinigte PLZ'] = None
+        df['Bereinigtes Land'] = None
+
+        # Check whether email contains interesting tags
+        df['Tourismus Tags'] = df['E-Mail'].apply(self.check_mail)
+
+        # Prepare columns for latitude and longitude
+        df['Breitengrad'] = None
+        df['Längengrad'] = None
+
         # Insert Hash of E-Mail into E-Mail field,
         # or original ID if there is none
         df['E-Mail'] = df.apply(
@@ -48,10 +59,11 @@ class ExtractCustomerData(DataPreparationTask):
             'E-Mail', 'PLZ',
             'Newsletter', 'Anrede', 'Kategorie',
             'Sprache', 'Land', 'Typ',
-            'Erstellt am', 'Jahreskarte', 'Gültige E-Mail'])
-
-        df['cleansed_postal_code'] = None
-        df['cleansed_country'] = None
+            'Erstellt am', 'Jahreskarte',
+            'Gültige E-Mail', 'Bereinigte PLZ',
+            'Bereinigtes Land', 'Tourismus Tags',
+            'Breitengrad', 'Längengrad'
+            ])
 
         df.columns = self.columns
 
@@ -87,10 +99,23 @@ class ExtractCustomerData(DataPreparationTask):
             return post_string[:-2] if post_string[-2:] == '.0' else \
                 post_string
 
+    def check_mail(self, mail):
+        tourism_tags = [
+            'reise', 'kultur', 'freunde', 'förder', 'foerder',
+            'guide', 'hotel', 'travel', 'event', 'visit',
+            'verein', 'stiftung'
+        ]
+
+        if pd.isnull(mail):
+            return []
+
+        return [tag for tag in tourism_tags if tag in mail]
+
 
 # Return hash for e-mail value, or alternative (usually original gomus_id
 # or default value 0 for the dummy customer) if the e-mail is invalid
 def hash_id(email, alternative=0, seed=666):
     if not isinstance(email, str):
         return int(float(alternative))
+
     return mmh3.hash(email, seed, signed=True)

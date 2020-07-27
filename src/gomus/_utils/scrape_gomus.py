@@ -9,7 +9,7 @@ from luigi.format import UTF8
 from lxml import html
 
 from data_preparation import DataPreparationTask
-from gomus.customers import GomusToCustomerMappingToDB
+from gomus.customers import GomusToCustomerMappingToDb
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_htmls import (FetchBookingsHTML, FetchGomusHTML,
@@ -51,7 +51,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             base_url=f'{self.base_url}/admin/bookings/',
             columns=self.columns)
         # table required for fetch_updated_mail()
-        yield GomusToCustomerMappingToDB()
+        yield GomusToCustomerMappingToDb()
 
     def output(self):
         return luigi.LocalTarget(
@@ -292,9 +292,29 @@ class ScrapeGomusOrderContains(GomusScraperTask):
                             ",", ".").replace(
                             "€", ""))
 
+                    storno_mention = re.findall(
+                        r'(S|s)torn(o|ier)',
+                        html.tostring(  # mostly matches with "Stornogebühr"
+                            article,
+                            method='text',
+                            encoding='unicode')
+                    )
+                    new_article['is_cancelled'] = len(storno_mention) > 0
+
                     order_details.append(new_article)
 
-        df = pd.DataFrame(order_details)
+        df = pd.DataFrame(
+            order_details,
+            columns=[
+                'article_id',
+                'article_type',
+                'order_id',
+                'ticket',
+                'date',
+                'quantity',
+                'price',
+                'is_cancelled'
+            ])
         df = self.filter_fkey_violations(df)
 
         with self.output().open('w') as output_file:

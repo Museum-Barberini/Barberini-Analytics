@@ -28,7 +28,7 @@ RUN wget --quiet --no-check-certificate -O - \
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ \
     `lsb_release -cs`-pgdg main" \
   | tee /etc/apt/sources.list.d/pgdg.list
-# scan new sources
+# Scan new sources
 RUN apt-get update
 RUN $INSTALL postgresql-client-12
 
@@ -39,24 +39,10 @@ RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev \
 # Install psycopg2 (incl. system dependencies)
 RUN $INSTALL libpq-dev
 
-# Install node.js
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN $INSTALL nodejs
-
-# Install node packages
-# Because of serious trouble with volumes and mounting and so, node_modules
-# must be installed into the root directory. Other approaches, including manual
-# copying of that folder, using [npm install -g], and manipulating the PATH
-# variable failed. Don't touch this unless you absolutely know what you do!
-WORKDIR /
-COPY ./package*.json /
-RUN npm install
-RUN npm audit fix
-WORKDIR /app
-
 # Install python packages
 COPY requirements.txt /app
 RUN pip3 install -r requirements.txt
+RUN pip3 check
 
 # Install required nltk resource
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1

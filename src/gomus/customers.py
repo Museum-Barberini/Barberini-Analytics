@@ -12,14 +12,12 @@ from gomus._utils.extract_customers import hash_id
 from gomus._utils.fetch_report import FetchGomusReport
 
 
-class CustomersToDB(CsvToDb):
+class CustomersToDb(CsvToDb):
 
     amount = luigi.parameter.Parameter(default='regular')
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
 
     table = 'gomus_customer'
-
-    primary_key = 'customer_id'
 
     def requires(self):
         return CleansePostalCodes(
@@ -27,8 +25,20 @@ class CustomersToDB(CsvToDb):
             columns=[col[0] for col in self.columns],
             today=self.today)
 
+    def read_csv(self, input_csv):
+        df = super().read_csv(input_csv)
+        # This is necessary to prevent pandas from adding
+        # '.0' to some postal codes
+        # TODO: Fix this in super
+        df['cleansed_postal_code'] = \
+            df['cleansed_postal_code'].apply(self.parse_string)
+        return df
 
-class GomusToCustomerMappingToDB(CsvToDb):
+    def parse_string(self, value):
+        return str(value).replace('.0', '') if value else None
+
+
+class GomusToCustomerMappingToDb(CsvToDb):
 
     table = 'gomus_to_customer_mapping'
 
@@ -47,7 +57,7 @@ class ExtractGomusToCustomerMapping(DataPreparationTask):
 
     def _requires(self):
         return luigi.task.flatten([
-            CustomersToDB(),
+            CustomersToDb(today=self.today),
             super()._requires()
         ])
 
