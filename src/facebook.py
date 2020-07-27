@@ -267,7 +267,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
         # values get inserted twice into the performances list.
         # Investigate and fix the root cause, this is a workaround
         # TODO: Is this still up to date? Could not reproduce.
-        #df.drop_duplicates(subset='post_id', inplace=True, ignore_index=True)
+        df.drop_duplicates(subset='post_id', inplace=True, ignore_index=True)
 
         df = self.filter_fkey_violations(df)
         df = self.condense_performance_values(df)
