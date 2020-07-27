@@ -4,6 +4,7 @@ from typing import Callable, Dict, List, Tuple
 
 import luigi
 import pandas as pd
+from tqdm import tqdm
 
 from ._database import register_array_type
 import _utils
@@ -262,58 +263,6 @@ class DataPreparationTask(luigi.Task):
             ''')
         }
 
-    def iter_verbose(self, iterable, msg, size=None, index_fun=None):
-        """
-        Iterate over an iterable, but as a side effect, print progress updates
-        to the console if appropriate.
-        Neglecting any outputs, this method is equivalent to:
-            def iter_verbose(self, iterable):
-                return iterable
-        """
-
-        if not sys.stdout.isatty():
-            yield from iterable
-            return
-        if isinstance(msg, str):
-            yield from self.iter_verbose(
-                iterable,
-                msg=lambda: msg, size=size, index_fun=index_fun
-            )
-            return
-        size = size if size \
-            else len(iterable) if hasattr(iterable, '__len__') \
-            else None
-        format_args = {
-            'item': str(None),
-            'index': 0
-        }
-        if size:
-            format_args['size'] = size
-        print()
-        try:
-            iterable = iter(iterable)
-            index = 0
-            item = next(iterable)
-            while True:
-                index = index_fun() + 1 if index_fun else index + 1
-                forth = yield item
-                item = iterable.send(forth) \
-                    if hasattr(iterable, 'send') \
-                    else next(iterable)
-
-                format_args['index'] = index
-                format_args['item'] = item
-                message = msg().format(**format_args)
-                message = f'\r{message} ... '
-                if size:
-                    message += f'({(index - 1) / size :2.1%})'
-                print(message, end=' ', flush=True)
-                yield item
-            print(f'\r{msg().format(**format_args)} ... done.', flush=True)
-        except Exception:
-            print(flush=True)
-            raise
-
     def loop_verbose(self, msg, size=None):
         """
         Stream an infinite generator that prints progress updates to the
@@ -330,3 +279,19 @@ class DataPreparationTask(luigi.Task):
                 index = next_index if next_index else index + 1
         return self.iter_verbose(
             loop(), msg, size=size, index_fun=lambda: index)
+
+    def tqdm(self, iterable, **kwargs):
+
+        pbar = tqdm(iterable)
+        desc = kwargs.get('desc', None)
+        if desc:
+            logger.info(desc)
+        # TODO: Cannot work ATM because close() does not know whether
+        # the iteration was successful or failed.
+        #     desc = desc[:-3].trim() if desc.endswith('...') else desc
+        # def close():
+        #     _close()
+        #     if success and desc:
+        #         logger.info(f"Done: {desc}")
+        # pbar.close = close
+        return pbar

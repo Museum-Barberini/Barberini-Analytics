@@ -22,6 +22,7 @@ class FbPostsToDb(CsvToDb):
     table = 'fb_post'
 
     def requires(self):
+
         return FetchFbPosts()
 
 
@@ -30,6 +31,7 @@ class FbPostPerformanceToDb(CsvToDb):
     table = 'fb_post_performance'
 
     def requires(self):
+
         return FetchFbPostPerformance(table=self.table)
 
 
@@ -38,9 +40,11 @@ class FbPostCommentsToDb(CsvToDb):
     table = 'fb_post_comment'
 
     def requires(self):
+
         return FetchFbPostComments(table=self.table)
 
     def read_csv(self, input_csv):
+
         df = super().read_csv(input_csv)
         # This is necessary to prevent pandas from replacing "None" with "NaN"
         df['response_to'] = df['response_to'].apply(num_to_str)
@@ -52,13 +56,16 @@ class FbPostCommentsToDb(CsvToDb):
 class FetchFbPosts(DataPreparationTask):
 
     def requires(self):
+
         return MuseumFacts()
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/facebook/fb_posts.csv', format=UTF8)
 
     def run(self):
+
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
         page_id = facts['ids']['facebook']['pageId']
@@ -70,6 +77,7 @@ class FetchFbPosts(DataPreparationTask):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_posts(self, page_id):
+
         limit = 100
         url = f'{API_BASE}/{page_id}/published_posts?limit={limit}'
 
@@ -97,6 +105,7 @@ class FetchFbPosts(DataPreparationTask):
         logger.info("Fetching of facebook posts completed")
 
     def transform_posts(self, posts):
+
         df = pd.DataFrame(posts)
         fb_post_ids = df['id'].str.split('_', n=1, expand=True)
         df = df.filter(['created_time', 'message'])
@@ -120,41 +129,50 @@ class FetchFbPostDetails(DataPreparationTask):
     worker_timeout = 1200
 
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
         self.minimum_relevant_date = dt.datetime.now() - self.timespan
 
     def _requires(self):
+
         return luigi.task.flatten([
             FbPostsToDb(),
             super()._requires()
         ])
 
     def requires(self):
+
         return FetchFbPosts()
 
     @abstractmethod
     def output(self):
+
         pass
 
     @abstractmethod
     def run(self):
+
         pass
 
     @staticmethod
     def post_date(df, index):
+
         return dt.datetime.strptime(
             df['post_date'][index],
-            '%Y-%m-%dT%H:%M:%S+%f')
+            '%Y-%m-%dT%H:%M:%S+%f'
+        )
 
 
 class FetchFbPostPerformance(FetchFbPostDetails):
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/facebook/fb_post_performances.csv',
             format=UTF8)
 
     def run(self):
+
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         performances = []
         with self.input().open('r') as csv_in:
@@ -164,9 +182,11 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             df = df.head(5)
 
         invalid_count = 0
-        for index in self.iter_verbose(
-                df.index,
-                msg="Fetching performance data for FB post {index}/{size}"):
+        pbar = self.tqdm(
+            df.index,
+            desc="Fetching performance data for FB post"
+        )
+        for index in pbar:
             page_id, post_id = \
                 str(df['page_id'][index]), str(df['post_id'][index])
             fb_post_id = f'{page_id}_{post_id}'
@@ -248,9 +268,9 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
         # For some reason, all except the first set of performance
         # values get inserted twice into the performances list.
-        # This could be due to a bug in iter_verbose, though it's uncertain.
-        # TODO: Investigate and fix the root cause, this is a workaround
-        df.drop_duplicates(subset='post_id', inplace=True, ignore_index=True)
+        # Investigate and fix the root cause, this is a workaround
+        # TODO: Is this still up to date? Could not reproduce.
+        #df.drop_duplicates(subset='post_id', inplace=True, ignore_index=True)
 
         df = self.filter_fkey_violations(df)
         df = self.condense_performance_values(df)
@@ -262,11 +282,13 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 class FetchFbPostComments(FetchFbPostDetails):
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/facebook/fb_post_comments.csv',
             format=UTF8)
 
     def run(self):
+
         with self.input().open() as fb_post_file:
             df = pd.read_csv(fb_post_file)
         comments = []
@@ -314,6 +336,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             df.to_csv(output_file, index=False, header=True)
 
     def fetch_comments(self, df):
+
         invalid_count = 0
 
         # Handle each post
@@ -397,6 +420,7 @@ class FetchFbPostComments(FetchFbPostDetails):
 
     @staticmethod
     def from_barberini(comment_json):
+
         return comment_json.get('from', {}) \
            .get('name') == 'Museum Barberini'
 
