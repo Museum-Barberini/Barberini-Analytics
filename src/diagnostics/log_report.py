@@ -1,6 +1,7 @@
 import datetime as dt
 import glob
 from pathlib import Path
+import socket
 
 import luigi
 from luigi.notifications import send_error_email
@@ -122,6 +123,7 @@ class SendLogReport(luigi.Task):
             message=django_renderer(
                 'data/strings/log_report_email.html',
                 context=dict(
+                    host=socket.gethostname(),
                     logs=logs,
                     log_summary=log_summary
                 )))
