@@ -116,8 +116,8 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     def fetch_raw_reviews(self, service, page_size=100):
         """
         The GMB API is based on resources that contain other resources.
-        An authenticated user has account(s), an accounts contains locations, and
-        a location contains reviews (which we need to request one by one).
+        An authenticated user has account(s), an accounts contains locations,
+        and a location contains reviews (which we need to request one by one).
         """
 
         # get account identifier
@@ -196,8 +196,11 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             # see for details:
             # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
             # We want to keep both original and english translation)
-            extracted['text'], extracted['text_english'], extracted['language'] = \
             (
+                extracted['text'],
+                extracted['text_english'],
+                extracted['language']
+            ) = (
                 # english reviews are as is; (Original) may be part of the text
                 (raw_comment, raw_comment, "english")
                 if "(Translated by Google)" not in raw_comment else (
@@ -205,7 +208,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     #   (Translated by Google)[english translation]\n\n
                     #   (Original)\n[original review]
                     raw_comment.split("(Original)")[1].strip(),
-                    raw_comment.split("(Original)")[0].split("(Translated by Google)")[1].strip(),
+                    raw_comment.split("(Original)")[0].split(
+                        "(Translated by Google)"
+                    )[1].strip(),
                     "other"
                 )
             )

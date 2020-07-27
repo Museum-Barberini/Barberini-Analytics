@@ -56,7 +56,8 @@ PATTERN = regex.compile(
             (?P<log_string>
                 ^
                 (?P<log_level>(ERROR|WARNING)):
-                (?!\s*\[pid .*\])  # Ignore scheduling errors (they already were reported)
+                (?!\s*\[pid .*\])  # Ignore scheduling errors (they already
+                                   # were reported)
                 .+
                 # Match consecutive lines greedily
                 (
@@ -115,7 +116,6 @@ class SendLogReport(luigi.Task):
             log_summary[f'{type_}_count'] = \
                 log_summary[f'{type_}_count'].fillna(0).astype(int)
 
-        import logging; logging.basicConfig(level=logging.INFO) # DEBUG
         django_renderer = utils.load_django_renderer()
         send_error_email(
             subject=f"Weekly log report ({len(logs)} incidents)",
@@ -162,13 +162,19 @@ class CollectLogReport(luigi.Task):
                 date=date,
                 task_name=match.group('task_name'),
                 task_params=match.group('task_params'),
-                logs=list(zip(match.captures('log_level'), match.captures('log_string')))
+                logs=list(zip(
+                    match.captures('log_level'),
+                    match.captures('log_string')
+                ))
             )
-            for date, log_string in tqdm(log_strings.items(), desc="Scanning logs")
+            for date, log_string in tqdm(
+                log_strings.items(),
+                desc="Scanning logs"
+            )
             for match in regex.finditer(PATTERN, log_string)
         )
         logs = logs.explode(column='logs')
-        logs['log_level'], logs['log_string'] = zip(*logs['logs']) # .apply(lambda x: x)
+        logs['log_level'], logs['log_string'] = zip(*logs['logs'])
         del logs['logs']
 
         with self.output().open('w') as csv:

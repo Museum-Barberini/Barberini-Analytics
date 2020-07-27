@@ -8,18 +8,18 @@ from .log_report import SendLogReport
 
 class Diagnostics(luigi.Task):
 
-	def output(self):
+    def output(self):
 
-		return luigi.LocalTarget(f'{OUTPUT_DIR}/diagnostics.txt')
+        return luigi.LocalTarget(f'{OUTPUT_DIR}/diagnostics.txt')
 
-	def run(self):
+    def run(self):
 
-		tasks = 0
+        tasks = 0
 
-		if dt.date.today().isoweekday() == 7:  # sunday
-			yield SendLogReport()
-			tasks += 1
+        if dt.date.today().isoweekday() == 7:  # sunday
+            yield SendLogReport()
+            tasks += 1
 
-		# Pseudo output file
-		with self.output().open('w') as txt:
-			txt.write(f"Ran {tasks} tasks successfully.")
+        # Pseudo output file
+        with self.output().open('w') as txt:
+            txt.write(f"Ran {tasks} tasks successfully.")
