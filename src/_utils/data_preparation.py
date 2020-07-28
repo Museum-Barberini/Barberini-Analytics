@@ -273,16 +273,7 @@ class DataPreparationTask(luigi.Task):
                 print(i)
         """
 
-        pbar = tqdm(iterable)
         desc = kwargs.get('desc', None)
         if desc:
             logger.info(desc)
-        # TODO: Cannot work ATM because close() does not know whether
-        # the iteration was successful or failed.
-        #     desc = desc[:-3].trim() if desc.endswith('...') else desc
-        # def close():
-        #     _close()
-        #     if success and desc:
-        #         logger.info(f"Done: {desc}")
-        # pbar.close = close
-        return pbar
+        return tqdm(iterable)
