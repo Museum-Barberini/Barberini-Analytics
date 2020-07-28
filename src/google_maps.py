@@ -15,6 +15,7 @@ class GoogleMapsReviewsToDb(CsvToDb):
     table = 'google_maps_review'
 
     def requires(self):
+
         return FetchGoogleMapsReviews()
 
 
@@ -44,12 +45,14 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     })
 
     def output(self):
+
         return luigi.LocalTarget(
-            f'{self.output_dir}/google_maps/maps_reviews.csv',
+            f'{self.output_dir}/google_maps_reviews.csv',
             format=luigi.format.UTF8
         )
 
     def run(self) -> None:
+
         logger.info("loading credentials...")
         credentials = self.load_credentials()
         logger.info("creating service...")
@@ -68,6 +71,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     requires no login action if you have a valid cache
     """
     def load_credentials(self) -> oauth2client.client.Credentials:
+
         storage = Storage(self.token_cache)
         credentials = storage.get()
 
@@ -94,6 +98,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         return credentials
 
     def load_service(self, credentials) -> googleapiclient.discovery.Resource:
+
         return googleapiclient.discovery.build(
             self.api_service_name,
             self.api_version,
@@ -134,23 +139,20 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         ]
         total_reviews = review_list['totalReviewCount']
 
-        log_loop = self.loop_verbose(
-            msg="Fetching Google Maps page {index}/{size}",
-            size=total_reviews)
-        next(log_loop)
-        review_counter = 0
+        pbar_loop = iter(self.tqdm(
+            range(total_reviews),
+            desc="Fetching Google Maps pages"
+        ))
         while 'nextPageToken' in review_list:
             next_page_token = review_list['nextPageToken']
-            log_loop.send(review_counter)
-            """
-            TODO: optimize by requesting the latest review from DB rather
-            than fetching more pages once that one is found
-            """
+            # TODO: optimize by requesting the latest review from DB rather
+            # than fetching more pages once that one is found
             review_list = service.accounts().locations().reviews().list(
                 parent=location,
                 pageSize=page_size,
                 pageToken=next_page_token).execute()
-            review_counter += len(review_list['reviews'])
+            for review in review_list['reviews']:
+                next(pbar_loop)
             yield from [
                 {**review, 'placeId': place_id}
                 for review
@@ -161,6 +163,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 review_list.pop('nextPageToken')
 
     def extract_reviews(self, raw_reviews) -> pd.DataFrame:
+
         extracted_reviews = []
         for raw in raw_reviews:
             extracted = dict()
