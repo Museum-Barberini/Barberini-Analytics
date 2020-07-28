@@ -264,6 +264,14 @@ class DataPreparationTask(luigi.Task):
         }
 
     def tqdm(self, iterable, **kwargs):
+        """
+        Iterate over an iterable, but as a side effect, print progress updates
+        to the console if appropriate. Works completely transparent.
+        Wrapper function for the popular status-reporting library tqdm.
+        Usage example that loops through an iterable using tqdm:
+            for i in tqdm(range(1, 5), desc="Processing list"):
+                print(i)
+        """
 
         pbar = tqdm(iterable)
         desc = kwargs.get('desc', None)
