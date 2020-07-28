@@ -93,6 +93,10 @@ class SendLogReport(luigi.Task):
 
         return CollectLogReport(today=self.today, days_back=self.days_back)
 
+    def output(self):
+
+        return luigi.LocalTarget(f'{OUTPUT_DIR}/SendLogReport')
+
     def run(self):
 
         with self.input().open() as csv:
@@ -127,6 +131,9 @@ class SendLogReport(luigi.Task):
                     logs=logs,
                     log_summary=log_summary
                 )))
+
+        with self.output().open('w') as file:
+            file.write("Done.")
 
 
 class CollectLogReport(luigi.Task):
