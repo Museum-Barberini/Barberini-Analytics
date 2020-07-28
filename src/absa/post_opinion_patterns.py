@@ -147,6 +147,10 @@ class GroupPostOpinionSentiments(DataPreparationTask):
     def cluster_aspects(self, df):
 
         dbscan = DBSCAN(metric='cosine', eps=self.dbscan_eps, min_samples=self.dbscan_minsamples)
+        if df.empty:
+            logger.error("Did not receive any posts for grouping!")
+            df['bin'] = []
+            return vecs
         df['bin'] = dbscan.fit(list(df['vec'])).labels_
 
         is_noise = df['bin'] == -1
