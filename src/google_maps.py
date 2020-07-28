@@ -35,7 +35,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     api_service_name = 'mybusiness'
     api_version = 'v4'
 
-    stars_dict = dict({  # google returns rating as a string
+    stars_dict = dict({  # Google returns rating as a string
         'STAR_RATING_UNSPECIFIED': None,
         'ONE': 1,
         'TWO': 2,
@@ -47,7 +47,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     def output(self):
 
         return luigi.LocalTarget(
-            f'{self.output_dir}/google_maps/maps_reviews.csv',
+            f'{self.output_dir}/google_maps_reviews.csv',
             format=luigi.format.UTF8
         )
 
@@ -76,8 +76,8 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
     def load_credentials(self) -> oauth2client.client.Credentials:
         """
-        Uses oauth2 to authenticate with Google, also caches credentials
-        requires no login action if you have a valid cache.
+        Uses OAuth2 to authenticate with Google, also caches credentials.
+        Requires no login action when a valid cache is present.
         """
 
         storage = Storage(self.token_cache)
@@ -148,23 +148,20 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         ]
         total_reviews = review_list['totalReviewCount']
 
-        log_loop = self.loop_verbose(
-            msg="Fetching Google Maps page {index}/{size}",
-            size=total_reviews)
-        next(log_loop)
-        review_counter = 0
+        pbar_loop = iter(self.tqdm(
+            range(total_reviews),
+            desc="Fetching Google Maps pages"
+        ))
         while 'nextPageToken' in review_list:
             next_page_token = review_list['nextPageToken']
-            log_loop.send(review_counter)
-            """
-            TODO: optimize by requesting the latest review from DB rather
-            than fetching more pages once that one is found
-            """
+            # TODO: optimize by requesting the latest review from DB rather
+            # than fetching more pages once that one is found
             review_list = service.accounts().locations().reviews().list(
                 parent=location,
                 pageSize=page_size,
                 pageToken=next_page_token).execute()
-            review_counter += len(review_list['reviews'])
+            for review in review_list['reviews']:
+                next(pbar_loop)
             yield from [
                 {**review, 'placeId': place_id}
                 for review
@@ -192,10 +189,10 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
         raw_comment = raw.get('comment', None)
         if raw_comment:
-            # this assumes possibly unintended behavior of Google's API
-            # see for details:
+            # This assumes possibly unintended behavior of Google's API.
+            # See for details:
             # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
-            # We want to keep both original and english translation)
+            # We want to keep both original and English translation.
             (
                 extracted['text'],
                 extracted['text_english'],
@@ -204,7 +201,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 # english reviews are as is; (Original) may be part of the text
                 (raw_comment, raw_comment, "english")
                 if "(Translated by Google)" not in raw_comment else (
-                    # other reviews have this format:
+                    # Other reviews have this format:
                     #   (Translated by Google)[english translation]\n\n
                     #   (Original)\n[original review]
                     raw_comment.split("(Original)")[1].strip(),
