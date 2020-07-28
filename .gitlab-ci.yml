@@ -30,12 +30,14 @@ unittest:
   stage: test
   tags:
     - barberini
-  script:
-    - container=$(docker ps -f name=gitlab-runner-barberini_analytics_luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
+  before_script:  # prepare docker
+    - USER="gitlab_runner_${CI_PIPELINE_ID}"
     - make startup
-    - docker exec --env FULL_TEST=$FULL_TEST gitlab-runner-barberini_analytics_luigi make coverage  
-    - make shutdown
+  script:  # run coverage tests
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
+  after_script:  # cleanup docker
+    - make docker-cleanup
+
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:
     paths: 
@@ -45,6 +47,8 @@ minimal-mining-pipeline:
   stage: test
   tags:
     - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_PIPELINE_ID}"
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 

@@ -10,7 +10,7 @@ export OUTPUT_DIR=output-minimal
 cd $(dirname "$0")/../..
 
 start_section setup_database "Setting up test database ..."
-    export POSTGRES_DB='barberini_test'
+    export POSTGRES_DB="barberini_test_$USER"
     docker exec -i barberini_analytics_db \
         psql -U postgres -a postgres -v ON_ERROR_STOP=1 <<< "
     DROP DATABASE IF EXISTS $POSTGRES_DB;
@@ -19,7 +19,7 @@ end_section setup_database
 
 start_section start_container "Starting luigi container ..."
     make startup
-    trap "make shutdown" EXIT
+    trap "make docker-cleanup" EXIT
 end_section start_container
 
 # Basically, we are emulating fill_db.sh now, just without backups.
