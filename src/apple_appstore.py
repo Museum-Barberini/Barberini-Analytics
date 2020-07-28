@@ -23,19 +23,23 @@ class FetchAppstoreReviews(DataPreparationTask):
     table = 'appstore_review'
 
     def requires(self):
+
         return MuseumFacts()
 
     def output(self):
+
         return luigi.LocalTarget(
             f'{self.output_dir}/appstore_reviews.csv', format=UTF8)
 
     def run(self):
+
         reviews = self.fetch_all()
         logger.info("storing results")
         with self.output().open('w') as output_file:
             reviews.to_csv(output_file, index=False, header=True)
 
     def fetch_all(self):
+
         data = []
         country_codes = sorted(self.get_country_codes())
         if self.minimal_mode:
@@ -43,11 +47,11 @@ class FetchAppstoreReviews(DataPreparationTask):
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 
-        # Another bug with iter_verbose causes the amount of data entries to be
-        # 2 * expected_amount - 1, so it has been replaced with logger.debug
-        # for now
-        # TODO: investigate cause and fix
-        for country_code in country_codes:
+        tbar = self.tqdm(country_codes, desc="Fetching appstore reviews")
+        for country_code in tbar:
+            tbar.set_description(
+                f"Fetching appstore reviews ({country_code})"
+            )
             try:
                 data_for_country = self.fetch_for_country(country_code)
                 if not data_for_country.empty:
@@ -67,9 +71,11 @@ class FetchAppstoreReviews(DataPreparationTask):
         return ret.drop_duplicates(subset=['app_id', 'appstore_review_id'])
 
     def get_country_codes(self):
+
         return requests.get('http://country.io/names.json').json().keys()
 
     def fetch_for_country(self, country_code):
+
         with self.input().open('r') as facts_file:
             facts = json.load(facts_file)
             app_id = facts['ids']['apple']['appId']
@@ -144,4 +150,5 @@ class FetchAppstoreReviews(DataPreparationTask):
 
     # for when there are multiple 'contents'-elements in our response
     def find_first_conditional_tag(self, tags, condition):
+
         return next(each for each in tags if condition(each))

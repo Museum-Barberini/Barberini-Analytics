@@ -32,9 +32,9 @@ startup: startup-db
 startup-db:
 	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
 		if [[ -e $(SSL_CERT_DIR)/server.key ]]; then\
-			 $(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
+			$(DOCKER_COMPOSE) -f docker/docker-compose-enable-ssl.yml up --build -d --no-recreate barberini_analytics_db;\
 		else\
-			 $(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
+			$(DOCKER_COMPOSE) up --build -d --no-recreate barberini_analytics_db;\
 		fi;\
 	fi
 
@@ -50,9 +50,19 @@ connect:
 # runs a command in the barberini_analytics_luigi container
 # example: sudo make docker-do do='make luigi'
 docker-do:
-	docker exec -i "${USER}-barberini_analytics_luigi" bash -c "$(do)"
+	docker exec -i "${USER}-barberini_analytics_luigi" $(SHELL) -c "$(do)"
 
-docker-clean-cache:
+# Remove all docker containers
+# Keep images for optimization
+docker-cleanup: shutdown
+	$(SHELL) -c '\
+		containers=$$(docker ps -f name=$$USER-* -q);\
+		if [ -n "$$containers" ]; then docker rm $$containers; fi;\
+	'
+
+# Rebuild docker containers without cache (useful after changing
+# requirements.txt has changed, for example)
+docker-rebuild:
 	$(DOCKER_COMPOSE) -p ${USER} build --no-cache
 
 
@@ -92,7 +102,12 @@ luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	POSTGRES_DB=barberini_test MINIMAL=True $(MAKE) luigi
+	MINIMAL=True $(MAKE) luigi
+
+# this target can be used to simply run one task inside the container
+luigi-task-in-container: startup
+	docker exec $(USER)-barberini_analytics_luigi bash -c \
+	'make luigi-task LMODULE=$(LMODULE) LTASK=$(LTASK) LARGS=$(LARGS)'
 
 # TODO: Custom output folder per test and minimal?
 output-folder:
