@@ -155,7 +155,6 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         See also DatabaseTestCase.setup_database().
         """
 
-        # TODO: Cache initialization is not thread safe!
         if 'POSTGRES_DB_TEMPLATE' in os.environ:
             logger.info("Reusing template database provided by caller")
             return
