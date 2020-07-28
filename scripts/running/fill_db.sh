@@ -15,7 +15,7 @@ case $1 in
 esac
 
 cd /app
-make apply-pending-migrations luigi-task LMODULE=fill_db LTASK=$TASK
+make apply-pending-migrations luigi-task LMODULE=_fill_db LTASK=$TASK
 EXIT_VAL=$?
 
 if [ $EXIT_VAL -ne 0 ]

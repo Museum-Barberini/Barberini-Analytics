@@ -4,8 +4,7 @@ import luigi
 import pandas as pd
 from luigi.format import UTF8
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
+from _utils import CsvToDb, DataPreparationTask
 
 from gomus._utils.cleanse_data import CleansePostalCodes
 from gomus._utils.extract_customers import hash_id
@@ -33,7 +32,9 @@ class CustomersToDb(CsvToDb):
         df['cleansed_postal_code'] = \
             df['cleansed_postal_code'].apply(str)
         df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].str.replace('.0', '')
+            df['cleansed_postal_code'].str.replace('.0', '', regex=False)
+        df['cleansed_postal_code'] = \
+            df['cleansed_postal_code'].str.replace('nan', '')
         return df
 
 

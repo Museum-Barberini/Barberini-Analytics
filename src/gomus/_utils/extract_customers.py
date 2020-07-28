@@ -6,9 +6,8 @@ import pandas as pd
 import numpy as np
 from luigi.format import UTF8
 
-from data_preparation import DataPreparationTask
-
-from gomus._utils.fetch_report import FetchGomusReport
+from _utils import DataPreparationTask
+from .fetch_report import FetchGomusReport
 
 
 class ExtractCustomerData(DataPreparationTask):
@@ -73,6 +72,8 @@ class ExtractCustomerData(DataPreparationTask):
         df['register_date'] = pd.to_datetime(
             df['register_date'], format='%d.%m.%Y')
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
+        # TODO: find a better way to pass an empty list
+        df['tourism_tags'] = df['tourism_tags'].fillna('[]')
 
         # Drop duplicate occurences of customers with same mail,
         # keeping the most recent one

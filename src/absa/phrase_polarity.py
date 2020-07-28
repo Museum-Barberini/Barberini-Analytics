@@ -8,8 +8,7 @@ import pandas as pd
 import regex
 
 from .post_words import regex_compile
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
+from _utils import CsvToDb, DataPreparationTask
 
 
 class PhrasePolaritiesToDb(luigi.WrapperTask):

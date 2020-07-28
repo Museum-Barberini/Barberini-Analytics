@@ -1,15 +1,10 @@
-import logging
 import luigi
 import luigi.format
 import pandas as pd
 
-from csv_to_db import CsvToDb
-from data_preparation import DataPreparationTask
-from query_db import QueryDb
+from _utils import CsvToDb, DataPreparationTask, QueryDb, logger
 from .post_words import PostWordsToDb
 from .stopwords import StopwordsToDb
-
-logger = logging.getLogger('luigi-interface')
 
 
 class PostNgramsToDb(CsvToDb):
@@ -134,16 +129,6 @@ class CollectPostNgrams(DataPreparationTask):
 
         return f'''
             WITH
-                word_relevant AS (
-                    SELECT  *
-                    FROM    {self.word_table}
-                    WHERE   word NOT IN (
-                        SELECT word
-                        FROM {self.stopword_table}
-                    )
-                ),
-                /* TODO Discuss: Do we really want to drop ngrams such as
-                "van Gogh" that include stopwords ("in") at any place? */
                 new_post_id AS (
                     SELECT post_id
                     FROM post
@@ -152,6 +137,17 @@ class CollectPostNgrams(DataPreparationTask):
                         FROM {self.table}
                         NATURAL JOIN post
                     ) IS NOT FALSE
+                )
+                /* TODO Discuss: Do we really want to drop ngrams such as
+                "van Gogh" that include stopwords ("in") at any place? */,
+                word_relevant AS (
+                    SELECT  *
+                    FROM    {self.word_table}
+                    WHERE   post_id IN (SELECT * FROM new_post_id)
+                    AND     word NOT IN (
+                        SELECT word
+                        FROM {self.stopword_table}
+                    )
                 )
             SELECT  word{0}.source AS source,
                     word{0}.post_id AS post_id,

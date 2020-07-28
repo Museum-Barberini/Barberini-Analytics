@@ -1,14 +1,16 @@
 import luigi
 
-from posts import PostsToDb, PostPerformanceToDb
+from _posts import PostsToDb, PostPerformanceToDb
 from gomus import GomusToDb
 from absa import AspectBasedSentimentAnalysis
 from topic_modeling import TopicModeling
+from visitor_prediction.predict import PredictionsToDb
 
 
 class FillDb(luigi.WrapperTask):
 
     def requires(self):
+
         yield FillDbDaily()
         yield FillDbHourly()
 
@@ -16,6 +18,7 @@ class FillDb(luigi.WrapperTask):
 class FillDbDaily(luigi.WrapperTask):
 
     def requires(self):
+
         # Public sources
         yield PostsToDb()
 
@@ -25,10 +28,12 @@ class FillDbDaily(luigi.WrapperTask):
         # Analysis tasks
         yield AspectBasedSentimentAnalysis()
         yield TopicModeling()
+        yield PredictionsToDb()
 
 
 class FillDbHourly(luigi.WrapperTask):
 
     def requires(self):
+
         # Public sources
         yield PostPerformanceToDb()
