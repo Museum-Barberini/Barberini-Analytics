@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import logging
+import os
 import sys
 
 import luigi
@@ -55,3 +56,17 @@ class StreamToLogger:
             yield
         finally:
             sys.stdout = outer_stream
+
+
+def load_django_renderer():
+
+    import django
+    from django.conf import settings
+    from django.template.loader import render_to_string
+
+    settings.configure(TEMPLATES=[{
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.getcwd()],
+    }])
+    django.setup()
+    return render_to_string

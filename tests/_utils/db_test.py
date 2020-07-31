@@ -15,7 +15,7 @@ import luigi.notifications
 import psycopg2
 from psycopg2.errors import UndefinedObject
 
-from _utils import db_connector
+from _utils import db_connector, utils
 import suitable
 
 
@@ -94,7 +94,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
 
         with enforce_luigi_notifications(format='html'):
-            django_renderer = self.load_django_renderer()
+            django_renderer = utils.load_django_renderer()
             unsuccessful_count = len(ChainMap({}, *unsuccessful.values()))
             luigi.notifications.send_error_email(
                 subject=f"\N{bug}" f'''{"This 1 test"
@@ -120,20 +120,6 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
                             in unsuccessful.items()
                             if tests
                         })))
-
-    @staticmethod
-    def load_django_renderer():
-
-        import django
-        from django.conf import settings
-        from django.template.loader import render_to_string
-
-        settings.configure(TEMPLATES=[{
-            'BACKEND': 'django.template.backends.django.DjangoTemplates',
-            'DIRS': [os.getcwd()],
-        }])
-        django.setup()
-        return render_to_string
 
 
 class DatabaseTestSuite(suitable.FixtureTestSuite):
