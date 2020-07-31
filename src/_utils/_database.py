@@ -164,26 +164,28 @@ class DbConnector:
         conn = self._create_connection()
         try:
             with conn:
-                with conn.cursor() as cur:
-                    for query_and_args in queries_and_args:
-                        query, args = \
-                            query_and_args \
-                            if isinstance(query_and_args, tuple) \
-                            else (query_and_args, ())
-                        logger.debug(
-                            "DbConnector: Executing query '''%s''' "
-                            "with args: %s",
-                            query,
-                            args
-                        )
-                        try:
-                            cur.execute(query, args)
-                        except psycopg2.Error:
-                            print(query, args)
-                            raise
-                        yield result_function(cur)
-                for notice in conn.notices:
-                    logger.warning(notice.strip())
+                try:
+                    with conn.cursor() as cur:
+                        for query_and_args in queries_and_args:
+                            query, args = \
+                                query_and_args \
+                                if isinstance(query_and_args, tuple) \
+                                else (query_and_args, ())
+                            logger.debug(
+                                "DbConnector: Executing query '''%s''' "
+                                "with args: %s",
+                                query,
+                                args
+                            )
+                            try:
+                                cur.execute(query, args)
+                            except psycopg2.Error:
+                                print(query, args)
+                                raise
+                            yield result_function(cur)
+                finally:
+                    for notice in conn.notices:
+                        logger.warning(notice.strip())
         finally:
             conn.close()
 
