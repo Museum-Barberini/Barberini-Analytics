@@ -103,8 +103,6 @@ Our recommended workflow consists of the following policies:
 
   * `_utils/`: Classes for our domain-specific test framework.
   * `utils/`: Unit tests for `src/_utils`.
-  * `pbi_reports/`: Crash tests for our Power BI report files.
-    See the documentation of the [CI stage](#continuous-integration).
   * `schema/`: Acceptance tests for the database schema.
   * `test_data/`: Contains sample files used as mocking inputs or expected outputs of units under test.
 - `visualizations/sigma/`: Custom Power BI Visual for the sigma text graph.
@@ -256,10 +254,6 @@ These are our different CI stages (non-exhaustive list):
   See [Repository overview](#repository-overview).
 - **minimal-mining-pipeline:** Test setup and running of the entire pipeline in a minimal mode, providing an isolated context against production data.
   See `scripts/test/run_minimal_mining_pipeline.sh`.
-- **test-pbi-reports:** Contains crash tests for loading every single `power_bi/` report file in Power BI Desktop.
-
-  Requires a GitLab Runner on Windows to be available.
-  See `tests/power_bi`.
 - **lint:** Makes sure all Python code in the repository follows the [PEP8 coding style guide](https://www.python.org/dev/peps/pep-0008/).
 
 ## Migration system
