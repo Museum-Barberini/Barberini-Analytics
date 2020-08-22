@@ -24,14 +24,16 @@ end_section start_container
 
 # Basically, we are emulating fill_db.sh now, just without backups.
 start_section apply_migrations "Applying all migrations ..."
-    make docker-do do="POSTGRES_DB=$POSTGRES_DB ./scripts/migrations/migrate.sh"
+    make docker-do do="POSTGRES_DB=$POSTGRES_DB \
+		./scripts/migrations/migrate.sh"
 end_section apply_migrations
 
 start_section luigi_minimal "Running minimal pipeline ..."
-    make docker-do do="POSTGRES_DB=$POSTGRES_DB OUTPUT_DIR=$OUTPUT_DIR make luigi-minimal"
+    make docker-do do="POSTGRES_DB=$POSTGRES_DB OUTPUT_DIR=$OUTPUT_DIR \
+		make luigi-minimal"
 end_section luigi_minimal
 
 start_section check_schema "Checking schema ..."
-    make docker-do do="POSTGRES_DB_TEMPLATE=$POSTGRES_DB \
+    make docker-do do="POSTGRES_DB_TEMPLATE=$POSTGRES_DB FULL_TEST=$FULL_TEST \
         make test test=tests/schema/**check*.py"
 end_section check_schema
