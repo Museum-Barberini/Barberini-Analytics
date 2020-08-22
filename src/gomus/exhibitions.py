@@ -9,7 +9,7 @@ from _utils import CsvToDb, DataPreparationTask
 
 class ExhibitionsToDb(CsvToDb):
 
-    table = 'exhibition'
+    table = 'exhibition_raw'
 
     def requires(self):
         return FetchExhibitions()
