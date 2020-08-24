@@ -33,6 +33,16 @@ class DbConnector:
 
         # crucial to avoid unintended access to default postgres database
         assert database, "Database was not specified"
+        assert (
+            database == 'postgres'
+            or os.getenv('BARBERINI_CONTEXT') == 'PRODUCTION'
+            or 'test' in database
+        ), (
+            "Unexpected access to production database was blocked!\n To "
+            "modify production database manually, set BARBERINI_CONTEXT to"
+            "the PRODUCTION constant."
+        )
+
         self.__database = database
 
     def __repr__(self):
