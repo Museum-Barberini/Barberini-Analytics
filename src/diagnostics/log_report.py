@@ -183,17 +183,14 @@ class CollectLogReport(luigi.Task):
             )
             for match in regex.finditer(PATTERN, log_string)
         )
-        if logs.empty():
-            logs.dtypes = {
-                'date': str,
-                'task_name': str,
-                'task_params': str,
-                logs: list
-            }
-
-        logs = logs.explode(column='logs')
-        logs['log_level'], logs['log_string'] = zip(*logs['logs'])
-        del logs['logs']
+        if logs.empty:
+            logs = pd.DataFrame(columns=[
+                'date', 'task_name', 'task_params', 'log_level', 'log_string'
+            ])
+        else:
+            logs = logs.explode(column='logs')
+            logs['log_level'], logs['log_string'] = zip(*logs['logs'])
+            del logs['logs']
 
         with self.output().open('w') as csv:
             logs.to_csv(csv, index=False)
