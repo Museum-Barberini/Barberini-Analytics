@@ -59,7 +59,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             logger.info("creating service...")
             service = self.load_service(credentials)
             logger.info("fetching reviews...")
-            raw_reviews = self.fetch_raw_reviews(service)
+            raw_reviews = list(self.fetch_raw_reviews(service))
         except googleapiclient.errors.HttpError as error:
             if error.resp.status is not None:
                 raise
