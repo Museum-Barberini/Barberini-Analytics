@@ -9,7 +9,7 @@ import numpy as np
 
 from _utils import DataPreparationTask, CsvToDb
 
-class IntervalsToDB(CsvToDb):
+class KeywordIntervalsToDB(CsvToDb):
 
     table = 'twitter_keyword_intervals'
 
@@ -18,7 +18,7 @@ class IntervalsToDB(CsvToDb):
 
 class KeywordIntervals(DataPreparationTask):
 
-    offset = luigi.IntParameter(default=1)
+    offset = luigi.IntParameter(default=7)
 
     def requires(self):
         return TermCounts()
@@ -32,12 +32,10 @@ class KeywordIntervals(DataPreparationTask):
         initial_dataset = self.db_connector.query(
             """
             SELECT tweet_id, text, post_date
-            FROM tweet;
+            FROM tweet
             """
         )
         initial_dataset = pd.DataFrame(initial_dataset, columns = ["tweet_id", "text", "date"])
-
-        print(terms_df.head())
 
         intervals_and_post_dates = terms_df.term.apply(
             self.get_relevance_timespan, args=(initial_dataset,))
@@ -50,13 +48,15 @@ class KeywordIntervals(DataPreparationTask):
         terms_df = terms_df.dropna(subset=["post_dates"])
         terms_df["count"] = [len(x) for x in terms_df["post_dates"]]
 
-        print(terms_df.head())
-
         intervals = []
         for i, row in terms_df.iterrows():
-            for end, start in row["relevance_timespan"]:
-                intervals.append((row["term"], row["count"], start, end))
-        intervals_df = pd.DataFrame(intervals, columns = ["term","count","start_date", "end_date"])
+            for x, y in row["relevance_timespan"]:
+                start = min(x, y)
+                end = max(x, y)
+                count_interval = len(
+                    [date for date in row["post_dates"] if date >= start and date <= end])
+                intervals.append((row["term"], row["count"], count_interval, start, end))
+        intervals_df = pd.DataFrame(intervals, columns = ["term", "count_overall", "count_interval", "start_date", "end_date"])
 
         with self.output().open('w') as output_file:
             intervals_df.to_csv(output_file, index=False, header=True)
@@ -86,7 +86,7 @@ class KeywordIntervals(DataPreparationTask):
             for tweet in initial_dataset.text.str.lower()
         ]]
         post_dates = pd.to_datetime(relevant_tweets.date, infer_datetime_format=True)
-        post_dates.sort_values()
+        post_dates = post_dates.sort_values()
         post_dates_output = [str(date) for date in post_dates]
         if post_dates.empty:
             return np.nan
@@ -124,7 +124,7 @@ class TermCounts(DataPreparationTask):
         initial_dataset = self.db_connector.query(
             """
             SELECT text
-            FROM tweet;
+            FROM tweet
             """
         )
         initial_dataset = pd.DataFrame(initial_dataset, columns = ["text"])
@@ -133,23 +133,24 @@ class TermCounts(DataPreparationTask):
         hashtags = []
         for text in initial_dataset["text"].tolist():
             for token in text.split():
-                if token.startswith("#"):
-                    # lowercase
-                    token = token.lower()
-                    # remove '#'
-                    token = token.strip("#")
-                    # remove punctuation
-                    if not re.match(r"[a-z0-9öäüß_\-]+", token):
-                        continue
-                    token = re.findall(r"[a-z0-9öäüß_\-]+", token)[0]
-                    # drop terms with 2 or less characters
-                    if len(token) <= 2:
-                        continue
-                    # remove stop words
-                    if token in [*get_stop_words("de"), "twitter", "www"]:
-                        continue
+                if not token.startswith("#"):
+                    continue
+                # lowercase
+                token = token.lower()
+                # remove '#'
+                token = token.strip("#")
+                # remove punctuation
+                if not re.match(r"[a-z0-9öäüß_\-]+", token):
+                    continue
+                token = re.findall(r"[a-z0-9öäüß_\-]+", token)[0]
+                # drop terms with 2 or less characters
+                if len(token) <= 2:
+                    continue
+                # remove stop words
+                if token in [*get_stop_words("de"), "twitter", "www"]:
+                    continue
+                hashtags.append(token.lower())
 
-                    hashtags.append(token.lower())
         # drop duplicates
         hashtags = list(set(hashtags))
 

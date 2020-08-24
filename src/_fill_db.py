@@ -6,6 +6,7 @@ from diagnostics import Diagnostics
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction.predict import PredictionsToDb
+from extended_twitter_collection.keyword_intervals import KeywordIntervalsToDB
 
 
 class FillDb(luigi.WrapperTask):
@@ -33,6 +34,9 @@ class FillDbDaily(luigi.WrapperTask):
 
         # Diagnostics
         yield Diagnostics()
+
+        # Extended Tweet Gathering
+        yield KeywordIntervalsToDB()
 
 
 class FillDbHourly(luigi.WrapperTask):
