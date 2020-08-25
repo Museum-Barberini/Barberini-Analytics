@@ -29,7 +29,7 @@ class TwitterExtendedDataset(DataPreparationTask):
             f"{self.output_dir}/twitter/extended_dataset.csv",
             format=UTF8
         )
-    
+
     def run(self):
 
         r_thresh = 50
@@ -37,16 +37,26 @@ class TwitterExtendedDataset(DataPreparationTask):
 
         # apply thresholds
         extended_dataset = self.db_connector.query(f"""
-            SELECT user_id, tweet_id::text, text, response_to, post_date, permalink
+            SELECT user_id, tweet_id::text, text,
+                   response_to, post_date, permalink
             FROM
             -- keyword-intervals enriched with interval-based R value
             (
                 SELECT * FROM (
-                    SELECT ki.term, ki.start_date, ki.end_date, ki.count_interval, count(*)::float/ki.count_interval::float AS R_interval
-                    FROM twitter_keyword_intervals ki INNER JOIN twitter_extended_candidates ec
-                    ON ki.term = ec.term AND ec.post_date BETWEEN ki.start_date AND ki.end_date
+                    SELECT ki.term, ki.start_date, ki.end_date,
+                           ki.count_interval,
+                        count(*)::float/ki.count_interval::float AS R_interval
+                    FROM
+                        twitter_keyword_intervals ki
+                    INNER JOIN
+                        twitter_extended_candidates ec
+                    ON
+                        ki.term = ec.term
+                    AND
+                        ec.post_date BETWEEN ki.start_date AND ki.end_date
                     WHERE ki.count_interval > 0
-                    GROUP BY ki.term, ki.start_date, ki.end_date, ki.count_interval
+                    GROUP BY ki.term, ki.start_date,
+                             ki.end_date, ki.count_interval
                 ) as temp
                 -- only consider keyword-intervals with an R value below 50
                 WHERE R_interval <= {r_thresh}
@@ -58,16 +68,24 @@ class TwitterExtendedDataset(DataPreparationTask):
             AND
                 -- tweet should contain the term as a whole word
                 ec.text ~* ('\m' || ki_r.term || '\M')
-            GROUP BY user_id, tweet_id, text, response_to, post_date, permalink
+            GROUP BY user_id, tweet_id, text,
+                     response_to, post_date, permalink
             -- Only keep top-ranked tweets
-            HAVING sum(1 / r_interval) >= {ranking_thresh} 
+            HAVING sum(1 / r_interval) >= {ranking_thresh}
         """)
 
-        extended_dataset = pd.DataFrame(extended_dataset, columns=["user_id", "tweet_id", "text", "response_to", "post_date", "permalink"], dtype=str)
-        extended_dataset = extended_dataset.drop_duplicates(subset=["tweet_id"])
+        extended_dataset = pd.DataFrame(
+            extended_dataset, columns=[
+                "user_id", "tweet_id", "text",
+                "response_to", "post_date", "permalink"
+            ], dtype=str)
+        extended_dataset = extended_dataset.drop_duplicates(
+                subset=["tweet_id"])
 
         with self.output().open("w") as output_file:
-            extended_dataset.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
+            extended_dataset.to_csv(
+                output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
+
 
 class TwitterCandidateTweetsToDB(CsvToDb):
 
