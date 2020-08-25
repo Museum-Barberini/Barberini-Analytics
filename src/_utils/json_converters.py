@@ -6,8 +6,10 @@ from .data_preparation import DataPreparationTask
 
 
 class JsonToCsv(DataPreparationTask):
+    """Converts a flat JSON file into a CSV file."""
+
     def run(self):
-        my_json = self.getJson()
+        my_json = self.get_json()
 
         with self.output().open('w') as csv_output:
             csvwriter = csv.writer(csv_output)
@@ -15,12 +17,14 @@ class JsonToCsv(DataPreparationTask):
             for json_row in my_json:
                 csvwriter.writerow(json_row.values())
 
-    def getJson(self):
+    def get_json(self):
         with self.input().open('r') as json_file:
             return json.load(json_file)
 
 
 class JsoncToJson(DataPreparationTask):
+    """Converts a JSONC file into a JSON file by removing the comments."""
+
     def run(self):
         with self.input().open('r') as input_file:
             facts = jstyleson.load(input_file)

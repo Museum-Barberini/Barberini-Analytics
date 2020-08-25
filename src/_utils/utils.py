@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import logging
 import os
 import sys
+from typing import Union
 
 import luigi
 import pandas as pd
@@ -10,6 +11,7 @@ from .data_preparation import DataPreparationTask
 
 
 class ConcatCsvs(DataPreparationTask):
+    """Concatenate all input CSV files into a single output CSV file."""
 
     def run(self):
 
@@ -28,14 +30,12 @@ class ConcatCsvs(DataPreparationTask):
 
 
 class StreamToLogger:
-    """
-    Fake file-like stream object that redirects writes to a logger instance.
-    """
+    """Fake file-like stream that redirects writes to a logger instance."""
 
     def __init__(
-                self,
-                logger: logging.Logger = logging.getLogger(),
-                log_level=logging.INFO
+        self,
+        logger: logging.Logger = logging.getLogger(),
+        log_level=logging.INFO
             ):
 
         self.logger = logger
@@ -59,7 +59,7 @@ class StreamToLogger:
 
 
 def load_django_renderer():
-
+    """Load Django's renderer for generating HTML files."""
     import django
     from django.conf import settings
     from django.template.loader import render_to_string
@@ -70,3 +70,13 @@ def load_django_renderer():
     }])
     django.setup()
     return render_to_string
+
+
+@contextmanager
+def set_log_level_temporarily(logger: logging.Logger, level: Union[int, str]):
+    old_level = logger.level
+    logger.setLevel(level)
+    try:
+        yield
+    finally:
+        logger.setLevel(old_level)

@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Provides tasks for downloading all gomus customers into the database."""
+
 import datetime as dt
 import luigi
 import pandas as pd

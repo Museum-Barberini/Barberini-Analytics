@@ -113,9 +113,8 @@ class ExtractCustomerData(DataPreparationTask):
         return [tag for tag in tourism_tags if tag in mail]
 
 
-# Return hash for e-mail value, or alternative (usually original gomus_id
-# or default value 0 for the dummy customer) if the e-mail is invalid
 def hash_id(email, alternative=0, seed=666):
+    """Hash the given email address for privacy. Use alternative if empty."""
     if not isinstance(email, str):
         return int(float(alternative))
 

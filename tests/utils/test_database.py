@@ -25,6 +25,7 @@ id,A,B,C
 
 
 class TestCsvToDb(DatabaseTestCase):
+    """Tests the CsvToDb task."""
 
     def setUp(self):
         super().setUp()
@@ -139,11 +140,11 @@ class TestCsvToDb(DatabaseTestCase):
 
     def test_array_columns(self):
 
-        COMPLEX_DATA = [
+        complex_data = [
             ((1, 2, 3), ['a', 'b', 'c'], "'quoted str'"),
             ((), [], '[bracketed str]')
         ]
-        COMPLEX_CSV = '''\
+        complex_csv = '''\
 tuple,array,str
 "(1,2,3)","['a','b','c']",'quoted str'
 (),[],[bracketed str]
@@ -158,7 +159,7 @@ tuple,array,str
                 text text PRIMARY KEY
             )''')
 
-        self.dummy.csv = COMPLEX_CSV
+        self.dummy.csv = complex_csv
 
         # Execute code under test
         self.run_task(self.dummy)
@@ -168,12 +169,13 @@ tuple,array,str
             f'SELECT * FROM {self.table_name}'
         )
         self.assertEqual(
-            [(list(row[0]), *row[1:]) for row in COMPLEX_DATA],
+            [(list(row[0]), *row[1:]) for row in complex_data],
             actual_data
         )
 
 
 class TestDbConnector(DatabaseTestCase):
+    """Tests the DbConnector class."""
 
     def setUp(self):
         super().setUp()
@@ -357,6 +359,7 @@ class TestDbConnector(DatabaseTestCase):
 
 
 class TestQueryDb(DatabaseTestCase):
+    """Tests the QueryDb task."""
 
     def setUp(self):
         super().setUp()
@@ -430,6 +433,7 @@ class TestQueryDb(DatabaseTestCase):
 
 
 class TestQueryCacheToDb(DatabaseTestCase):
+    """Tests the QueryCacheToDb task."""
 
     table = 'my_cool_cache'
 
@@ -555,6 +559,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
 
 class DummyFileWrapper(luigi.Task):
+    """Dummy task to write an output file."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mock_target = MockTarget(
@@ -572,6 +578,7 @@ class DummyFileWrapper(luigi.Task):
 
 
 class DummyWriteCsvToDb(CsvToDb):
+    """Dummy subclass of CsvToDb."""
 
     table = luigi.Parameter()
 

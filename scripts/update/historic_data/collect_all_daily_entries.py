@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
+"""Script to collect all historic daily entries from Gomus."""
 
 import datetime as dt
 
 from historic_data_helper import prepare_task, run_luigi_task, rename_output
 
-# -Daily Entries-
-
-# run 'make connect' first
 
 prepare_task()
 

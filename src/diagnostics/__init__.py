@@ -1,3 +1,5 @@
+"""Defines diagnostics tasks for monitoring the overall system stability."""
+
 import datetime as dt
 
 import luigi
@@ -7,6 +9,7 @@ from .log_report import SendLogReport
 
 
 class Diagnostics(luigi.Task):
+    """Runs diagnostics tasks for monitoring the overall system stability."""
 
     def output(self):
 

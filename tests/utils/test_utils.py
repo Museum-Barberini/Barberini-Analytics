@@ -9,6 +9,7 @@ from db_test import DatabaseTestCase
 
 
 class TestConcatCsvs(DatabaseTestCase):
+    """Tests the ConcatCsvs task."""
 
     @patch.object(ConcatCsvs, 'output')
     @patch.object(ConcatCsvs, 'input')

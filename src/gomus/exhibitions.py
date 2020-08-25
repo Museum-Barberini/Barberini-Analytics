@@ -1,3 +1,5 @@
+"""Provides task to download all exhibitions and their times into the DB."""
+
 from dateutil import parser as dateparser
 import luigi
 from luigi.format import UTF8
@@ -8,6 +10,7 @@ from _utils import CsvToDb, DataPreparationTask
 
 
 class ExhibitionTimesToDb(CsvToDb):
+    """Store all fetched exhibition times into the database."""
 
     table = 'exhibition_time'
 
@@ -24,6 +27,7 @@ class ExhibitionTimesToDb(CsvToDb):
 
 
 class ExhibitionsToDb(CsvToDb):
+    """Store all fetched exhibitions into the database."""
 
     table = 'exhibition_raw'
 
@@ -33,6 +37,7 @@ class ExhibitionsToDb(CsvToDb):
 
 
 class FetchExhibitions(DataPreparationTask):
+    """Fetch all exhibitions from the Gomus API."""
 
     url = luigi.Parameter(
         default='https://barberini.gomus.de/api/v4/exhibitions?per_page=100'
@@ -75,6 +80,7 @@ class FetchExhibitions(DataPreparationTask):
 
 
 class FetchExhibitionTimes(FetchExhibitions):
+    """Fetch all exhibition times from the Gomus API."""
 
     def requires(self):
 

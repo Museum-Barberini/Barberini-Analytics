@@ -1,3 +1,5 @@
+"""Provides tasks for splitting up every post into relevant words."""
+
 from functools import reduce
 from typing import Iterable, Tuple
 
@@ -13,10 +15,12 @@ regex_type = type(regex.compile(''))
 
 
 def regex_compile(pattern: str) -> regex_type:
+    """Compile the regex pattern in the preferred flavour."""
     return regex.compile(pattern, flags=regex.VERBOSE | regex.VERSION1)
 
 
 def regex_compile_outermost(pattern: str, flags=0) -> regex_type:
+    """Create a regex that begins or ends with the given pattern."""
     return regex_compile(rf'''
         ^
         {pattern}
@@ -26,6 +30,7 @@ def regex_compile_outermost(pattern: str, flags=0) -> regex_type:
 
 
 def regex_compile_greedy_lookaround(pattern: str, flags=0) -> regex_type:
+    """Create a regex with a "greedy lookaround" of the given pattern."""
     return regex_compile(rf'''
         (?<=
             (?!{pattern})

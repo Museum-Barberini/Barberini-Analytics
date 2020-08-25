@@ -11,6 +11,7 @@ from db_test import DatabaseTestCase
 
 
 class TestFetchTwitter(DatabaseTestCase):
+    """Tests the FetchTwitter task."""
 
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
@@ -48,6 +49,7 @@ class TestFetchTwitter(DatabaseTestCase):
 
 
 class TestExtractTweets(DatabaseTestCase):
+    """Tests the ExtractTweet task."""
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweets, 'output')
@@ -109,6 +111,7 @@ class TestExtractTweets(DatabaseTestCase):
 
 
 class TestExtractTweetPerformance(DatabaseTestCase):
+    """Tests the ExtractTweetPerformance task."""
 
     @patch.object(FetchTwitter, 'output')
     @patch.object(ExtractTweetPerformance, 'output')

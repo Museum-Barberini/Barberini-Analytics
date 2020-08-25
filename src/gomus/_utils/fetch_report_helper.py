@@ -31,6 +31,11 @@ REPORT_IDS = {
 
 
 def parse_timespan(timespan, today=dt.datetime.today()):
+    """
+    Parse a timespan from the given string.
+
+    The string format originates from the FetchGomusReport.suffix parameter.
+    """
     end_time = today - dt.timedelta(days=1)
     if timespan == '7days':
         # grab everything from yesterday till a week before
@@ -46,29 +51,40 @@ def parse_timespan(timespan, today=dt.datetime.today()):
         start_time = end_time
         end_time = end_time + dt.timedelta(days=7)
     elif timespan == 'all':
-        start_time = today - dt.timedelta(days=365*5)
-        end_time = today + dt.timedelta(days=365*2)
+        start_time = today - dt.timedelta(days=365 * 5)
+        end_time = today + dt.timedelta(days=365 * 2)
     else:
         start_time = dt.date.min  # check this for error handling
     return start_time, end_time
 
 
+def csv_from_excel(xlsx_content, target_csv, sheet_index):
+    """Extract a sheet from a Microsoft Excel (XLSX) file into a CSV file."""
+    workbook = xlrd.open_workbook(file_contents=xlsx_content)
+    sheet = workbook.sheet_by_index(sheet_index)
+    writer = csv.writer(target_csv, quoting=csv.QUOTE_NONNUMERIC)
+    for row_num in range(sheet.nrows):
+        writer.writerow(sheet.row_values(row_num))
+
+
 def direct_download_url(base_url, report, timespan):
+    """Generate download URL for a gomus report."""
     start_time, end_time = parse_timespan(timespan)
     base_return = base_url + f'/{report}.xlsx'
 
-    if not start_time == dt.date.min:
-        # timespan is valid
-        end_time = end_time.strftime("%Y-%m-%d")
-        start_time = start_time.strftime("%Y-%m-%d")
-        logger.info(f"Requesting report for timespan "
-                    f"from {start_time} to {end_time}")
-        return base_return + f'?end_at={end_time}&start_at={start_time}'
+    if start_time == dt.date.min:
+        return base_return
 
-    return base_return
+    # timespan is valid
+    end_time = end_time.strftime("%Y-%m-%d")
+    start_time = start_time.strftime("%Y-%m-%d")
+    logger.info(f"Requesting report for timespan "
+                f"from {start_time} to {end_time}")
+    return f'{base_return}?end_at={end_time}&start_at={start_time}'
 
 
 def get_request(url, sess_id):
+    """Request the given URL from the gomus servers and return the results."""
     cookies = dict(_session_id=sess_id)
     response = requests.get(url, cookies=cookies)
     response.raise_for_status()
@@ -78,15 +94,8 @@ def get_request(url, sess_id):
     return response.content
 
 
-def csv_from_excel(xlsx_content, target_csv, sheet_index):
-    workbook = xlrd.open_workbook(file_contents=xlsx_content)
-    sheet = workbook.sheet_by_index(sheet_index)
-    writer = csv.writer(target_csv, quoting=csv.QUOTE_NONNUMERIC)
-    for row_num in range(sheet.nrows):
-        writer.writerow(sheet.row_values(row_num))
-
-
 def request_report(report_type, session_id):
+    """Download a generated report from the Gomus servers."""
     base_url = 'https://barberini.gomus.de'
     report_parts = report_type.split("_")
     report_id = REPORT_IDS[report_type]

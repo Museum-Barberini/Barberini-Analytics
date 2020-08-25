@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+"""Generate test cases for scrape_order_contains_data.csv."""
 # link to a specific order:
 # https://barberini.gomus.de/admin/orders/ORDER-ID
 
-# Use this to add test cases to scrape_order_contains_data.csv
 import mmh3
 
 hash_seed = 666

@@ -19,7 +19,8 @@ T = TypeVar('T')
 
 class CsvToDb(CopyToTable):
     """
-    Copies a depended csv file into the a central database.
+    Copies a depended CSV file into the database.
+
     Subclasses have to override columns and requires().
     Don't forget to write a migration script if you change the table schema.
     """
@@ -153,16 +154,15 @@ class CsvToDb(CopyToTable):
         cursor.copy_expert(query, file)
 
     def create_table(self):
-        """
-        Overridden from superclass to forbid dynamical schema changes.
-        """
-
+        """Overridden from superclass to forbid dynamical schema changes."""
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
     def rows(self):
         """
+        Return the rows to be stored into the database.
+
         Completely throw away super's implementation because there are some
         inconsistencies between pandas's and postgres's interpretations of CSV
         files. Mainly, arrays are encoded differently. This requires us to do
@@ -203,10 +203,7 @@ class CsvToDb(CopyToTable):
 
     @property
     def table_path(self):
-        """
-        Split up self.table into schema and table name.
-        """
-
+        """Split up self.table into schema and table name."""
         table = self.table
         segments = table.split('.')
         return (
@@ -221,6 +218,7 @@ class CsvToDb(CopyToTable):
 
 
 class QueryDb(_utils.DataPreparationTask):
+    """Make an SQL query and store the results into an output file."""
 
     def __init__(self, *args, **kwargs):
 
@@ -302,10 +300,7 @@ class QueryDb(_utils.DataPreparationTask):
         return query
 
     def transform(self, df):
-        """
-        Hook for subclasses.
-        """
-
+        """Provide a hook for subclasses."""
         return df
 
     def write_output(self, df):
@@ -315,6 +310,12 @@ class QueryDb(_utils.DataPreparationTask):
 
 
 class QueryCacheToDb(QueryDb):
+    """
+    Make an SQL query and store the results into a cache table.
+
+    This task is optimized. The query results won't leave the DBMS at any
+    point during updating the cache table.
+    """
 
     def run(self):
 

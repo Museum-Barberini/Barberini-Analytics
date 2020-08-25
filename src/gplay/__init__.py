@@ -1,3 +1,5 @@
-__all__ = ['GooglePlaystoreReviewsToDb', 'FetchGplayReviews']
+"""Provides tasks for downloading Google Play reviews into the database."""
 
-from .gplay_reviews import GooglePlaystoreReviewsToDb, FetchGplayReviews
+__all__ = ['GooglePlaystoreReviewsToDb']
+
+from .gplay_reviews import GooglePlaystoreReviewsToDb

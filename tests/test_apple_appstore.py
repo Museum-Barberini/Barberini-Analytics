@@ -23,6 +23,7 @@ XML_EMPTY_FRAME = XML_FRAME % ''
 
 
 class TestFetchAppleReviews(DatabaseTestCase):
+    """Tests the FetchAppstoreReviews task."""
 
     def setUp(self):
         super().setUp()
@@ -218,6 +219,7 @@ class TestFetchAppleReviews(DatabaseTestCase):
 
 
 class TestAppstoreReviewsToDb(DatabaseTestCase):
+    """Tests the AppstoreReviewsToDb task."""
 
     @patch.object(FetchAppstoreReviews, 'get_country_codes')
     @patch('apple_appstore.requests.get')
@@ -264,10 +266,10 @@ class TestAppstoreReviewsToDb(DatabaseTestCase):
             @property
             def apparent_encoding(self):
                 """
-                By overriding this property, we simulate the behavior of
-                Response/chardet to detect a wrong encoding. This happened a
-                few times in production.
-                ptcp154 encoding (Kazakh) is definitely the wrong encoding.
+                Simulate Response/chardet detecting a wrong encoding.
+
+                This happened a few times in production. ptcp154 encoding
+                (Kazakh) is definitely the wrong encoding.
                 """
                 return 'ptcp154'
 

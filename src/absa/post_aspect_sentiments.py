@@ -1,3 +1,5 @@
+"""Provides tasks for determining the aspect-wise sentiments of user posts."""
+
 import luigi
 
 from _utils import QueryCacheToDb

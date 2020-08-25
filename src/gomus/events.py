@@ -1,3 +1,5 @@
+"""Provides tasks for downloading all gomus events into the database."""
+
 import csv
 import datetime as dt
 
@@ -160,16 +162,26 @@ class FetchCategoryReservations(DataPreparationTask):
         yield BookingsToDb()
 
 
-# this function should not have to exist, but luigi apparently
-# can't deal with UTF-8 symbols in their target paths
 def cleanse_umlauts(string):
+    """
+    Replace umlauts in the given string.
+
+    This function should not have to exist, but luigi apparently can't deal
+    with UTF-8 symbols in their target paths.
+    """
     return string.translate(string.maketrans({
         'Ä': 'Ae', 'ä': 'ae',
         'Ö': 'Oe', 'ö': 'oe',
-        'Ü': 'Ue', 'ü': 'ue'}))
+        'Ü': 'Ue', 'ü': 'ue'
+    }))
 
 
 def get_categories():
+    """
+    Download event categories from the gomus API.
+
+    Fall back to manual list if API is not available.
+    """
     try:
         url = 'https://barberini.gomus.de/api/v4/events/categories'
         response = requests.get(url)
@@ -179,9 +191,7 @@ def get_categories():
             category.get('name')
             for category in response_json.get('categories')]
     except requests.HTTPError as e:
-        # Fetch Error and log instead of raising since this
-        # is performed during __init__, which means that scheduling
-        # the whole pipeline could fail if an error was raised here
+        # Fetch Error and log instead of raising
         logger.error(f"Unable to fetch event categories!"
                      f"Using manual list as fallback. Error: {e}")
         categories = [
