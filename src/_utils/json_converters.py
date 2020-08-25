@@ -7,7 +7,7 @@ from .data_preparation import DataPreparationTask
 
 class JsonToCsv(DataPreparationTask):
     def run(self):
-        my_json = self.getJson()
+        my_json = self.get_json()
 
         with self.output().open('w') as csv_output:
             csvwriter = csv.writer(csv_output)
@@ -15,7 +15,7 @@ class JsonToCsv(DataPreparationTask):
             for json_row in my_json:
                 csvwriter.writerow(json_row.values())
 
-    def getJson(self):
+    def get_json(self):
         with self.input().open('r') as json_file:
             return json.load(json_file)
 

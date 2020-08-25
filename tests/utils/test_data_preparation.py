@@ -297,7 +297,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
             )
 
-    def assertFilterFkeyViolations(
+    def assert_filter_fkey_violations(
             self, df, expected_valid, expected_foreign_keys):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
@@ -316,7 +316,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             handle_invalid_values.call_count)
         self.assertCountEqual(expected_foreign_keys, actual_foreign_keys)
 
-    def assertFilterFkeyViolationsOnce(
+    def assert_filter_fkey_violations_once(
             self, df, expected_valid, expected_invalid, expected_foreign_key):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
@@ -331,7 +331,7 @@ class TestDataPreparationTask(DatabaseTestCase):
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_called_once()
 
-    def denyEnsureForeignKeys(self, df, expected_valid):
+    def deny_ensure_foreign_keys(self, df, expected_valid):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
         handle_invalid_values = MagicMock()

@@ -88,10 +88,10 @@ class FetchAppstoreReviews(DataPreparationTask):
                 data, url = self.fetch_page(url)
                 data_list += data
             except requests.exceptions.HTTPError as error:
-                if error.response is not None and \
-                        (error.response.status_code == 503 or
-                         (error.response.status_code == 403 and
-                          country_code not in ['DE', 'US', 'GB'])):
+                if error.response is not None \
+                    and error.response.status_code == 503 \
+                    or error.response.status_code == 403 \
+                        and country_code not in ['DE', 'US', 'GB']:
                     logger.error(f"Encountered {error.response.status_code} "
                                  f"server error '{error}' for country code "
                                  f"'{country_code}'")

@@ -372,7 +372,7 @@ class FetchIgAudienceOrigin(DataPreparationTask):
         page_id = facts['ids']['instagram']['pageId']
 
         df = pd.DataFrame(columns=self.columns)
-        values = get_single_metric(page_id, f'audience_{self.metric}')
+        values = _get_single_metric(page_id, f'audience_{self.metric}')
 
         timstamp = dt.datetime.now()
         for i, (value, amount) in enumerate(values.items()):
@@ -403,7 +403,7 @@ class FetchIgAudienceGenderAge(DataPreparationTask):
         page_id = facts['ids']['instagram']['pageId']
 
         df = pd.DataFrame(columns=self.columns)
-        values = get_single_metric(page_id, 'audience_gender_age')
+        values = _get_single_metric(page_id, 'audience_gender_age')
 
         timstamp = dt.datetime.now()
         for i, (gender_age, amount) in enumerate(values.items()):
@@ -418,10 +418,9 @@ class FetchIgAudienceGenderAge(DataPreparationTask):
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
 
-# =============== Utilities ===============
 
+def _get_single_metric(page_id, metric, period='lifetime'):
 
-def get_single_metric(page_id, metric, period='lifetime'):
     url = f'{API_BASE}/{page_id}/insights?metric={metric}&period={period}'
     res = try_request_multiple_times(url)
     return res.json()['data'][0]['values'][0]['value']

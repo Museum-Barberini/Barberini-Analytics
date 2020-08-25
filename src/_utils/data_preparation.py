@@ -183,21 +183,21 @@ class DataPreparationTask(luigi.Task):
             # Remove all rows from the df where the value does not match any
             # value from the referenced table
             valid = pd.merge(
-                    values.reset_index(),
-                    foreign_values,
-                    left_on=columns, right_on=_foreign_columns,
-                    how='left'
-                ).drop_duplicates(
-                ).set_index(
-                    values.index
-                ).apply(
-                    lambda row:
-                        # Null reference
-                        row[columns].isnull().any() or
-                        # Left merge successful
-                        not row[_foreign_columns].isnull().all(),
-                    axis=1
-                )
+                values.reset_index(),
+                foreign_values,
+                left_on=columns, right_on=_foreign_columns,
+                how='left'
+            ).drop_duplicates(
+            ).set_index(
+                values.index
+            ).apply(
+                lambda row:
+                    # Null reference
+                    row[columns].isnull().any()
+                    # Left merge successful
+                    or not row[_foreign_columns].isnull().all(),
+                axis=1
+            )
             valid_values, invalid_values = values[valid], values[~valid]
             if not invalid_values.empty:
                 log_invalid_values(invalid_values, constraint)
@@ -218,9 +218,7 @@ class DataPreparationTask(luigi.Task):
             df)
 
     def foreign_key_constraints(self) -> Dict[
-                str,
-                Tuple[List[str], str, List[str]]
-            ]:
+            str, Tuple[List[str], str, List[str]]]:
 
         if not self.table:
             return {}

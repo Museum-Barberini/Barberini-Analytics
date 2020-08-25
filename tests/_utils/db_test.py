@@ -70,7 +70,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
     A custom test program that sends notifications in certain scenarios.
     """
 
-    def handleUnsuccessfulResult(self, result):
+    def handleUnsuccessfulResult(self, result):  # noqa: N802
 
         super().handleUnsuccessfulResult(result)
         self.send_notifications(result)
@@ -90,8 +90,8 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
                 test: None for test in result.unexpectedSuccesses
             }
         }
-        CI_JOB_URL = os.getenv('CI_JOB_URL')
-        CI_PIPELINE_URL = os.getenv('CI_PIPELINE_URL')
+        ci_job_url = os.getenv('CI_JOB_URL')
+        ci_pipeline_url = os.getenv('CI_PIPELINE_URL')
 
         with enforce_luigi_notifications(format='html'):
             django_renderer = utils.load_django_renderer()
@@ -105,8 +105,8 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
                 message=django_renderer(
                     'data/strings/long_stage_failure_email.html',
                     context=dict(
-                        CI_JOB_URL=CI_JOB_URL,
-                        CI_PIPELINE_URL=CI_PIPELINE_URL,
+                        CI_JOB_URL=ci_job_url,
+                        CI_PIPELINE_URL=ci_pipeline_url,
                         unsuccessful={
                             label: {
                                 # This string conversion is crucial because
@@ -129,7 +129,7 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
 
     template_name = 'barberini_test_template'
 
-    def setUpSuite(self):
+    def setUpSuite(self):  # noqa: N802
 
         super().setUpSuite()
         self.setup_database_template()

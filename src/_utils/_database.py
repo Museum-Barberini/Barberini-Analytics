@@ -59,8 +59,8 @@ class DbConnector:
         return f'{type(self).__name__}(db={self.database})'
 
     def execute(
-                self,
-                *queries: List[Union[str, TQueryAndArgs]]
+            self,
+            *queries: List[Union[str, TQueryAndArgs]]
             ) -> List[Tuple]:
         """
         Execute one or multiple queries as one atomic operation and returns
@@ -95,11 +95,11 @@ class DbConnector:
             ''')
 
     def query(
-                self,
-                query: str,
-                *args: Iterable[object],
-                only_first: bool = False,
-                **kwargs: Dict[str, object]
+            self,
+            query: str,
+            *args: Iterable[object],
+            only_first: bool = False,
+            **kwargs: Dict[str, object]
             ) -> List[Tuple]:
         """
         Execute a query and return a list of results.
@@ -126,10 +126,10 @@ class DbConnector:
         return result
 
     def query_with_header(
-                self,
-                query: str,
-                *args: Iterable[object],
-                **kwargs: Dict[str, object]
+            self,
+            query: str,
+            *args: Iterable[object],
+            **kwargs: Dict[str, object]
             ) -> List[Tuple]:
         """
         Execute a query and return two values of which the first is the list
@@ -159,9 +159,9 @@ class DbConnector:
         )
 
     def _execute_queries(
-                self,
-                queries_and_args: List[Union[str, TQueryAndArgs]],
-                result_function: Callable[[psycopg2.extensions.cursor], T]
+            self,
+            queries_and_args: List[Union[str, TQueryAndArgs]],
+            result_function: Callable[[psycopg2.extensions.cursor], T]
             ) -> List[T]:
         """
         Executes all passed queries as one atomic operation and yields the
@@ -200,11 +200,11 @@ class DbConnector:
             conn.close()
 
     def _execute_query(
-                self,
-                query: str,
-                result_function: Callable[[psycopg2.extensions.cursor], T],
-                args: Iterable[object] = (),
-                kwargs: Dict[str, object] = {}
+            self,
+            query: str,
+            result_function: Callable[[psycopg2.extensions.cursor], T],
+            args: Iterable[object] = (),
+            kwargs: Dict[str, object] = {}
             ) -> None:
         """
         Executes the passed query and returns the results.

@@ -24,8 +24,8 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
 
     def test_load_credentials_missing(self):
         self.task = FetchGoogleMapsReviews(
-            token_cache=self.task.token_cache +
-            ".iamafilepaththathopefullydoesnotexist",
+            token_cache=self.task.token_cache
+            + '.iamafilepaththathopefullydoesnotexist',
             is_interactive=False)
         with self.assertRaises(Exception) as context:
             with warnings.catch_warnings():
@@ -115,9 +115,9 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
 
     def test_extract_reviews(self):
         with open(
-                    'tests/test_data/google_maps/raw_reviews.json',
-                    'r',
-                    encoding='utf-8'
+            'tests/test_data/google_maps/raw_reviews.json',
+            'r',
+            encoding='utf-8'
                 ) as raw_reviews_file:
             raw_reviews = json.load(raw_reviews_file)
         expected_extracted_reviews = pd.read_csv(

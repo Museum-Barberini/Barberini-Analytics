@@ -105,7 +105,7 @@ class TopicModelingTopicsDf(DataPreparationTask):
 
     def run(self):
 
-        with list(self.input())[0].open('r') as topics_file:
+        with self.input().open('r') as topics_file:
             data = pd.read_csv(topics_file)
         with self.output().open('w') as output_file:
             data.to_csv(output_file, index=True)
@@ -131,7 +131,7 @@ class TopicModelingTextDf(DataPreparationTask):
 
     def run(self):
 
-        with list(self.input())[1].open('r') as text_file:
+        with self.input().open('r') as text_file:
             data = pd.read_csv(text_file)
         with self.output().open('w') as output_file:
             data.to_csv(output_file, index=True)
@@ -228,7 +228,13 @@ class TopicModelingFindTopics(DataPreparationTask):
 
         return pd.concat(topic_dfs), pd.concat(text_dfs)
 
-    def train_mgp(self, docs, K=10, alpha=0.1, beta=0.1, n_iters=30):
+    def train_mgp(
+            self,
+            docs,
+            K=10,  # noqa: N803
+            alpha=0.1, beta=0.1,
+            n_iters=30
+            ):
         vocab = set(x for doc in docs for x in doc.tokens)
         n_terms = len(vocab)
 

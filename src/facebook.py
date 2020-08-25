@@ -47,7 +47,7 @@ class FbPostCommentsToDb(CsvToDb):
 
         df = super().read_csv(input_csv)
         # This is necessary to prevent pandas from replacing "None" with "NaN"
-        df['response_to'] = df['response_to'].apply(num_to_str)
+        df['response_to'] = df['response_to'].apply(_num_to_str)
         return df
 
 # ======= FetchTasks =======
@@ -140,16 +140,6 @@ class FetchFbPostDetails(DataPreparationTask):
     def requires(self):
 
         return FetchFbPosts()
-
-    @abstractmethod
-    def output(self):
-
-        pass
-
-    @abstractmethod
-    def run(self):
-
-        pass
 
     @staticmethod
     def post_date(df, index):
@@ -309,7 +299,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                 'page_id': str
             })
 
-            df['response_to'] = df['response_to'].apply(num_to_str)
+            df['response_to'] = df['response_to'].apply(_num_to_str)
 
             df = self.filter_fkey_violations(df)
 
@@ -386,7 +376,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'page_id': str(page_id),
                     'post_date': comment.get('created_time'),
                     'text': comment.get('message'),
-                    'is_from_museum': self.from_barberini(comment),
+                    'is_from_museum': self.is_from_museum(comment),
                     'response_to': None
                 }
 
@@ -401,7 +391,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'post_id': str(post_id),
                             'post_date': reply.get('created_time'),
                             'text': reply.get('message'),
-                            'is_from_museum': self.from_barberini(reply),
+                            'is_from_museum': self.is_from_museum(reply),
                             'response_to': str(comment_id)
                         }
                 except KeyError:
@@ -415,8 +405,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
 
-    @staticmethod
-    def from_barberini(comment_json):
+    def is_from_museum(self, comment_json):
 
         return comment_json.get('from', {}) \
            .get('name') == 'Museum Barberini'

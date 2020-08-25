@@ -5,7 +5,7 @@ from absa import AspectBasedSentimentAnalysis
 from diagnostics import Diagnostics
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
-from visitor_prediction.predict import PredictionsToDb
+from visitor_prediction import PredictionsToDb
 
 
 class FillDb(luigi.WrapperTask):

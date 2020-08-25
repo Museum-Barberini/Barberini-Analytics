@@ -33,9 +33,9 @@ class StreamToLogger:
     """
 
     def __init__(
-                self,
-                logger: logging.Logger = logging.getLogger(),
-                log_level=logging.INFO
+        self,
+        logger: logging.Logger = logging.getLogger(),
+        log_level=logging.INFO
             ):
 
         self.logger = logger

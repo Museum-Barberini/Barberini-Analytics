@@ -94,11 +94,13 @@ class CleansePostalCodes(DataPreparationTask):
 
         if not customer_df.empty:
             results = customer_df.apply(
-                    lambda x: self.match_postal_code(
-                        postal_code=x['postal_code'],
-                        country=x['country'],
-                        customer_id=x['customer_id']
-                    ), axis=1)
+                lambda x: self.match_postal_code(
+                    postal_code=x['postal_code'],
+                    country=x['country'],
+                    customer_id=x['customer_id']
+                ),
+                axis=1
+            )
 
             customer_df['cleansed_postal_code'] = \
                 [result[0] for result in results]
@@ -141,17 +143,17 @@ class CleansePostalCodes(DataPreparationTask):
             self.skip_count / self.total_count if self.total_count else 0
         )
 
-        logger.info('')
-        logger.info('-------------------------------------------------')
-        logger.info(f'Skipped {self.skip_count} of {self.total_count} '
-                    'postal codes')
-        logger.info(f'Percentage: {skip_percentage}')
-        logger.info(f'{self.none_count} of all values are empty.')
-        logger.info(' => ' + str(self.skip_count-self.none_count) +
-                    ' values were not validated.')
-        logger.info('Count of less common countries: ' +
-                    str(self.other_country_count))
-        logger.info('-------------------------------------------------')
+        logger.info("")
+        logger.info("-------------------------------------------------")
+        logger.info(f"Skipped {self.skip_count} of {self.total_count} "
+                    "postal codes")
+        logger.info(f"Percentage: {skip_percentage}")
+        logger.info(f"{self.none_count} of all values are empty.")
+        logger.info(f" => {self.skip_count - self.none_count} values were "
+                    "not validated.")
+        logger.info(f"Count of less common countries: "
+                    f"{self.other_country_count}")
+        logger.info("-------------------------------------------------")
 
         with self.output().open('w') as output_csv:
             customer_df.to_csv(output_csv, index=False, header=True)
@@ -209,7 +211,7 @@ class CleansePostalCodes(DataPreparationTask):
             self.other_country_count += 1
 
         self.cleansed_count += 1
-        percentage = int(round(self.cleansed_count/self.total_count*100))
+        percentage = int(round(self.cleansed_count / self.total_count * 100))
 
         if self.last_percentage < percentage:
             print(f"\r{percentage}% cleansed ({self.cleansed_count})",
@@ -258,9 +260,9 @@ class CleansePostalCodes(DataPreparationTask):
         for num in reversed(range(0, digit_count)):
             if not not_null_part:
                 not_null_part = re.findall(
-                    self.common_lookbehind +
-                    rf'\d{{{num + 1}}}' +
-                    self.common_lookahead,
+                    self.common_lookbehind
+                    + rf'\d{{{num + 1}}}'
+                    + self.common_lookahead,
                     postal_code)
                 null_count = digit_count - (num + 1)
 
@@ -293,8 +295,9 @@ class CleansePostalCodes(DataPreparationTask):
             result_code = matching_codes[0]
             if country_code == 'DE':
                 if not(self.german_postal_df[
-                       self.german_postal_df[
-                            'Plz'].str.contains(result_code)].empty):
+                        self.german_postal_df[
+                            'Plz'
+                        ].str.contains(result_code)].empty):
                     return result_code
             else:
                 return result_code

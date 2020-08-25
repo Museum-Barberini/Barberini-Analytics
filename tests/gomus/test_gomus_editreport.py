@@ -42,7 +42,7 @@ class TestGomusEditReport(DatabaseTestCase):
 
     def check_date(self, string, start_at):
         date = dt.datetime.strptime(string, '%d.%m.%Y')
-        self.assertTrue((start_at <= date) and
-                        (date <= start_at + dt.timedelta(days=7)),
-                        "The customer_7days report isn't edited in the right "
-                        "way, the dates don't match the given timespan")
+        self.assertTrue(start_at <= date <= start_at + dt.timedelta(days=7), (
+            "The customer_7days report isn't edited in the right way, the "
+            "dates don't match the given timespan"
+        ))
