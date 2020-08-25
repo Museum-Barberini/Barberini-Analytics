@@ -120,9 +120,10 @@ class SendLogReport(luigi.Task):
             },
             axis=1
         ).reset_index()
-        for type_ in ['error', 'warning']:
-            log_summary[f'{type_}_count'] = \
-                log_summary[f'{type_}_count'].fillna(0).astype(int)
+        for type_ in ['error_count', 'warning_count']:
+            if type_ not in log_summary:
+                log_summary[type_] = None
+            log_summary[type_] = log_summary[type_].fillna(0).astype(int)
 
         django_renderer = utils.load_django_renderer()
         send_error_email(
@@ -186,9 +187,14 @@ class CollectLogReport(luigi.Task):
             )
             for match in regex.finditer(PATTERN, log_string)
         )
-        logs = logs.explode(column='logs')
-        logs['log_level'], logs['log_string'] = zip(*logs['logs'])
-        del logs['logs']
+        if logs.empty:
+            logs = pd.DataFrame(columns=[
+                'date', 'task_name', 'task_params', 'log_level', 'log_string'
+            ])
+        else:
+            logs = logs.explode(column='logs')
+            logs['log_level'], logs['log_string'] = zip(*logs['logs'])
+            del logs['logs']
 
         with self.output().open('w') as csv:
             logs.to_csv(csv, index=False)

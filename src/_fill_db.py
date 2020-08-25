@@ -5,6 +5,7 @@ import luigi
 from _posts import PostsToDb, PostPerformanceToDb
 from absa import AspectBasedSentimentAnalysis
 from diagnostics import Diagnostics
+from extended_twitter_collection import ExtendedTwitterDatasetToDB
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction import PredictionsToDb
@@ -37,6 +38,9 @@ class FillDbDaily(luigi.WrapperTask):
 
         # Diagnostics
         yield Diagnostics()
+
+        # Extended Tweet Gathering
+        yield ExtendedTwitterDatasetToDB()
 
 
 class FillDbHourly(luigi.WrapperTask):
