@@ -9,12 +9,14 @@ import numpy as np
 
 from _utils import DataPreparationTask, CsvToDb
 
+
 class KeywordIntervalsToDB(CsvToDb):
 
     table = 'twitter_keyword_intervals'
 
     def requires(self):
         return KeywordIntervals()
+
 
 class KeywordIntervals(DataPreparationTask):
 
@@ -35,15 +37,18 @@ class KeywordIntervals(DataPreparationTask):
             FROM tweet
             """
         )
-        initial_dataset = pd.DataFrame(initial_dataset, columns = ["tweet_id", "text", "date"])
+        initial_dataset = pd.DataFrame(
+            initial_dataset, columns=["tweet_id", "text", "date"])
 
         intervals_and_post_dates = terms_df.term.apply(
             self.get_relevance_timespan, args=(initial_dataset,))
         terms_df["relevance_timespan"] = [
-            e[0] if not pd.isnull(e) else np.nan for e in intervals_and_post_dates
+            e[0] if not pd.isnull(e) else np.nan
+            for e in intervals_and_post_dates
         ]
         terms_df["post_dates"] = [
-            e[1] if not pd.isnull(e) else np.nan for e in intervals_and_post_dates
+            e[1] if not pd.isnull(e) else np.nan
+            for e in intervals_and_post_dates
         ]
         terms_df = terms_df.dropna(subset=["post_dates"])
         terms_df["count"] = [len(x) for x in terms_df["post_dates"]]
@@ -53,10 +58,16 @@ class KeywordIntervals(DataPreparationTask):
             for x, y in row["relevance_timespan"]:
                 start = min(x, y)
                 end = max(x, y)
-                count_interval = len(
-                    [date for date in row["post_dates"] if date >= start and date <= end])
-                intervals.append((row["term"], row["count"], count_interval, start, end))
-        intervals_df = pd.DataFrame(intervals, columns = ["term", "count_overall", "count_interval", "start_date", "end_date"])
+                count_interval = len([
+                    date for date in row["post_dates"]
+                    if date >= start and date <= end
+                ])
+                intervals.append(
+                    (row["term"], row["count"], count_interval, start, end))
+        intervals_df = pd.DataFrame(
+            intervals, columns=["term", "count_overall", "count_interval",
+                                "start_date", "end_date"]
+        )
 
         with self.output().open('w') as output_file:
             intervals_df.to_csv(output_file, index=False, header=True)
@@ -67,9 +78,8 @@ class KeywordIntervals(DataPreparationTask):
             format=UTF8
         )
 
-
     def get_relevance_timespan(self, term, initial_dataset):
-            
+
         print(" " * 60, end="\r")  # delete previous print
         print(f"current term: {term}", end="\r")
 
@@ -85,7 +95,8 @@ class KeywordIntervals(DataPreparationTask):
             True if re.findall(regex, tweet) else False
             for tweet in initial_dataset.text.str.lower()
         ]]
-        post_dates = pd.to_datetime(relevant_tweets.date, infer_datetime_format=True)
+        post_dates = pd.to_datetime(
+            relevant_tweets.date, infer_datetime_format=True)
         post_dates = post_dates.sort_values()
         post_dates_output = [str(date) for date in post_dates]
         if post_dates.empty:
@@ -102,7 +113,8 @@ class KeywordIntervals(DataPreparationTask):
             if abs((date-prev_date).days) <= self.offset*2:
                 prev_date = date
             else:
-                intervals.append((cur_start + offset_dt, prev_date - offset_dt))
+                intervals.append(
+                    (cur_start + offset_dt, prev_date - offset_dt))
                 cur_start = date
                 prev_date = date
 
@@ -111,7 +123,7 @@ class KeywordIntervals(DataPreparationTask):
         intervals.append((cur_start + offset_dt, last_date - offset_dt))
 
         # convert to string
-        intervals = [(str(a), str(b)) for a,b in intervals]
+        intervals = [(str(a), str(b)) for a, b in intervals]
 
         return intervals, post_dates_output
 
@@ -127,7 +139,7 @@ class TermCounts(DataPreparationTask):
             FROM tweet
             """
         )
-        initial_dataset = pd.DataFrame(initial_dataset, columns = ["text"])
+        initial_dataset = pd.DataFrame(initial_dataset, columns=["text"])
 
         # extract hashtags
         hashtags = []
@@ -165,9 +177,10 @@ class TermCounts(DataPreparationTask):
                 tweet = tweet.lower()
                 term_counts[term] += 1 if re.findall(regex, tweet) else 0
 
-        terms_ordered = sorted(term_counts.items(), key=lambda x: x[1], reverse=True)
+        terms_ordered = sorted(
+            term_counts.items(), key=lambda x: x[1], reverse=True)
         terms_df = pd.DataFrame(terms_ordered, columns=["term", "count"])
-        
+
         with self.output().open('w') as output_file:
             terms_df.to_csv(output_file, index=False, header=True)
 
@@ -176,5 +189,3 @@ class TermCounts(DataPreparationTask):
             f'{self.output_dir}/twitter/term_counts.csv',
             format=UTF8
         )
-
-
