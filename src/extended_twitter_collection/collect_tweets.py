@@ -48,7 +48,8 @@ class CollectExtendedTwitterDataset(DataPreparationTask):
         ).strftime("%Y-%m-%d")
 
         tweet_dfs = []
-        for term, count in active_intervals:
+        for term, count in self.tqdm(
+                active_intervals, desc="Extending tweet collection"):
             tweet_dfs.append(self.fetch_tweets(
                 query=term,
                 start_date=seven_days_ago,
@@ -71,7 +72,7 @@ class CollectExtendedTwitterDataset(DataPreparationTask):
 
     def fetch_tweets(self, query, start_date, limit):
         """All searches are limited to German tweets (twitter lang code de)."""
-        logger.info(
+        logger.debug(
             f"Querying Tweets. term \"{query}\" "
             f"limit: {limit}, start_date: {start_date}"
         )

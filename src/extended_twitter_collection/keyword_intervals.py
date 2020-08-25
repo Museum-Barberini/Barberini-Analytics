@@ -13,6 +13,7 @@ from luigi.format import UTF8
 import numpy as np
 import pandas as pd
 from stop_words import get_stop_words
+from tqdm.auto import tqdm
 
 from _utils import DataPreparationTask, CsvToDb
 from twitter import TweetsToDb
@@ -46,7 +47,8 @@ class KeywordIntervals(DataPreparationTask):
         initial_dataset = pd.DataFrame(
             initial_dataset, columns=['tweet_id', 'text', 'date'])
 
-        intervals_and_post_dates = terms_df.term.apply(
+        tqdm.pandas(desc="Processing keyword intervals")
+        intervals_and_post_dates = terms_df.term.progress_apply(
             self.get_relevance_timespan, args=(initial_dataset,))
         terms_df['relevance_timespan'] = [
             e[0] if not pd.isnull(e) else np.nan
@@ -85,9 +87,6 @@ class KeywordIntervals(DataPreparationTask):
         )
 
     def get_relevance_timespan(self, term, initial_dataset):
-
-        print(" " * 60, end="\r")  # delete previous print
-        print(f"current term: {term}", end="\r")
 
         if not isinstance(term, str):
             return np.nan
@@ -175,8 +174,7 @@ class TermCounts(DataPreparationTask):
 
         # count occurrences. Only count max one occurrence per tweet.
         term_counts = defaultdict(lambda: 0)
-        for term in hashtags:
-            print(term, end="\r")
+        for term in self.tqdm(hashtags, desc="Counting hashtags"):
             regex = rf'\b{term}\b'
             for tweet in initial_dataset['text'].tolist():
                 if not tweet:
