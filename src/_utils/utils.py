@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import logging
 import os
 import sys
+from typing import Union
 
 import luigi
 import pandas as pd
@@ -69,3 +70,13 @@ def load_django_renderer():
     }])
     django.setup()
     return render_to_string
+
+
+@contextmanager
+def set_log_level_temporarily(logger: logging.Logger, level: Union[int, str]):
+    old_level = logger.level
+    logger.setLevel(level)
+    try:
+        yield
+    finally:
+        logger.setLevel(old_level)
