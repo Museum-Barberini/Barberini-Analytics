@@ -7,7 +7,7 @@ from luigi.mock import MockTarget
 from unittest.mock import patch
 
 from db_test import DatabaseTestCase
-from gplay import FetchGplayReviews
+from gplay.gplay_reviews import FetchGplayReviews
 
 
 RESPONSE_ELEM_1 = {
