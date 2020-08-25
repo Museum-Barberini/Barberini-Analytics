@@ -141,6 +141,9 @@ class TermCounts(DataPreparationTask):
         )
         initial_dataset = pd.DataFrame(initial_dataset, columns=["text"])
 
+        if self.minimal_mode:
+            initial_dataset = initial_dataset.sample(n=100)
+
         # extract hashtags
         hashtags = []
         for text in initial_dataset["text"].tolist():
