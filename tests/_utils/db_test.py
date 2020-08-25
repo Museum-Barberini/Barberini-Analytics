@@ -258,6 +258,10 @@ class DatabaseTestCase(unittest.TestCase):
         self.addCleanup(lambda: [
             os.remove(file) for file in self.dirty_file_paths])
 
+        self.addCleanup(lambda: luigi.mock.MockFileSystem(
+            ).get_all_data().clear()
+        )
+
     @property
     def str_id(self):
         return 'barberini_test_{clazz}_{id}'.format(
