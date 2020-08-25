@@ -298,6 +298,8 @@ class DatabaseTestCase(unittest.TestCase):
         requirements = []
         while all_tasks.qsize():
             next_task = all_tasks.get()
+            if next_task.complete():
+                continue
             requirements.insert(0, next_task)
             next_requirement = next_task.requires()
             try:
@@ -306,7 +308,12 @@ class DatabaseTestCase(unittest.TestCase):
             except TypeError:
                 all_tasks.put(next_requirement)
         for requirement in list(dict.fromkeys(requirements)):
-            requirement.run()
+            result = requirement.run()
+            try:
+                deps = list(result)  # could generate dynamic dependencies
+                assert not deps, "Cannot debug dynamic dependencies!"
+            except TypeError:
+                pass  # no dynamic dependencies
 
     @staticmethod
     def run_task_externally(task_class: luigi.task_register.Register):
