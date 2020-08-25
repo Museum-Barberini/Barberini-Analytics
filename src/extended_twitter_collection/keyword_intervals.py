@@ -41,6 +41,12 @@ class KeywordIntervals(DataPreparationTask):
         initial_dataset = pd.DataFrame(
             initial_dataset, columns=["tweet_id", "text", "date"])
 
+        # insert space before links to match hashtags correctly
+        initial_dataset["text"] = initial_dataset["text"]\
+            .replace("pic.", " pic.", regex=False)\
+            .replace("https", " https", regex=False)\
+            .replace("http", " http", regex=False)
+
         intervals_and_post_dates = terms_df.term.apply(
             self.get_relevance_timespan, args=(initial_dataset,))
         terms_df["relevance_timespan"] = [
@@ -144,6 +150,12 @@ class TermCounts(DataPreparationTask):
             """
         )
         initial_dataset = pd.DataFrame(initial_dataset, columns=["text"])
+
+        # insert space before links to match hashtags correctly
+        initial_dataset["text"] = initial_dataset["text"]\
+            .replace("pic.", " pic.", regex=False)\
+            .replace("https", " https", regex=False)\
+            .replace("http", " http", regex=False)
 
         # extract hashtags
         hashtags = []

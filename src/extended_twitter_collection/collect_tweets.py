@@ -95,6 +95,11 @@ class CollectExtendedTwitterDataset(DataPreparationTask):
             }
             for t in tweets
         ])
+        # insert space before links to match hashtags correctly
+        tweets_df["text"] = tweets_df["text"]\
+            .replace("pic.", " pic.", regex=False)\
+            .replace("https", " https", regex=False)\
+            .replace("http", " http", regex=False)
 
         return tweets_df
 
