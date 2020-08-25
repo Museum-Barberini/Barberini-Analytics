@@ -43,9 +43,9 @@ class KeywordIntervals(DataPreparationTask):
 
         # insert space before links to match hashtags correctly
         initial_dataset["text"] = initial_dataset["text"]\
-            .replace("pic.", " pic.", regex=False)\
-            .replace("https", " https", regex=False)\
-            .replace("http", " http", regex=False)
+            .str.replace("pic.", " pic.", regex=False)\
+            .str.replace("https", " https", regex=False)\
+            .str.replace("http", " http", regex=False)
 
         intervals_and_post_dates = terms_df.term.apply(
             self.get_relevance_timespan, args=(initial_dataset,))
@@ -153,9 +153,11 @@ class TermCounts(DataPreparationTask):
 
         # insert space before links to match hashtags correctly
         initial_dataset["text"] = initial_dataset["text"]\
-            .replace("pic.", " pic.", regex=False)\
-            .replace("https", " https", regex=False)\
-            .replace("http", " http", regex=False)
+            .str.replace("pic.", " pic.", regex=False)\
+            .str.replace("https", " https", regex=False)\
+            .str.replace("http", " http", regex=False)
+
+        initial_dataset.to_csv("initial_dataset.csv")
 
         # extract hashtags
         hashtags = []

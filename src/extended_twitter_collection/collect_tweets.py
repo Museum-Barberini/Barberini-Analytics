@@ -160,9 +160,9 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         # insert space before links to match hashtags correctly
         if not tweets_df.empty:
             tweets_df["text"] = tweets_df["text"]\
-                .replace("pic.", " pic.", regex=False)\
-                .replace("https", " https", regex=False)\
-                .replace("http", " http", regex=False)
+                .str.replace("pic.", " pic.", regex=False)\
+                .str.replace("https", " https", regex=False)\
+                .str.replace("http", " http", regex=False)
 
         return tweets_df
 
