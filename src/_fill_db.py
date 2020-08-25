@@ -6,7 +6,8 @@ from diagnostics import Diagnostics
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction.predict import PredictionsToDb
-from extended_twitter_collection.collect_tweets import ExtendedTwitterDatasetToDB
+from extended_twitter_collection.collect_tweets \
+    import ExtendedTwitterDatasetToDB
 
 
 class FillDb(luigi.WrapperTask):
