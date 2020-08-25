@@ -127,7 +127,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         """
 
         print(f"Querying Tweets. term \"{query}\" "
-              "limit: {limit}, start_date: {start_date}")
+              f"limit: {limit}, start_date: {start_date}")
         tweets = []  # tweets go in this list
 
         c = twint.Config()
