@@ -10,15 +10,73 @@ from _utils import DataPreparationTask, CsvToDb
 from extended_twitter_collection.keyword_intervals import KeywordIntervalsToDB
 
 
-class ExtendedTwitterDatasetToDB(CsvToDb):
+class TwitterExtendedDatasetToDB(CsvToDb):
+
+    table = "twitter_extended_dataset"
+
+    def requires(self):
+        return TwitterExtendedDataset()
+
+
+class TwitterExtendedDataset(DataPreparationTask):
+
+    def requires(self):
+        return TwitterCandidateTweetsToDB()
+
+    def output(self):
+        return luigi.LocalTarget(
+            f"{self.output_dir}/twitter/extended_dataset",
+            format=UTF8
+        )
+    
+    def run(self):
+
+        r_thresh = 50
+        ranking_thresh = 0.8
+
+        # apply thresholds
+        extended_dataset = self.db_connector.query(f"""
+            SELECT user_id, tweet_id, text, response_to, post_date, permalink
+            FROM
+            -- keyword-intervals enriched with interval-based R value
+            (
+                SELECT * FROM (
+                    SELECT ki.term, ki.start_date, ki.end_date, ki.count_interval, count(*)::float/ki.count_interval::float AS R_interval
+                    FROM twitter_keyword_intervals ki INNER JOIN twitter_extended_candidates ec
+                    ON ki.term = ec.term AND ec.post_date BETWEEN ki.start_date AND ki.end_date
+                    WHERE ki.count_interval > 0
+                    GROUP BY ki.term, ki.start_date, ki.end_date, ki.count_interval
+                ) as temp
+                -- only consider keyword-intervals with an R value below 50
+                WHERE R_interval <= {r_thresh}
+            ) AS ki_r
+            -- remove limit 50000
+            INNER JOIN (select * from twitter_extended_candidates limit 50000) as ec
+            ON
+                -- match tweets to intervals based on the post date
+                ec.post_date between ki_r.start_date and ki_r.end_date
+            AND
+                -- tweet should contain the term as a whole word
+                ec.text ~* ('\m' || ki_r.term || '\M')
+            GROUP BY user_id, tweet_id, text, response_to, post_date, permalink
+            -- Only keep top-ranked tweets
+            HAVING sum(1 / r_interval) >= {ranking_thresh} 
+        """)
+       
+        extended_dataset = pd.DataFrame(extended_dataset, columns=["user_id", "tweet_id", "text", "response_to", "post_date", "permalink"])
+
+        with self.output().open("w") as output_file:
+            extended_datset.write_csv(output_file, index=False)
+
+class TwitterCandidateTweetsToDB(CsvToDb):
 
     table = 'twitter_extended_candidates'
 
     def requires(self):
-        return CollectExtendedTwitterDataset()
+        return TwitterCollectCandidateTweets()
 
 
-class CollectExtendedTwitterDataset(DataPreparationTask):
+class TwitterCollectCandidateTweets(DataPreparationTask):
 
     def requires(self):
         return KeywordIntervalsToDB()
@@ -95,11 +153,15 @@ class CollectExtendedTwitterDataset(DataPreparationTask):
             }
             for t in tweets
         ])
+
+        print(tweets_df)
+
         # insert space before links to match hashtags correctly
-        tweets_df["text"] = tweets_df["text"]\
-            .replace("pic.", " pic.", regex=False)\
-            .replace("https", " https", regex=False)\
-            .replace("http", " http", regex=False)
+        if not tweets_df.empty:
+            tweets_df["text"] = tweets_df["text"]\
+                .replace("pic.", " pic.", regex=False)\
+                .replace("https", " https", regex=False)\
+                .replace("http", " http", regex=False)
 
         return tweets_df
 
