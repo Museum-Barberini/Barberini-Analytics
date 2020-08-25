@@ -40,6 +40,7 @@ RESPONSE_ELEM_2 = {
 
 
 class TestFetchGplayReviews(DatabaseTestCase):
+    """Tests the FetchGplayReviews task."""
 
     def setUp(self):
         super().setUp()

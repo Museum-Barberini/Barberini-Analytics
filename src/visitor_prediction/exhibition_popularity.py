@@ -1,3 +1,5 @@
+"""Estimate the popularity for each exhibition."""
+
 import datetime as dt
 
 import luigi
@@ -9,6 +11,7 @@ from gomus.exhibitions import ExhibitionsToDb
 
 
 class ExhibitionPopularity(DataPreparationTask):
+    """Estimate the popularity for each exhibition."""
 
     def _requires(self):
         return luigi.task.flatten([
@@ -93,4 +96,5 @@ class ExhibitionPopularity(DataPreparationTask):
 
 
 def simplify_text(text):
+    """Simplify a text by filtering out non-alphanumeric characters."""
     return ''.join(s for s in text if s.isalnum()).lower()

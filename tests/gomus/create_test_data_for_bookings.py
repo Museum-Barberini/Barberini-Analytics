@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+"""Generate test cases for scrape_bookings_data.csv."""
 # link to a specific booking:
 # https://barberini.gomus.de/admin/bookings/BOOKING-ID
 
-# Use this to add test cases to scrape_bookings_data.csv
 import mmh3
 
 hash_seed = 666

@@ -1,3 +1,5 @@
+"""Provides a framework for searching posts using fuzzy-matching algorithms."""
+
 from typing import Callable
 
 import luigi
@@ -114,10 +116,7 @@ class FuzzyMatchPhrases(ConcatCsvs):
 class FuzzyMatch(luigi.Task):
 
     def pre_filter_query(self, post_word):
-        """
-        Query to filter post words before applying the algorithm.
-        """
-
+        """Query to filter post words before applying the algorithm."""
         return 'TRUE'
 
     run = None  # Not a task to be executed, just a strategy object

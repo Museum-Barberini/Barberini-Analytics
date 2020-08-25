@@ -1,3 +1,5 @@
+"""Provides tasks for downloading data from the museum system, go~mus."""
+
 import luigi
 
 from gomus.bookings import BookingsToDb

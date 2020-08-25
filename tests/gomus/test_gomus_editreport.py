@@ -14,11 +14,15 @@ from gomus._utils.fetch_report_helper import REPORT_IDS
 
 
 class TestGomusEditReport(DatabaseTestCase):
+    """Tests the EditGomusReport task."""
+
     @patch.object(FetchGomusReport, 'output')
     @unittest.skipUnless(
         os.getenv('FULL_TEST') == 'True', 'long running test')
     def test_edit_gomus_report_customers(self, output_mock):
         """
+        Check if the report is updated after editing a report.
+
         This test edits the customer_7days report twice using different
         timespans and checks, if the report is updated by testing if the
         data is in the timespan that we set for the report.

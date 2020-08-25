@@ -1,8 +1,10 @@
+"""Provides preprocessing tools used for visitor prediction."""
+
 import pandas as pd
 
 
 def preprocess_entries(entries, exhibitions, facts):
-
+    """Preprocess entry data used for visitor prediction."""
     exhibitions = _complement_exhibitions(exhibitions, facts)
     entries = _add_is_closed(entries, exhibitions)
     entries = _add_limited_entries(entries, exhibitions)

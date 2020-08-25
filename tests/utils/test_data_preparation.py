@@ -16,6 +16,7 @@ COLUMN_NAME_FOREIGN_2 = 'test_column_foreign_2'
 
 
 class TestDataPreparationTask(DatabaseTestCase):
+    """Tests the DataPreparationTask class."""
 
     def test_filter_fkey_violations_one_column(self):
 

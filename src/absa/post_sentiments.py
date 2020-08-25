@@ -1,3 +1,5 @@
+"""Provides tasks for predicting the sentiments of user postings."""
+
 import luigi
 from luigi.format import UTF8
 

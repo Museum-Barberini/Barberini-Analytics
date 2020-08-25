@@ -1,3 +1,5 @@
+"""Tests the format of downloaded gomus stuff."""
+
 import unittest
 import datetime as dt
 import os
@@ -12,6 +14,8 @@ from gomus._utils.fetch_report import FetchGomusReport, FetchEventReservations
 
 
 class GomusFormatTest(DatabaseTestCase):
+    """The abstract base class for gomus format tests."""
+
     def __init__(self, report, expected_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report = report
@@ -64,6 +68,7 @@ class GomusFormatTest(DatabaseTestCase):
 
 
 class TestCustomersFormat(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'customers',
@@ -97,6 +102,7 @@ class TestCustomersFormat(GomusFormatTest):
 
 
 class TestBookingsFormat(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'bookings',
@@ -131,6 +137,7 @@ class TestBookingsFormat(GomusFormatTest):
 
 
 class TestOrdersFormat(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'orders',
@@ -201,6 +208,7 @@ class TestEntriesSheet1Format(GomusFormatTest):
 
 
 class TestEntriesSheet3Format(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'entries',
@@ -218,6 +226,8 @@ class TestEntriesSheet3Format(GomusFormatTest):
 
 
 class TestEventsFormat(GomusFormatTest):
+    """Tests the FetchEventReservations task."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'events',

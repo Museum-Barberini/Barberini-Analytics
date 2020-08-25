@@ -1,3 +1,5 @@
+"""Provides helper classes for connecting to databases."""
+
 import os
 from typing import Callable, Dict, Iterable, List, Tuple, TypeVar, Union
 
@@ -46,7 +48,7 @@ class DbConnector:
         self.__database = database
 
     def __repr__(self):
-
+        """Compute formal string representation of the receiver."""
         return (
             f'{type(self).__name__}('
             f'host={self.host}, '
@@ -55,7 +57,7 @@ class DbConnector:
         )
 
     def __str__(self):
-
+        """Compute familiar string representation of the receiver."""
         return f'{type(self).__name__}(db={self.database})'
 
     def execute(
@@ -63,11 +65,11 @@ class DbConnector:
             *queries: List[Union[str, TQueryAndArgs]]
             ) -> List[Tuple]:
         """
-        Execute one or multiple queries as one atomic operation and returns
-        the results of all queries. If any query fails, all will be reverted
-        and an error will be raised.
-        """
+        Execute all queries as one transaction and return their results.
 
+        If any query fails, all queries will be reverted before an error is
+        raised.
+        """
         return list(self._execute_queries(
             queries_and_args=queries,
             result_function=lambda cur: None
@@ -75,20 +77,16 @@ class DbConnector:
 
     def exists(self, query: str) -> bool:
         """
-        Check if the given query returns any results. Return
-        True if the query returns results, otherwise False.
+        Check if the given query returns any results.
+
         Note that the given query should absolutely not end on a semicolon.
         """
-
         return bool(self.query(
             query=f'SELECT EXISTS({query})',
             only_first=True)[0])
 
     def exists_table(self, table: str) -> bool:
-        """
-        Check if the given table is present in the database.
-        """
-
+        """Check if the given table is present in the database."""
         return self.exists(f'''
                 SELECT * FROM information_schema.tables
                 WHERE LOWER(table_name) = LOWER('{table}')
@@ -103,10 +101,9 @@ class DbConnector:
             ) -> List[Tuple]:
         """
         Execute a query and return a list of results.
-        If only_first is set to True, only return the
-        first result as a tuple.
-        """
 
+        If only_first is set to True, only return the first result as a tuple.
+        """
         def result_function(cursor):
             nonlocal only_first
             if only_first:
@@ -131,11 +128,7 @@ class DbConnector:
             *args: Iterable[object],
             **kwargs: Dict[str, object]
             ) -> List[Tuple]:
-        """
-        Execute a query and return two values of which the first is the list
-        of fetched rows and the second is the list of column names.
-        """
-
+        """Execute a query and return all rows and their column names."""
         all_results = self._execute_query(
             query=query,
             result_function=lambda cursor:
@@ -164,13 +157,12 @@ class DbConnector:
             result_function: Callable[[psycopg2.extensions.cursor], T]
             ) -> List[T]:
         """
-        Executes all passed queries as one atomic operation and yields the
-        results of each query. If any query fails, all will be reverted and an
-        error will be raised.
-        Note that this is a generator function so the operation will be only
-        commited once the generator has been enumerated.
-        """
+        Execute all queries as one transaction and yield their results.
 
+        If any query fails, all queries will be reverted before an error is
+        raised. Note that this is a generator function so the operation will
+        be only commited once the generator has been enumerated completely.
+        """
         conn = self._create_connection()
         try:
             with conn:
@@ -207,11 +199,11 @@ class DbConnector:
             kwargs: Dict[str, object] = {}
             ) -> None:
         """
-        Executes the passed query and returns the results.
+        Execute the passed query and returns the results.
+
         Note that this is a generator function so the operation will be only
         commited once the generator has been enumerated.
         """
-
         assert not args or not kwargs, "cannot combine args and kwargs"
         all_args = next(
             filter(bool, [args, kwargs]),
@@ -224,7 +216,7 @@ class DbConnector:
 
 
 def db_connector(database=None):
-
+    """Create a connector to the default production database."""
     connector = default_connector()
     if database is None:
         database = os.environ['POSTGRES_DB']
@@ -233,7 +225,7 @@ def db_connector(database=None):
 
 
 def default_connector():
-
+    """Create a connector to the default postgres database."""
     return DbConnector(
         host=os.environ['POSTGRES_HOST'],
         database='postgres',
@@ -243,14 +235,13 @@ def default_connector():
 
 def register_array_type(type_name, namespace_name):
     """
-    Register the specified postgres type manually, allowing psycopg2 to parse
-    arrays of that type correctly.
+    Register the postgres type manually to parse parse arrays correctly.
+
     If custom types are not configured, queries such as
         c.query("select array ['pg_type'::information_schema.sql_identifier]")
     will be answered with strings like '{pg_type}' rather than with a true
     array of objects.
     """
-
     connector = default_connector()
     typarray, typcategory = connector.query(
         '''

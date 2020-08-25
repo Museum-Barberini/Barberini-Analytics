@@ -15,6 +15,7 @@ FB_TEST_DATA = 'tests/test_data/facebook'
 
 
 class TestFacebookPost(DatabaseTestCase):
+    """Tests the FetchFbPosts task."""
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -109,6 +110,7 @@ class TestFacebookPost(DatabaseTestCase):
 
 
 class TestFacebookPostPerformance(DatabaseTestCase):
+    """Tests the FetchFbPostPerformance task."""
 
     def prepare_post_performance_mocks(
             self,

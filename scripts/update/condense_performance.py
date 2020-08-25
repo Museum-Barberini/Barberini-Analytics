@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Condenses redundant performance values stored for posts in the database."""
+
 import pandas as pd
 from _utils import db_connector, logger
 

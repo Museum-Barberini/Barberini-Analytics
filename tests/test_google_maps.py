@@ -10,6 +10,7 @@ from google_maps import FetchGoogleMapsReviews
 
 
 class TestFetchGoogleMapsReviews(DatabaseTestCase):
+    """Tests the FetchGoogleMapsReviews task."""
 
     def setUp(self):
         super().setUp()

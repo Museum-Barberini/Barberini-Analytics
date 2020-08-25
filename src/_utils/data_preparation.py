@@ -15,6 +15,7 @@ register_array_type('SQL_IDENTIFIER', 'information_schema')
 
 
 class DataPreparationTask(luigi.Task):
+    """The abstract superclass of all tasks preparing data for a DB table."""
 
     def __init__(self, *args, **kwargs):
 
@@ -144,7 +145,9 @@ class DataPreparationTask(luigi.Task):
                     ], None] = None
             ) -> pd.DataFrame:
         """
-        Note that this currently only works with lower case identifiers.
+        Filter out values violation any foreign key of the target table.
+
+        NOTE that this currently only works with lower case identifiers.
         """
 
         def log_invalid_values(invalid_values, foreign_key):
@@ -263,14 +266,14 @@ class DataPreparationTask(luigi.Task):
 
     def tqdm(self, iterable, **kwargs):
         """
-        Iterate over an iterable, but as a side effect, print progress updates
-        to the console if appropriate. Works completely transparent.
-        Wrapper function for the popular status-reporting library tqdm.
+        Iterate over an iterable, printing progress updates to the console.
+
+        Completely transparent wrapper function for the popular
+        status-reporting library tqdm.
         Usage example that loops through an iterable using tqdm:
             for i in tqdm(range(1, 5), desc="Processing list"):
                 print(i)
         """
-
         desc = kwargs.get('desc', None)
         if desc:
             logger.info(desc)

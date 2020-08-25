@@ -16,6 +16,8 @@ from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 class TestEnhanceBookingsWithScraper(DatabaseTestCase):
     """
+    Tests the EnhanceBookingsWithScraper task.
+
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
     It then compares the expected hash (also in the file above)
@@ -159,6 +161,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
 
 
 class TestScrapeOrderContains(DatabaseTestCase):
+    """Tests the ScrapeGomusOrderContains task."""
 
     hash_seed = 666
 

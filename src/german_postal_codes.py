@@ -1,3 +1,5 @@
+"""Provides list of German postal codes."""
+
 import luigi
 import pandas as pd
 from luigi.format import UTF8
@@ -5,7 +7,8 @@ from luigi.format import UTF8
 from _utils import DataPreparationTask
 
 
-class GermanPostalCodes(DataPreparationTask):
+class LoadGermanPostalCodes(DataPreparationTask):
+    """Load German postal codes from disk."""
 
     def output(self):
         return luigi.LocalTarget(

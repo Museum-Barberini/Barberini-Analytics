@@ -10,6 +10,7 @@ from .data_preparation import DataPreparationTask
 
 
 class ConcatCsvs(DataPreparationTask):
+    """Concatenate all input CSV files into a single output CSV file."""
 
     def run(self):
 
@@ -28,9 +29,7 @@ class ConcatCsvs(DataPreparationTask):
 
 
 class StreamToLogger:
-    """
-    Fake file-like stream object that redirects writes to a logger instance.
-    """
+    """Fake file-like stream that redirects writes to a logger instance."""
 
     def __init__(
         self,
@@ -59,7 +58,7 @@ class StreamToLogger:
 
 
 def load_django_renderer():
-
+    """Load Django's renderer for generating HTML files."""
     import django
     from django.conf import settings
     from django.template.loader import render_to_string

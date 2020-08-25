@@ -1,3 +1,5 @@
+"""Provides tasks for downloading all Apple App store reviews about the app."""
+
 import json
 
 import luigi
@@ -11,6 +13,7 @@ from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
 
 class AppstoreReviewsToDb(CsvToDb):
+    """Store all download App Store reviews into the database."""
 
     table = 'appstore_review'
 
@@ -19,6 +22,11 @@ class AppstoreReviewsToDb(CsvToDb):
 
 
 class FetchAppstoreReviews(DataPreparationTask):
+    """
+    Download all reviews related to the museum app from the Apple App Store.
+
+    The data is accessed by scanning an RSS feed.
+    """
 
     table = 'appstore_review'
 

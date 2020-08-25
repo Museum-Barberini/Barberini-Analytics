@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Rename constraints (#193)
+"""Rename constraints (#193)"""
+
 from _utils import db_connector
 CONNECTOR = db_connector()
 

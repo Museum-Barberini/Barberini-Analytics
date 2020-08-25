@@ -1,4 +1,10 @@
-from abc import abstractmethod
+"""
+Provides tasks and utilities for fetching Facebook posts and linked details.
+
+All data are fetched using the Facebook Graph API. An access token has to be
+available in the /etc/secrets/keys.env file.
+"""
+
 import datetime as dt
 import json
 import os
@@ -18,6 +24,7 @@ API_BASE = f'https://graph.facebook.com/{API_VER}'
 
 
 class FbPostsToDb(CsvToDb):
+    """Store all fetched Facebook posts into the database."""
 
     table = 'fb_post'
 
@@ -27,6 +34,7 @@ class FbPostsToDb(CsvToDb):
 
 
 class FbPostPerformanceToDb(CsvToDb):
+    """Store all fetched post performance data into the database."""
 
     table = 'fb_post_performance'
 
@@ -36,6 +44,7 @@ class FbPostPerformanceToDb(CsvToDb):
 
 
 class FbPostCommentsToDb(CsvToDb):
+    """Store all fetched Facebook comments into the database."""
 
     table = 'fb_post_comment'
 
@@ -54,6 +63,7 @@ class FbPostCommentsToDb(CsvToDb):
 
 
 class FetchFbPosts(DataPreparationTask):
+    """Fetch all Facebook post from the museum's profile page."""
 
     def requires(self):
 
@@ -112,10 +122,7 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostDetails(DataPreparationTask):
-    """
-    This abstract class encapsulates common behavior for tasks
-    such as FetchFbPostPerformance and FetchFbPostComments
-    """
+    """The abstract superclass for tasks fetching post-related information."""
 
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
@@ -151,6 +158,12 @@ class FetchFbPostDetails(DataPreparationTask):
 
 
 class FetchFbPostPerformance(FetchFbPostDetails):
+    """
+    Fetch performance data for every Facebook comment.
+
+    Performance data include the number of likes, shares, and comments for a
+    post.
+    """
 
     def output(self):
 
@@ -267,6 +280,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
 
 class FetchFbPostComments(FetchFbPostDetails):
+    """Fetch all user comments to Facebook posts."""
 
     def output(self):
 
@@ -413,11 +427,11 @@ class FetchFbPostComments(FetchFbPostDetails):
 
 def try_request_multiple_times(url, **kwargs):
     """
-    Not all requests to the facebook api are successful. To allow
-    some requests to fail (mainly: to time out), request the api up
-    to four times.
-    """
+    Try multiple request to the Facebook Graph API.
 
+    Not all requests to the API are successful. To allow some requests to fail
+    (mainly: to time out), request the API up to four times.
+    """
     headers = kwargs.pop('headers', None)
     if not headers:
         access_token = os.getenv('FB_ACCESS_TOKEN')
@@ -450,13 +464,14 @@ def try_request_multiple_times(url, **kwargs):
     return response
 
 
-def num_to_str(num):
+def _num_to_str(num):
     """
+    Convert number from pandas into CSV-stable representation.
+
     By default, pandas treats columns that contain both integers and None
     values as np.floats. However, we don't want either of this here, we just
     want strings, so convert 'em all!
     """
-
     if not num:
         return None
     if isinstance(num, str):

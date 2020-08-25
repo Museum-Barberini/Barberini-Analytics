@@ -1,3 +1,5 @@
+"""Defines tasks for evaluating the recent pipeline logs."""
+
 import datetime as dt
 import glob
 from pathlib import Path
@@ -81,6 +83,7 @@ PATTERN = regex.compile(
 
 
 class SendLogReport(luigi.Task):
+    """Format a collected log report and send it as an email via luigi."""
 
     today = luigi.DateParameter(
         default=dt.date.today() - dt.timedelta(days=1)
@@ -137,6 +140,7 @@ class SendLogReport(luigi.Task):
 
 
 class CollectLogReport(luigi.Task):
+    """Create a report of incidents logged during recent pipeline runs."""
 
     today = luigi.DateParameter()
     days_back = luigi.IntParameter()

@@ -6,6 +6,8 @@ from .data_preparation import DataPreparationTask
 
 
 class JsonToCsv(DataPreparationTask):
+    """Converts a flat JSON file into a CSV file."""
+
     def run(self):
         my_json = self.get_json()
 
@@ -21,6 +23,8 @@ class JsonToCsv(DataPreparationTask):
 
 
 class JsoncToJson(DataPreparationTask):
+    """Converts a JSONC file into a JSON file by removing the comments."""
+
     def run(self):
         with self.input().open('r') as input_file:
             facts = jstyleson.load(input_file)

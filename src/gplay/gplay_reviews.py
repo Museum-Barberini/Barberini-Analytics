@@ -1,3 +1,5 @@
+"""Provides tasks for downloading Google Play reviews into the database."""
+
 import json
 import luigi
 import os
@@ -11,6 +13,7 @@ from _utils import CsvToDb, DataPreparationTask, MuseumFacts
 
 
 class GooglePlaystoreReviewsToDb(CsvToDb):
+    """Store fetched Google Play reviews into the database."""
 
     table = 'gplay_review'
 
@@ -20,6 +23,7 @@ class GooglePlaystoreReviewsToDb(CsvToDb):
 
 
 class FetchGplayReviews(DataPreparationTask):
+    """Fetch Google Play reviews."""
 
     def __init__(self, *args, **kwargs):
 
@@ -89,13 +93,11 @@ class FetchGplayReviews(DataPreparationTask):
 
     def fetch_for_language(self, language_code):
         """
-        Request reviews for a specific language from the webserver that
-        serves the gplay api.
+        Request reviews for a specific language from the gplay webserver.
 
         Note: If the language_code is not supported, the gplay api returns
         english reviews.
         """
-
         response = requests.get(
             url=self.url,
             params={
@@ -121,13 +123,14 @@ class FetchGplayReviews(DataPreparationTask):
     @property
     def url(self):
         """
+        Return the gplay webserver URL.
+
         The webserver that serves the gplay api runs in a different
         container. The container name is user specific:
             [CONTAINER_USER]-barberini_analytics-gplay_api
         Note that the container name and the CONTAINER_USER
         environment variable are set in the docker-compose.yml.
         """
-
         if self._url:
             return self._url
 
@@ -151,11 +154,10 @@ class FetchGplayReviews(DataPreparationTask):
 
     def convert_to_right_output_format(self, reviews):
         """
-        Make sure that the review dataframe fits the format expected by
-        GooglePlaystoreReviewsToDb. Rename and reorder columns, set data
-        types explicitly.
-        """
+        Convert the dataframe into the format expected by the CsvToDb task.
 
+        Rename and reorder columns, set data types explicitly.
+        """
         reviews = reviews.rename(columns=self.column_names)
         columns = {
             'playstore_review_id': str,

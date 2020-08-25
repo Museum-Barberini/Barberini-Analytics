@@ -1,3 +1,10 @@
+"""
+Provides tasks for downloading all Instagram-related data into the database.
+
+All data are fetched using the Facebook Graph API. The credentials are shared
+with the access token used in the facebook module. See documentation there.
+"""
+
 import datetime as dt
 import json
 import os
@@ -16,6 +23,8 @@ from facebook import API_BASE, try_request_multiple_times
 
 
 class IgToDb(luigi.WrapperTask):
+    """Download all Instagram-related data into the database."""
+
     def requires(self):
         yield IgPostsToDb()
         yield IgProfileMetricsDevelopmentToDb()
@@ -26,6 +35,8 @@ class IgToDb(luigi.WrapperTask):
 
 
 class IgPostPerformanceToDb(CsvToDb):
+    """Store all fetched performance values Instagram posts into the DB."""
+
     table = 'ig_post_performance'
 
     def requires(self):
@@ -34,6 +45,8 @@ class IgPostPerformanceToDb(CsvToDb):
 
 
 class IgPostsToDb(CsvToDb):
+    """Download all fetched Instagram posts into the database."""
+
     table = 'ig_post'
 
     def requires(self):
@@ -41,6 +54,8 @@ class IgPostsToDb(CsvToDb):
 
 
 class IgProfileMetricsDevelopmentToDb(CsvToDb):
+    """Store all fetched development values for profile metrics to the DB."""
+
     table = 'ig_profile_metrics_development'
 
     def requires(self):
@@ -49,6 +64,8 @@ class IgProfileMetricsDevelopmentToDb(CsvToDb):
 
 
 class IgTotalProfileMetricsToDb(CsvToDb):
+    """Store all fetched total profile metric values into the database."""
+
     table = 'ig_total_profile_metrics'
 
     def requires(self):
@@ -57,6 +74,8 @@ class IgTotalProfileMetricsToDb(CsvToDb):
 
 
 class IgAudienceCityToDb(CsvToDb):
+    """Store all fetched audience city values into the database."""
+
     table = 'ig_audience_city'
 
     def requires(self):
@@ -67,6 +86,8 @@ class IgAudienceCityToDb(CsvToDb):
 
 
 class IgAudienceCountryToDb(CsvToDb):
+    """Store all fetched audience country values into the database."""
+
     table = 'ig_audience_country'
 
     def requires(self):
@@ -77,6 +98,8 @@ class IgAudienceCountryToDb(CsvToDb):
 
 
 class IgAudienceGenderAgeToDb(CsvToDb):
+    """Store all fetched audience age values into the database."""
+
     table = 'ig_audience_gender_age'
 
     def requires(self):
@@ -87,6 +110,7 @@ class IgAudienceGenderAgeToDb(CsvToDb):
 
 
 class FetchIgPosts(DataPreparationTask):
+    """Request all instagram posts from the Facebook Graph API."""
 
     columns = {
         'id': str,
@@ -168,6 +192,8 @@ class FetchIgPosts(DataPreparationTask):
 
 
 class FetchIgPostPerformance(DataPreparationTask):
+    """Fetch performance values for all fetched Instagram posts."""
+
     columns = luigi.parameter.ListParameter(description="Column names")
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
@@ -259,6 +285,8 @@ class FetchIgPostPerformance(DataPreparationTask):
 
 
 class FetchIgProfileMetricsDevelopment(DataPreparationTask):
+    """Fetch development values for the Instagram profile metrics."""
+
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
@@ -309,6 +337,8 @@ class FetchIgProfileMetricsDevelopment(DataPreparationTask):
 
 
 class FetchIgTotalProfileMetrics(DataPreparationTask):
+    """Fetch total metrics of an Instagram profile."""
+
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
@@ -349,6 +379,8 @@ class FetchIgTotalProfileMetrics(DataPreparationTask):
 
 
 class FetchIgAudienceOrigin(DataPreparationTask):
+    """Fetch origin information about the Instagram audience."""
+
     columns = luigi.parameter.ListParameter(description="Column names")
     country_mode = luigi.parameter.BoolParameter(
         description="Whether to use countries instead of cities",
@@ -387,6 +419,8 @@ class FetchIgAudienceOrigin(DataPreparationTask):
 
 
 class FetchIgAudienceGenderAge(DataPreparationTask):
+    """Fetch gender/age information about the Instagram audience."""
+
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):

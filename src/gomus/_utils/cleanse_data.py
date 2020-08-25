@@ -9,7 +9,7 @@ from luigi.format import UTF8
 
 from _utils import DataPreparationTask, logger
 from .extract_customers import ExtractCustomerData
-from german_postal_codes import GermanPostalCodes
+from german_postal_codes import LoadGermanPostalCodes
 
 
 COUNTRY_TO_DATA = {
@@ -68,7 +68,7 @@ class CleansePostalCodes(DataPreparationTask):
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-]))'
 
     def requires(self):
-        yield GermanPostalCodes()
+        yield LoadGermanPostalCodes()
         yield ExtractCustomerData(
             columns=self.columns,
             today=self.today

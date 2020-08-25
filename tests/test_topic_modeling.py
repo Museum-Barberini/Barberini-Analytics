@@ -16,6 +16,7 @@ from topic_modeling import (
 
 
 class TestDoc(DatabaseTestCase):
+    """Tests the Doc class."""
 
     def test_guess_language(self):
 
@@ -51,6 +52,7 @@ class TestDoc(DatabaseTestCase):
 
 
 class TestCreateCorpus(DatabaseTestCase):
+    """Tests the TopicModelingCreateCorpus task."""
 
     @patch.object(TopicModelingCreateCorpus, 'output')
     def test_create_corpus(self, output_mock):
@@ -88,6 +90,7 @@ class TestCreateCorpus(DatabaseTestCase):
 
 
 class TestPreprocessing(DatabaseTestCase):
+    """Tests the TopicModelingPreprocessCorpus task."""
 
     @patch.object(TopicModelingPreprocessCorpus, 'input')
     @patch.object(TopicModelingPreprocessCorpus, 'output')
@@ -128,6 +131,7 @@ class TestPreprocessing(DatabaseTestCase):
 
 
 class TestFindTopics(DatabaseTestCase):
+    """Tests the TopicModelingFindTopics task."""
 
     @patch.object(TopicModelingFindTopics, 'output')
     @patch.object(TopicModelingPreprocessCorpus, 'output')

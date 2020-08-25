@@ -1,3 +1,5 @@
+"""Loads a list of hard-coded stop words and stores them into the database."""
+
 import luigi
 import luigi.format
 

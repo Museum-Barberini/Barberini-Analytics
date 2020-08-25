@@ -1,20 +1,6 @@
-from collections import defaultdict
-import logging
-import pickle
-
-from gsdmm import MovieGroupProcess
-import langdetect
-import luigi
-from luigi.format import UTF8
-from nltk.tokenize import word_tokenize
-import pandas as pd
-from stop_words import get_stop_words
-
-from _utils import CsvToDb, DataPreparationTask, StreamToLogger, logger
-from _posts import PostsToDb
-
-
 """
+Provides tasks for assigning semantic topics to each posts in the database.
+
 Flow of control
 --------------
 
@@ -44,8 +30,24 @@ the minimal runs.
 This only applies if the minimal run uses a fresh test database.
 """
 
+from collections import defaultdict
+import logging
+import pickle
+
+from gsdmm import MovieGroupProcess
+import langdetect
+import luigi
+from luigi.format import UTF8
+from nltk.tokenize import word_tokenize
+import pandas as pd
+from stop_words import get_stop_words
+
+from _utils import CsvToDb, DataPreparationTask, StreamToLogger, logger
+from _posts import PostsToDb
+
 
 class TopicModeling(luigi.WrapperTask):
+    """Run all topic modeling tasks."""
 
     def requires(self):
         yield TopicModelingTextsToDb()
@@ -54,10 +56,11 @@ class TopicModeling(luigi.WrapperTask):
 
 class TopicModelingTextsToDb(CsvToDb):
     """
-    The table topic_modeling.topic_text assigns one
-    topic to each text comment for each model
-    (if the text comment is withing the timespan
-    the model was constructed for).
+    Store all text comments associated to a topic into the database.
+
+    The table topic_modeling.topic_text assigns one topic to each text comment
+    for each model (if the text comment is withing the timespan the model was
+    constructed for).
     """
 
     table = 'topic_modeling.topic_text'
@@ -71,9 +74,10 @@ class TopicModelingTextsToDb(CsvToDb):
 
 class TopicModelingTopicsToDb(CsvToDb):
     """
-    The table topic_modeling.topic contains the
-    most frequent terms for each topic for each
-    model.
+    Store all identified topics into the database.
+
+    The table topic_modeling.topic contains the most frequent terms for each
+    topic and each model.
     """
 
     table = 'topic_modeling.topic'
@@ -87,11 +91,9 @@ class TopicModelingTopicsToDb(CsvToDb):
 
 class TopicModelingTopicsDf(DataPreparationTask):
     """
-    This task's main purpose is to provide a
-    single output target that can be used by
-    the downstream task TopicModelingTopicsToDb.
-    The task also deletes existing data to
-    ensure consistency.
+    Helper task to provide a single output target for the downstream task.
+
+    TODO: Suspicious. Do we need it?
     """
 
     def requires(self):
@@ -113,11 +115,9 @@ class TopicModelingTopicsDf(DataPreparationTask):
 
 class TopicModelingTextDf(DataPreparationTask):
     """
-    This task's only purpose is to provide a
-    single output target that can be used by
-    the downstream task TopicModelingTextsToDb.
-    The task also deletes existing data to
-    ensure consistency.
+    Helper task to provide a single output target for the downstream task.
+
+    TODO: Suspicious. Do we need it?
     """
 
     def requires(self):
@@ -140,6 +140,7 @@ class TopicModelingTextDf(DataPreparationTask):
 class TopicModelingFindTopics(DataPreparationTask):
     """
     Train a series of topic models and generate predictions.
+
     For each year we train one model. We use the model to
     generate predictions only for the posts in the year
     the model was trained for. There is also one model that
@@ -255,7 +256,8 @@ class TopicModelingFindTopics(DataPreparationTask):
 
 class TopicModelingPreprocessCorpus(DataPreparationTask):
     """
-    Preprocess a corpus of Doc instances with
+    Preprocess a corpus of Doc instances including several steps.
+
     - lowercasing
     - tokenization
     - removing single-character tokens and non-alphabetic tokens
@@ -335,12 +337,10 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
 
 class TopicModelingCreateCorpus(DataPreparationTask):
     """
-    Create a corpus of posts. The corpus is a collection
-    of Doc instances. The class Doc is defined below.
+    Create a corpus of posts, i.e. a collection of Docs.
 
-    The corpus consists of all posts from the view
-    post that were not authored by the museum and
-    where the text is not null.
+    The corpus consists of all non-empty posts from the post view that were
+    not authored by the museum.
     """
 
     def requires(self):
@@ -370,9 +370,9 @@ class TopicModelingCreateCorpus(DataPreparationTask):
 
 class Doc:
     """
-    This helper class represents individual text documents.
-    In our case a text document is a post on e.g. Facebook,
-    Twitter, Google Play, ...
+    Represents an individual text document.
+
+    In our case, a text document is a user post from a public platform.
     """
 
     def __init__(self, text, source=None, post_date=None,

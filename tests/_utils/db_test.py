@@ -26,7 +26,7 @@ logger.setLevel(logging.INFO)
 
 @contextmanager
 def enforce_luigi_notifications(format):
-
+    """Encorce sending luigi notification mails."""
     email = luigi.notifications.email()
     original = email.force_send, email.format
     luigi.notifications.email().format = format
@@ -37,18 +37,18 @@ def enforce_luigi_notifications(format):
 
 
 def check_env(name: str) -> bool:
-
+    """Check whether an environment value is set to an equivalent of True."""
     value = os.getenv(name, 'False')
     return distutils.util.strtobool(value) if value else False
 
 
 def _perform_query(query):
     """
-    Perform a meta query that cannot be processed via DbConnector on a
-    specific database. Meta queries include construction and deletion of
-    databases.
-    """
+    Perform a meta query that cannot be applied via DbConnector.
 
+    Meta queries include construction and deletion of databases. They must be
+    applied in the context of the postgres database.
+    """
     connection = psycopg2.connect(
         host=os.environ['POSTGRES_HOST'],
         user=os.environ['POSTGRES_USER'],
@@ -66,9 +66,7 @@ def _perform_query(query):
 
 
 class DatabaseTestProgram(suitable.PluggableTestProgram):
-    """
-    A custom test program that sends notifications in certain scenarios.
-    """
+    """A custom test program that sends notifications in certain scenarios."""
 
     def handleUnsuccessfulResult(self, result):  # noqa: N802
 
@@ -123,9 +121,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
 
 
 class DatabaseTestSuite(suitable.FixtureTestSuite):
-    """
-    A custom test suite that provides a database template for all tests.
-    """
+    """A custom test suite that provides a database template for all tests."""
 
     template_name = 'barberini_test_template'
 
@@ -136,11 +132,11 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
 
     def setup_database_template(self):
         """
-        Create an empty template database that will be used for testing.
-        Apply all migrations to ensure it has the latest schema.
-        See also DatabaseTestCase.setup_database().
-        """
+        Set up an empty template database that will be used for testing.
 
+        Creates the database instance and applies all migrations to ensure it
+        has the latest schema. See also DatabaseTestCase.setup_database().
+        """
         if 'POSTGRES_DB_TEMPLATE' in os.environ:
             logger.info("Reusing template database provided by caller")
             return
@@ -198,9 +194,10 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
 
 class DatabaseTestCase(unittest.TestCase):
     """
-    The base class of all test cases that make any access to the database or
-    luigi. Amongst others, this provides an isolated environment in terms of
-    database and luigi registry.
+    The base class of all test cases that access the database or luigi.
+
+    Amongst others, this provides an isolated environment in terms of
+    the database schema and the luigi registry.
     """
 
     def setUp(self):
@@ -212,11 +209,11 @@ class DatabaseTestCase(unittest.TestCase):
 
     def setup_database(self):
         """
-        Provide a throw-away database instance during the execution of the
-        test case. Database is created from the template which was prepared
+        Provide throw-away database during the execution of the test case.
+
+        The database instance is created from the template which was prepared
         in DatabaseTestSuite.setup_database_template().
         """
-
         # Generate "unique" database name
         outer_db = os.getenv('POSTGRES_DB')
         os.environ['POSTGRES_DB'] = self.str_id
@@ -237,9 +234,9 @@ class DatabaseTestCase(unittest.TestCase):
     def setup_luigi(self):
         """
         Clear luigi task cache to avoid reusing old task instances.
+
         For reference, see also luigi.test.helpers.LuigiTestCase.
         """
-
         _stashed_reg = luigi.task_register.Register._get_reg()
         luigi.task_register.Register.clear_instance_cache()
 
@@ -277,10 +274,7 @@ class DatabaseTestCase(unittest.TestCase):
         return mock_target
 
     def dump_mock_target_into_fs(self, mock_target):
-        """
-        We need to bypass MockFileSystem for accessing the file from node.js
-        """
-
+        """Bypass MockFileSystem for accessing the file from node.js."""
         with open(mock_target.path, 'w') as output_file:
             self.dirty_file_paths.append(mock_target.path)
             with mock_target.open('r') as input_file:
@@ -290,11 +284,11 @@ class DatabaseTestCase(unittest.TestCase):
     def run_task(task: luigi.Task):
         """
         Run the task and all its dependencies synchronously.
+
         This is probably some kind of reinvention of the wheel,
         but I don't know how to do this better.
         Note that this approach does not support dynamic dependencies.
         """
-
         all_tasks = Queue()
         all_tasks.put(task)
         requirements = []
@@ -314,11 +308,11 @@ class DatabaseTestCase(unittest.TestCase):
     def run_task_externally(task_class: luigi.task_register.Register):
         """
         Run the task and all its dependencies in an external process.
+
         In contrast to run_task(), this isolates the execution from all
         installed mocking stuff, coverage detection etc. Also, luigi's
         native scheduler is used.
         """
-
         sp.run(
             check=True,
             args=f'''make
