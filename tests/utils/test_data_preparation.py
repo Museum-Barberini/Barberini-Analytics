@@ -35,7 +35,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 0, 'z'
             )'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -72,7 +72,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b', 1)
             '''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -154,7 +154,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b')
             '''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -180,7 +180,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'''INSERT INTO {TABLE_NAME} VALUES (0, NULL)'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[2, 1], [4, 3], [1, 0]],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -252,7 +252,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 'a', 'A'
             )'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [
                     ['a', 'A'], ['a', 'b'], [None, 'A'], [None, 'B'],
