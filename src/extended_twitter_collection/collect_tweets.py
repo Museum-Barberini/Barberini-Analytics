@@ -12,7 +12,7 @@ import luigi
 from luigi.format import UTF8
 import twint
 
-from _utils import CsvToDb, DataPreparationTask, logger, utils
+from _utils import CsvToDb, DataPreparationTask, StreamToLogger, logger, utils
 from .keyword_intervals import KeywordIntervalsToDB
 
 
@@ -87,7 +87,8 @@ class CollectExtendedTwitterDataset(DataPreparationTask):
 
         with utils.set_log_level_temporarily(
                 logging.getLogger(), level=logging.WARNING):
-            twint.run.Search(c)
+            with StreamToLogger(log_level=logging.DEBUG).activate():
+                twint.run.Search(c)
 
         return pd.DataFrame([
             {
