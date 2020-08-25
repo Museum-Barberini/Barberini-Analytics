@@ -110,7 +110,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)''',
             f'''INSERT INTO {TABLE_NAME_FOREIGN_2} VALUES ('a')'''
         )
-        self.assertFilterFkeyViolations(
+        self.assert_filter_fkey_violations(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -208,7 +208,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)'
         )
-        self.denyEnsureForeignKeys(
+        self.deny_ensure_foreign_keys(
             df=pd.DataFrame([[0], [1]], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame(
                 [[0], [1]],
@@ -228,7 +228,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)'
         )
-        self.denyEnsureForeignKeys(
+        self.deny_ensure_foreign_keys(
             df=pd.DataFrame([], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame([], columns=[COLUMN_NAME])
         )
