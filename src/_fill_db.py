@@ -7,7 +7,7 @@ from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction.predict import PredictionsToDb
 from extended_twitter_collection.collect_tweets \
-    import ExtendedTwitterDatasetToDB
+    import TwitterExtendedDatasetToDB
 
 
 class FillDb(luigi.WrapperTask):
@@ -37,7 +37,7 @@ class FillDbDaily(luigi.WrapperTask):
         yield Diagnostics()
 
         # Extended Tweet Gathering
-        yield ExtendedTwitterDatasetToDB()
+        yield TwitterExtendedDatasetToDB()
 
 
 class FillDbHourly(luigi.WrapperTask):
