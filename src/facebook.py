@@ -282,6 +282,11 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 class FetchFbPostComments(FetchFbPostDetails):
     """Fetch all user comments to Facebook posts."""
 
+    def requires(self):
+
+        yield super().requires()
+        yield MuseumFacts()
+
     def output(self):
 
         return luigi.LocalTarget(
@@ -290,8 +295,11 @@ class FetchFbPostComments(FetchFbPostDetails):
 
     def run(self):
 
-        with self.input().open() as fb_post_file:
+        input_ = list(self.input())
+        with input_[0].open() as fb_post_file:
             df = pd.read_csv(fb_post_file)
+        with input_[1].open() as facts_file:
+            self.facts = json.load(facts_file)
         comments = []
 
         if self.minimal_mode:
@@ -421,8 +429,7 @@ class FetchFbPostComments(FetchFbPostDetails):
 
     def is_from_museum(self, comment_json):
 
-        return comment_json.get('from', {}) \
-           .get('name') == 'Museum Barberini'
+        return comment_json.get('from', {}).get('name') == self.facts['name']
 
 
 def try_request_multiple_times(url, **kwargs):
