@@ -57,6 +57,7 @@ class CollectExtendedTwitterDataset(DataPreparationTask):
         ))
 
         tweet_df = pd.concat(tweet_dfs)
+        tweet_df = tweet_df.drop_duplicates(subset=["term", "tweet_id"])
 
         with self.output().open('w') as output_file:
             tweet_df.to_csv(output_file, index=False, header=True)
