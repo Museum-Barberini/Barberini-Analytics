@@ -8,5 +8,5 @@ BEGIN;
 		post_date TIMESTAMP,
 		permalink TEXT,
 		PRIMARY KEY (term, tweet_id)
-	)
+	);
 COMMIT;
