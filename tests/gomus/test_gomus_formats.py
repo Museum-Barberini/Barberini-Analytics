@@ -23,7 +23,7 @@ class GomusFormatTest(DatabaseTestCase):
 
     def prepare_output_target(self, output_mock):
         self.output_target = MockTarget('data_out', format=UTF8)
-        output_mock.return_value = iter([self.output_target])
+        output_mock.return_value = [self.output_target]
 
     def fetch_gomus_report(self, suffix='_7days', sheet=[0]):
         self.run_task(FetchGomusReport(report=self.report,
