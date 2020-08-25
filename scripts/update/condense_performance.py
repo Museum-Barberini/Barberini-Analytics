@@ -3,6 +3,7 @@
 
 import pandas as pd
 from _utils import db_connector, logger
+from _utils.data_preparation import PerformanceValueCondenser
 
 CONNECTOR = db_connector()
 PERFORMANCE_TABLES = [
@@ -13,50 +14,13 @@ PERFORMANCE_TABLES = [
 TIMESTAMP_COLUMN = 'timestamp'
 
 
-# Utilities copied from DataPreparationTask.condense_performance_values
-# ------------------------------------------
-def get_key_columns(table):
-
-    primary_key_columns = CONNECTOR.query(
-        f'''
-        SELECT a.attname, format_type(a.atttypid, a.atttypmod)
-            AS data_type
-        FROM   pg_index i
-        JOIN   pg_attribute a ON a.attrelid = i.indrelid
-                            AND a.attnum = ANY(i.indkey)
-        WHERE  i.indrelid = '{table}'::regclass
-        AND    i.indisprimary
-        ''')
-    return [
-        row[0]
-        for row in primary_key_columns
-        if row[0] != TIMESTAMP_COLUMN]
-
-
-def get_performance_columns(table, key_columns):
-    """
-    This simply returns all columns except the key and timestamp columns of
-    the target table
-    """
-
-    db_columns = CONNECTOR.query(
-        f'''
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_name = \'{table}\'
-        ''')
-    return [
-        row[0]
-        for row in db_columns
-        if row[0] not in key_columns and row[0] != TIMESTAMP_COLUMN]
-# ------------------------------------------
-
-
-def main():
+def main():  # noqa: D103
 
     for table in PERFORMANCE_TABLES:
-        key_columns = get_key_columns(table)
-        performance_columns = get_performance_columns(table, key_columns)
+        condenser = PerformanceValueCondenser(CONNECTOR, table)
+
+        key_columns = condenser.get_key_columns()
+        performance_columns = condenser.get_performance_columns(key_columns)
         data, header = CONNECTOR.query_with_header(f'SELECT * FROM {table}')
         df = pd.DataFrame(data, columns=header)
 
