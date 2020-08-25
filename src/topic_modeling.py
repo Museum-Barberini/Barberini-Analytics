@@ -107,7 +107,7 @@ class TopicModelingTopicsDf(DataPreparationTask):
 
     def run(self):
 
-        with self.input().open('r') as topics_file:
+        with list(self.input())[0].open('r') as topics_file:
             data = pd.read_csv(topics_file)
         with self.output().open('w') as output_file:
             data.to_csv(output_file, index=True)
@@ -131,7 +131,7 @@ class TopicModelingTextDf(DataPreparationTask):
 
     def run(self):
 
-        with self.input().open('r') as text_file:
+        with list(self.input())[1].open('r') as text_file:
             data = pd.read_csv(text_file)
         with self.output().open('w') as output_file:
             data.to_csv(output_file, index=True)
