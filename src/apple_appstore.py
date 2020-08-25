@@ -1,4 +1,4 @@
-"""Provides tasks for downloading all Apple App store reviews about the app."""
+"""Provides tasks for downloading all Apple App Store reviews about the app."""
 
 import json
 
