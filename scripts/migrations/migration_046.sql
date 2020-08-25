@@ -10,6 +10,6 @@ BEGIN;
 		post_date TIMESTAMP,
 		permalink TEXT,
 		PRIMARY KEY (tweet_id)
-	)
+	);
 
 COMMIT;
