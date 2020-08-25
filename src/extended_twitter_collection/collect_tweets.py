@@ -155,8 +155,6 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
             for t in tweets
         ])
 
-        print(tweets_df)
-
         # insert space before links to match hashtags correctly
         if not tweets_df.empty:
             tweets_df["text"] = tweets_df["text"]\
