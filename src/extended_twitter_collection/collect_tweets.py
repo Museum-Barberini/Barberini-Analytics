@@ -5,6 +5,7 @@ import datetime as dt
 import twint
 import sys
 import os
+import csv
 
 from _utils import DataPreparationTask, CsvToDb
 from extended_twitter_collection.keyword_intervals import KeywordIntervalsToDB
@@ -25,7 +26,7 @@ class TwitterExtendedDataset(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f"{self.output_dir}/twitter/extended_dataset",
+            f"{self.output_dir}/twitter/extended_dataset.csv",
             format=UTF8
         )
     
@@ -36,7 +37,7 @@ class TwitterExtendedDataset(DataPreparationTask):
 
         # apply thresholds
         extended_dataset = self.db_connector.query(f"""
-            SELECT user_id, tweet_id, text, response_to, post_date, permalink
+            SELECT user_id, tweet_id::text, text, response_to, post_date, permalink
             FROM
             -- keyword-intervals enriched with interval-based R value
             (
@@ -50,8 +51,7 @@ class TwitterExtendedDataset(DataPreparationTask):
                 -- only consider keyword-intervals with an R value below 50
                 WHERE R_interval <= {r_thresh}
             ) AS ki_r
-            -- remove limit 50000
-            INNER JOIN (select * from twitter_extended_candidates limit 50000) as ec
+            INNER JOIN twitter_extended_candidates ec
             ON
                 -- match tweets to intervals based on the post date
                 ec.post_date between ki_r.start_date and ki_r.end_date
@@ -62,11 +62,12 @@ class TwitterExtendedDataset(DataPreparationTask):
             -- Only keep top-ranked tweets
             HAVING sum(1 / r_interval) >= {ranking_thresh} 
         """)
-       
-        extended_dataset = pd.DataFrame(extended_dataset, columns=["user_id", "tweet_id", "text", "response_to", "post_date", "permalink"])
+
+        extended_dataset = pd.DataFrame(extended_dataset, columns=["user_id", "tweet_id", "text", "response_to", "post_date", "permalink"], dtype=str)
+        extended_dataset = extended_dataset.drop_duplicates(subset=["tweet_id"])
 
         with self.output().open("w") as output_file:
-            extended_datset.write_csv(output_file, index=False)
+            extended_dataset.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 class TwitterCandidateTweetsToDB(CsvToDb):
 
