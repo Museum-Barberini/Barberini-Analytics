@@ -132,7 +132,6 @@ class KeywordIntervals(DataPreparationTask):
 class TermCounts(DataPreparationTask):
 
     def requires(self):
-
         return TweetsToDb()
 
     def run(self):
