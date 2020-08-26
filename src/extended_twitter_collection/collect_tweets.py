@@ -37,8 +37,8 @@ class TwitterExtendedDataset(DataPreparationTask):
 
         # apply thresholds
         extended_dataset = self.db_connector.query(f"""
-            SELECT user_id, tweet_id::text, text,
-                   response_to, post_date, permalink
+            SELECT user_id, tweet_id::text, text, response_to, 
+                   post_date, permalink, likes, retweets, replies
             FROM
             -- keyword-intervals enriched with interval-based R value
             (
@@ -69,7 +69,8 @@ class TwitterExtendedDataset(DataPreparationTask):
                 -- tweet should contain the term as a whole word
                 ec.text ~* ('\m' || ki_r.term || '\M')
             GROUP BY user_id, tweet_id, text,
-                     response_to, post_date, permalink
+                     response_to, post_date, permalink,
+                     likes, retweets, replies
             -- Only keep top-ranked tweets
             HAVING sum(1 / r_interval) >= {ranking_thresh}
         """)
@@ -77,7 +78,8 @@ class TwitterExtendedDataset(DataPreparationTask):
         extended_dataset = pd.DataFrame(
             extended_dataset, columns=[
                 "user_id", "tweet_id", "text",
-                "response_to", "post_date", "permalink"
+                "response_to", "post_date", "permalink",
+                "likes", "retweets", "replies"
             ], dtype=str)
         extended_dataset = extended_dataset.drop_duplicates(
                 subset=["tweet_id"])
@@ -168,7 +170,10 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
                 "text": t.tweet,
                 "response_to": "",
                 "post_date": t.datestamp,
-                "permalink": t.link
+                "permalink": t.link,
+                "likes": t.likes_count,
+                "retweets": t.retweets_count,
+                "replies": t.replies_count
             }
             for t in tweets
         ])
