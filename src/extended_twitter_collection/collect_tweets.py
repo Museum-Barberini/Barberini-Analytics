@@ -37,7 +37,7 @@ class TwitterExtendedDataset(DataPreparationTask):
 
         # apply thresholds
         extended_dataset = self.db_connector.query(f"""
-            SELECT user_id, tweet_id::text, text, response_to, 
+            SELECT user_id, tweet_id::text, text, response_to,
                    post_date, permalink, likes, retweets, replies
             FROM
             -- keyword-intervals enriched with interval-based R value
