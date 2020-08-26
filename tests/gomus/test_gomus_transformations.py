@@ -1,3 +1,5 @@
+"""Tests transformations of downloaded gomus stuff."""
+
 import datetime as dt
 from unittest.mock import patch
 
@@ -19,6 +21,7 @@ from gomus._utils.fetch_report import FetchEventReservations
 
 
 class GomusTransformationTest(DatabaseTestCase):
+    """The abstract base class for gomus transformation tests."""
 
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,6 +77,7 @@ class GomusTransformationTest(DatabaseTestCase):
 
 
 class TestCustomerTransformation(GomusTransformationTest):
+    """Tests the ExtractCustomerData task."""
 
     def __init__(self, *args, **kwargs):
         super().__init__([
@@ -202,8 +206,13 @@ BOOKING_COLUMNS = [
 ]
 
 
-# This tests only ExtractGomusBookings, the scraper should be tested elsewhere
 class TestBookingTransformation(GomusTransformationTest):
+    """
+    Tests the ExtractGomusBookings task.
+
+    NOTE: This tests only ExtractGomusBookings, the scraper should be tested
+    elsewhere.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -243,6 +252,7 @@ class TestBookingTransformation(GomusTransformationTest):
 
 
 class TestDailyEntryTransformation(GomusTransformationTest):
+    """Tests the ExtractDailyEntryData task."""
 
     def __init__(self, *args, **kwargs):
         super().__init__([
@@ -319,6 +329,7 @@ class TestDailyEntryTransformation(GomusTransformationTest):
 
 
 class TestEventTransformation(GomusTransformationTest):
+    """Tests the ExtractEventData task."""
 
     def __init__(self, *args, **kwargs):
         super().__init__([

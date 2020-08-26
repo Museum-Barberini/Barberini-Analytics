@@ -1,6 +1,8 @@
 """
-suitable is a generic extension of unittest. It provides hooks to specify a
-custom TestSuite which implements testUpSuite() and tearDownSuite().
+suitable is a generic extension of unittest.
+
+It provides hooks to specify a custom TestSuite which implements testUpSuite()
+and tearDownSuite().
 """
 from contextlib import contextmanager
 import unittest
@@ -9,8 +11,9 @@ import sys
 
 class PluggableTestProgram(unittest.TestProgram):
     """
-    A command-line TestProgram that can be configured with a custom TestSuite
-    class and hooks for handling the test result. All existing tests will be
+    A TestProgram that can be configured with custom TestSuite and hooks.
+
+    Provides hooks for handling the test result. All existing tests will be
     wrapped into an instance of self.testSuiteClass.
     """
 
@@ -21,9 +24,7 @@ class PluggableTestProgram(unittest.TestProgram):
     testSuiteClass = unittest.TestSuite
 
     def handleUnsuccessfulResult(self, result):
-        """
-        Hook method for handling an unsuccessful test result.
-        """
+        """Hook method for handling an unsuccessful test result."""
 
     def handleResult(self, result):
         if not result.wasSuccessful():
@@ -39,8 +40,10 @@ class PluggableTestProgram(unittest.TestProgram):
     @contextmanager
     def _basicRunTests(self):
         """
-        Run tests like super does. Meanwhile, disable exit to ensure further
-        operations can be executed after the tests have failed.
+        Disable exit while running the tests.
+
+        This is necessary to ensure further operations can be executed after
+        the tests have failed.
         """
         _exit = self.exit
         self.exit = False
@@ -53,10 +56,7 @@ class PluggableTestProgram(unittest.TestProgram):
 
 
 class FixtureTestSuite(unittest.TestSuite):
-    """
-    A TestSuite that can be configured with setUpSuite() and tearDownSuite()
-    methods in order to manage suite-wide fixtures.
-    """
+    """A TestSuite that can be configured  to manage suite-wide fixtures."""
 
     def __init__(self, tests):
         super().__init__(tests)
@@ -64,11 +64,11 @@ class FixtureTestSuite(unittest.TestSuite):
 
     def addCleanup(self, function, *args, **kwargs):
         """
-        Add a function, with arguments, to be called when the test suite is
-        completed. Functions added are called on a LIFO basis and are called
-        after tearDownSuite on test failure or success.
+        Add a function call to be executed when the test suite is completed.
 
-        Cleanup items are called even if setUp fails (unlike tearDown).
+        The functions calls are executed on a LIFO basis after tearDownSuite()
+        on test failure or success. Cleanup items are called even if setUp()
+        fails (unlike tearDown).
         """
         self._cleanups.append((function, args, kwargs))
 
@@ -88,25 +88,17 @@ class FixtureTestSuite(unittest.TestSuite):
             self.doCleanups()
 
     def setUpSuite(self) -> None:
-        """
-        Hook method for setting up suite fixture before running tests in the
-        suite.
-        """
+        """Hook method for setting up fixtures before running the tests."""
         pass
 
     def tearDownSuite(self) -> None:
-        """
-        Hook method for deconstructing the suite fixture after running all
-        tests in the suite.
-        """
+        """Hook method for deconstructing fixtures after running all tests."""
         pass
 
 
 def _main(
         testSuiteClass=FixtureTestSuite,
         testProgramClass=PluggableTestProgram):
-    """
-    Main entry point of the suitable module to run the tests.
-    """
+    """Provide a main entry point of the suitable module to run the tests."""
     unittest.__unittest = True
     testProgramClass(module=None, testSuiteClass=testSuiteClass)

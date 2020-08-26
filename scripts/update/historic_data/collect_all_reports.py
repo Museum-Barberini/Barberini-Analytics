@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
+"""
+Script to collect very all Gomus reports.
+
+-Customers-
+  some reports need to be adjusted manually (misplaced columns)
+  -> make sure you got all reports that require fixing
+-Orders-
+  run customers before orders
+  comment out: _required Customer-Tasks in ExtractOrderData
+"""
 
 import datetime as dt
 import sys
 
 from historic_data_helper import prepare_task, run_luigi_task, rename_output
 
-# -Customers-
-#   some reports need to be adjusted manually (misplaced columns)
-#   -> make sure you got all reports that require fixing
-# -Orders-
-#   run customers before orders
-#   comment out: _required Customer-Tasks in ExtractOrderData
-
-# run 'make connect' first
 
 prepare_task()
 
@@ -23,7 +25,7 @@ today = dt.date.today()
 first_date = dt.date(2016, 1, 1)
 
 delta = today - first_date
-weeks = delta.days//7
+weeks = delta.days // 7
 print(weeks)
 
 # weeks contains the number of weeks that have passed until today

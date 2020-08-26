@@ -1,3 +1,5 @@
+"""Provides tasks for downloading all posts and associated information."""
+
 import luigi
 
 from apple_appstore import AppstoreReviewsToDb
@@ -9,6 +11,7 @@ from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
 
 
 class PostsToDb(luigi.WrapperTask):
+    """Download posts from all supported platforms."""
 
     fetch_performance = luigi.BoolParameter(
         description="If enabled, performance data will be also fetched now.",
@@ -31,6 +34,7 @@ class PostsToDb(luigi.WrapperTask):
 
 
 class PostPerformanceToDb(luigi.WrapperTask):
+    """Download performance data about posts from all supported platforms."""
 
     def requires(self):
         yield FbPostPerformanceToDb()

@@ -1,3 +1,5 @@
+"""Provides tasks for downloading tweets related to the museum."""
+
 import datetime as dt
 from pytz import utc
 
@@ -11,6 +13,7 @@ from _utils import CsvToDb, DataPreparationTask, MuseumFacts
 
 
 class TweetsToDb(CsvToDb):
+    """Store extracted tweets about the museum into the database."""
 
     table = 'tweet'
 
@@ -19,6 +22,7 @@ class TweetsToDb(CsvToDb):
 
 
 class TweetPerformanceToDb(CsvToDb):
+    """Store extracted tweet performance values into the database."""
 
     table = 'tweet_performance'
 
@@ -27,6 +31,7 @@ class TweetPerformanceToDb(CsvToDb):
 
 
 class TweetAuthorsToDb(CsvToDb):
+    """Store hard-coded tweet authors into the database."""
 
     table = 'tweet_author'
 
@@ -35,6 +40,7 @@ class TweetAuthorsToDb(CsvToDb):
 
 
 class ExtractTweets(DataPreparationTask):
+    """Extract tweets downloaded from Twitter."""
 
     def requires(self):
         yield MuseumFacts()
@@ -71,6 +77,7 @@ class ExtractTweets(DataPreparationTask):
 
 
 class ExtractTweetPerformance(DataPreparationTask):
+    """Extract performance values from the fetched tweets."""
 
     def _requires(self):
         return luigi.task.flatten([
@@ -103,6 +110,7 @@ class ExtractTweetPerformance(DataPreparationTask):
 
 
 class FetchTwitter(DataPreparationTask):
+    """Fetch tweets related to the museum using the twitterscraper."""
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
@@ -149,6 +157,7 @@ class FetchTwitter(DataPreparationTask):
 
 
 class LoadTweetAuthors(DataPreparationTask):
+    """Load information about hard-coded tweet authors."""
 
     def output(self):
         return luigi.LocalTarget("data/tweet_authors.csv", format=UTF8)

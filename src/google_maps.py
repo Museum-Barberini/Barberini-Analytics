@@ -1,3 +1,5 @@
+"""Provides tasks for downloading Google Maps reviews into the database."""
+
 import json
 import sys
 
@@ -11,6 +13,7 @@ from _utils import CsvToDb, DataPreparationTask, logger
 
 
 class GoogleMapsReviewsToDb(CsvToDb):
+    """Stored fetched Google Maps reviews into the database."""
 
     table = 'google_maps_review'
 
@@ -20,6 +23,11 @@ class GoogleMapsReviewsToDb(CsvToDb):
 
 
 class FetchGoogleMapsReviews(DataPreparationTask):
+    """
+    Fetch reviews about the museum from Google Maps.
+
+    Data are fetched using the Google My Business API.
+    """
 
     # secret_files is a folder mounted from
     # /etc/barberini-analytics/secrets via docker-compose
@@ -76,10 +84,11 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
     def load_credentials(self) -> oauth2client.client.Credentials:
         """
+        Load credentials for accessing the Google My Business API from disk.
+
         Uses OAuth2 to authenticate with Google, also caches credentials.
         Requires no login action when a valid cache is present.
         """
-
         storage = Storage(self.token_cache)
         credentials = storage.get()
 
@@ -115,11 +124,12 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
     def fetch_raw_reviews(self, service, page_size=100):
         """
+        Fetch raw reviews from the Google My Business API.
+
         The GMB API is based on resources that contain other resources.
         An authenticated user has account(s), an accounts contains locations,
         and a location contains reviews (which we need to request one by one).
         """
-
         # get account identifier
         account_list = service.accounts().list().execute()
         # in almost all cases one only has access to one account

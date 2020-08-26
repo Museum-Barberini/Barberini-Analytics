@@ -1,3 +1,13 @@
+"""
+Provides tasks for integrating phrase polarity datasets into the database.
+
+A phrase polarity dataset specifies polarity values indicating the sentiment
+of a certain phrase. For example, the phrase "toll" (ger.: "great") will
+probably be tagged with a high polarity value near +1.0. On the opposite side,
+the phrase "leider" (ger.: "I'm afraid", "what a pity") will rather be tagged
+with a low polarity value near -1.0.
+"""
+
 from io import BytesIO, TextIOWrapper
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -12,6 +22,7 @@ from _utils import CsvToDb, DataPreparationTask
 
 
 class PhrasePolaritiesToDb(luigi.WrapperTask):
+    """Run all phrase polarity tasks for different datasets."""
 
     def requires(self):
 
@@ -20,6 +31,7 @@ class PhrasePolaritiesToDb(luigi.WrapperTask):
 
 
 class SentiWsToDb(CsvToDb):
+    """Store the SentiWS dataset for phrase polarities into the database."""
 
     table = 'absa.phrase_polarity_sentiws'
 
@@ -29,6 +41,7 @@ class SentiWsToDb(CsvToDb):
 
 
 class SeplToDb(CsvToDb):
+    """Store the SePL dataset for phrase polarities into the database."""
 
     table = 'absa.phrase_polarity_sepl'
 
@@ -38,6 +51,12 @@ class SeplToDb(CsvToDb):
 
 
 class FetchSentiWs(DataPreparationTask):
+    """
+    Download and process the SentiWS dataset for phrase polarities.
+
+    Processing includes unzipping the download file and parsing the
+    proprietary file format.
+    """
 
     url = luigi.Parameter(
         'http://pcai056.informatik.uni-leipzig.de/downloads/etc/'
@@ -103,7 +122,10 @@ class FetchSentiWs(DataPreparationTask):
 
 class FetchSepl(DataPreparationTask):
     """
-    Sentiment Phrase List. URL: http://www.opinion-mining.org
+    Loads the Sentiment Phrase List.
+
+    Needs to be provided in the secret_files folder first.
+    Access can be requested via: http://www.opinion-mining.org.
     """
 
     def input(self):

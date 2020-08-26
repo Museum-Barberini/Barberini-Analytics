@@ -13,6 +13,7 @@ IG_TEST_DATA = 'tests/test_data/instagram'
 
 
 class TestInstagram(DatabaseTestCase):
+    """Tests the instagram module."""
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')

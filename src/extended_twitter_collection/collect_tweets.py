@@ -1,12 +1,19 @@
+"""
+Extended twitter collection.
+
+TODO: Refine docstrings!
+"""
+
+import csv
+import datetime as dt
+
 import pandas as pd
 import luigi
 from luigi.format import UTF8
-import datetime as dt
 import twint
-import csv
 
-from _utils import DataPreparationTask, CsvToDb
-from extended_twitter_collection.keyword_intervals import KeywordIntervalsToDB
+from _utils import CsvToDb, DataPreparationTask, logger
+from .keyword_intervals import KeywordIntervalsToDB
 
 
 class TwitterExtendedDatasetToDB(CsvToDb):
@@ -83,7 +90,7 @@ class TwitterExtendedDataset(DataPreparationTask):
                 "likes", "retweets", "replies"
             ], dtype=str)
         extended_dataset = extended_dataset.drop_duplicates(
-                subset=["tweet_id"])
+            subset=["tweet_id"])
 
         # Output results. Use restrictive quoting to
         # make database import less error prone.
@@ -124,13 +131,15 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
             FROM twitter_keyword_intervals
             WHERE end_date >= CURRENT_DATE
         """)
+
         seven_days_ago = (
             dt.datetime.today() - dt.timedelta(days=7)
         ).strftime("%Y-%m-%d")
 
         # fetch the tweets
         tweet_dfs = []  # list of dataframes
-        for term, count in active_intervals:
+        for term, count in self.tqdm(
+                active_intervals, desc="Extending tweet collection"):
             tweet_dfs.append(self.fetch_tweets(
                 query=term,
                 start_date=seven_days_ago,
@@ -138,6 +147,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
             ))
 
         # always query 'museumbarberini'
+        # TODO: Don't hardcode this.
         tweet_dfs.append(self.fetch_tweets(
             query="museumbarberini",
             start_date=seven_days_ago,
@@ -146,20 +156,17 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
 
         # create dataframe with all the fetched tweets
         tweet_df = pd.concat(tweet_dfs)
-        tweet_df = tweet_df.drop_duplicates(subset=["term", "tweet_id"])
+        tweet_df = tweet_df.drop_duplicates(subset=['term', 'tweet_id'])
 
         with self.output().open('w') as output_file:
             tweet_df.to_csv(output_file, index=False, header=True)
 
     def fetch_tweets(self, query, start_date, limit):
-        """
-        All searches are limited to German tweets (twitter lang code de)
-        """
-
-        # display progress
-        print(f"Querying Tweets. term \"{query}\", "
-              f"limit: {limit}, start_date: {start_date}",
-              end="\r")
+        """All searches are limited to German tweets (twitter lang code de)."""
+        logger.debug(
+            f"Querying Tweets. term \"{query}\", "
+            f"limit: {limit}, start_date: {start_date}"
+        )
 
         tweets = []  # tweets go in this list
 

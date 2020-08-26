@@ -1,3 +1,5 @@
+"""Provides tasks for downloading the daily entries from Gomus into the DB."""
+
 import datetime as dt
 
 import luigi
@@ -10,6 +12,8 @@ from gomus._utils.fetch_report import FetchGomusReport
 
 
 class DailyEntriesToDb(CsvToDb):
+    """Store the fetched daily entry numbers into the database."""
+
     table = 'gomus_daily_entry'
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -22,6 +26,8 @@ class DailyEntriesToDb(CsvToDb):
 
 
 class ExpectedDailyEntriesToDb(CsvToDb):
+    """Store the expected daily entries into the database."""
+
     table = 'gomus_expected_daily_entry'
 
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -34,6 +40,8 @@ class ExpectedDailyEntriesToDb(CsvToDb):
 
 
 class ExtractDailyEntryData(DataPreparationTask):
+    """Extract daily entry data from the gomus web interface."""
+
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
     expected = luigi.parameter.BoolParameter(
         description="Whether to return actual or expected entries")

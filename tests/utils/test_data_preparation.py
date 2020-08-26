@@ -16,6 +16,7 @@ COLUMN_NAME_FOREIGN_2 = 'test_column_foreign_2'
 
 
 class TestDataPreparationTask(DatabaseTestCase):
+    """Tests the DataPreparationTask class."""
 
     def test_filter_fkey_violations_one_column(self):
 
@@ -34,7 +35,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 0, 'z'
             )'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -71,7 +72,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b', 1)
             '''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -109,7 +110,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)''',
             f'''INSERT INTO {TABLE_NAME_FOREIGN_2} VALUES ('a')'''
         )
-        self.assertFilterFkeyViolations(
+        self.assert_filter_fkey_violations(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -153,7 +154,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b')
             '''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -179,7 +180,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'''INSERT INTO {TABLE_NAME} VALUES (0, NULL)'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[2, 1], [4, 3], [1, 0]],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -207,7 +208,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)'
         )
-        self.denyEnsureForeignKeys(
+        self.deny_ensure_foreign_keys(
             df=pd.DataFrame([[0], [1]], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame(
                 [[0], [1]],
@@ -227,7 +228,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)'
         )
-        self.denyEnsureForeignKeys(
+        self.deny_ensure_foreign_keys(
             df=pd.DataFrame([], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame([], columns=[COLUMN_NAME])
         )
@@ -251,7 +252,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 'a', 'A'
             )'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [
                     ['a', 'A'], ['a', 'b'], [None, 'A'], [None, 'B'],
@@ -297,7 +298,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
             )
 
-    def assertFilterFkeyViolations(
+    def assert_filter_fkey_violations(
             self, df, expected_valid, expected_foreign_keys):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
@@ -316,7 +317,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             handle_invalid_values.call_count)
         self.assertCountEqual(expected_foreign_keys, actual_foreign_keys)
 
-    def assertFilterFkeyViolationsOnce(
+    def assert_filter_fkey_violations_once(
             self, df, expected_valid, expected_invalid, expected_foreign_key):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
@@ -331,7 +332,7 @@ class TestDataPreparationTask(DatabaseTestCase):
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_called_once()
 
-    def denyEnsureForeignKeys(self, df, expected_valid):
+    def deny_ensure_foreign_keys(self, df, expected_valid):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
         handle_invalid_values = MagicMock()

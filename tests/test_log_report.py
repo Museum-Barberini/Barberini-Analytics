@@ -8,6 +8,7 @@ from diagnostics.log_report import SendLogReport
 
 
 class TestLogReport(DatabaseTestCase):
+    """Test the diagnostics.log_report module."""
 
     @patch('diagnostics.log_report.send_error_email')
     def test_empty(self, mock_email):

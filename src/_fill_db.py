@@ -1,8 +1,11 @@
+"""Provides a high-level organization of all data pipeline tasks."""
+
 import luigi
 
 from _posts import PostsToDb, PostPerformanceToDb
 from absa import AspectBasedSentimentAnalysis
 from diagnostics import Diagnostics
+from extended_twitter_collection import ExtendedTwitterDatasetToDB
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction.predict import PredictionsToDb
@@ -11,6 +14,7 @@ from extended_twitter_collection.collect_tweets \
 
 
 class FillDb(luigi.WrapperTask):
+    """The proto-root of the complete data pipeline."""
 
     def requires(self):
 
@@ -19,6 +23,7 @@ class FillDb(luigi.WrapperTask):
 
 
 class FillDbDaily(luigi.WrapperTask):
+    """Runs all tasks that are relevant for the daily pipeline execution."""
 
     def requires(self):
 
@@ -41,6 +46,7 @@ class FillDbDaily(luigi.WrapperTask):
 
 
 class FillDbHourly(luigi.WrapperTask):
+    """Runs all tasks that are relevant for the hourly pipeline execution."""
 
     def requires(self):
 

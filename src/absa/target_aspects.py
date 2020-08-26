@@ -1,3 +1,9 @@
+"""
+Provides tasks to load predefined aspects and associated words into the DB.
+
+TODO: We could also respect exhibitions table here.
+"""
+
 from ast import literal_eval
 
 import json
@@ -6,8 +12,6 @@ import pandas as pd
 from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask, JsoncToJson
-
-# TODO: Respect exhibitions table here?
 
 
 class TargetAspectsToDb(luigi.WrapperTask):

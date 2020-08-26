@@ -15,6 +15,7 @@ FB_TEST_DATA = 'tests/test_data/facebook'
 
 
 class TestFacebookPost(DatabaseTestCase):
+    """Tests the FetchFbPosts task."""
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPosts, 'output')
@@ -109,6 +110,7 @@ class TestFacebookPost(DatabaseTestCase):
 
 
 class TestFacebookPostPerformance(DatabaseTestCase):
+    """Tests the FetchFbPostPerformance task."""
 
     def prepare_post_performance_mocks(
             self,
@@ -210,7 +212,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
 
     @patch('facebook.requests.get')
     @patch.object(facebook.FetchFbPostComments, 'output')
-    @patch.object(facebook.FetchFbPostComments, 'input')
+    @patch.object(facebook.FetchFbPosts, 'output')
     def test_post_comments_transformation(
             self, input_mock, output_mock, requests_get_mock):
 
@@ -224,7 +226,7 @@ class TestFacebookPostPerformance(DatabaseTestCase):
         self.task = facebook.FetchFbPostComments(
             timespan=dt.timedelta(days=100000),
             table='fb_post_comments')
-        self.task.run()
+        self.run_task(self.task)
 
         self.compare_post_performance_mocks(
             output_target,
