@@ -157,8 +157,6 @@ class TermCounts(DataPreparationTask):
             .str.replace("https", " https", regex=False)\
             .str.replace("http", " http", regex=False)
 
-        initial_dataset.to_csv("initial_dataset.csv")
-
         # extract hashtags
         hashtags = []
         for text in initial_dataset["text"].tolist():
