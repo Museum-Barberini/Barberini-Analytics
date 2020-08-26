@@ -21,6 +21,10 @@ class TwitterExtendedDatasetToDB(CsvToDb):
 
 class TwitterExtendedDataset(DataPreparationTask):
 
+    # Define thresholds for filtering algorithm.
+    r_thresh = luigi.IntParameter(default=50)
+    ranking_thresh = luigi.FloatParameter(default=0.8)
+
     def requires(self):
         return TwitterCandidateTweetsToDB()
 
@@ -32,10 +36,7 @@ class TwitterExtendedDataset(DataPreparationTask):
 
     def run(self):
 
-        r_thresh = 50
-        ranking_thresh = 0.8
-
-        # apply thresholds
+        # Apply filtering based on thresholds
         extended_dataset = self.db_connector.query(f"""
             SELECT user_id, tweet_id::text, text, response_to,
                    post_date, permalink, likes, retweets, replies
@@ -58,8 +59,9 @@ class TwitterExtendedDataset(DataPreparationTask):
                     GROUP BY ki.term, ki.start_date,
                              ki.end_date, ki.count_interval
                 ) as temp
-                -- only consider keyword-intervals with an R value below 50
-                WHERE R_interval <= {r_thresh}
+                -- only consider keyword-intervals with
+                -- an R value below the threshold
+                WHERE R_interval <= {self.r_thresh}
             ) AS ki_r
             INNER JOIN twitter_extended_candidates ec
             ON
@@ -72,9 +74,10 @@ class TwitterExtendedDataset(DataPreparationTask):
                      response_to, post_date, permalink,
                      likes, retweets, replies
             -- Only keep top-ranked tweets
-            HAVING sum(1 / r_interval) >= {ranking_thresh}
+            HAVING sum(1 / r_interval) >= {self.ranking_thresh}
         """)
 
+        # create a dataframe from the filtering results
         extended_dataset = pd.DataFrame(
             extended_dataset, columns=[
                 "user_id", "tweet_id", "text",
@@ -84,6 +87,8 @@ class TwitterExtendedDataset(DataPreparationTask):
         extended_dataset = extended_dataset.drop_duplicates(
                 subset=["tweet_id"])
 
+        # Output results. Use restrictive quoting to
+        # make database import less error prone.
         with self.output().open("w") as output_file:
             extended_dataset.to_csv(
                 output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
@@ -99,6 +104,10 @@ class TwitterCandidateTweetsToDB(CsvToDb):
 
 class TwitterCollectCandidateTweets(DataPreparationTask):
 
+    # only fetch the first count * collection_r_limit tweets
+    # for a given keyword-interval
+    collection_r_limit = luigi.IntParameter(default=50)
+
     def requires(self):
         return KeywordIntervalsToDB()
 
@@ -110,31 +119,34 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
 
     def run(self):
 
+        # We will fetch all tweets from the last 7 days
+        # for the keywords that have active intervals 
         active_intervals = self.db_connector.query("""
             SELECT term, count_interval
             FROM twitter_keyword_intervals
             WHERE end_date >= CURRENT_DATE
         """)
-
         seven_days_ago = (
             dt.datetime.today() - dt.timedelta(days=7)
         ).strftime("%Y-%m-%d")
 
-        tweet_dfs = []
+        # fetch the tweets
+        tweet_dfs = []  # list of dataframes
         for term, count in active_intervals:
             tweet_dfs.append(self.fetch_tweets(
                 query=term,
                 start_date=seven_days_ago,
-                limit=count * 50
+                limit=count * self.collection_r_limit
             ))
 
         # always query 'museumbarberini'
         tweet_dfs.append(self.fetch_tweets(
             query="museumbarberini",
             start_date=seven_days_ago,
-            limit=2000
+            limit=10000
         ))
 
+        # create dataframe with all the fetched tweets
         tweet_df = pd.concat(tweet_dfs)
         tweet_df = tweet_df.drop_duplicates(subset=["term", "tweet_id"])
 
@@ -146,22 +158,27 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         All searches are limited to German tweets (twitter lang code de)
         """
 
-        print(f"Querying Tweets. term \"{query}\" "
-              f"limit: {limit}, start_date: {start_date}")
+        # display progress
+        print(f"Querying Tweets. term \"{query}\", "
+              f"limit: {limit}, start_date: {start_date}",
+              end="\r")
+
         tweets = []  # tweets go in this list
 
+        # set config options for twint
         c = twint.Config()
         c.Limit = limit
         c.Search = query
         c.Store_object = True
         c.Since = f"{start_date} 00:00:00"
         c.Lang = "de"
+        c.Hide_output = True
         c.Store_object_tweets_list = tweets
 
-        # suppress twint output
-        with HiddenPrints():
-            twint.run.Search(c)
+        # execute the twitter search
+        twint.run.Search(c)
 
+        # create dataframe from search results
         tweets_df = pd.DataFrame([
             {
                 "term": query,
@@ -186,13 +203,3 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
                 .str.replace("http", " http", regex=False)
 
         return tweets_df
-
-
-class HiddenPrints:
-    def __enter__(self):
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
