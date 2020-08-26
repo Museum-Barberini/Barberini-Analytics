@@ -3,8 +3,6 @@ import luigi
 from luigi.format import UTF8
 import datetime as dt
 import twint
-import sys
-import os
 import csv
 
 from _utils import DataPreparationTask, CsvToDb
@@ -120,7 +118,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
     def run(self):
 
         # We will fetch all tweets from the last 7 days
-        # for the keywords that have active intervals 
+        # for the keywords that have active intervals.
         active_intervals = self.db_connector.query("""
             SELECT term, count_interval
             FROM twitter_keyword_intervals

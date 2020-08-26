@@ -111,7 +111,7 @@ class KeywordIntervals(DataPreparationTask):
         # keyword intervals are post_date +/- offset
         offset_dt = dt.timedelta(days=self.offset)
 
-        # calculate the non-overlapping keyword intervals 
+        # calculate the non-overlapping keyword intervals
         # for the given term using the provided offset
         intervals = []
         cur_start = post_dates.iloc[0]
@@ -171,7 +171,7 @@ class TermCounts(DataPreparationTask):
         # drop duplicates
         hashtags = list(set(hashtags))
 
-        # count occurrences of hashtags. 
+        # count occurrences of hashtags.
         # Only count max one occurrence per tweet.
         term_counts = defaultdict(lambda: 0)
         for term in hashtags:
