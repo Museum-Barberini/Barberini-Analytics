@@ -41,6 +41,13 @@ class TwitterExtendedDataset(DataPreparationTask):
 
     def run(self):
 
+        # prepare query modification for minimal mode
+        if self.minimal_mode:
+            twitter_extended_candidates = \
+                "(SELECT * FROM twitter_extended_candidates LIMIT 500)"
+        else:
+            twitter_extended_candidates = "twitter_extended_candidates"
+
         # Apply filtering based on thresholds
         extended_dataset = self.db_connector.query(f"""
             SELECT user_id, tweet_id::text, text, response_to,
@@ -68,7 +75,7 @@ class TwitterExtendedDataset(DataPreparationTask):
                 -- an R value below the threshold
                 WHERE R_interval <= {self.r_thresh}
             ) AS ki_r
-            INNER JOIN twitter_extended_candidates ec
+            INNER JOIN {twitter_extended_candidates} AS ec
             ON
                 -- match tweets to intervals based on the post date
                 ec.post_date between ki_r.start_date and ki_r.end_date
