@@ -149,14 +149,15 @@ class FetchTwitter(DataPreparationTask):
         # Filter out false positive matches. This is oviously a workaround,
         # but at the moment cheaper than repairing or switching the scraper.
         # See #352.
-        is_false_positive = df['parent_tweet_id'].isnull() & ~(
-            df['text'].str.contains(self.query, flags=re.IGNORECASE)
+        is_false_positive = ~(
+            df['parent_tweet_id'].apply(bool)
+            | df['text'].str.contains(self.query, flags=re.IGNORECASE)
             | df['screen_name'].str.contains(self.query, flags=re.IGNORECASE))
         if is_false_positive.any():
             false_positives = df[is_false_positive]
             logger.warn(
                 f"Dropping {len(false_positives)} tweets that are not "
-                f"related to the query ({list(false_positives['tweet_id'])}"
+                f"related to the query"
             )
             df = df[~is_false_positive]
 
