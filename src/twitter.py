@@ -1,6 +1,7 @@
 """Provides tasks for downloading tweets related to the museum."""
 
 import datetime as dt
+import re
 from pytz import utc
 
 import luigi
@@ -9,7 +10,7 @@ import twitterscraper as ts
 from luigi.format import UTF8
 import tzlocal
 
-from _utils import CsvToDb, DataPreparationTask, MuseumFacts
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
 
 class TweetsToDb(CsvToDb):
@@ -114,7 +115,7 @@ class FetchTwitter(DataPreparationTask):
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
-        default=dt.timedelta(days=60),
+        default=dt.timedelta(weeks=2),
         description="For how many days tweets should be fetched")
 
     def output(self):
@@ -144,7 +145,22 @@ class FetchTwitter(DataPreparationTask):
                 'likes',
                 'retweets',
                 'replies'])
-        df = df.drop_duplicates(subset=["tweet_id"])
+
+        # Filter out false positive matches. This is oviously a workaround,
+        # but at the moment cheaper than repairing or switching the scraper.
+        # See #352.
+        is_false_positive = df['parent_tweet_id'].isnull() & ~(
+            df['text'].str.contains(self.query, flags=re.IGNORECASE)
+            | df['screen_name'].str.contains(self.query, flags=re.IGNORECASE))
+        if is_false_positive.any():
+            false_positives = df[is_false_positive]
+            logger.warn(
+                f"Dropping {len(false_positives)} tweets that are not "
+                f"related to the query ({list(false_positives['tweet_id'])}"
+            )
+            df = df[~is_false_positive]
+
+        df = df.drop_duplicates(subset=['tweet_id'])
 
         # timestamp is utc by default
         df['timestamp'] = df['timestamp'].apply(
@@ -160,4 +176,4 @@ class LoadTweetAuthors(DataPreparationTask):
     """Load information about hard-coded tweet authors."""
 
     def output(self):
-        return luigi.LocalTarget("data/tweet_authors.csv", format=UTF8)
+        return luigi.LocalTarget('data/tweet_authors.csv', format=UTF8)
