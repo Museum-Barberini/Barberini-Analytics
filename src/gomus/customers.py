@@ -25,19 +25,6 @@ class CustomersToDb(CsvToDb):
             columns=[col[0] for col in self.columns],
             today=self.today)
 
-    def read_csv(self, input_csv):
-        df = super().read_csv(input_csv)
-        # This is necessary to prevent pandas from adding
-        # '.0' to some postal codes
-        # TODO: Fix this in super
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].apply(str)
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].str.replace('.0', '', regex=False)
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].str.replace('nan', '')
-        return df
-
 
 class GomusToCustomerMappingToDb(CsvToDb):
 
