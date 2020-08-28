@@ -49,7 +49,7 @@ class TwitterExtendedDataset(DataPreparationTask):
             twitter_extended_candidates = "twitter_extended_candidates"
 
         # Apply filtering based on thresholds
-        extended_dataset = self.db_connector.query(f"""
+        extended_dataset = self.db_connector.query(fr"""
             SELECT user_id, tweet_id::text, text, response_to,
                    post_date, permalink, likes, retweets, replies
             FROM
