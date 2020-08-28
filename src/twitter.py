@@ -49,8 +49,9 @@ class ExtractTweets(DataPreparationTask):
     def run(self):
 
         with self.input()[1].open('r') as input_file:
-            df = pd.read_csv(
-                input_file, keep_default_na=False)
+            df = pd.read_csv(input_file, keep_default_na=False, dtype={
+                'tweet_id': str, 'parent_tweet_id': str
+            })
             # parent_tweet_id can be empty,
             # which pandas would turn into NaN by default
         df = df.filter([
@@ -90,7 +91,9 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def run(self):
         with self.input().open('r') as input_file:
-            df = pd.read_csv(input_file)
+            df = pd.read_csv(input_file, dtype={
+                'tweet_id': str, 'parent_tweet_id': str
+            })
 
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
