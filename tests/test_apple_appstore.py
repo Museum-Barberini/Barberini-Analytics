@@ -1,3 +1,4 @@
+import time
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -27,9 +28,17 @@ class TestFetchAppleReviews(DatabaseTestCase):
 
     def setUp(self):
         super().setUp()
+
         self.task = FetchAppstoreReviews()
         self.run_task(MuseumFacts())
         self.task.get_country_codes = lambda: FAKE_COUNTRY_CODES
+
+    def tearDown(self):
+        # Avoid 40(3|4) errors by sending too many requests during consecutive
+        # tests. See FetchAppstoreReviews.get_metered_request().
+        time.sleep(3)
+
+        super().tearDown()
 
     def test_germany_basic(self):
         self.task.requires().run()  # workaround
