@@ -67,7 +67,8 @@ class CsvToDb(CopyToTable):
         # Pandas stores arrays as "(1,2,3)", but must be specified the
         # following function explicitly in order not to load them as plain
         # string.
-        'ARRAY': literal_eval
+        'ARRAY': literal_eval,
+        'text': str
     }
 
     """
