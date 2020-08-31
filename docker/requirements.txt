@@ -3,7 +3,11 @@ pip-upgrader==1.4.15
 
 # Indirect dependencies (explicitly listed because of
 # https://github.com/pypa/pip/issues/988)
-setuptools>=40.3.0  # for google-auth
+setuptools\
+    >=40.3.0,\
+    !=50.0.0,==49.6.0
+    # for google-auth,
+    # https://github.com/pypa/setuptools/issues/2356, now frozen as well
 
 # Framework
 luigi==3.0.0
