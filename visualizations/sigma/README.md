@@ -1,4 +1,5 @@
 # Sigma Text Graph
+
 Custom Visual for Power BI
 
 ## Development
@@ -43,10 +44,11 @@ pbiviz package
 
 ### _Too many text values. Not all values are shown_
 
-See [here](https://community.powerbi.com/t5/Custom-Visuals-Development/Text-Filter-is-limited-to-1000-values-exactly/td-p/383980). Looks as if `dataReductionAlgorithm` in the `capabilities.json` is not yet respected everywhere.
+See [here](https://community.powerbi.com/t5/Custom-Visuals-Development/Text-Filter-is-limited-to-1000-values-exactly/td-p/383980).
+Looks as if `dataReductionAlgorithm` in the `capabilities.json` is not yet respected everywhere.
 
 ## Credits
 
 ### Icon
 
-> <a target="_blank" href="https://icons8.com/icons/set/sigma">Sigma icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+> [Sigma icon](https://icons8.com/icons/set/sigma) by [Icons8](https://icons8.com)
