@@ -1,12 +1,9 @@
--- Clean up false positive tweets (!354)
+-- Clean up invalid column values in tweet table (!355)
 
 BEGIN;
 
-    DELETE FROM tweet
-        USING post
-        WHERE post.source = 'Twitter' AND post.post_id = tweet.tweet_id
-            AND NOT (is_from_museum
-                OR tweet.text ILIKE '%museumbarberini%'
-                OR is_response);
+    UPDATE tweet
+        SET response_to = NULL
+        WHERE response_to LIKE '%e+%';
 
 COMMIT;

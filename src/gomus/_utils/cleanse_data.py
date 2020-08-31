@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import datetime as dt
-import luigi
-import pandas as pd
-import pgeocode
 import re
 import urllib
+
+import luigi
 from luigi.format import UTF8
+import pandas as pd
+import pgeocode
+from tqdm.auto import tqdm
 
 from _utils import DataPreparationTask, logger
 from .extract_customers import ExtractCustomerData
@@ -62,7 +64,6 @@ class CleansePostalCodes(DataPreparationTask):
     none_count = 0
     other_country_count = 0
     cleansed_count = 0
-    last_percentage = 0
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-]))'
@@ -93,7 +94,8 @@ class CleansePostalCodes(DataPreparationTask):
         self.total_count = len(customer_df)
 
         if not customer_df.empty:
-            results = customer_df.apply(
+            tqdm.pandas(desc="Cleansing postal codes")
+            results = customer_df.progress_apply(
                 lambda x: self.match_postal_code(
                     postal_code=x['postal_code'],
                     country=x['country'],
@@ -211,13 +213,6 @@ class CleansePostalCodes(DataPreparationTask):
             self.other_country_count += 1
 
         self.cleansed_count += 1
-        percentage = int(round(self.cleansed_count / self.total_count * 100))
-
-        if self.last_percentage < percentage:
-            print(f"\r{percentage}% cleansed ({self.cleansed_count})",
-                  end='',
-                  flush=True)
-            self.last_percentage = percentage
 
         return result_postal, result_country
 
