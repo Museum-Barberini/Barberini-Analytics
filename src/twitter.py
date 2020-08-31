@@ -1,13 +1,13 @@
 """Provides tasks for downloading tweets related to the museum."""
 
 import datetime as dt
-import re
 from pytz import utc
+import re
 
 import luigi
+from luigi.format import UTF8
 import pandas as pd
 import twitterscraper as ts
-from luigi.format import UTF8
 import tzlocal
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
