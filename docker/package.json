@@ -4,6 +4,7 @@
     "description": "Barberini Analytics",
     "dependencies": {},
     "devDependencies": {
+        "markdownlint-cli": "^0.23.2",
         "remark-cli": "^8.0.1",
         "remark-validate-links": "latest"
     },
