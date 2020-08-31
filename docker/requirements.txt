@@ -21,11 +21,11 @@ validators==0.15.0
 
 # Data sources
 google-api-python-client==1.11.0
-git+https://github.com/Museum-Barberini-gGmbH/twitterscraper.git#egg=twitterscraper
+-e git+https://github.com/Museum-Barberini-gGmbH/twitterscraper.git#egg=twitterscraper
 twint==2.1.20
 
 # Analysis tools
-git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
+-e git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
 langdetect==1.0.8
 nltk==3.5
 pgeocode==0.2.1
