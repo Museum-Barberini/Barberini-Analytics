@@ -6,7 +6,7 @@ import requests
 from db_test import DatabaseTestCase, logger
 
 EXPECTED_VERSION_NUMBER = 774
-EXPECTED_VERSION_TAG = 'v4.1.4.10 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.5.2 – Premium Edition'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
