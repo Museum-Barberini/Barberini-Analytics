@@ -75,6 +75,7 @@ def load_django_renderer():
 
 @contextmanager
 def set_log_level_temporarily(logger: logging.Logger, level: Union[int, str]):
+    """Context manager to change the log level of the logger temporarily."""
     old_level = logger.level
     logger.setLevel(level)
     try:
