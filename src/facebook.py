@@ -52,13 +52,6 @@ class FbPostCommentsToDb(CsvToDb):
 
         return FetchFbPostComments(table=self.table)
 
-    def read_csv(self, input_csv):
-
-        df = super().read_csv(input_csv)
-        # This is necessary to prevent pandas from replacing "None" with "NaN"
-        df['response_to'] = df['response_to'].apply(_num_to_str)
-        return df
-
 # ======= FetchTasks =======
 
 

@@ -2,14 +2,15 @@
 
 import datetime as dt
 from pytz import utc
+import re
 
 import luigi
+from luigi.format import UTF8
 import pandas as pd
 import twitterscraper as ts
-from luigi.format import UTF8
 import tzlocal
 
-from _utils import CsvToDb, DataPreparationTask, MuseumFacts
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
 
 class TweetsToDb(CsvToDb):
@@ -49,8 +50,9 @@ class ExtractTweets(DataPreparationTask):
     def run(self):
 
         with self.input()[1].open('r') as input_file:
-            df = pd.read_csv(
-                input_file, keep_default_na=False)
+            df = pd.read_csv(input_file, keep_default_na=False, dtype={
+                'tweet_id': str, 'parent_tweet_id': str
+            })
             # parent_tweet_id can be empty,
             # which pandas would turn into NaN by default
         df = df.filter([
@@ -90,7 +92,9 @@ class ExtractTweetPerformance(DataPreparationTask):
 
     def run(self):
         with self.input().open('r') as input_file:
-            df = pd.read_csv(input_file)
+            df = pd.read_csv(input_file, dtype={
+                'tweet_id': str, 'parent_tweet_id': str
+            })
 
         df = df.filter(['tweet_id', 'likes', 'retweets', 'replies'])
         current_timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -114,7 +118,7 @@ class FetchTwitter(DataPreparationTask):
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
-        default=dt.timedelta(days=60),
+        default=dt.timedelta(weeks=2),
         description="For how many days tweets should be fetched")
 
     def output(self):
@@ -144,7 +148,23 @@ class FetchTwitter(DataPreparationTask):
                 'likes',
                 'retweets',
                 'replies'])
-        df = df.drop_duplicates(subset=["tweet_id"])
+
+        # Filter out false positive matches. This is oviously a workaround,
+        # but at the moment cheaper than repairing or switching the scraper.
+        # See #352.
+        is_false_positive = ~(
+            df['parent_tweet_id'].apply(bool)
+            | df['text'].str.contains(self.query, flags=re.IGNORECASE)
+            | df['screen_name'].str.contains(self.query, flags=re.IGNORECASE))
+        if is_false_positive.any():
+            false_positives = df[is_false_positive]
+            logger.warn(
+                f"Dropping {len(false_positives)} tweets that are not "
+                f"related to the query"
+            )
+            df = df[~is_false_positive]
+
+        df = df.drop_duplicates(subset=['tweet_id'])
 
         # timestamp is utc by default
         df['timestamp'] = df['timestamp'].apply(
@@ -160,4 +180,4 @@ class LoadTweetAuthors(DataPreparationTask):
     """Load information about hard-coded tweet authors."""
 
     def output(self):
-        return luigi.LocalTarget("data/tweet_authors.csv", format=UTF8)
+        return luigi.LocalTarget('data/tweet_authors.csv', format=UTF8)
