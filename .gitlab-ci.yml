@@ -19,7 +19,7 @@ build:
   stage: build
   tags:
     - barberini
-  before_script:  # prepare docker
+  before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
   script:
     - docker build -t test_${USER} ./docker $(
@@ -32,12 +32,12 @@ unittest:
   stage: test
   tags:
     - barberini
-  before_script:  # prepare docker
+  before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
     - make startup
-  script:  # run coverage tests
+  script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
-  after_script:  # cleanup docker
+  after_script:
     - make docker-cleanup
 
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
@@ -59,23 +59,21 @@ lint:
   tags:
     - barberini
   before_script:
-    - container=$(docker ps -f name=gitlab-runner-barberini_analytics_luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
+    - USER="gitlab_runner_${CI_JOB_ID}"
     - make startup
   script:
-    - docker exec gitlab-runner-barberini_analytics_luigi make lint-python
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-python
   after_script:
-    - make shutdown
+    - make docker-cleanup
 
 lint-markdown:
   stage: analyze
   tags:
     - barberini
-  before_script:
-    - container=$(docker ps -f name=gitlab-runner-barberini_analytics_luigi -q)
-    - if [ -n "$container" ]; then docker stop $container && docker rm $container; fi
-    - make startup
-  script:
-    - docker exec gitlab-runner-barberini_analytics_luigi make lint-markdown
+    before_script:
+      - USER="gitlab_runner_${CI_JOB_ID}"
+      - make startup
+    script:
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-markdown
   after_script:
-    - make shutdown
+    - make docker-cleanup
