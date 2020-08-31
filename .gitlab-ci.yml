@@ -54,7 +54,7 @@ minimal-mining-pipeline:
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
-lint:
+lint-python:
   stage: analyze
   tags:
     - barberini
