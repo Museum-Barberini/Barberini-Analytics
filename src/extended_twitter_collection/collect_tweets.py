@@ -18,7 +18,7 @@ from .keyword_intervals import KeywordIntervalsToDB
 
 class TwitterExtendedDatasetToDB(CsvToDb):
 
-    table = "twitter_extended_dataset"
+    table = 'twitter_extended_dataset'
 
     def requires(self):
         return TwitterExtendedDataset()
@@ -35,7 +35,7 @@ class TwitterExtendedDataset(DataPreparationTask):
 
     def output(self):
         return luigi.LocalTarget(
-            f"{self.output_dir}/twitter/extended_dataset.csv",
+            f'{self.output_dir}/twitter/extended_dataset.csv',
             format=UTF8
         )
 
@@ -43,13 +43,14 @@ class TwitterExtendedDataset(DataPreparationTask):
 
         # prepare query modification for minimal mode
         if self.minimal_mode:
-            twitter_extended_candidates = \
-                "(SELECT * FROM twitter_extended_candidates LIMIT 500)"
+            twitter_extended_candidates = '''(
+                SELECT * FROM twitter_extended_candidates LIMIT 500
+            )'''
         else:
-            twitter_extended_candidates = "twitter_extended_candidates"
+            twitter_extended_candidates = 'twitter_extended_candidates'
 
         # Apply filtering based on thresholds
-        extended_dataset = self.db_connector.query(fr"""
+        extended_dataset = self.db_connector.query(fr'''
             SELECT user_id, tweet_id::text, text, response_to,
                    post_date, permalink, likes, retweets, replies
             FROM
@@ -87,21 +88,21 @@ class TwitterExtendedDataset(DataPreparationTask):
                      likes, retweets, replies
             -- Only keep top-ranked tweets
             HAVING sum(1 / r_interval) >= {self.ranking_thresh}
-        """)
+        ''')
 
         # create a dataframe from the filtering results
         extended_dataset = pd.DataFrame(
             extended_dataset, columns=[
-                "user_id", "tweet_id", "text",
-                "response_to", "post_date", "permalink",
-                "likes", "retweets", "replies"
+                'user_id', 'tweet_id', 'text',
+                'response_to', 'post_date', 'permalink',
+                'likes', 'retweets', 'replies'
             ], dtype=str)
         extended_dataset = extended_dataset.drop_duplicates(
-            subset=["tweet_id"])
+            subset=['tweet_id'])
 
         # Output results. Use restrictive quoting to
         # make database import less error prone.
-        with self.output().open("w") as output_file:
+        with self.output().open('w') as output_file:
             extended_dataset.to_csv(
                 output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
@@ -133,15 +134,15 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
 
         # We will fetch all tweets from the last 7 days
         # for the keywords that have active intervals.
-        active_intervals = self.db_connector.query("""
+        active_intervals = self.db_connector.query('''
             SELECT term, count_interval
             FROM twitter_keyword_intervals
             WHERE end_date >= CURRENT_DATE
-        """)
+        ''')
 
         seven_days_ago = (
             dt.datetime.today() - dt.timedelta(days=7)
-        ).strftime("%Y-%m-%d")
+        ).strftime('%Y-%m-%d')
 
         # fetch the tweets
         tweet_dfs = []  # list of dataframes
@@ -182,8 +183,8 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         c.Limit = limit
         c.Search = query
         c.Store_object = True
-        c.Since = f"{start_date} 00:00:00"
-        c.Lang = "de"
+        c.Since = f'{start_date} 00:00:00'
+        c.Lang = 'de'
         c.Hide_output = True
         c.Store_object_tweets_list = tweets
 
@@ -193,25 +194,25 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         # create dataframe from search results
         tweets_df = pd.DataFrame([
             {
-                "term": query,
-                "user_id": t.user_id,
-                "tweet_id": t.id,
-                "text": t.tweet,
-                "response_to": "",
-                "post_date": t.datestamp,
-                "permalink": t.link,
-                "likes": t.likes_count,
-                "retweets": t.retweets_count,
-                "replies": t.replies_count
+                'term': query,
+                'user_id': t.user_id,
+                'tweet_id': t.id,
+                'text': t.tweet,
+                'response_to': '',
+                'post_date': t.datestamp,
+                'permalink': t.link,
+                'likes': t.likes_count,
+                'retweets': t.retweets_count,
+                'replies': t.replies_count
             }
             for t in tweets
         ])
 
         # insert space before links to match hashtags correctly
         if not tweets_df.empty:
-            tweets_df["text"] = tweets_df["text"]\
-                .str.replace("pic.", " pic.", regex=False)\
-                .str.replace("https", " https", regex=False)\
-                .str.replace("http", " http", regex=False)
+            tweets_df['text'] = tweets_df['text']\
+                .str.replace('pic.', ' pic.', regex=False)\
+                .str.replace('https', ' https', regex=False)\
+                .str.replace('http', ' http', regex=False)
 
         return tweets_df

@@ -64,10 +64,11 @@ def load_django_renderer():
     from django.conf import settings
     from django.template.loader import render_to_string
 
-    settings.configure(TEMPLATES=[{
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.getcwd()],
-    }])
+    if not settings.configured:
+        settings.configure(TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [os.getcwd()],
+        }])
     django.setup()
     return render_to_string
 
