@@ -64,16 +64,18 @@ def load_django_renderer():
     from django.conf import settings
     from django.template.loader import render_to_string
 
-    settings.configure(TEMPLATES=[{
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.getcwd()],
-    }])
+    if not settings.configured:
+        settings.configure(TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [os.getcwd()],
+        }])
     django.setup()
     return render_to_string
 
 
 @contextmanager
 def set_log_level_temporarily(logger: logging.Logger, level: Union[int, str]):
+    """Context manager to change the log level of the logger temporarily."""
     old_level = logger.level
     logger.setLevel(level)
     try:

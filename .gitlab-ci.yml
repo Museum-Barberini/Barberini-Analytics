@@ -19,8 +19,10 @@ build:
   stage: build
   tags:
     - barberini
+  before_script:  # prepare docker
+    - USER="gitlab_runner_${CI_JOB_ID}"
   script:
-    - docker build -t test ./docker $(
+    - docker build -t test_${USER} ./docker $(
         [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
         && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
         && echo '--no-cache' 
@@ -31,7 +33,7 @@ unittest:
   tags:
     - barberini
   before_script:  # prepare docker
-    - USER="gitlab_runner_${CI_PIPELINE_ID}"
+    - USER="gitlab_runner_${CI_JOB_ID}"
     - make startup
   script:  # run coverage tests
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
@@ -48,7 +50,7 @@ minimal-mining-pipeline:
   tags:
     - barberini
   before_script:
-    - USER="gitlab_runner_${CI_PIPELINE_ID}"
+    - USER="gitlab_runner_${CI_JOB_ID}"
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
