@@ -5,10 +5,11 @@
 - `test_gomus_version` failed
 
   See [Update gomus version](#update-gomus-version).
+  Before fixing this test, make sure that `test_valid_session_id` passes or fix that first.
 
-- `test_session_id_is_valid` failed
+- `test_valid_session_id` failed
 
-  tbd
+  See [Update gomus session ID](#update-gomus-session-id).
 
 ## Tasks
 
@@ -64,3 +65,23 @@ The `TestGomusVersion` assertions will report any version change.
 
 - In the past, we have experienced a few changes in the gomus HTML format without the version number being incremented.
   In this case, the `test_gomus_version` scraper needs to be updated. See !169.
+
+### Update gomus session ID
+
+For accessing gomus, we use a session ID that was obtained from a manual browser session.
+While this session ID used to be valid for multiple months in past, it will expire at some time and need to be renewed.
+
+#### Action
+
+Steps to be done are described in the example of Chromium and related browsers.
+If you need to do this in Firefox/Safari/Netscape Navigator, you will need to improvise.
+
+1. Open the gomus website.
+2. (If logged in, log off first (to make sure you use a freshest possible session ID).)
+3. Log in.
+4. Open the **developer console** by pressing F12.
+5. Switch to tab **Application.**
+6. In the left bar, from the **Storage** section, choose **Cookies > `https://your-museum.gomus.de`.**
+7. From the cookies list, find `_session_id` and copy its value into clipboard.
+8. Log into the VM and open open the `keys.env` file from the secrets folder.
+9. Patch `GOMUS_SESS_ID` with the copied value.
