@@ -8,9 +8,9 @@ A suite of data mining, analytics, and visualization solutions to create an awes
 
 #### Requirements
 
-- UNIX system (preferred Ubuntu; does not work well with WSL)
+- UNIX system
 
-Please note that these instructions are optimized for Ubuntu, amd64.
+Please note that these instructions are optimized for Ubuntu/amd64.
 If you use a different configuration, you may need to adjust the toolchain installation (see `install_toolchain.sh`).
 
 #### Actual installation
@@ -19,20 +19,18 @@ If you use a different configuration, you may need to adjust the toolchain insta
 
    ```bash
    git clone https://gitlab.hpi.de/bp-barberini/bp-barberini.git
-   cd bp-barberini
-   chmod -R +x scripts
    ```
-   
-   - For best convenience, clone it into `/root/bp-barberini`.
 
-2. Copy the `secrets` folders (not available on the internet) into `/etc/barberini-analytics`
+   * For best convenience, clone it into `/root/bp-barberini`.
+
+2. Copy the `secrets` folders (which is not part of the repository) into `/etc/barberini-analytics`.
 
 3. Set up the toolchain.
    See `scripts/setup/install_toolchain.sh` how to do this.
    If you use ubuntu/amd64, you can run the script directly.
    Use `sudo` to run the commands!
 
-5. Set up the docker network and add the current user to the `docker` user group.
+4. Set up the docker network and add the current user to the `docker` user group.
 
    ```bash
    ./scripts/setup/setup_docker.sh
@@ -48,7 +46,6 @@ If no crontab exists before, create it using `crontab -e`.
 
 See [`CONFIGURATION.md`](CONFIGURATION.md).
 
-
 ### Usage
 
 #### Controlling the pipeline
@@ -59,7 +56,7 @@ See [`CONFIGURATION.md`](CONFIGURATION.md).
  make docker-do do='make luigi-scheduler'
 ```
 
-This will also start a webserver on http://localhost:8082 where you can trace all running tasks.
+This will also start a webserver on <http://localhost:8082> where you can trace all running tasks.
 
 ##### Running the pipeline manually
 
@@ -92,9 +89,9 @@ make shutdown
 
 #### Actual Installation
 
-1. Download and install Power BI: https://aka.ms/pbidesktopstore
+1. Download and install Power BI: <https://aka.ms/pbidesktopstore>
 2. Enable R-powered visuals
-   1. Download and install R: https://mran.revolutionanalytics.com/download
+   1. Download and install R: <https://mran.revolutionanalytics.com/download>
    2. Once you open any report, you will be asked to install R Visual for PBI.
       Confirm that.
 

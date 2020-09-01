@@ -19,7 +19,7 @@ build:
   stage: build
   tags:
     - barberini
-  before_script:  # prepare docker
+  before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
   script:
     - docker build -t test_${USER} ./docker $(
@@ -32,12 +32,12 @@ unittest:
   stage: test
   tags:
     - barberini
-  before_script:  # prepare docker
+  before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
     - make startup
-  script:  # run coverage tests
+  script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
-  after_script:  # cleanup docker
+  after_script:
     - make docker-cleanup
 
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
@@ -54,9 +54,26 @@ minimal-mining-pipeline:
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
-lint:
+lint-python:
   stage: analyze
   tags:
     - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
   script:
-    - make lint
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-python
+  after_script:
+    - make docker-cleanup
+
+lint-markdown:
+  stage: analyze
+  tags:
+    - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
+  script:
+  - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-markdown
+  after_script:
+    - make docker-cleanup

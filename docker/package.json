@@ -1,0 +1,14 @@
+{
+    "name": "bp-barberini",
+    "version": "1.0.0",
+    "description": "Barberini Analytics",
+    "dependencies": {},
+    "devDependencies": {
+        "markdownlint-cli": "^0.23.2",
+        "remark-cli": "^8.0.1",
+        "remark-validate-links": "latest"
+    },
+    "repository": "https://gitlab.hpi.de/bp-barberini/bp-barberini",
+    "author": "BP2019FN1@HPI",
+    "license": "UNLICENSED"
+}

@@ -141,8 +141,14 @@ coverage: luigi-clean
 	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
 	$(PYTHON) -m coverage html
 
-lint:
+lint: lint-python lint-markdown
+
+lint-python:
 	flake8 -v --show-source .
+
+lint-markdown:
+	/node_modules/remark-cli/cli.js -f -u validate-links .
+	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
 
 # --- To access postgres ---
 
