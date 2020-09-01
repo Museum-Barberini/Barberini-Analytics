@@ -13,7 +13,7 @@ GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 class TestGomusConnection(DatabaseTestCase):
     """Tests whether the current gomus connection is valid."""
 
-    def test_session_id_is_valid(self):
+    def test_valid_session_id(self):
         """Test if GOMUS_SESS_ID env variable contains a valid session ID."""
         response = requests.get(
             'https://barberini.gomus.de/',
