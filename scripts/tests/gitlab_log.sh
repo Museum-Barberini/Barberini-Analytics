@@ -8,7 +8,7 @@ start_section() {
     echo -e "\e[1m\e[34m\c" && trap 'echo -e "\e[0m\c"' RETURN
     if [ -z "$CI" ]
     then
-        echo $2
+        echo "$2"
     else
         echo -e "section_start:$(date +%s):${1}\r\e[0K${2}"
     fi

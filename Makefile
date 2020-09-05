@@ -151,7 +151,7 @@ lint-markdown:
 	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
 
 shellcheck:
-	find . -name '*.sh' | xargs -l shellcheck
+	shellcheck -s bash $$(find . -name '*.sh')
 
 # --- To access postgres ---
 

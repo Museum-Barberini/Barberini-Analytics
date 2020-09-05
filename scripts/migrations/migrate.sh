@@ -11,13 +11,13 @@ MIGRATION_DIR=$(dirname "$0")
 # Globstar guarantees us to get the files in order ascending
 MIGRATION_FILES="$MIGRATION_DIR/migration_*"
 APPLIED_FILE="$(which "${1:-$APPLIED_FILE}")"
-cd "$MIGRATION_DIR/../.."  # provide neutral context for migration scripts
+cd "$MIGRATION_DIR/../.." || exit  # provide neutral context for migration scripts
 
 for MIGRATION_FILE in $MIGRATION_FILES
 do
     MIGRATION_FILE_NAME="$(basename "$MIGRATION_FILE")"
 
-    if [ ! -z $APPLIED_FILE ] \
+    if [ -n "$APPLIED_FILE" ] \
         && grep -Fxq "$MIGRATION_FILE_NAME" "$APPLIED_FILE"
     then
         # Migrations has already been applied, skipping to next one

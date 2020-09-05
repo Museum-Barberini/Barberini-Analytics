@@ -23,7 +23,7 @@ chmod +x /usr/local/bin/docker-compose
 # postgresql
 wget --quiet --no-check-certificate -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc \
 	| APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add -
-echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" \
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" \
 	| tee /etc/apt/sources.list.d/pgdg.list
 # scan new sources
 apt-get update

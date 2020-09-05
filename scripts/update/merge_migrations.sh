@@ -10,7 +10,7 @@ set -e
 o=$(pwd)
 t=$(dirname "$4")
 cd "$t"
-[[ "$4" =~ .*\/migration_([[:alnum:]]+)(\..+)? ]]
+[[ "$4" =~ .*/migration_([[:alnum:]]+)(\..+)? ]]
 i="${BASH_REMATCH[1]}"
 ext="${BASH_REMATCH[2]}"
 
@@ -40,6 +40,6 @@ mv "$2" "$t/migration_$i$ext"
 mv "$3" "$2"
 
 echo "$0: Resolved"
-commit="git add \"$t/migration_$i$ext\""
+commit=(git add "$t/migration_$i$ext")
 trap '>&2 echo -e "☝ Please try again: \n $ $commit"' ERR
-eval $commit
+eval "${commit[@]}"
