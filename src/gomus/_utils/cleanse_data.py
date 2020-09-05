@@ -90,6 +90,8 @@ class CleansePostalCodes(DataPreparationTask):
 
         customer_df['cleansed_postal_code'] = None
         customer_df['cleansed_country'] = None
+        if self.minimal_mode:
+            customer_df = customer_df.head(1000)
 
         self.total_count = len(customer_df)
 
