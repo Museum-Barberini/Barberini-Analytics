@@ -18,6 +18,8 @@ ARG INSTALL='apt-get install -qq --no-install-recommends'
 # Install utilities
 RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
+# Code analysis tools
+RUN $INSTALL shellcheck
 # Optional tools for best dev convenience
 RUN $INSTALL bash-completion less nano vim
 

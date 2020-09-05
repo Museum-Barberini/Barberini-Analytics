@@ -150,6 +150,9 @@ lint-markdown:
 	/node_modules/remark-cli/cli.js -f -u validate-links .
 	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
 
+shellcheck:
+	find . -name '*.sh' | xargs -l shellcheck
+
 # --- To access postgres ---
 
 db = barberini
