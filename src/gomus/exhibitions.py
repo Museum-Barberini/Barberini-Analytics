@@ -1,6 +1,7 @@
 """Provides task to download all exhibitions and their times into the DB."""
 
 from dateutil import parser as dateparser
+
 import luigi
 from luigi.format import UTF8
 import pandas as pd

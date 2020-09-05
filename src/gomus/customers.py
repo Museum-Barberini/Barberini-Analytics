@@ -1,15 +1,15 @@
 """Provides tasks for downloading all gomus customers into the database."""
 
 import datetime as dt
+
 import luigi
-import pandas as pd
 from luigi.format import UTF8
+import pandas as pd
 
 from _utils import CsvToDb, DataPreparationTask
-
-from gomus._utils.cleanse_data import CleansePostalCodes
-from gomus._utils.extract_customers import hash_id
-from gomus._utils.fetch_report import FetchGomusReport
+from ._utils.cleanse_data import CleansePostalCodes
+from ._utils.extract_customers import hash_id
+from ._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDb(CsvToDb):
