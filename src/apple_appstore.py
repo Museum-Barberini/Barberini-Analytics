@@ -61,7 +61,7 @@ class FetchAppstoreReviews(DataPreparationTask):
         data = []
         country_codes = sorted(self.get_country_codes())
         if self.minimal_mode:
-            random_num = random.randint(0, len(country_codes) - 2)
+            random_num = random.randint(0, len(country_codes) - 2)  # nosec
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 
