@@ -151,7 +151,7 @@ lint-markdown:
 	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
 
 python-bandit:
-	bandit ./**/*.py
+	bandit -c bandit.yml ./**/*.py
 
 # --- To access postgres ---
 
