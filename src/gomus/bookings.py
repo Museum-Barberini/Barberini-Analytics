@@ -3,7 +3,7 @@
 import luigi
 
 from _utils import CsvToDb
-from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
+from ._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 
 class BookingsToDb(CsvToDb):

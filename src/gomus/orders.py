@@ -3,14 +3,14 @@
 import datetime as dt
 
 import luigi
+from luigi.format import UTF8
 import numpy as np
 import pandas as pd
-from luigi.format import UTF8
 from xlrd import xldate_as_datetime
 
 from _utils import CsvToDb, DataPreparationTask
-from gomus._utils.fetch_report import FetchGomusReport
-from gomus.customers import GomusToCustomerMappingToDb
+from ._utils.fetch_report import FetchGomusReport
+from .customers import GomusToCustomerMappingToDb
 
 
 class OrdersToDb(CsvToDb):
