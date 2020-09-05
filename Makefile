@@ -150,6 +150,9 @@ lint-markdown:
 	/node_modules/remark-cli/cli.js -f -u validate-links .
 	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
 
+python-bandit:
+	bandit -c bandit.yml ./**/*.py
+
 # --- To access postgres ---
 
 db = barberini
