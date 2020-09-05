@@ -32,7 +32,7 @@ This only applies if the minimal run uses a fresh test database.
 
 from collections import defaultdict
 import logging
-import pickle
+import pickle  # nosec: We only use pickle for self-generated files.
 
 from gsdmm import MovieGroupProcess
 import langdetect
@@ -168,7 +168,7 @@ class TopicModelingFindTopics(DataPreparationTask):
     def run(self):
 
         with self.input().open('rb') as corpus_file:
-            corpus = pickle.load(corpus_file)
+            corpus = pickle.load(corpus_file)  # nosec
 
         terms_df, texts_df = self.find_topics(corpus)
 
@@ -290,7 +290,7 @@ class TopicModelingPreprocessCorpus(DataPreparationTask):
     def run(self):
 
         with self.input().open('rb') as input_corpus:
-            corpus = pickle.load(input_corpus)
+            corpus = pickle.load(input_corpus)  # nosec
 
         corpus = self.preprocess(corpus)
 
