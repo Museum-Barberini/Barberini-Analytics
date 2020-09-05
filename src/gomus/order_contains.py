@@ -1,7 +1,7 @@
 """Provides tasks to download the gomus order_contains relation to the DB."""
 
 from _utils import CsvToDb
-from gomus._utils.scrape_gomus import ScrapeGomusOrderContains
+from ._utils.scrape_gomus import ScrapeGomusOrderContains
 
 
 class OrderContainsToDb(CsvToDb):

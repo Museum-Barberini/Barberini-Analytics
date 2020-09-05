@@ -90,6 +90,8 @@ class CleansePostalCodes(DataPreparationTask):
 
         customer_df['cleansed_postal_code'] = None
         customer_df['cleansed_country'] = None
+        if self.minimal_mode:
+            customer_df = customer_df.head(1000)
 
         self.total_count = len(customer_df)
 
@@ -126,20 +128,20 @@ class CleansePostalCodes(DataPreparationTask):
                     lat_list.append(data['latitude'])
                     long_list.append(data['longitude'])
 
+                lat_dict = dict(zip(unique_postal, lat_list))
+                long_dict = dict(zip(unique_postal, long_list))
+
+                customer_df['latitude'] = \
+                    customer_df['cleansed_postal_code'].map(lat_dict)
+
+                customer_df['longitude'] = \
+                    customer_df['cleansed_postal_code'].map(long_dict)
+
             except urllib.error.HTTPError as err:
                 if err.code == 404:
                     logger.error(err)
                 else:
                     raise urllib.error.HTTPError(err)
-
-            lat_dict = dict(zip(unique_postal, lat_list))
-            long_dict = dict(zip(unique_postal, long_list))
-
-            customer_df['latitude'] = \
-                customer_df['cleansed_postal_code'].map(lat_dict)
-
-            customer_df['longitude'] = \
-                customer_df['cleansed_postal_code'].map(long_dict)
 
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0

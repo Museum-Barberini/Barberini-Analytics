@@ -8,7 +8,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask
-from gomus._utils.fetch_report import FetchGomusReport
+from ._utils.fetch_report import FetchGomusReport
 
 
 class DailyEntriesToDb(CsvToDb):

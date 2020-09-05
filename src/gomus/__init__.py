@@ -2,13 +2,13 @@
 
 import luigi
 
-from gomus.bookings import BookingsToDb
-from gomus.customers import CustomersToDb, GomusToCustomerMappingToDb
-from gomus.daily_entries import DailyEntriesToDb, ExpectedDailyEntriesToDb
-from gomus.exhibitions import ExhibitionTimesToDb
-from gomus.events import EventsToDb
-from gomus.order_contains import OrderContainsToDb
-from gomus.orders import OrdersToDb
+from .bookings import BookingsToDb
+from .customers import CustomersToDb, GomusToCustomerMappingToDb
+from .daily_entries import DailyEntriesToDb, ExpectedDailyEntriesToDb
+from .exhibitions import ExhibitionTimesToDb
+from .events import EventsToDb
+from .order_contains import OrderContainsToDb
+from .orders import OrdersToDb
 
 
 class GomusToDb(luigi.WrapperTask):
