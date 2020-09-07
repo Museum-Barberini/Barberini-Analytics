@@ -22,7 +22,7 @@ build:
   before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
   script:
-    - docker build -t test_${USER} ./docker $(
+    - docker build -t ${USER}_test ./docker $(
         [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
         && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
         && echo '--no-cache' 
@@ -38,6 +38,8 @@ unittest:
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
   after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
 
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
@@ -64,6 +66,8 @@ lint-python:
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-python
   after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
 
 python-bandit:
@@ -76,6 +80,8 @@ python-bandit:
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make python-bandit
   after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
 
 lint-markdown:
@@ -88,4 +94,6 @@ lint-markdown:
   script:
   - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-markdown
   after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
