@@ -38,6 +38,7 @@ unittest:
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
   after_script:
+    - echo debug ${USER}
     - make docker-cleanup
 
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
