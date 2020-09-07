@@ -105,8 +105,7 @@ class PredictVisitors(DataPreparationTask):
             exhibitions = pd.read_csv(
                 exhibitions_file,
                 parse_dates=['start_date', 'end_date'],
-                keep_default_na=False,
-                converters={'likes': int}
+                keep_default_na=False
             )
         with self.input()[2].open('r') as facts_file:
             facts = json.load(facts_file)
@@ -118,6 +117,8 @@ class PredictVisitors(DataPreparationTask):
                 index=pd.date_range(start=dt.date(2020, 1, 1), periods=40),
                 data=[[i] for i in range(40)],
                 columns=['entries'])
+            exhibitions['popularity'] = exhibitions['title'].apply(len)
+        exhibitions['popularity'] = exhibitions['popularity'].apply(int)
 
         if self.sample_prediction:
             all_entries = all_entries.iloc[:-self.days_to_predict].copy()
