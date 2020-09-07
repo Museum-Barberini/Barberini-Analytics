@@ -14,12 +14,12 @@ case $1 in
         ;;
 esac
 
-cd /app
+cd /app || exit
 make apply-pending-migrations luigi-task LMODULE=_fill_db LTASK=$TASK
 EXIT_VAL=$?
 
 if [ $EXIT_VAL -ne 0 ]
-    then cp -r $OUTPUT_DIR ./output-$1-run-$(date +"%Y-%m-%d_%H-%M")
+    then cp -r $OUTPUT_DIR "./output-$1-run-$(date +"%Y-%m-%d_%H-%M")"
 fi
 
 make luigi-clean

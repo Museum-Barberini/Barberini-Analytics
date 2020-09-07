@@ -7,7 +7,7 @@ export OUTPUT_DIR=output-minimal
 . ./scripts/tests/gitlab_log.sh
 
 
-cd $(dirname "$0")/../..
+cd "$(dirname "$0")/../.."
 
 start_section setup_database "Setting up test database ..."
     export POSTGRES_DB="barberini_test_$USER"

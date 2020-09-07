@@ -153,6 +153,9 @@ lint-markdown:
 python-bandit:
 	bandit -c bandit.yml ./**/*.py
 
+shellcheck:
+	shellcheck -s bash $$(find . -name '*.sh')
+
 # --- To access postgres ---
 
 db = barberini

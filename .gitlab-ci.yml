@@ -84,6 +84,20 @@ python-bandit:
       USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
 
+shellcheck:
+  stage: analyze
+  tags:
+    - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
+  script:
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make shellcheck
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
+    - make docker-cleanup
+
 lint-markdown:
   stage: analyze
   tags:
