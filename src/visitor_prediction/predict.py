@@ -105,7 +105,8 @@ class PredictVisitors(DataPreparationTask):
             exhibitions = pd.read_csv(
                 exhibitions_file,
                 parse_dates=['start_date', 'end_date'],
-                keep_default_na=False
+                keep_default_na=False,
+                converters={'likes': int}
             )
         with self.input()[2].open('r') as facts_file:
             facts = json.load(facts_file)
