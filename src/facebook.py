@@ -177,7 +177,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
         invalid_count = 0
         pbar = self.tqdm(
             df.index,
-            desc="Fetching performance data for FB post"
+            desc="Fetching performance data for facebook posts"
         )
         for index in pbar:
             page_id, post_id = \
