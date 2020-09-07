@@ -68,7 +68,7 @@ class TwitterExtendedDataset(DataPreparationTask):
                 -- an R value below the threshold
                 WHERE R_interval <= {self.r_thresh}
             ) AS ki_r
-            INNER JOIN {twitter_extended_candidates} AS ec
+            INNER JOIN twitter_extended_candidates AS ec
             ON
                 -- match tweets to intervals based on the post date
                 ec.post_date between ki_r.start_date and ki_r.end_date
