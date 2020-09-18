@@ -31,7 +31,11 @@ class CheckPosts(DatabaseTestCase):
                 "Google Maps",
                 "Instagram",
                 "Google Play", "Apple Appstore",
-                "Twitter"
+                # ---
+                # NOTE: We are disabling Twitter temporarily, see #369.
+                # TODO: Uncomment and fix this later!
+                # "Twitter"
+                # ---
             },
             sources,
             msg="Expected sources are not met by post view"

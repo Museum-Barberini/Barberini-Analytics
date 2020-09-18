@@ -7,7 +7,12 @@ from facebook import FbPostsToDb, FbPostCommentsToDb, FbPostPerformanceToDb
 from google_maps import GoogleMapsReviewsToDb
 from gplay import GooglePlaystoreReviewsToDb
 from instagram import IgToDb, IgPostPerformanceToDb
-from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
+# ---
+# NOTE: We are disabling Twitter temporarily, see #369.
+# TODO: Uncomment and fix this later!
+# from twitter import TweetsToDb, TweetPerformanceToDb
+from twitter import TweetAuthorsToDb
+# ---
 
 
 class PostsToDb(luigi.WrapperTask):
@@ -27,7 +32,11 @@ class PostsToDb(luigi.WrapperTask):
         yield GooglePlaystoreReviewsToDb()
         yield IgToDb()
         yield TweetAuthorsToDb()
-        yield TweetsToDb()
+        # ---
+        # NOTE: We are disabling Twitter temporarily, see #369.
+        # TODO: Uncomment and fix this later!
+        # yield TweetsToDb()
+        # ---
 
         if self.fetch_performance:
             yield PostPerformanceToDb()
@@ -39,4 +48,8 @@ class PostPerformanceToDb(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDb()
         yield IgPostPerformanceToDb()
-        yield TweetPerformanceToDb()
+        # ---
+        # NOTE: We are disabling Twitter temporarily, see #369.
+        # TODO: Uncomment and fix this later!
+        # yield TweetPerformanceToDb()
+        # ---
