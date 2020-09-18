@@ -7,7 +7,12 @@ from facebook import FbPostsToDb, FbPostCommentsToDb, FbPostPerformanceToDb
 from google_maps import GoogleMapsReviewsToDb
 from gplay import GooglePlaystoreReviewsToDb
 from instagram import IgToDb, IgPostPerformanceToDb
-from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
+# ---
+# NOTE: We are disabling Twitter temporarily, see #369.
+# TODO: Uncomment and fix this later!
+# from twitter import TweetsToDb, TweetPerformanceToDb
+from twitter import TweetAuthorsToDb
+# ---
 
 
 class PostsToDb(luigi.WrapperTask):
