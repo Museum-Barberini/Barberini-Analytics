@@ -27,7 +27,11 @@ class PostsToDb(luigi.WrapperTask):
         yield GooglePlaystoreReviewsToDb()
         yield IgToDb()
         yield TweetAuthorsToDb()
-        yield TweetsToDb()
+        # ---
+        # NOTE: We are disabling Twitter temporarily, see !369.
+        # TODO: Uncomment and fix this later!
+        # yield TweetsToDb()
+        # ---
 
         if self.fetch_performance:
             yield PostPerformanceToDb()

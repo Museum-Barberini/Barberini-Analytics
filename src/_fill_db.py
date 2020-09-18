@@ -40,7 +40,11 @@ class FillDbDaily(luigi.WrapperTask):
         yield Diagnostics()
 
         # Extended Tweet Gathering
-        yield TwitterExtendedDatasetToDB()
+        # ---
+        # NOTE: We are disabling Twitter temporarily, see !369.
+        # TODO: Uncomment and fix this later!
+        # yield TwitterExtendedDatasetToDB()
+        # ---
 
 
 class FillDbHourly(luigi.WrapperTask):
