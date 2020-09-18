@@ -43,4 +43,8 @@ class PostPerformanceToDb(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDb()
         yield IgPostPerformanceToDb()
+        # ---
+        # NOTE: We are disabling Twitter temporarily, see !369.
+        # TODO: Uncomment and fix this later!
         yield TweetPerformanceToDb()
+        # ---
