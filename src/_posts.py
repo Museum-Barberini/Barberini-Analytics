@@ -46,5 +46,5 @@ class PostPerformanceToDb(luigi.WrapperTask):
         # ---
         # NOTE: We are disabling Twitter temporarily, see !369.
         # TODO: Uncomment and fix this later!
-        yield TweetPerformanceToDb()
+        # yield TweetPerformanceToDb()
         # ---
