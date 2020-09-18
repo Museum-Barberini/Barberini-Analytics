@@ -28,7 +28,7 @@ class PostsToDb(luigi.WrapperTask):
         yield IgToDb()
         yield TweetAuthorsToDb()
         # ---
-        # NOTE: We are disabling Twitter temporarily, see !369.
+        # NOTE: We are disabling Twitter temporarily, see #369.
         # TODO: Uncomment and fix this later!
         # yield TweetsToDb()
         # ---
@@ -44,7 +44,7 @@ class PostPerformanceToDb(luigi.WrapperTask):
         yield FbPostPerformanceToDb()
         yield IgPostPerformanceToDb()
         # ---
-        # NOTE: We are disabling Twitter temporarily, see !369.
+        # NOTE: We are disabling Twitter temporarily, see #369.
         # TODO: Uncomment and fix this later!
         # yield TweetPerformanceToDb()
         # ---

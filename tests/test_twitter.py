@@ -16,7 +16,7 @@ class TestFetchTwitter(DatabaseTestCase):
 
     # ---
     # NOTE: Twitterscraper is broken ATM, so we are disabling it temporarily.
-    # See !369. TODO: Fix this later!
+    # See #369. TODO: Fix this later!
     @unittest.expectedFailure
     # ---
     @patch.object(FetchTwitter, 'output')

@@ -32,7 +32,7 @@ class CheckPosts(DatabaseTestCase):
                 "Instagram",
                 "Google Play", "Apple Appstore",
                 # ---
-                # NOTE: We are disabling Twitter temporarily, see !369.
+                # NOTE: We are disabling Twitter temporarily, see #369.
                 # TODO: Uncomment and fix this later!
                 # "Twitter"
                 # ---
