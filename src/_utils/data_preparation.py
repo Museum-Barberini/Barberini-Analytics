@@ -39,14 +39,19 @@ class DataPreparationTask(luigi.Task):
     def condense_performance_values(
             self,
             df,
-            timestamp_column='timestamp'):
+            timestamp_column='timestamp',
+            delta_function: Callable[[pd.Series, pd.Series], object]=None):
 
         if not self.table:
             raise RuntimeError("Table not set in condense_performance_values")
 
-        return PerformanceValueCondenser(
-            self.db_connector, self.table, timestamp_column
-        ).condense_performance_values(df)
+        condenser = PerformanceValueCondenser(
+            self.db_connector,
+            self.table,
+            timestamp_column
+        )
+        condenser.delta_function = delta_function
+        return condenser.condense_performance_values(df)
 
     def filter_fkey_violations(
             self,
@@ -201,15 +206,17 @@ class PerformanceValueCondenser():
         self.table = table
         self.timestamp_column = timestamp_column
 
+    delta_function = None
+    delta_prefix = 'delta_'
+
     def condense_performance_values(self, df):
 
         # Read latest performance data from DB
         key_columns = self.get_key_columns()
         performance_columns = self.get_performance_columns(key_columns)
         query_keys = ','.join(key_columns)
-        latest_performances = self.db_connector.query(
-            f'''
-            SELECT {query_keys},{','.join(performance_columns)}
+        latest_performances = self.db_connector.query(f'''
+            SELECT {query_keys}, {', '.join(performance_columns)}
             FROM {self.table} AS p1
                 NATURAL JOIN (
                     SELECT {query_keys}, MAX({self.timestamp_column})
@@ -217,16 +224,14 @@ class PerformanceValueCondenser():
                     FROM {self.table}
                     GROUP BY {query_keys}
                 ) AS p2
-            '''
-        )
+        ''')
 
-        # For each new entry, check against most recent
-        # performance data -> drop if it didn't change
+        # For each new entry, check against most recent performance data
+        # -> drop if it didn't change
         latest_performance_df = pd.DataFrame(
             latest_performances, columns=[*key_columns, *performance_columns])
 
-        new_suffix = '_new'
-        old_suffix = '_old'
+        new_suffix, old_suffix = '_new', '_old'
         merge_result = pd.merge(
             df,
             latest_performance_df,
@@ -243,6 +248,10 @@ class PerformanceValueCondenser():
             f'{perf_col}{old_suffix}'
             for perf_col in performance_columns]]
 
+        deltas = None
+        if self.delta_function:
+            deltas = []
+
         # Cut off suffixes to enable Series comparison
         new_values.columns = [
             label[:-len(new_suffix)]
@@ -258,10 +267,26 @@ class PerformanceValueCondenser():
             old_row = old_values.loc[i].astype(object)
             if new_row.equals(old_row):
                 to_drop.append(i)
+            elif deltas is not None:
+                deltas.append(self.delta_function(old_row, new_row))
 
         logger.info(f"Discard {len(to_drop)} unchanged performance "
                     f"values out of {org_count} for {self.table}")
-        return df.drop(index=to_drop).reset_index(drop=True)
+        df = df.drop(index=to_drop).reset_index(drop=True)
+
+        if deltas is not None:
+            delta_columns = [
+                f'{self.delta_prefix}{perf_col}'
+                for perf_col in performance_columns
+            ]
+            df[delta_columns] = pd.DataFrame([
+                dict(zip(delta_columns, delta))
+                if isinstance(delta, pd.Series)
+                else delta
+                for delta in deltas
+            ])
+
+        return df
 
     def get_key_columns(self):
         primary_key_columns = self.db_connector.query(
@@ -289,6 +314,7 @@ class PerformanceValueCondenser():
             WHERE table_name = '{self.table}'
             ''')
         return [
-            row[0]
-            for row in db_columns
-            if row[0] not in key_columns and row[0] != self.timestamp_column]
+            column for (column,) in db_columns
+            if column not in key_columns
+            and column != self.timestamp_column
+            and not column.startswith(self.delta_prefix)]
