@@ -40,7 +40,7 @@ class DataPreparationTask(luigi.Task):
             self,
             df,
             timestamp_column='timestamp',
-            delta_function: Callable[[pd.Series, pd.Series], object]=None):
+            delta_function: Callable[[pd.Series, pd.Series], object] = None):
 
         if not self.table:
             raise RuntimeError("Table not set in condense_performance_values")
