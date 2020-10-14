@@ -319,6 +319,6 @@ class PerformanceValueCondenser():
             and column != self.timestamp_column
             and not column.startswith(self.delta_prefix)]
 
-        @staticmethod
-        def linear_delta(old_row, new_row):
-            return (new_row - old_row).fillna(0)
+    @staticmethod
+    def linear_delta(old_row, new_row):
+        return (new_row - old_row).fillna(0).astype(int)
