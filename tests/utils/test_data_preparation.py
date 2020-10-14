@@ -367,15 +367,21 @@ class TestDataPreparationTask(DatabaseTestCase):
             ['2', 3, '2020-05-03 00:00:00']],
             columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
 
-        expected_df = pd.DataFrame([
-            ['0', 3, '2020-05-03 00:00:00'],
-            ['2', 3, '2020-05-03 00:00:00']],
-            columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
+        expected_df = pd.DataFrame(
+            [['0', 3, '2020-05-03 00:00:00', ([2], [3])],
+             ['2', 3, '2020-05-03 00:00:00', ([4], [3])]],
+            columns=[
+                COLUMN_NAME,
+                COLUMN_NAME_2,
+                timestamp_column,
+                f'delta_{COLUMN_NAME_2}'
+            ])
 
         self.task = DataPreparationTask(table=TABLE_NAME)
         actual_df = self.task.condense_performance_values(
             df,
-            timestamp_column=timestamp_column)
+            timestamp_column=timestamp_column,
+            delta_function=lambda old, new: [(list(old), list(new))])
 
         pd.testing.assert_frame_equal(expected_df, actual_df)
 

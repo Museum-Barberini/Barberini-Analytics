@@ -16,6 +16,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
+from _utils.data_preparation import PerformanceValueCondenser
 from facebook import API_BASE, try_request_multiple_times
 
 
@@ -229,10 +230,15 @@ class FetchIgPostPerformance(DataPreparationTask):
             'saved'
         ]
 
-        performance_df = pd.DataFrame(columns=self.columns)
+        performance_df = pd.DataFrame(columns=[
+            column for column in self.columns
+            if not column.startswith('delta_')])
 
         fetch_time = dt.datetime.now()
-        for i, row in post_df.iterrows():
+        for i, row in self.tqdm(
+                post_df.iterrows(),
+                desc="Fetching insights for instagram posts",
+                total=len(post_df)):
             # Fetch only insights for less than 2 months old posts
             post_time = dtparser.parse(row['timestamp'])
             if post_time.date() < \
@@ -240,12 +246,6 @@ class FetchIgPostPerformance(DataPreparationTask):
                 continue
 
             metrics = ','.join(generic_metrics)
-            if sys.stdout.isatty():
-                print(
-                    f"\rFetched insight for instagram post from {post_time}",
-                    end='',
-                    flush=True)
-
             if row['media_type'] == 'VIDEO':
                 metrics += ',video_views'  # causes error if used on non-video
 
@@ -259,10 +259,9 @@ class FetchIgPostPerformance(DataPreparationTask):
             engagement = response_data[2]['values'][0]['value']
             saved = response_data[3]['values'][0]['value']
 
-            if row['media_type'] == 'VIDEO':
-                video_views = response_data[4]['values'][0]['value']
-            else:
-                video_views = 0  # for non-video posts
+            video_views = response_data[4]['values'][0]['value']\
+                if row['media_type'] == 'VIDEO'\
+                else 0  # for non-video posts
 
             performance_df.loc[i] = [
                 str(row['id']),  # The type was lost during CSV conversion
@@ -274,11 +273,11 @@ class FetchIgPostPerformance(DataPreparationTask):
                 video_views
             ]
 
-        if sys.stdout.isatty():
-            print()
-
         performance_df = self.filter_fkey_violations(performance_df)
-        performance_df = self.condense_performance_values(performance_df)
+        performance_df = self.condense_performance_values(
+            performance_df,
+            delta_function=PerformanceValueCondenser.linear_delta
+        )
 
         with self.output().open('w') as output_file:
             performance_df.to_csv(output_file, index=False, header=True)

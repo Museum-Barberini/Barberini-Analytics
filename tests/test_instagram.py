@@ -5,9 +5,10 @@ from unittest.mock import MagicMock, patch
 from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+import pandas as pd
 
-import instagram
 from db_test import DatabaseTestCase
+import instagram
 
 IG_TEST_DATA = 'tests/test_data/instagram'
 
@@ -89,11 +90,11 @@ class TestInstagram(DatabaseTestCase):
     def test_post_performance_transformation(
             self, input_mock, output_mock, request_mock):
         self.db_connector.execute(
-            '''
-            INSERT INTO ig_post (ig_post_id) VALUES
+            '''INSERT INTO ig_post (ig_post_id) VALUES
                 (0123456789),
-                (9876543210)
-            '''
+                (9876543210)''',
+            '''INSERT INTO ig_post_performance VALUES
+                (0123456789, '2019-10-04', 5, 4, 3, 2, 1, 2, 1, 0, 1, 0)'''
         )
         input_target = MockTarget('posts_in', format=UTF8)
         input_mock.return_value = input_target
@@ -119,7 +120,7 @@ class TestInstagram(DatabaseTestCase):
         with open(f'{IG_TEST_DATA}/post_insights_expected.csv',
                   'r',
                   encoding='utf-8') as expected_data_in:
-            expected_data = expected_data_in.read()
+            expected_df = pd.read_csv(expected_data_in)
 
         def mock_video_json():
             return json.loads(input_video_insights)
@@ -144,7 +145,8 @@ class TestInstagram(DatabaseTestCase):
             self.task.run()
 
         with output_target.open('r') as output_data:
-            self.assertEqual(output_data.read(), expected_data)
+            output_df = pd.read_csv(output_data)
+        pd.testing.assert_frame_equal(expected_df, output_df)
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgProfileMetricsDevelopment, 'output')
