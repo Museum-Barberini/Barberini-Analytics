@@ -235,7 +235,10 @@ class FetchIgPostPerformance(DataPreparationTask):
             if not column.startswith('delta_')])
 
         fetch_time = dt.datetime.now()
-        for i, row in post_df.iterrows():
+        for i, row in self.tqdm(
+                post_df.iterrows(),
+                desc="Fetching insights for instagram posts",
+                total=len(post_df)):
             # Fetch only insights for less than 2 months old posts
             post_time = dtparser.parse(row['timestamp'])
             if post_time.date() < \
@@ -243,12 +246,6 @@ class FetchIgPostPerformance(DataPreparationTask):
                 continue
 
             metrics = ','.join(generic_metrics)
-            if sys.stdout.isatty():
-                print(
-                    f"\rFetched insight for instagram post from {post_time}",
-                    end='',
-                    flush=True)
-
             if row['media_type'] == 'VIDEO':
                 metrics += ',video_views'  # causes error if used on non-video
 
@@ -275,9 +272,6 @@ class FetchIgPostPerformance(DataPreparationTask):
                 saved,
                 video_views
             ]
-
-        if sys.stdout.isatty():
-            print()
 
         performance_df = self.filter_fkey_violations(performance_df)
         performance_df = self.condense_performance_values(
