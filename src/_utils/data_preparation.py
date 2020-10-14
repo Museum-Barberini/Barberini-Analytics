@@ -261,8 +261,8 @@ class PerformanceValueCondenser():
             for label in old_values.columns]
 
         for i, new_row in new_values.iterrows():
-            # The dtypes of the DataFrames get messed up
-            # sometimes, so we cast to object for safety
+            # The dtypes of the DataFrames get messed up sometimes, so we cast
+            # to object for safety
             new_row = new_row.astype(object)
             old_row = old_values.loc[i].astype(object)
             if new_row.equals(old_row):
@@ -318,3 +318,7 @@ class PerformanceValueCondenser():
             if column not in key_columns
             and column != self.timestamp_column
             and not column.startswith(self.delta_prefix)]
+
+        @staticmethod
+        def linear_delta(old_row, new_row):
+            return (new_row - old_row).fillna(0)

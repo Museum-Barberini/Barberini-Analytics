@@ -16,6 +16,7 @@ import pandas as pd
 from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
+from _utils.data_preparation import PerformanceValueCondenser
 from facebook import API_BASE, try_request_multiple_times
 
 
@@ -281,7 +282,7 @@ class FetchIgPostPerformance(DataPreparationTask):
         performance_df = self.filter_fkey_violations(performance_df)
         performance_df = self.condense_performance_values(
             performance_df,
-            delta_function=lambda old, new: new - old
+            delta_function=PerformanceValueCondenser.linear_delta
         )
 
         with self.output().open('w') as output_file:
