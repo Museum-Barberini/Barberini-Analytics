@@ -229,7 +229,9 @@ class FetchIgPostPerformance(DataPreparationTask):
             'saved'
         ]
 
-        performance_df = pd.DataFrame(columns=self.columns)
+        performance_df = pd.DataFrame(columns=[
+            column for column in self.columns
+            if not column.startswith('delta_')])
 
         fetch_time = dt.datetime.now()
         for i, row in post_df.iterrows():
@@ -259,10 +261,9 @@ class FetchIgPostPerformance(DataPreparationTask):
             engagement = response_data[2]['values'][0]['value']
             saved = response_data[3]['values'][0]['value']
 
-            if row['media_type'] == 'VIDEO':
-                video_views = response_data[4]['values'][0]['value']
-            else:
-                video_views = 0  # for non-video posts
+            video_views = response_data[4]['values'][0]['value']\
+                if row['media_type'] == 'VIDEO'\
+                else 0  # for non-video posts
 
             performance_df.loc[i] = [
                 str(row['id']),  # The type was lost during CSV conversion
@@ -278,7 +279,10 @@ class FetchIgPostPerformance(DataPreparationTask):
             print()
 
         performance_df = self.filter_fkey_violations(performance_df)
-        performance_df = self.condense_performance_values(performance_df)
+        performance_df = self.condense_performance_values(
+            performance_df,
+            delta_function=lambda old, new: new - old
+        )
 
         with self.output().open('w') as output_file:
             performance_df.to_csv(output_file, index=False, header=True)
