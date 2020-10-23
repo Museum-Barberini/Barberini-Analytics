@@ -11,7 +11,6 @@ from db_test import DatabaseTestCase
 from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
-                          get_categories,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
