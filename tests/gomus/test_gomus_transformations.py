@@ -11,7 +11,6 @@ from db_test import DatabaseTestCase
 from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
-                          get_categories,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
@@ -345,10 +344,11 @@ class TestEventTransformation(GomusTransformationTest):
 
         self.test_data_path += 'events/'
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.categories = get_categories()
+    categories = [
+        "Lagerfeuer",
+        "Öffentliches Gespräch",
+        "Crowley Thoth Session"
+    ]
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
@@ -368,9 +368,11 @@ class TestEventTransformation(GomusTransformationTest):
 
         self.write_file_to_target(input_target, infile)
 
+    @patch('gomus.events.get_categories')
     @patch.object(ExtractEventData, 'output')
-    def test_events_transformation(self, output_mock):
+    def test_events_transformation(self, output_mock, categories_mock):
         output_target = self.prepare_output_target(output_mock)
+        categories_mock.return_value = self.categories
 
         gen = self.execute_task()
         try:
