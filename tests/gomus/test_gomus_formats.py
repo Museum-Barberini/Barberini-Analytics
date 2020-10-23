@@ -249,5 +249,5 @@ class TestEventsFormat(GomusFormatTest):
     def test_events_format(self, output_mock):
         self.output_target = MockTarget('data_out', format=UTF8)
         output_mock.return_value = self.output_target
-        self.run_task(FetchEventReservations(123))
+        self.run_task(FetchEventReservations(12345))
         self.check_format(skiprows=5, skipfooter=1)
