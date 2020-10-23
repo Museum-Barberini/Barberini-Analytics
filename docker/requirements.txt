@@ -10,22 +10,22 @@ setuptools\
     # https://github.com/pypa/setuptools/issues/2356, now frozen as well
 
 # Framework
-luigi==3.0.1
-psycopg2==2.8.5
+luigi==3.0.2
+psycopg2==2.8.6
 
 # Testing tools
 bandit==1.6.2
 checksumdir==1.2.0
-coverage==5.2.1
-django==3.0.8
-flake8==3.8.3
+coverage==5.3
+django==3.1.2
+flake8==3.8.4
 flake8-docstrings==1.5.0
-freezegun==0.3.15
+freezegun==1.0.0
 pep8-naming==0.11.1
-validators==0.15.0
+validators==0.18.1
 
 # Data sources
-google-api-python-client==1.11.0
+google-api-python-client==1.12.5
 git+https://github.com/Museum-Barberini-gGmbH/twitterscraper.git#egg=twitterscraper
 twint==2.1.20
 
@@ -43,11 +43,11 @@ dateparser==0.7.6
 jstyleson==0.0.2
 lockfile==0.12.2
 mmh3==2.5.1
-numpy==1.19.0
+numpy==1.19.2
 oauth2client==4.1.3
-pandas==1.0.5
+pandas==1.1.3
 PyYAML==5.3.1
 requests==2.24.0
-tqdm==4.48.2
+tqdm==4.50.2
 xlrd==1.2.0
 xmltodict==0.12.0
