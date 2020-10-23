@@ -1,8 +1,8 @@
-3002.0,"","","","","","","","","","",""
+6002.0,"","","","","","","","","","",""
 "Ein tolles Datum","","","","","","","","","","",""
 "Museum Barberini","","","","","","","","","","",""
-"Ein beschreibender Titel (Gespräch)","","","","","","","","","","",""
+"Ein beschreibender Titel (Lesung)","","","","","","","","","","",""
 "","","","","","","","","","","",""
 "Id","Kunde","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail","Teilnehmerinfo"
-3003.0,"Kunde 5",35.0,0.0,5.0,5.0,"No comment","Straße Nr.%
-PLZ Stadt%","","","kunde@ge1.csv",""
+6003.0,"Kunde 11",65.0,0.0,11.0,11.0,"No comment","Straße Nr.%
+PLZ Stadt%","","","kunde@le1.csv",""
