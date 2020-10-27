@@ -82,6 +82,6 @@ If you need to do this in Firefox/Safari/Netscape Navigator, you will need to im
 4. Open the **developer console** by pressing F12.
 5. Switch to tab **Application.**
 6. In the left bar, from the **Storage** section, choose **Cookies > `https://your-museum.gomus.de`.**
-7. From the cookies list, find `_session_id` and copy its value into clipboard.
-8. Log into the VM and open open the `keys.env` file from the secrets folder.
+7. From the cookies list, find `_session_id` and copy its value into the clipboard.
+8. Log into the VM and open the `keys.env` file from the secrets folder.
 9. Patch `GOMUS_SESS_ID` with the copied value.
