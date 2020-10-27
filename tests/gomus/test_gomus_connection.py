@@ -35,7 +35,10 @@ class TestGomusConnection(DatabaseTestCase):
         version_hits = {
             ln: match
             for ln, match in [
-                (ln, re.match(r'^v\d+\.\d+\.\d+(?:\.\d+)? – .+ Edition$', line))
+                (ln, re.match(
+                    r'^v\d+\.\d+\.\d+(?:\.\d+)? – .+ Edition$',
+                    line
+                ))
                 for ln, line in enumerate(response.text.splitlines())
             ]
             if match
