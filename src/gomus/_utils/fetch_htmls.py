@@ -11,10 +11,47 @@ from ..orders import OrdersToDb
 from .extract_bookings import ExtractGomusBookings
 
 
+class FailableTarget(luigi.LocalTarget):
+    """
+    Decorator for luigi.LocalTarget, allowing a task to complete despite a
+    failure occured during execution.
+    """
+
+    @property
+    def is_error(self):
+
+        return self.path.endswith('.error')
+
+    def has_error(self):
+
+        if self.is_error:
+            return True
+        return self.as_error().exists()
+
+    def exists(self):
+
+        if super().exists():
+            return True
+        if self.is_error:
+            return False
+        return self.as_error().exists()
+
+    def as_error(self):
+
+        if self.is_error:
+            return self
+        return type(self)(f'{self.path}.error', format=self.format)
+
+
 class FetchGomusHTML(DataPreparationTask):
-    url = luigi.parameter.Parameter(description="The URL to fetch")
+
+    url = luigi.Parameter(description="The URL to fetch")
+    raise_for_status = luigi.BoolParameter(
+        description="Whether to raise an error if the download fails",
+        default=True)
 
     def output(self):
+
         name = f'{self.output_dir}/gomus/html/' + \
             self.url. \
             replace('http://', ''). \
@@ -23,20 +60,27 @@ class FetchGomusHTML(DataPreparationTask):
             replace('.', '_') + \
             '.html'
 
-        return luigi.LocalTarget(name, format=luigi.format.Nop)
+        return FailableTarget(name, format=luigi.format.Nop)
 
-    # simply wait for a moment before requesting, as we don't want to
-    # overwhelm the server with our interest in classified information...
     def run(self):
 
         # polite get: we don't want to overwhelm the server
         time.sleep(0.2)
+
+        output = self.output()
+
         response = requests.get(
             self.url,
             cookies=dict(
                 _session_id=os.environ['GOMUS_SESS_ID']),
             stream=True)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as error:
+            if self.raise_for_status:
+                raise
+            else:
+                output = output.as_error()
 
         with output.open('wb') as html_out:
             for block in response.iter_content(1024):
