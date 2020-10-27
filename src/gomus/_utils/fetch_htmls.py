@@ -13,8 +13,9 @@ from .extract_bookings import ExtractGomusBookings
 
 class FailableTarget(luigi.LocalTarget):
     """
-    Decorator for luigi.LocalTarget, allowing a task to complete despite a
-    failure occured during execution.
+    Decorator for luigi.LocalTarget to mark a target as failed.
+
+    This allows a task to complete despite a failure occured during execution.
     """
 
     @property
@@ -76,7 +77,7 @@ class FetchGomusHTML(DataPreparationTask):
             stream=True)
         try:
             response.raise_for_status()
-        except requests.HTTPError as error:
+        except requests.HTTPError:
             if self.raise_for_status:
                 raise
             else:

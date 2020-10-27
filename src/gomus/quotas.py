@@ -1,3 +1,5 @@
+"""Provides tasks for downloading gomus quotas into the database."""
+
 import requests
 
 import dateparser
@@ -95,9 +97,9 @@ class FetchQuotas(DataPreparationTask):
             while quota_id - last_confirmed_id < self.max_missing_ids:
                 quota_id += 1
                 html = yield FetchGomusHTML(
-                        url=f'https://barberini.gomus.de/admin/quotas/'
-                            f'{quota_id}',
-                        raise_for_status=False)
+                    url=f'https://barberini.gomus.de/admin/quotas/'
+                        f'{quota_id}',
+                    raise_for_status=False)
                 if html.has_error():
                     logger.debug(f"Skipping invalid quota_id={quota_id}")
                     continue
