@@ -5,7 +5,6 @@ import time
 import luigi
 import pandas as pd
 import requests
-from luigi.format import UTF8
 
 from _utils import DataPreparationTask
 from ..orders import OrdersToDb
@@ -24,20 +23,24 @@ class FetchGomusHTML(DataPreparationTask):
             replace('.', '_') + \
             '.html'
 
-        return luigi.LocalTarget(name, format=UTF8)
+        return luigi.LocalTarget(name, format=luigi.format.Nop)
 
     # simply wait for a moment before requesting, as we don't want to
     # overwhelm the server with our interest in classified information...
     def run(self):
+
+        # polite get: we don't want to overwhelm the server
         time.sleep(0.2)
         response = requests.get(
             self.url,
             cookies=dict(
-                _session_id=os.environ['GOMUS_SESS_ID']))
+                _session_id=os.environ['GOMUS_SESS_ID']),
+            stream=True)
         response.raise_for_status()
 
-        with self.output().open('w') as html_out:
-            html_out.write(response.text)
+        with output.open('wb') as html_out:
+            for block in response.iter_content(1024):
+                html_out.write(block)
 
 
 class FetchBookingsHTML(DataPreparationTask):
