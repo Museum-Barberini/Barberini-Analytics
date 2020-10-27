@@ -105,29 +105,3 @@ class FetchQuotas(DataPreparationTask):
                     continue
                 last_confirmed_id = quota_id
                 print(html.path, file=output)
-
-
-class FetchQuotaHTML(FetchGomusHTML):
-
-    quota_id = luigi.IntParameter()
-
-    def output(self):
-
-        return luigi.LocalTarget(
-            f'{self.output_dir}/gomus/quota_{self.quota_id}.html',
-            format=luigi.format.Nop
-        )
-
-    def run(self):
-
-        response = requests.get(self.url, stream=True)
-        response.raise_for_status()
-
-        with self.output().open('wb') as output:
-            for block in response.iter_content(1024):
-                output.write(block)
-
-    @property
-    def url(self):
-
-        return f'https://barberini.gomus.de/admin/quotas/{self.quota_id}'
