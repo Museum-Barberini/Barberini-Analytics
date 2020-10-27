@@ -5,8 +5,8 @@ import requests
 
 from db_test import DatabaseTestCase, logger
 
-EXPECTED_VERSION_NUMBER = 775
-EXPECTED_VERSION_TAG = 'v4.1.5.7 – Premium Edition'
+EXPECTED_VERSION_NUMBER = 776
+EXPECTED_VERSION_TAG = 'v4.1.6 – Premium Edition'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
@@ -35,7 +35,10 @@ class TestGomusConnection(DatabaseTestCase):
         version_hits = {
             ln: match
             for ln, match in [
-                (ln, re.match(r'^v\d+\.\d+\.\d+\.\d+ – .+ Edition$', line))
+                (ln, re.match(
+                    r'^v\d+\.\d+\.\d+(?:\.\d+)? – .+ Edition$',
+                    line
+                ))
                 for ln, line in enumerate(response.text.splitlines())
             ]
             if match
