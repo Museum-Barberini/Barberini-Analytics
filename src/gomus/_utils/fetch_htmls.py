@@ -95,7 +95,7 @@ class FetchGomusHTML(DataPreparationTask):
         try:
             response.raise_for_status()
         except requests.HTTPError as error:
-            if error.response.status not in self.ignored_status_codes:
+            if error.response.status_code not in self.ignored_status_codes:
                 raise
             else:
                 output = output.as_error()
