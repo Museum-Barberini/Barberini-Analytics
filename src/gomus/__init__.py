@@ -9,6 +9,7 @@ from .exhibitions import ExhibitionTimesToDb
 from .events import EventsToDb
 from .order_contains import OrderContainsToDb
 from .orders import OrdersToDb
+from .quotas import QuotasToDb
 
 
 class GomusToDb(luigi.WrapperTask):
@@ -24,6 +25,7 @@ class GomusToDb(luigi.WrapperTask):
         yield DailyEntriesToDb()
         yield ExhibitionTimesToDb()
         yield ExpectedDailyEntriesToDb()
+        yield QuotasToDb()
 
         if not self.light_mode:
             yield BookingsToDb()
