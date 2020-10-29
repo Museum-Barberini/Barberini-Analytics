@@ -1,3 +1,4 @@
+from copy import copy
 import datetime as dt
 import os
 import time
@@ -11,12 +12,24 @@ from ..orders import OrdersToDb
 from .extract_bookings import ExtractGomusBookings
 
 
-class FailableTarget(luigi.LocalTarget):
+class FailableTarget:
     """
     Decorator for luigi.LocalTarget to mark a target as failed.
 
     This allows a task to complete despite a failure occured during execution.
     """
+
+    def __init__(self, task):
+
+        super().__init__()
+        self.task = task
+
+    def __getattribute__(self, name):
+
+        try:
+            return super().__getattribute__(name)
+        except AttributeError:
+            return self.task.__getattribute__(name)
 
     @property
     def is_error(self):
@@ -31,7 +44,7 @@ class FailableTarget(luigi.LocalTarget):
 
     def exists(self):
 
-        if super().exists():
+        if self.task.exists():
             return True
         if self.is_error:
             return False
@@ -41,7 +54,10 @@ class FailableTarget(luigi.LocalTarget):
 
         if self.is_error:
             return self
-        return type(self)(f'{self.path}.error', format=self.format)
+        error_task = copy(self.task)
+        error_task.path = f'{error_task.path}.error'
+        return type(self)(error_task)
+
 
 
 class FetchGomusHTML(DataPreparationTask):
@@ -61,7 +77,8 @@ class FetchGomusHTML(DataPreparationTask):
             replace('.', '_') + \
             '.html'
 
-        return FailableTarget(name, format=luigi.format.Nop)
+        return FailableTarget(
+            luigi.LocalTarget(name, format=luigi.format.Nop))
 
     def run(self):
 
