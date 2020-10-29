@@ -4,7 +4,7 @@ import datetime as dt
 
 import luigi
 
-from _utils import minimal_mode, OUTPUT_DIR
+from _utils import minimal_mode, output_dir
 from .log_report import SendLogReport
 
 
@@ -13,7 +13,7 @@ class Diagnostics(luigi.Task):
 
     def output(self):
 
-        return luigi.LocalTarget(f'{OUTPUT_DIR}/diagnostics.txt')
+        return luigi.LocalTarget(f'{output_dir()}/diagnostics.txt')
 
     def run(self):
 

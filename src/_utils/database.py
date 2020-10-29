@@ -72,7 +72,7 @@ class CsvToDb(CopyToTable):
     }
 
     """
-    Conversion functions to be applied before generating the ouput CSV for
+    Conversion functions to be applied before generating the output CSV for
     postgres.
     """
     converters_out = {

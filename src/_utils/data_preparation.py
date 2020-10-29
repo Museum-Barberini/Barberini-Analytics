@@ -34,7 +34,7 @@ class DataPreparationTask(luigi.Task):
     @property
     def output_dir(self):
 
-        return _utils.OUTPUT_DIR
+        return _utils.output_dir()
 
     def condense_performance_values(
             self,

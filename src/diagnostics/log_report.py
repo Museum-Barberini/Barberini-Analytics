@@ -11,7 +11,7 @@ import regex
 import pandas as pd
 from tqdm import tqdm
 
-from _utils import utils, OUTPUT_DIR
+from _utils import utils, output_dir
 
 
 # Log patterns ---
@@ -98,7 +98,7 @@ class SendLogReport(luigi.Task):
 
     def output(self):
 
-        return luigi.LocalTarget(f'{OUTPUT_DIR}/SendLogReport')
+        return luigi.LocalTarget(f'{output_dir()}/SendLogReport')
 
     def run(self):
 
@@ -148,7 +148,7 @@ class CollectLogReport(luigi.Task):
 
     def output(self):
 
-        return luigi.LocalTarget(f'{OUTPUT_DIR}/log_report.csv')
+        return luigi.LocalTarget(f'{output_dir()}/log_report.csv')
 
     def run(self):
 

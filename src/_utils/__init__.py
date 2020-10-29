@@ -4,7 +4,11 @@ import os
 logger = logging.getLogger('luigi-interface')
 
 minimal_mode = os.getenv('MINIMAL') == 'True'
-OUTPUT_DIR = os.environ['OUTPUT_DIR']
+
+
+def output_dir():
+    return os.environ['OUTPUT_DIR']
+
 
 from .data_preparation import DataPreparationTask        # noqa: E402
 from ._database import DbConnector                       # noqa: E402
@@ -25,5 +29,5 @@ __all__ = [
     MuseumFacts,
     ConcatCsvs, StreamToLogger,
 
-    db_connector
+    db_connector, minimal_mode, output_dir
 ]
