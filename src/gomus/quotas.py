@@ -80,7 +80,7 @@ class FetchQuotas(DataPreparationTask):
         with self.output().open('w') as output:
             print('file_path', file=output)
 
-            while quota_id - last_confirmed_id < self.max_missing_ids:
+            while quota_id - last_confirmed_id <= self.max_missing_ids:
                 quota_id += 1
                 html = yield FetchGomusHTML(
                     url=f'https://barberini.gomus.de/admin/quotas/'
