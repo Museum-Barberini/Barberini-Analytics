@@ -53,6 +53,7 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
             {'text': text, 'placeId': place_id}
             for text in [
                 "Wow!",
+                "⭐⭐⭐⭐⭐",
                 "The paintings are not animated",
                 "Van Gogh is dead"
             ]
@@ -93,10 +94,12 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
             latest_page_token = page_token
             page_token = counter
             next_counter = counter + 2
+            next_reviews = all_reviews[counter:next_counter]
             result = {
-                'reviews': all_reviews[counter:next_counter],
                 'totalReviewCount': len(all_reviews)
             }
+            if next_reviews:
+                result['reviews'] = next_reviews
             if counter < len(all_reviews):
                 result['nextPageToken'] = page_token
             counter = next_counter
