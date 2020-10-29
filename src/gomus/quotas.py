@@ -1,10 +1,6 @@
 """Provides tasks for downloading gomus quotas into the database."""
 
-import requests
-
-import dateparser
 import luigi
-import luigi.format
 from luigi.format import UTF8
 from lxml import html
 import pandas as pd
@@ -12,6 +8,7 @@ from tqdm.auto import tqdm
 
 from _utils import CsvToDb, DataPreparationTask, logger
 from ._utils.fetch_htmls import FetchGomusHTML
+from ._utils.scrape_gomus import GomusScraperTask
 
 
 class QuotasToDb(CsvToDb):
@@ -23,7 +20,7 @@ class QuotasToDb(CsvToDb):
         return ExtractQuotas()
 
 
-class ExtractQuotas(DataPreparationTask):
+class ExtractQuotas(GomusScraperTask):
 
     def output(self):
 
@@ -41,7 +38,7 @@ class ExtractQuotas(DataPreparationTask):
         with self.input().open() as input_:
             df_htmls = pd.read_csv(input_)
 
-        tqdm.pandas(desc="Extracting quota")
+        tqdm.pandas(desc="Extracting quotas")
         quotas = df_htmls['file_path'].progress_apply(self.extract_quota)
 
         df_quotas = pd.DataFrame(list(quotas))
@@ -51,29 +48,18 @@ class ExtractQuotas(DataPreparationTask):
     def extract_quota(self, html_path):
 
         with open(html_path) as file:
-            dom = html.fromstring(file.read())
-            dom: html.HtmlElement
+            dom: html.HtmlElement = html.fromstring(file.read())
 
         div = dom.xpath('//body/div[2]/div[2]/div[3]/div/div[2]/div[1]')[0]
         date_div = div.xpath('div[3]/div/div[2]/div/small/dl')[0]
 
         return dict(
-            quota_id=int(self.parse_text(div.xpath(
-                '//body/div[2]/div[2]/div[2]/div/div/ol/li[2]/span[1]')[0])),
-            name=self.parse_text(div.xpath('div[2]/h3')[0]),
-            creation_date=self.parse_date(date_div.xpath('dd[2]')[0]),
-            update_date=self.parse_date(date_div.xpath('dd[1]')[0])
-        )
-
-    def parse_text(self, html_element):
-
-        return html_element.text_content().strip()
-
-    def parse_date(self, html_element):
-
-        return dateparser.parse(
-            self.parse_text(html_element),
-            locales=['de']
+            quota_id=self.parse_int(
+                dom,
+                '//body/div[2]/div[2]/div[2]/div/div/ol/li[2]/span[1]'),
+            name=self.parse_text(div, 'div[2]/h3'),
+            creation_date=self.parse_date(date_div, 'dd[2]'),
+            update_date=self.parse_date(date_div, 'dd[1]')
         )
 
 

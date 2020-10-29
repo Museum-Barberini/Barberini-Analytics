@@ -27,6 +27,23 @@ class GomusScraperTask(DataPreparationTask):
         # except IndexError:
         #    return ""
 
+    def parse_text(self, document, xpath='.'):
+
+        element = document.xpath(xpath)
+        assert len(element) == 1
+        return element[0].text_content().strip()
+
+    def parse_int(self, document, xpath='.'):
+
+        return int(self.parse_text(document, xpath))
+
+    def parse_date(self, document, xpath='.'):
+
+        return dateparser.parse(
+            self.parse_text(document, xpath),
+            locales=['de']
+        )
+
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
     columns = luigi.parameter.ListParameter(description="Column names")
