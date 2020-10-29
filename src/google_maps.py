@@ -170,13 +170,14 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 parent=location,
                 pageSize=page_size,
                 pageToken=next_page_token).execute()
-            for review in review_list['reviews']:
+            try:
+                reviews = review_list['reviews']
+            except KeyError:
+                break
+
+            for review in reviews:
                 next(pbar_loop)
-            yield from [
-                {**review, 'placeId': place_id}
-                for review
-                in review_list['reviews']
-            ]
+                yield {**review, 'placeId': place_id}
 
             if self.minimal_mode:
                 review_list.pop('nextPageToken')
