@@ -85,7 +85,7 @@ class FetchQuotas(DataPreparationTask):
                 html = yield FetchGomusHTML(
                     url=f'https://barberini.gomus.de/admin/quotas/'
                         f'{quota_id}',
-                    raise_for_status=False)
+                    ignored_status_codes=[404])
                 if html.has_error():
                     logger.debug(f"Skipping invalid quota_id={quota_id}")
                     continue

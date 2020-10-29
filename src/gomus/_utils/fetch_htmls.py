@@ -47,9 +47,9 @@ class FailableTarget(luigi.LocalTarget):
 class FetchGomusHTML(DataPreparationTask):
 
     url = luigi.Parameter(description="The URL to fetch")
-    raise_for_status = luigi.BoolParameter(
-        description="Whether to raise an error if the download fails",
-        default=True)
+    ignored_status_codes = luigi.ListParameter(
+        description="HTTP status codes for that an error should not be raised",
+        default=[])
 
     def output(self):
 
@@ -77,8 +77,8 @@ class FetchGomusHTML(DataPreparationTask):
             stream=True)
         try:
             response.raise_for_status()
-        except requests.HTTPError:
-            if self.raise_for_status:
+        except requests.HTTPError as error:
+            if error.response.status not in self.ignored_status_codes:
                 raise
             else:
                 output = output.as_error()
