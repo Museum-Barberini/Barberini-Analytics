@@ -6,11 +6,6 @@ from typing import Union
 
 import jsonpickle
 import luigi
-import pandas as pd
-
-from .data_preparation import DataPreparationTask
-
-
 
 
 class ObjectParameter(luigi.Parameter):
