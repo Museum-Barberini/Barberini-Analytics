@@ -106,8 +106,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 self.scopes,
                 secret['redirect_uris'][0])
             authorize_url = flow.step1_get_authorize_url()
-            logger.warning("Go to the following link in your browser: "
-                           f"{authorize_url}")
+            print(
+                "Go to the following link in your browser: {authorize_url}",
+                file=sys.stderr)
             code = input("Enter verification code: ").strip()
             credentials = flow.step2_exchange(code)
             storage.put(credentials)
