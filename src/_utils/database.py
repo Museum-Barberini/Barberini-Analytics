@@ -1,6 +1,5 @@
 from ast import literal_eval
 import datetime as dt
-from io import StringIO
 from typing import TypeVar
 
 import luigi
@@ -191,8 +190,7 @@ class CsvToDb(CopyToTable):
         with input_csv.open('r') as file:
             # Optimization. We're only interested in the column names, no
             # need to read the whole file.
-            header_stream = StringIO(next(file))
-            csv_columns = pd.read_csv(header_stream).columns
+            csv_columns = pd.read_csv(file, nrows=0).columns
         converters = {
             csv_name: self.converters_in[sql_type]
             for csv_name, (sql_name, sql_type)
