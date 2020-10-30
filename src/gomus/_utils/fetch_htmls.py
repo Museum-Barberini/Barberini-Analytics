@@ -62,7 +62,12 @@ class FailableTarget:
 
 class FetchGomusHTML(DataPreparationTask):
 
+    base_url = luigi.Parameter(
+        description="The base URL of the gomus server",
+        default="https://barberini.gomus.de")
+
     url = luigi.Parameter(description="The URL to fetch")
+
     ignored_status_codes = luigi.ListParameter(
         description="HTTP status codes for that an error should not be raised",
         default=[])
@@ -71,10 +76,10 @@ class FetchGomusHTML(DataPreparationTask):
 
         name = f'{self.output_dir}/gomus/html/' + \
             self.url. \
-            replace('http://', ''). \
-            replace('https://', ''). \
             replace('/', '_'). \
-            replace('.', '_') + \
+            replace('.', '_'). \
+            replace('?', '_'). \
+            replace('&', '_') + \
             '.html'
 
         return FailableTarget(
@@ -88,7 +93,7 @@ class FetchGomusHTML(DataPreparationTask):
         output = self.output()
 
         response = requests.get(
-            self.url,
+            self.base_url + self.url,
             cookies=dict(
                 _session_id=os.environ['GOMUS_SESS_ID']),
             stream=True)
@@ -106,9 +111,8 @@ class FetchGomusHTML(DataPreparationTask):
 
 
 class FetchBookingsHTML(DataPreparationTask):
+
     timespan = luigi.parameter.Parameter(default='_nextYear')
-    base_url = luigi.parameter.Parameter(
-        description="Base URL to append bookings IDs to")
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def __init__(self, *args, **kwargs):
@@ -146,9 +150,8 @@ class FetchBookingsHTML(DataPreparationTask):
                     break
 
             if not booking_in_db:
-                booking_url = self.base_url + str(booking_id)
-
-                html_target = yield FetchGomusHTML(url=booking_url)
+                html_target = yield FetchGomusHTML(
+                    url=f'/admin/bookings/{booking_id}')
                 self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:
@@ -156,8 +159,6 @@ class FetchBookingsHTML(DataPreparationTask):
 
 
 class FetchOrdersHTML(DataPreparationTask):
-    base_url = luigi.parameter.Parameter(
-        description="Base URL to append order IDs to")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -192,10 +193,8 @@ class FetchOrdersHTML(DataPreparationTask):
         self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
 
         for i in range(len(self.order_ids)):
-
-            url = self.base_url + str(self.order_ids[i])
-
-            html_target = yield FetchGomusHTML(url=url)
+            html_target = yield FetchGomusHTML(
+                url=f'/admin/orders/{self.order_ids[i]}')
             self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:

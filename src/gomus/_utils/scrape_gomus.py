@@ -18,7 +18,6 @@ from .fetch_htmls import FetchBookingsHTML, FetchGomusHTML, FetchOrdersHTML
 # a more general scraper class if we need to scrape something other than
 # gomus)
 class GomusScraperTask(DataPreparationTask):
-    base_url = "https://barberini.gomus.de"
 
     def extract_from_html(self, base_html, xpath):
         # try:
@@ -61,7 +60,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             columns=self.columns)
         yield FetchBookingsHTML(
             timespan=self.timespan,
-            base_url=f'{self.base_url}/admin/bookings/',
             columns=self.columns)
         # table required for fetch_updated_mail()
         yield GomusToCustomerMappingToDb()
@@ -159,10 +157,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         # First step: Get customer of booking (cannot use customer_id,
         # since it has been derived from the wrong e-mail address)
-        base_url = 'https://barberini.gomus.de/admin'
-
         booking_html_task = FetchGomusHTML(
-            url=f'{base_url}/bookings/{booking_id}')
+            url=f'/admin/bookings/{booking_id}')
         yield booking_html_task
         with booking_html_task.output().open('r') as booking_html_fp:
             booking_html = html.fromstring(booking_html_fp.read())
@@ -173,7 +169,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         # Second step: Get current e-mail address for customer
         customer_html_task = FetchGomusHTML(
-            url=f'{base_url}/customers/{gomus_id}')
+            url=f'/admin/customers/{gomus_id}')
         yield customer_html_task
         with customer_html_task.output().open('r') as customer_html_fp:
             customer_html = html.fromstring(customer_html_fp.read())
@@ -218,7 +214,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
+        return FetchOrdersHTML()
 
     def output(self):
         return luigi.LocalTarget(
