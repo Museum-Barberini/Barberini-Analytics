@@ -13,7 +13,6 @@ import luigi
 import luigi.mock
 import luigi.notifications
 import psycopg2
-from psycopg2.errors import UndefinedObject
 
 from _utils import db_connector, utils
 import suitable
@@ -60,7 +59,6 @@ def _perform_query(query):
             connection.autocommit = True  # required for meta queries
             with connection.cursor() as cursor:
                 return cursor.execute(query)
-            # Looks as if this connection must not be closed manually (TODO?)
     finally:
         connection.close()
 
@@ -123,7 +121,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
 class DatabaseTestSuite(suitable.FixtureTestSuite):
     """A custom test suite that provides a database template for all tests."""
 
-    template_name = 'barberini_test_template'
+    template_cache_name = 'barberini_test_template'
 
     def setUpSuite(self):  # noqa: N802
 
@@ -134,62 +132,107 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         """
         Set up an empty template database that will be used for testing.
 
-        Creates the database instance and applies all migrations to ensure it
-        has the latest schema. See also DatabaseTestCase.setup_database().
+        Creates the database instance and applies all migrations to provide
+        the latest schema. See also DatabaseTestCase.setup_database().
+        Uses caching to avoid unnecessary recreation of the template database.
+        Works almost thread-safe by labeling the template database with a
+        pid-/job-id specific name and replacing the cache in a single (though
+        non-guaranteed, see 😨s below) transaction.
         """
         if 'POSTGRES_DB_TEMPLATE' in os.environ:
             logger.info("Reusing template database provided by caller")
             return
 
-        # --- Configure environment variables --
+        # --- Configure environment variables ---
+        self.template_name = f'{self.template_cache_name}_{{id}}'.format(
+            id=os.getenv('CI_JOB_ID', os.getpid()))
         os.environ['POSTGRES_DB_TEMPLATE'] = self.template_name
         # Avoid accidental access to production database
         os.environ['POSTGRES_DB'] = ''
 
-        # --- Set up template database ---
-        # Check for template cache
+        self.prepare_database_template()
+        self.addCleanup(self.drop_database, self.template_name)
+
+    def prepare_database_template(self):
+
+        # --- Check template database cache ---
         current_mhash = checksumdir.dirhash('./scripts/migrations')
-        connector = db_connector(self.template_name)
+        cache_connector = db_connector(self.template_cache_name)
         try:
-            latest_mhash, *_ = connector.query(
-                'SHOW database_test.migrations_hash',
-                only_first=True
-            )
+            latest_mhash = self.read_migrations_hash(cache_connector)
             if latest_mhash == current_mhash:
-                logger.info("Using template database cache")
-                return  # Cache is still valid, nothing to do
+                logger.info("Using template database cache.")
+                # Cache is still valid, copy it to the template database
+                # NOTE: In theory, 'get_migrations_hash:create_database'
+                # should form one transaction. If another execution interrupts
+                # us at this point, we will be lost ... 😨
+                self.create_database(
+                    self.template_name, self.template_cache_name)
+                return
         except psycopg2.OperationalError:
             pass  # Database does not exist
-        except UndefinedObject:
+        except psycopg2.errors.UndefinedObject:
             pass  # No hash specified for historical reasons
 
         # --- Cache invalidation, recreating template database ---
-        logger.info("Recreating template database cache")
-        # Drop template
-        _perform_query(f'''
-            -- Necessary for dropping the database
-            UPDATE pg_database SET datistemplate = FALSE
-                WHERE datname = '{self.template_name}'
-        ''')
-        _perform_query(f'DROP DATABASE IF EXISTS {self.template_name}')
+        logger.info("Recreating template database ...")
         _perform_query(f'CREATE DATABASE {self.template_name}')
+        connector = db_connector(self.template_name)
         # Apply migrations
         sp.run(
             './scripts/migrations/migrate.sh',
             check=True,
-            env=dict(os.environ, POSTGRES_DB=self.template_name)
-        )
+            env=dict(os.environ, POSTGRES_DB=self.template_name))
         # Seal template
-        connector.execute(
-            f'''
-                UPDATE pg_database SET datistemplate = TRUE
-                WHERE datname = '{self.template_name}'
-            ''',
-            f'''
-                ALTER DATABASE {self.template_name}
-                SET database_test.migrations_hash = '{current_mhash}'
-            '''
-        )
+        self.store_migrations_hash(connector, current_mhash)
+        connector.execute(f'''
+            UPDATE pg_database SET datistemplate = TRUE
+            WHERE datname = '{self.template_name}'
+        ''')
+        logger.info("Template database was recreated.")
+
+        # --- Update cache database ---
+        # NOTE: In theory, this block should form one transaction. If another
+        # execution interrupts us at this point, we will be lost ... 😨
+        self.drop_database(self.template_cache_name)
+        self.create_database(self.template_cache_name, self.template_name)
+        # Copy the hash manually (not done automatically by Postgres)
+        self.store_migrations_hash(cache_connector, current_mhash)
+        logger.info("Template database was stored into cache.")
+
+    def create_database(self, database_name, template_name):
+
+        _perform_query(f'''
+            CREATE DATABASE {database_name}
+            TEMPLATE {template_name}''')
+        _perform_query(f'''
+            UPDATE pg_database SET datistemplate = TRUE
+            WHERE datname = '{database_name}'
+        ''')
+
+    def drop_database(self, name):
+
+        _perform_query(f'''  -- Necessary for dropping the database
+            UPDATE pg_database SET datistemplate = FALSE
+            WHERE datname = '{name}'
+        ''')
+        _perform_query(f'''
+            DROP DATABASE IF EXISTS {name}
+        ''')
+
+    def read_migrations_hash(self, connector):
+
+        hash_, *_ = connector.query(
+            'SHOW database_test.migrations_hash',
+            only_first=True)
+        return hash_
+
+    def store_migrations_hash(self, connector, hash_):
+
+        connector.execute(f'''
+            ALTER DATABASE {connector.database}
+            SET database_test.migrations_hash = '{hash_}'
+        ''')
 
 
 class DatabaseTestCase(unittest.TestCase):
