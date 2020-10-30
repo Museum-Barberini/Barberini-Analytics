@@ -221,33 +221,16 @@ class CsvToDb(CopyToTable):
 class QueryDb(_utils.DataPreparationTask):
     """Make an SQL query and store the results into an output file."""
 
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        try:
-            self.args = str(self.args)
-        except AttributeError:
-            pass  # args was overridden and does not need conversion
-        try:
-            self.kwargs = str(self.kwargs)
-        except AttributeError:
-            pass  # kwargs was overridden and does not need conversion
-
     query = luigi.Parameter(
         description="The SQL query to perform on the DB"
     )
 
-    # Don't use a ListParameter here to preserve free typing of arguments
-    # TODO: Fix warnings
-    args = luigi.Parameter(
+    args = _utils.ObjectParameter(
         default=(),
         description="The SQL query's positional arguments"
     )
 
-    # Don't use a DictParameter here to preserve free typing of arguments
-    # TODO: Fix warnings
-    kwargs = luigi.Parameter(
+    kwargs = _utils.ObjectParameter(
         default={},
         description="The SQL query's named arguments"
     )
@@ -271,18 +254,9 @@ class QueryDb(_utils.DataPreparationTask):
 
     def run(self):
 
-        args, kwargs = self.args, self.kwargs
-        if isinstance(args, str):
-            # Unpack luigi-serialized parameter
-            args = literal_eval(args)
-        if isinstance(kwargs, str):
-            # Unpack luigi-serialized parameter
-            kwargs = literal_eval(kwargs)
-
         query = self.build_query()
         rows, columns = self.db_connector.query_with_header(
-            query, *args, **kwargs
-        )
+            query, *self.args, **self.kwargs)
         df = pd.DataFrame(rows, columns=columns)
 
         df = self.transform(df)
@@ -320,15 +294,9 @@ class QueryCacheToDb(QueryDb):
 
     def run(self):
 
-        args, kwargs = self.args, self.kwargs
-        if isinstance(args, str):
-            # Unpack luigi-serialized parameter
-            args = literal_eval(args)
-        if isinstance(kwargs, str):
-            # Unpack luigi-serialized parameter
-            kwargs = literal_eval(kwargs)
-        assert not args or not kwargs, "cannot combine args and kwargs"
-        all_args = next(filter(bool, [args, kwargs]), None)
+        assert not self.args or not self.kwargs, \
+            "cannot combine args and kwargs"
+        all_args = next(filter(bool, [self.args, self.kwargs]), None)
 
         query = self.build_query()
         self.db_connector.execute(
