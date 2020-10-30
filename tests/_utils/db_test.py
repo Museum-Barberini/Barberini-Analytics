@@ -166,7 +166,8 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
                 # NOTE: In theory, 'get_migrations_hash:create_database'
                 # should form one transaction. If another execution interrupts
                 # us at this point, we will be lost ... 😨
-                self.create_database(self.template_name, self.template_cache_name)
+                self.create_database(
+                    self.template_name, self.template_cache_name)
                 return
         except psycopg2.OperationalError:
             pass  # Database does not exist
