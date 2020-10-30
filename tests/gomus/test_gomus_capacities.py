@@ -36,8 +36,8 @@ class TestFetchCapacities(DatabaseTestCase):
 
     url_pattern = regex.compile(
         r'''
-            https:\/\/barberini\.gomus\.de\/admin\/quotas\/(?<quota_id>\d+)\/
-            capacities\?start_at=(?<start_at>.*)
+            \/admin\/quotas\/(?<quota_id>\d+)\/capacities
+            \?start_at=(?<start_at>.*)
         ''',
         flags=regex.X
     )
