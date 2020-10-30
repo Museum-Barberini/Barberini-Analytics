@@ -35,9 +35,9 @@ def main():  # noqa: D103
         to_drop = []
         unique_ids = df[key_column].unique()
 
-        logger.debug("Condensing performance table:", table)
+        logger.debug("Condensing performance table: %s", table)
         logger.debug(f"Processing {len(unique_ids)} unique ids")
-        logger.debug("Before:", before)
+        logger.debug("Before: %s", before)
         for unique_id in unique_ids:
             ordered_entries = df.loc[df[key_column] == unique_id] \
                 .sort_values(by=TIMESTAMP_COLUMN, axis='index', ascending=True)
@@ -55,7 +55,7 @@ def main():  # noqa: D103
                     to_drop.append(i)
                 prev_row = row
 
-        logger.debug("After:", before - len(to_drop))
+        logger.debug("After: %s", before - len(to_drop))
 
         to_drop_df = df[df.index.isin(to_drop)]
 
