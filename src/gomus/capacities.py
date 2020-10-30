@@ -1,0 +1,207 @@
+"""Provides tasks for downloading gomus capacities into the database."""
+
+import datetime as dt
+import itertools as it
+from typing import Iterable
+
+import dateparser
+import js2py
+from lxml import html
+import luigi
+from luigi.format import UTF8
+import nptime as npt
+import numpy as np
+import pandas as pd
+import regex
+from tqdm.auto import tqdm
+
+from _utils import CsvToDb, DataPreparationTask, QueryDb, logger
+from ._utils.fetch_htmls import FetchGomusHTML
+from ._utils.scrape_gomus import GomusScraperTask
+from .quotas import QuotasToDb
+
+SLOT_LENGTH_MINUTES = 15
+
+
+class CapacitiesToDb(CsvToDb):
+
+    table = 'gomus_capacity'
+
+    def requires(self):
+
+        return ExtractCapacities()
+
+
+class ExtractCapacities(GomusScraperTask):
+
+    today = luigi.DateSecondParameter()
+
+    pattern = regex.compile(
+        r'''
+        <script> \s* \$\("\#info-\d+"\)\.popover\( ( \{ \s*
+            (?<elem> \w+ \s* : \s* '(?:\\.|[^\\\'])*' \s*){0}
+            (?:(?&elem) , \s*)*
+            (?&elem)
+        \} ) \); \s* </script>
+        ''',
+        flags=regex.X
+    )
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/capacities.csv',
+            format=UTF8
+        )
+
+    def requires(self):
+
+        return FetchCapacities(today=self.today)
+
+    def run(self):
+
+        with self.input().open() as input_:
+            df_htmls = pd.read_csv(input_)
+
+        capacities = [
+            self.extract_capacities(html_path)
+            for html_path in self.tqdm(
+                df_htmls['file_path'],
+                desc="Extracting capacities")
+        ]
+
+        df_capacities = pd.concat(capacities)
+        df_capacities['last_updated'] = self.today
+
+        with self.output().open('w') as output:
+            df_capacities.to_csv(output, index=False)
+
+    def extract_capacities(self, html_path):
+
+        with open(html_path) as file:
+            src = file.read()
+
+        capacities = pd.DataFrame(
+            columns=['max', 'sold', 'reserved', 'available']
+        )
+
+        dom: html.HtmlElement = html.fromstring(src)
+        quota_id = self.parse_int(
+            dom,
+            '//body/div[2]/div[2]/div[2]/div/div/ol/li[2]/a/div')
+        min_date = self.parse_date(
+            dom,
+            '//body/div[2]/div[2]/div[3]/div/div[1]/div/div[2]/form/div[2]/'
+            'div/div/input/@value')
+        logger.debug(
+            "Scraping capacities from quota_id=%s for min_date=%s",
+            quota_id, min_date)
+
+        def create_time_range(delta: dt.timedelta) -> Iterable[dt.time]:
+            assert delta.days == 0
+            time = npt.nptime()
+            while True:
+                yield time
+                prev_time = time
+                time += delta
+                if time <= prev_time:
+                    break
+
+        dates = [min_date + dt.timedelta(days=days) for days in range(0, 7)]
+        times = list(create_time_range(
+            delta=dt.timedelta(minutes=SLOT_LENGTH_MINUTES)))
+        capacities = capacities.reindex(
+            pd.MultiIndex.from_product(
+                [dates, times],
+                names=['date', 'time']),
+            fill_value=0)
+
+        js_infos = [match[0] for match in self.pattern.findall(src)]
+        infos = [js2py.eval_js(f'd = {js}') for js in js_infos]
+        new_capacities = pd.DataFrame(
+            [self.extract_capacity(info, min_date) for info in infos],
+            columns=[*capacities.index.names, *capacities.columns],
+            dtype=object
+        ).set_index(capacities.index.names)
+
+        capacities.update(new_capacities)
+        capacities = capacities.reset_index()
+        capacities.insert(0, 'quota_id', quota_id)
+
+        return capacities
+
+    def extract_capacity(self, info, min_date):
+
+        title: html.HtmlElement = html.fromstring(info['title'])
+        content: html.HtmlElement = html.fromstring(info['content'])
+
+        datetime = self.parse_date(title, relative_base=min_date)
+
+        return dict(
+            date=datetime.date(),
+            time=datetime.time(),
+            max=self.parse_int(content, '//tbody[1]/tr[1]/td[2]'),
+            sold=self.parse_int(content, '//tbody[1]/tr[2]/td[2]'),
+            reserved=self.parse_int(content, '//tbody[1]/tr[3]/td[2]'),
+            available=self.parse_int(content, '//tfooter[1]/tr/td[2]')
+        )
+
+
+class FetchCapacities(DataPreparationTask):
+
+    weeks_back = luigi.IntParameter(2)#52)
+    weeks_ahead = luigi.IntParameter(2)#52)
+    today = luigi.DateParameter()
+
+    def output(self):
+
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/capacity_files.csv',
+            format=luigi.format.UTF8)
+
+    def _requires(self):
+
+        return luigi.task.flatten([
+            QuotasToDb(),
+            super()._requires()])
+
+    def run(self):
+
+        current_date = self.today - dt.timedelta(days=self.today.weekday())
+        # TODO: move into query as well?
+        min_date = current_date - dt.timedelta(weeks=self.weeks_back)
+        max_date = current_date + dt.timedelta(weeks=self.weeks_ahead)
+
+        invalid_csv = yield QueryDb(
+            query=f'''
+                SELECT DISTINCT gq.gomus_quota_id, date_trunc('WEEK', dt.date) date
+                FROM gomus_quota gq
+                CROSS JOIN (
+                    (
+                        SELECT date(date)
+                        FROM generate_series(
+                            %(min_date)s, %(max_date)s, %(datedelta)s) date
+                    ) date CROSS JOIN (
+                        SELECT CAST(make_interval(mins=>mins) AS time) AS time
+                        FROM generate_series(
+                            0, 60 * 24 - %(mindelta)s, %(mindelta)s) mins
+                    ) time) dt
+                LEFT JOIN gomus_capacity gc
+                ON (dt.date, dt.time, gq.gomus_quota_id) = (gc.date, gc.time, gc.gomus_quota_id)
+                WHERE last_updated >= update_date IS NOT TRUE
+            ''',
+            kwargs=dict(
+                min_date=min_date, max_date=max_date,
+                datedelta=dt.timedelta(days=1),
+                mindelta=SLOT_LENGTH_MINUTES))
+
+        with invalid_csv.open() as csv:
+            invalid_df = pd.read_csv(csv, parse_dates=['date'])
+
+        with self.output().open('w') as output:
+            print('file_path', file=output)
+            for quota_id, date in invalid_df.itertuples(index=False):
+                html = yield FetchGomusHTML(
+                    url=f'/admin/quotas/{quota_id}'
+                        f'/capacities?start_at={date.date()}')
+                print(html.path, file=output)

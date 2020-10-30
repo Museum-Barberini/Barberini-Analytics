@@ -32,15 +32,28 @@ class GomusScraperTask(DataPreparationTask):
         assert len(element) == 1
         return element[0].text_content().strip()
 
+    def parse_text(self, document, xpath='.'):
+
+        elements = document.xpath(xpath)
+        assert len(elements) == 1
+        element = elements[0]
+        text = element if isinstance(element, str) else element.text_content()
+        return text.strip()
+
     def parse_int(self, document, xpath='.'):
 
         return int(self.parse_text(document, xpath))
 
-    def parse_date(self, document, xpath='.'):
+    def parse_date(self, document, xpath='.', relative_base=None):
+
+        settings = {}
+        if relative_base is not None:
+            settings['RELATIVE_BASE'] = relative_base
 
         return dateparser.parse(
             self.parse_text(document, xpath),
-            locales=['de']
+            locales=['de'],
+            settings=settings
         )
 
 
