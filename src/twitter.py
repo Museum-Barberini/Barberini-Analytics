@@ -158,7 +158,7 @@ class FetchTwitter(DataPreparationTask):
             | df['screen_name'].str.contains(self.query, flags=re.IGNORECASE))
         if is_false_positive.any():
             false_positives = df[is_false_positive]
-            logger.warn(
+            logger.warning(
                 f"Dropping {len(false_positives)} tweets that are not "
                 f"related to the query"
             )
