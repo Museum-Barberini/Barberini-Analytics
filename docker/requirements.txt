@@ -40,6 +40,7 @@ stop-words==2018.7.23
 # Helpers
 bs4==0.0.1
 dateparser==0.7.6
+jsonpickle==1.4.1
 jstyleson==0.0.2
 lockfile==0.12.2
 mmh3==2.5.1

@@ -4,6 +4,7 @@ import os
 import sys
 from typing import Union
 
+import jsonpickle
 import luigi
 import pandas as pd
 
@@ -27,6 +28,18 @@ class ConcatCsvs(DataPreparationTask):
 
         with target.open('r') as input:
             return pd.read_csv(input)
+
+
+class ObjectParameter(luigi.Parameter):
+    """A luigi parameter that takes an arbitrary object."""
+
+    def parse(self, input):
+
+        return jsonpickle.loads(input)
+
+    def serialize(self, obj):
+
+        return jsonpickle.dumps(obj)
 
 
 class StreamToLogger:
