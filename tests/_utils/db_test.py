@@ -175,7 +175,7 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
             pass  # No hash specified for historical reasons
 
         # --- Cache invalidation, recreating template database ---
-        logger.info("Recreating template database cache ...")
+        logger.info("Recreating template database ...")
         _perform_query(f'CREATE DATABASE {self.template_name}')
         connector = db_connector(self.template_name)
         # Apply migrations
@@ -189,7 +189,7 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
             UPDATE pg_database SET datistemplate = TRUE
             WHERE datname = '{self.template_name}'
         ''')
-        logger.info("Template database cache was recreated.")
+        logger.info("Template database was recreated.")
 
         # --- Update cache database ---
         # NOTE: In theory, this block should form one transaction. If another
@@ -198,7 +198,7 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         self.create_database(self.template_cache_name, self.template_name)
         # Copy the hash manually (not done automatically by Postgres)
         self.store_migrations_hash(cache_connector, current_mhash)
-        logger.info("Stored template database into cache.")
+        logger.info("Template database was stored into cache.")
 
     def create_database(self, database_name, template_name):
 
