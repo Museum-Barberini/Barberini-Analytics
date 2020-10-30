@@ -59,7 +59,6 @@ def _perform_query(query):
             connection.autocommit = True  # required for meta queries
             with connection.cursor() as cursor:
                 return cursor.execute(query)
-            # Looks as if this connection must not be closed manually (TODO?)
     finally:
         connection.close()
 
