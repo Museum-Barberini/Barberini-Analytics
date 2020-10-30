@@ -82,6 +82,9 @@ class FetchQuotas(DataPreparationTask):
 
             while quota_id - last_confirmed_id <= self.max_missing_ids:
                 quota_id += 1
+                if self.minimal_mode:
+                    quota_id += 5 - 1
+
                 html = yield FetchGomusHTML(
                     url=f'https://barberini.gomus.de/admin/quotas/'
                         f'{quota_id}',
