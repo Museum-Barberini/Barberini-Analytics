@@ -198,6 +198,25 @@ class DataPreparationTask(luigi.Task):
         return tqdm(iterable, **kwargs)
 
 
+class ConcatCsvs(DataPreparationTask):
+    """Concatenate all input CSV files into a single output CSV file."""
+
+    def run(self):
+
+        dfs = [
+            self.read_csv(input)
+            for input in luigi.task.flatten(self.input())
+        ]
+        df = pd.concat(dfs)
+        with self.output().open('w') as output:
+            df.to_csv(output, index=False)
+
+    def read_csv(self, target: luigi.Target):
+
+        with target.open('r') as input:
+            return pd.read_csv(input)
+
+
 class PerformanceValueCondenser():
 
     def __init__(self, db_connector, table, timestamp_column='timestamp'):
