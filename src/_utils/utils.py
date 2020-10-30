@@ -4,29 +4,20 @@ import os
 import sys
 from typing import Union
 
+import jsonpickle
 import luigi
-import pandas as pd
-
-from .data_preparation import DataPreparationTask
 
 
-class ConcatCsvs(DataPreparationTask):
-    """Concatenate all input CSV files into a single output CSV file."""
+class ObjectParameter(luigi.Parameter):
+    """A luigi parameter that takes an arbitrary object."""
 
-    def run(self):
+    def parse(self, input):
 
-        dfs = [
-            self.read_csv(input)
-            for input in luigi.task.flatten(self.input())
-        ]
-        df = pd.concat(dfs)
-        with self.output().open('w') as output:
-            df.to_csv(output, index=False)
+        return jsonpickle.loads(input)
 
-    def read_csv(self, target: luigi.Target):
+    def serialize(self, obj):
 
-        with target.open('r') as input:
-            return pd.read_csv(input)
+        return jsonpickle.dumps(obj)
 
 
 class StreamToLogger:
