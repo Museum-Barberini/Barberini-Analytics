@@ -35,6 +35,8 @@ RUN apt-get update
 RUN $INSTALL postgresql-client-12
 
 # Install python
+# NB: We cannot upgrade to python3.7 or something newer at the moment because
+# psycopg2 seems to be incompatible.
 RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev \
   python3-wheel
 

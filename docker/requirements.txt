@@ -38,6 +38,7 @@ sklearn==0.0
 stop-words==2018.7.23
 
 # Helpers
+backports-datetime-fromisoformat==1.0.0
 bs4==0.0.1
 dateparser==0.7.6
 js2py==0.70
