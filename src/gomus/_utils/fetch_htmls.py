@@ -59,7 +59,6 @@ class FailableTarget:
         return type(self)(error_task)
 
 
-
 class FetchGomusHTML(DataPreparationTask):
     """Fetch an HTML file from gomus and store it on the disk."""
 

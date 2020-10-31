@@ -12,6 +12,8 @@ from .fetch_report_helper import (
     REPORT_IDS, csv_from_excel, parse_timespan, request_report
 )
 
+BASE_URL = 'https://barberini.gomus.de'
+
 
 class FetchGomusReport(luigi.Task):
     today = luigi.parameter.DateParameter(default=dt.datetime.today())
@@ -73,8 +75,7 @@ class FetchEventReservations(luigi.Task):
         )
 
     def run(self):
-        url = (f'https://barberini.gomus.de/bookings/{self.booking_id}/'
-               f'seats.xlsx')
+        url = f'{BASE_URL}/bookings/{self.booking_id}/seats.xlsx'
         response = requests.get(url, cookies=dict(
             _session_id=os.environ['GOMUS_SESS_ID']))
         response_content = response.content
