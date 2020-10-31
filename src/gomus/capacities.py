@@ -86,6 +86,7 @@ class ExtractCapacities(GomusScraperTask):
             quota_id, min_date)
 
         capacities = self.create_zero_data(min_date)
+
         def load_data(data):
             return pd.DataFrame(
                 data,
@@ -188,6 +189,7 @@ class ExtractCapacities(GomusScraperTask):
             time += delta
             if time <= prev_time:
                 break
+
 
 class FetchCapacities(DataPreparationTask):
     """Fetch the capacity pages for all known quotas from the gomus system."""

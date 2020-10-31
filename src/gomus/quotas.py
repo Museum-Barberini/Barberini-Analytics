@@ -78,10 +78,9 @@ class FetchQuotas(DataPreparationTask):
         )
 
     def run(self):
-        """
-        Approach: Sequentially fetch all quota IDs, ignoring missing ones.
-        Stop when more than max_missing_ids consecutive IDs were invalid.
-        """
+        # Approach: Sequentially fetch all quota IDs, ignoring missing ones.
+        # Stop when more than max_missing_ids consecutive IDs were invalid.
+
         quota_id = last_confirmed_id = 0
         with self.output().open('w') as output:
             print('file_path', file=output)
