@@ -25,7 +25,7 @@ class CsvToDb(CopyToTable):
     """
 
     minimal_mode = luigi.parameter.BoolParameter(
-        default=_utils.minimal_mode,
+        default=_utils.minimal_mode(),
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
 

@@ -19,7 +19,7 @@ class Diagnostics(luigi.Task):
 
         tasks = 0
 
-        if dt.date.today().isoweekday() == 7 or minimal_mode:  # sunday
+        if dt.date.today().isoweekday() == 7 or minimal_mode():  # sunday
             yield SendLogReport()
             tasks += 1
 
