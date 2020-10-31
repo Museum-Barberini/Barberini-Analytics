@@ -78,12 +78,49 @@ class ExtractCapacities(GomusScraperTask):
 
         with open(html_path) as file:
             src = file.read()
-
-        capacities = pd.DataFrame(
-            columns=['max', 'sold', 'reserved', 'available']
-        )
-
         dom: html.HtmlElement = html.fromstring(src)
+
+        quota_id, min_date = self.extract_header(dom)
+        logger.debug(
+            "Scraping capacities from quota_id=%s for min_date=%s",
+            quota_id, min_date)
+
+        capacities = self.create_zero_data(min_date)
+        def load_data(data):
+            return pd.DataFrame(
+                data,
+                columns=[*capacities.index.names, *capacities.columns],
+                dtype=object
+            ).set_index(capacities.index.names)
+
+        basic_capacities = load_data(self.extract_basic_capacities(dom))
+        capacities.update(basic_capacities)
+
+        detailed_capacities = load_data(
+            self.extract_detailed_capacities(src, min_date))
+        capacities.update(detailed_capacities)
+
+        capacities = capacities.reset_index()
+        capacities.insert(0, 'quota_id', quota_id)
+
+        return capacities
+
+    def create_zero_data(self, min_date: dt.date):
+
+        df = pd.DataFrame(columns=[
+            'max', 'sold', 'reserved', 'available'
+        ])
+        dates = [min_date + dt.timedelta(days=days) for days in range(0, 7)]
+        times = list(self.create_time_range(
+            delta=dt.timedelta(minutes=SLOT_LENGTH_MINUTES)))
+        return df.reindex(
+            pd.MultiIndex.from_product(
+                [dates, times],
+                names=['date', 'time']),
+            fill_value=0)
+
+    def extract_header(self, dom: html.HtmlElement):
+        """Extract general information from the DOM, e.g. quota ID or date."""
         quota_id = self.parse_int(
             dom,
             '//body/div[2]/div[2]/div[2]/div/div/ol/li[2]/a/div')
@@ -91,45 +128,42 @@ class ExtractCapacities(GomusScraperTask):
             dom,
             '//body/div[2]/div[2]/div[3]/div/div[1]/div/div[2]/form/div[2]/'
             'div/div/input/@value')
-        logger.debug(
-            "Scraping capacities from quota_id=%s for min_date=%s",
-            quota_id, min_date)
+        return quota_id, min_date
 
-        def create_time_range(delta: dt.timedelta) -> Iterable[dt.time]:
-            assert delta.days == 0
-            time = npt.nptime()
-            while True:
-                yield time
-                prev_time = time
-                time += delta
-                if time <= prev_time:
-                    break
+    def extract_basic_capacities(self, dom: html.HtmlElement):
+        """
+        Extract basic capacity values from the DOM.
 
-        dates = [min_date + dt.timedelta(days=days) for days in range(0, 7)]
-        times = list(create_time_range(
-            delta=dt.timedelta(minutes=SLOT_LENGTH_MINUTES)))
-        capacities = capacities.reindex(
-            pd.MultiIndex.from_product(
-                [dates, times],
-                names=['date', 'time']),
-            fill_value=0)
+        These are the values from the table indicating the availabilities for
+        each slot. Generally, this is only a subset of data returned by
+        extract_detailed_capacities(). However, in some cases, gomus displays
+        (defect) negative values in the table and does not provide details
+        about them, so this method is required to record the defect values
+        anyway.
+        """
+        cells = dom.xpath(
+            '//body/div[2]/div[2]/div[3]/div/div[2]/div/div[2]/table/tbody/'
+            'tr[position()>1]/td[position()>1]')
+        for cell in cells:
+            datetime = dt.datetime.fromtimestamp(
+                int(cell.get('data-timestamp')))
+            available = int(cell.text_content().strip())
+            yield dict(
+                date=datetime.date(),
+                time=datetime.time(),
+                max=available,
+                available=available
+            )
 
+    def extract_detailed_capacities(self, src: str, min_date: dt.date):
+        """Extract capacity details from the hovercards in the HTML source."""
         js_infos = [match[0] for match in self.pattern.findall(src)]
         infos = [js2py.eval_js(f'd = {js}') for js in js_infos]
-        new_capacities = pd.DataFrame(
-            [self.extract_capacity(info, min_date) for info in infos],
-            columns=[*capacities.index.names, *capacities.columns],
-            dtype=object
-        ).set_index(capacities.index.names)
-
-        capacities.update(new_capacities)
-        capacities = capacities.reset_index()
-        capacities.insert(0, 'quota_id', quota_id)
-
-        return capacities
+        for info in infos:
+            yield self.extract_capacity(info, min_date)
 
     def extract_capacity(self, info, min_date):
-
+        """Extract capacity details from a single hovercard info."""
         title: html.HtmlElement = html.fromstring(info['title'])
         content: html.HtmlElement = html.fromstring(info['content'])
 
@@ -144,6 +178,16 @@ class ExtractCapacities(GomusScraperTask):
             available=self.parse_int(content, '//tfooter[1]/tr/td[2]')
         )
 
+    @staticmethod
+    def create_time_range(delta: dt.timedelta) -> Iterable[dt.time]:
+        assert delta.days == 0
+        time = npt.nptime()
+        while True:
+            yield time
+            prev_time = time
+            time += delta
+            if time <= prev_time:
+                break
 
 class FetchCapacities(DataPreparationTask):
     """Fetch the capacity pages for all known quotas from the gomus system."""

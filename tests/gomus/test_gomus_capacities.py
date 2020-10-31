@@ -19,6 +19,8 @@ class TestExtractCapacities(DatabaseTestCase):
     @patch.object(ExtractCapacities, 'input')
     def test_extract_capacities(self, input_mock):
 
+        # See comments in test HTML files.
+
         self.task = ExtractCapacities(today=dt.date(2020, 10, 29))
         input_mock.return_value = luigi.LocalTarget(
             'tests/test_data/gomus/capacities/capacities_in.csv',

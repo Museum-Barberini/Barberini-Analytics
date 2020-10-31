@@ -1,4 +1,5 @@
 import csv
+import datetime as dt
 import re
 
 import dateparser
@@ -38,7 +39,8 @@ class GomusScraperTask(DataPreparationTask):
 
         return int(self.parse_text(document, xpath))
 
-    def parse_date(self, document, xpath='.', relative_base=None):
+    def parse_date(
+            self, document, xpath='.', relative_base=None) -> dt.datetime:
 
         settings = {}
         if relative_base is not None:
