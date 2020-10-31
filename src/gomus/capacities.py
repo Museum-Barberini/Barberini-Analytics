@@ -32,7 +32,7 @@ class CapacitiesToDb(CsvToDb):
 class ExtractCapacities(GomusScraperTask):
     """Extract all capacities from the fetched gomus pages."""
 
-    today = luigi.DateSecondParameter()
+    today = luigi.DateSecondParameter(default=dt.datetime.today())
 
     popover_pattern = regex.compile(
         r'''
