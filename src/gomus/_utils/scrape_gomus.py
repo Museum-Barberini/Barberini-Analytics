@@ -28,12 +28,6 @@ class GomusScraperTask(DataPreparationTask):
 
     def parse_text(self, document, xpath='.'):
 
-        element = document.xpath(xpath)
-        assert len(element) == 1
-        return element[0].text_content().strip()
-
-    def parse_text(self, document, xpath='.'):
-
         elements = document.xpath(xpath)
         assert len(elements) == 1
         element = elements[0]

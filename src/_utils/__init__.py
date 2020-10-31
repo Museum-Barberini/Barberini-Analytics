@@ -7,6 +7,7 @@ minimal_mode = os.getenv('MINIMAL') == 'True'
 
 
 def output_dir():
+    """Answer the path to the root of the output directory for all tasks."""
     return os.environ['OUTPUT_DIR']
 
 

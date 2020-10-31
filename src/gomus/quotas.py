@@ -12,6 +12,7 @@ from ._utils.scrape_gomus import GomusScraperTask
 
 
 class QuotasToDb(CsvToDb):
+    """Store extract quotas into the database."""
 
     table = 'gomus_quota'
 
@@ -21,6 +22,7 @@ class QuotasToDb(CsvToDb):
 
 
 class ExtractQuotas(GomusScraperTask):
+    """Extract quotas from the the fetched gomus pages."""
 
     def output(self):
 
@@ -64,6 +66,7 @@ class ExtractQuotas(GomusScraperTask):
 
 
 class FetchQuotas(DataPreparationTask):
+    """Fetch all quota pages from the gomus site."""
 
     max_missing_ids = 20
 

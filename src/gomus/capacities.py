@@ -1,19 +1,15 @@
 """Provides tasks for downloading gomus capacities into the database."""
 
 import datetime as dt
-import itertools as it
 from typing import Iterable
 
-import dateparser
 import js2py
-from lxml import html
 import luigi
 from luigi.format import UTF8
+from lxml import html
 import nptime as npt
-import numpy as np
 import pandas as pd
 import regex
-from tqdm.auto import tqdm
 
 from _utils import CsvToDb, DataPreparationTask, QueryDb, logger
 from ._utils.fetch_htmls import FetchGomusHTML
@@ -24,6 +20,7 @@ SLOT_LENGTH_MINUTES = 15
 
 
 class CapacitiesToDb(CsvToDb):
+    """Store the fetched gomus capacities into the database."""
 
     table = 'gomus_capacity'
 
@@ -33,6 +30,7 @@ class CapacitiesToDb(CsvToDb):
 
 
 class ExtractCapacities(GomusScraperTask):
+    """Extract all capacities from the fetched gomus pages."""
 
     today = luigi.DateSecondParameter()
 
@@ -148,10 +146,21 @@ class ExtractCapacities(GomusScraperTask):
 
 
 class FetchCapacities(DataPreparationTask):
+    """Fetch the capacity pages for all known quotas from the gomus system."""
 
-    weeks_back = luigi.IntParameter(2)#52)
-    weeks_ahead = luigi.IntParameter(2)#52)
+    weeks_back = luigi.IntParameter(8)
+    weeks_ahead = luigi.IntParameter(52)
     today = luigi.DateParameter()
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        if self.minimal_mode:
+            if self.weeks_back == type(self).weeks_back._default:
+                self.weeks_back = 2
+            if self.weeks_ahead == type(self).weeks_ahead._default:
+                self.weeks_ahead = 2
 
     def output(self):
 
@@ -173,8 +182,9 @@ class FetchCapacities(DataPreparationTask):
         max_date = current_date + dt.timedelta(weeks=self.weeks_ahead)
 
         invalid_csv = yield QueryDb(
-            query=f'''
-                SELECT DISTINCT gq.gomus_quota_id, date_trunc('WEEK', dt.date) date
+            query='''
+                SELECT DISTINCT
+                    gq.gomus_quota_id, date_trunc('WEEK', dt.date) date
                 FROM gomus_quota gq
                 CROSS JOIN (
                     (
@@ -187,7 +197,8 @@ class FetchCapacities(DataPreparationTask):
                             0, 60 * 24 - %(mindelta)s, %(mindelta)s) mins
                     ) time) dt
                 LEFT JOIN gomus_capacity gc
-                ON (dt.date, dt.time, gq.gomus_quota_id) = (gc.date, gc.time, gc.gomus_quota_id)
+                ON (dt.date, dt.time, gq.gomus_quota_id) =
+                    (gc.date, gc.time, gc.gomus_quota_id)
                 WHERE last_updated >= update_date IS NOT TRUE
             ''',
             kwargs=dict(

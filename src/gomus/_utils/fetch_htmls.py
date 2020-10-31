@@ -25,7 +25,7 @@ class FailableTarget:
         self.task = task
 
     def __getattribute__(self, name):
-
+        """Forward calls to underlying targe instance dynamically."""
         try:
             return super().__getattribute__(name)
         except AttributeError:
@@ -61,6 +61,7 @@ class FailableTarget:
 
 
 class FetchGomusHTML(DataPreparationTask):
+    """Fetch an HTML file from gomus and store it on the disk."""
 
     base_url = luigi.Parameter(
         description="The base URL of the gomus server",

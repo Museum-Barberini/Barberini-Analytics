@@ -11,6 +11,7 @@ from gomus._utils.fetch_htmls import FailableTarget, FetchGomusHTML
 
 
 class TestExtractQuotas(DatabaseTestCase):
+    """Tests the gomus ExtractQuotas task."""
 
     @patch.object(ExtractQuotas, 'input')
     def test_extract_quotas(self, input_mock):
@@ -30,6 +31,7 @@ class TestExtractQuotas(DatabaseTestCase):
 
 
 class TestFetchQuotas(DatabaseTestCase):
+    """Tests the gomus FetchQuotas task."""
 
     def test_fetch_quotas(self):
 

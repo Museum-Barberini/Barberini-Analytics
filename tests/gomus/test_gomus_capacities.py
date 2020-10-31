@@ -14,6 +14,7 @@ from gomus.capacities import ExtractCapacities, FetchCapacities
 
 
 class TestExtractCapacities(DatabaseTestCase):
+    """Tests the gomus ExtractCapacities task."""
 
     @patch.object(ExtractCapacities, 'input')
     def test_extract_capacities(self, input_mock):
@@ -33,6 +34,7 @@ class TestExtractCapacities(DatabaseTestCase):
 
 
 class TestFetchCapacities(DatabaseTestCase):
+    """Tests the gomus FetchCapacities task."""
 
     url_pattern = regex.compile(
         r'''
@@ -74,7 +76,7 @@ class TestFetchCapacities(DatabaseTestCase):
             requested_datas
         )
 
-    @patch(f'gomus.capacities.SLOT_LENGTH_MINUTES', 60 * 4)
+    @patch('gomus.capacities.SLOT_LENGTH_MINUTES', 60 * 4)
     def test_cache(self):
 
         self.task = FetchCapacities(
