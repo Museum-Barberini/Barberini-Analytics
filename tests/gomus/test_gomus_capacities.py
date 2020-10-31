@@ -87,7 +87,7 @@ class TestFetchCapacities(DatabaseTestCase):
             weeks_ahead=0
         )
         self.db_connector.execute(
-            # complete but outdated
+            # 1: complete but outdated
             '''
                 INSERT INTO gomus_capacity
                 SELECT 1, date, time, 6, 3, 2, 1, '2020-10-12 21:12'
@@ -99,7 +99,7 @@ class TestFetchCapacities(DatabaseTestCase):
                         FROM generate_series(0, 24 - 4, 4) hours
                     ) time
             ''',
-            # complete and up to date
+            # 2: complete and up to date
             '''
                 INSERT INTO gomus_capacity
                 SELECT 2, date, time, 6, 3, 2, 1, '2020-10-14 14:45'
@@ -111,11 +111,11 @@ class TestFetchCapacities(DatabaseTestCase):
                         FROM generate_series(0, 24 - 4, 4) hours
                     ) time
             ''',
-            # incomplete
+            # 3: incomplete
             '''INSERT INTO gomus_capacity VALUES
                 (3, '2021-01-04', '08:00', 6, 3, 2, 1, '2020-10-14 14:45'),
                 (3, '2021-01-04', '12:00', 4, 2, 2, 0, '2020-10-14 14:45')''',
-            # empty
+            # 4: empty 😉
             '''
                 INSERT INTO gomus_capacity
                 SELECT *

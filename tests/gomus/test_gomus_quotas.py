@@ -49,7 +49,8 @@ class TestFetchQuotas(DatabaseTestCase):
         pd.testing.assert_frame_equal(
             pd.DataFrame([
                 {'file_path': f'quota_{i}.html'}
-                for i in [1, 2, 6, 7, 8, 9]]),
+                for i in [1, 2, 6, 7, 8, 9]
+            ]),
             output_df)
 
     def test_http_error(self):
