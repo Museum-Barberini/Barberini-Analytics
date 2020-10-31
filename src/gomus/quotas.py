@@ -4,7 +4,7 @@ import luigi
 from luigi.format import UTF8
 from lxml import html
 import pandas as pd
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 from _utils import CsvToDb, DataPreparationTask, logger
 from ._utils.fetch_htmls import FetchGomusHTML

@@ -7,7 +7,7 @@ import luigi
 from luigi.format import UTF8
 import pandas as pd
 import pgeocode
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 from _utils import DataPreparationTask, logger
 from .extract_customers import ExtractCustomerData
