@@ -18,6 +18,8 @@ from .fetch_htmls import FetchBookingsHTML, FetchGomusHTML, FetchOrdersHTML
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
+# NOTE: If any xpath expressions should ever break, try to rewrite them using
+# attribute filters, e.g. by div class or ID.
 class GomusScraperTask(DataPreparationTask):
 
     def extract_from_html(self, base_html, xpath):

@@ -34,7 +34,7 @@ class ExtractCapacities(GomusScraperTask):
 
     today = luigi.DateSecondParameter()
 
-    pattern = regex.compile(
+    popover_pattern = regex.compile(
         r'''
         <script> \s* \$\("\#info-\d+"\)\.popover\( ( \{ \s*
             (?<elem> \w+ \s* : \s* '(?:\\.|[^\\\'])*' \s*){0}
@@ -157,7 +157,7 @@ class ExtractCapacities(GomusScraperTask):
 
     def extract_detailed_capacities(self, src: str, min_date: dt.date):
         """Extract capacity details from the hovercards in the HTML source."""
-        js_infos = [match[0] for match in self.pattern.findall(src)]
+        js_infos = [match[0] for match in self.popover_pattern.findall(src)]
         infos = [js2py.eval_js(f'd = {js}') for js in js_infos]
         for info in infos:
             yield self.extract_capacity(info, min_date)
@@ -221,7 +221,6 @@ class FetchCapacities(DataPreparationTask):
     def run(self):
 
         current_date = self.today - dt.timedelta(days=self.today.weekday())
-        # TODO: move into query as well?
         min_date = current_date - dt.timedelta(weeks=self.weeks_back)
         max_date = current_date + dt.timedelta(weeks=self.weeks_ahead)
 

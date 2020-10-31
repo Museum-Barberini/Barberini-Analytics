@@ -78,7 +78,10 @@ class FetchQuotas(DataPreparationTask):
         )
 
     def run(self):
-
+        """
+        Approach: Sequentially fetch all quota IDs, ignoring missing ones.
+        Stop when more than max_missing_ids consecutive IDs were invalid.
+        """
         quota_id = last_confirmed_id = 0
         with self.output().open('w') as output:
             print('file_path', file=output)
@@ -86,7 +89,7 @@ class FetchQuotas(DataPreparationTask):
             while quota_id - last_confirmed_id <= self.max_missing_ids:
                 quota_id += 1
                 if self.minimal_mode:
-                    quota_id += 5 - 1
+                    quota_id += -1 + 5
 
                 html = yield FetchGomusHTML(
                     url=f'/admin/quotas/'f'{quota_id}',
