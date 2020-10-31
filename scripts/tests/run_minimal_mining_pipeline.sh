@@ -48,4 +48,4 @@ run_in_database() {
     end_section check_schema
 }
 
-run_in_database & wait
+run_in_database & wait $!
