@@ -19,7 +19,8 @@ from .fetch_htmls import FetchBookingsHTML, FetchGomusHTML, FetchOrdersHTML
 # a more general scraper class if we need to scrape something other than
 # gomus)
 # NOTE: If any xpath expressions should ever break, try to rewrite them using
-# attribute filters, e.g. by div class or ID.
+# attribute filters, e.g. by div class or ID. Don't forget that the DOM looks
+# different in a browser compared to what we get via the requests library!
 class GomusScraperTask(DataPreparationTask):
 
     def extract_from_html(self, base_html, xpath):
@@ -99,22 +100,16 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     res_details = html_file.read()
                 tree_details = html.fromstring(res_details)
 
-                # firefox says the the xpath starts with //body/div[3]/ but we
-                # apparently need div[2] instead
                 booking_details = tree_details.xpath(
                     '//body/div[2]/div[2]/div[3]'
                     '/div[4]/div[2]/div[1]/div[3]')[0]
 
                 # Order Date
-                # .strip() removes \n in front of and behind string
-                raw_order_date = self.extract_from_html(
-                    booking_details,
-                    'div[1]/div[2]/small/dl/dd[2]').strip()
-                bookings.loc[i, 'order_date'] =\
-                    dateparser.parse(raw_order_date)
+                bookings.loc[i, 'order_date'] = self.parse_date(
+                    booking_details, 'div[1]/div[2]/small/dl[1]/dd[2]')
 
                 # Language
-                bookings.loc[i, 'language'] = self.extract_from_html(
+                bookings.loc[i, 'language'] = self.parse_text(
                     booking_details,
                     "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
                     "/div[1]/dl[2]/dd").strip()
@@ -184,10 +179,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         yield customer_html_task
         with customer_html_task.output().open('r') as customer_html_fp:
             customer_html = html.fromstring(customer_html_fp.read())
-        customer_email = customer_html.xpath(
+        customer_email = self.parse_text(
+            customer_html,
             '//body/div[2]/div[2]/div[3]/div/div[2]/div[1]'
-            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')[0]
-        customer_email = customer_email.text_content().strip()
+            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')
 
         # Update customer ID in gomus_customer
         # and gomus_to_customer_mapping
