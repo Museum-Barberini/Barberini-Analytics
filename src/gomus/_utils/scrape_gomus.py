@@ -111,8 +111,11 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 # Language
                 bookings.loc[i, 'language'] = self.parse_text(
                     booking_details,
-                    "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
-                    "/div[1]/dl[2]/dd").strip()
+                    '''
+                    div/div[1]/dl[2]/dd[
+                        contains(preceding-sibling::dt[1]/text(), 'Sprache')
+                    ]'''
+                ).strip()
 
                 try:
                     customer_details = tree_details.xpath(
