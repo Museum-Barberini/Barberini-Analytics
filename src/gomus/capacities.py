@@ -229,7 +229,7 @@ class FetchCapacities(DataPreparationTask):
         invalid_csv = yield QueryDb(
             query='''
                 SELECT DISTINCT
-                    gq.gomus_quota_id, date_trunc('WEEK', dt.date) date
+                    gq.quota_id, date_trunc('WEEK', dt.date) date
                 FROM gomus_quota gq
                 CROSS JOIN (
                     (
@@ -242,8 +242,8 @@ class FetchCapacities(DataPreparationTask):
                             0, 60 * 24 - %(mindelta)s, %(mindelta)s) mins
                     ) time) dt
                 LEFT JOIN gomus_capacity gc
-                ON (dt.date, dt.time, gq.gomus_quota_id) =
-                    (gc.date, gc.time, gc.gomus_quota_id)
+                ON (dt.date, dt.time, gq.quota_id) =
+                    (gc.date, gc.time, gc.quota_id)
                 WHERE last_updated >= update_date IS NOT TRUE
             ''',
             kwargs=dict(
