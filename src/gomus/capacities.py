@@ -262,7 +262,10 @@ class FetchCapacities(DataPreparationTask):
 
         with self.output().open('w') as output:
             print('file_path', file=output)
-            for quota_id, date in invalid_df.itertuples(index=False):
+            for quota_id, date in self.tqdm(
+                    invalid_df.itertuples(index=False),
+                    total=len(invalid_df),
+                    desc="Fetching capacities HTML"):
                 html = yield FetchGomusHTML(
                     url=f'/admin/quotas/{quota_id}'
                         f'/capacities?start_at={date.date()}')
