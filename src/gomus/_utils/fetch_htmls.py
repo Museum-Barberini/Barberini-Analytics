@@ -1,5 +1,6 @@
 from copy import copy
 import datetime as dt
+import re
 import os
 import time
 
@@ -74,13 +75,8 @@ class FetchGomusHTML(DataPreparationTask):
 
     def output(self):
 
-        name = f'{self.output_dir}/gomus/html/' + \
-            self.url. \
-            replace('/', '_'). \
-            replace('.', '_'). \
-            replace('?', '_'). \
-            replace('&', '_') + \
-            '.html'
+        filtered_url = re.sub(r'[/\\?%*:|"<>]|[?&]', '_', self.url[1:])
+        name = f'{self.output_dir}/gomus/html/{filtered_url}.html'
 
         return FailableTarget(
             luigi.LocalTarget(name, format=luigi.format.Nop))
