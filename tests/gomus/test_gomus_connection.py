@@ -5,6 +5,7 @@ import requests
 
 from db_test import DatabaseTestCase, logger
 
+BASE_URL = 'https://barberini.gomus.de/'
 EXPECTED_VERSION_NUMBER = 776
 EXPECTED_VERSION_TAG = 'v4.1.6 – Premium Edition'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
@@ -16,7 +17,7 @@ class TestGomusConnection(DatabaseTestCase):
     def test_valid_session_id(self):
         """Test if GOMUS_SESS_ID env variable contains a valid session ID."""
         response = requests.get(
-            'https://barberini.gomus.de/',
+            BASE_URL,
             cookies={'_session_id': os.environ['GOMUS_SESS_ID']},
             allow_redirects=False)
         self.assertEqual(200, response.status_code)
@@ -28,7 +29,7 @@ class TestGomusConnection(DatabaseTestCase):
                 "Please make sure a valid Gomus session ID is provided")
 
         response = requests.get(
-            'https://barberini.gomus.de/',
+            BASE_URL,
             cookies={'_session_id': GOMUS_SESS_ID})
         response.raise_for_status()
 

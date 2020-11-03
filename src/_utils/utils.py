@@ -7,6 +7,9 @@ from typing import Union
 import jsonpickle
 import luigi
 
+from backports.datetime_fromisoformat import MonkeyPatch
+MonkeyPatch.patch_fromisoformat()
+
 
 class ObjectParameter(luigi.Parameter):
     """A luigi parameter that takes an arbitrary object."""

@@ -3,8 +3,20 @@ import os
 
 logger = logging.getLogger('luigi-interface')
 
-minimal_mode = os.getenv('MINIMAL') == 'True'
-OUTPUT_DIR = os.environ['OUTPUT_DIR']
+
+def minimal_mode() -> bool:
+    """
+    Answer a flag indicating whether task should process minimum of data only.
+
+    For more information on the minimal mining pipeline, see !102 and !109.
+    """
+    return os.getenv('MINIMAL') == 'True'
+
+
+def output_dir() -> str:
+    """Answer the path to the root of the output directory for all tasks."""
+    return os.environ['OUTPUT_DIR']
+
 
 from .utils import ObjectParameter, StreamToLogger             # noqa: E402
 from .data_preparation import ConcatCsvs, DataPreparationTask  # noqa: E402
@@ -25,5 +37,5 @@ __all__ = [
     MuseumFacts,
     ObjectParameter, StreamToLogger,
 
-    db_connector
+    db_connector, minimal_mode, output_dir
 ]

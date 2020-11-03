@@ -6,11 +6,13 @@ import luigi
 import requests
 from luigi.format import UTF8
 
-from _utils import OUTPUT_DIR
+from _utils import output_dir
 from .edit_report import EditGomusReport
 from .fetch_report_helper import (
     REPORT_IDS, csv_from_excel, parse_timespan, request_report
 )
+
+BASE_URL = 'https://barberini.gomus.de'
 
 
 class FetchGomusReport(luigi.Task):
@@ -30,7 +32,7 @@ class FetchGomusReport(luigi.Task):
     def output(self):
         for index in self.sheet_indices:
             yield luigi.LocalTarget(
-                f'{OUTPUT_DIR}/gomus/{self.report_name}.{index}.csv',
+                f'{output_dir()}/gomus/{self.report_name}.{index}.csv',
                 format=UTF8
             )
 
@@ -67,14 +69,13 @@ class FetchEventReservations(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(
-            (f'{OUTPUT_DIR}/gomus/reservations/'
+            (f'{output_dir()}/gomus/reservations/'
              f'reservations_{self.booking_id}.{self.status}.csv'),
             format=UTF8
         )
 
     def run(self):
-        url = (f'https://barberini.gomus.de/bookings/{self.booking_id}/'
-               f'seats.xlsx')
+        url = f'{BASE_URL}/bookings/{self.booking_id}/seats.xlsx'
         response = requests.get(url, cookies=dict(
             _session_id=os.environ['GOMUS_SESS_ID']))
         response_content = response.content

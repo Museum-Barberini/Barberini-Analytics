@@ -102,20 +102,14 @@ def request_report(report_type, session_id):
 
     logger.info(f"Working with report '{report_parts[0]}.xlsx'")
 
-    # Work with the kind of report that is generated and maintained
     if report_id > 0:
-        base_url += f'/admin/reports/{report_id}'
-
+        # Work with the kind of report that is generated and maintained
         logger.info("Fetching report")
-        url = base_url + '.xlsx'
-
-    else:  # Work with the kind of report that is requested directly
+        url = f'{base_url}/admin/reports/{report_id}.xlsx'
+    else:
+        # Work with the kind of report that is requested directly
         logger.info("Directly downloading report")
-        if len(report_parts) < 2:
-            timespan = ''
-        else:
-            timespan = report_parts[1]
-
+        timespan = report_parts[1] if len(report_parts) >= 2 else ''
         url = direct_download_url(base_url, report_parts[0], timespan)
 
     return get_request(url, session_id)

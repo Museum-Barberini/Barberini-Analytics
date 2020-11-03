@@ -1,4 +1,5 @@
 import csv
+import datetime as dt
 import re
 
 import dateparser
@@ -17,8 +18,10 @@ from .fetch_htmls import FetchBookingsHTML, FetchGomusHTML, FetchOrdersHTML
 # inherit from this if you want to scrape gomus (it might be wise to have
 # a more general scraper class if we need to scrape something other than
 # gomus)
+# NOTE: If any xpath expressions should ever break, try to rewrite them using
+# attribute filters, e.g. by div class or ID. Don't forget that the DOM looks
+# different in a browser compared to what we get via the requests library!
 class GomusScraperTask(DataPreparationTask):
-    base_url = "https://barberini.gomus.de"
 
     def extract_from_html(self, base_html, xpath):
         # try:
@@ -26,6 +29,31 @@ class GomusScraperTask(DataPreparationTask):
             xpath)[0], method='text', encoding="unicode")
         # except IndexError:
         #    return ""
+
+    def parse_text(self, document, xpath='.'):
+
+        elements = document.xpath(xpath)
+        assert len(elements) == 1
+        element = elements[0]
+        text = element if isinstance(element, str) else element.text_content()
+        return text.strip()
+
+    def parse_int(self, document, xpath='.'):
+
+        return int(self.parse_text(document, xpath))
+
+    def parse_date(
+            self, document, xpath='.', relative_base=None) -> dt.datetime:
+
+        settings = {}
+        if relative_base is not None:
+            settings['RELATIVE_BASE'] = relative_base
+
+        return dateparser.parse(
+            self.parse_text(document, xpath),
+            locales=['de'],
+            settings=settings
+        )
 
 
 class EnhanceBookingsWithScraper(GomusScraperTask):
@@ -44,7 +72,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             columns=self.columns)
         yield FetchBookingsHTML(
             timespan=self.timespan,
-            base_url=f'{self.base_url}/admin/bookings/',
             columns=self.columns)
         # table required for fetch_updated_mail()
         yield GomusToCustomerMappingToDb()
@@ -73,25 +100,22 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     res_details = html_file.read()
                 tree_details = html.fromstring(res_details)
 
-                # firefox says the the xpath starts with //body/div[3]/ but we
-                # apparently need div[2] instead
                 booking_details = tree_details.xpath(
                     '//body/div[2]/div[2]/div[3]'
                     '/div[4]/div[2]/div[1]/div[3]')[0]
 
                 # Order Date
-                # .strip() removes \n in front of and behind string
-                raw_order_date = self.extract_from_html(
-                    booking_details,
-                    'div[1]/div[2]/small/dl/dd[2]').strip()
-                bookings.loc[i, 'order_date'] =\
-                    dateparser.parse(raw_order_date)
+                bookings.loc[i, 'order_date'] = self.parse_date(
+                    booking_details, 'div[1]/div[2]/small/dl[1]/dd[2]')
 
                 # Language
-                bookings.loc[i, 'language'] = self.extract_from_html(
+                bookings.loc[i, 'language'] = self.parse_text(
                     booking_details,
-                    "div[contains(div[1]/dl[2]/dt/text(),'Sprache')]"
-                    "/div[1]/dl[2]/dd").strip()
+                    '''
+                    div/div[1]/dl[2]/dd[
+                        contains(preceding-sibling::dt[1]/text(), 'Sprache')
+                    ]'''
+                ).strip()
 
                 try:
                     customer_details = tree_details.xpath(
@@ -142,10 +166,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         # First step: Get customer of booking (cannot use customer_id,
         # since it has been derived from the wrong e-mail address)
-        base_url = 'https://barberini.gomus.de/admin'
-
         booking_html_task = FetchGomusHTML(
-            url=f'{base_url}/bookings/{booking_id}')
+            url=f'/admin/bookings/{booking_id}')
         yield booking_html_task
         with booking_html_task.output().open('r') as booking_html_fp:
             booking_html = html.fromstring(booking_html_fp.read())
@@ -156,14 +178,14 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
         # Second step: Get current e-mail address for customer
         customer_html_task = FetchGomusHTML(
-            url=f'{base_url}/customers/{gomus_id}')
+            url=f'/admin/customers/{gomus_id}')
         yield customer_html_task
         with customer_html_task.output().open('r') as customer_html_fp:
             customer_html = html.fromstring(customer_html_fp.read())
-        customer_email = customer_html.xpath(
+        customer_email = self.parse_text(
+            customer_html,
             '//body/div[2]/div[2]/div[3]/div/div[2]/div[1]'
-            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')[0]
-        customer_email = customer_email.text_content().strip()
+            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')
 
         # Update customer ID in gomus_customer
         # and gomus_to_customer_mapping
@@ -201,7 +223,7 @@ class ScrapeGomusOrderContains(GomusScraperTask):
         super().__init__(*args, **kwargs)
 
     def requires(self):
-        return FetchOrdersHTML(base_url=self.base_url + '/admin/orders/')
+        return FetchOrdersHTML()
 
     def output(self):
         return luigi.LocalTarget(

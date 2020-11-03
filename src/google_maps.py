@@ -13,7 +13,7 @@ from _utils import CsvToDb, DataPreparationTask, logger
 
 
 class GoogleMapsReviewsToDb(CsvToDb):
-    """Stored fetched Google Maps reviews into the database."""
+    """Store fetched Google Maps reviews into the database."""
 
     table = 'google_maps_review'
 

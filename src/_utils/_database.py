@@ -207,8 +207,8 @@ class DbConnector:
         assert not args or not kwargs, "cannot combine args and kwargs"
         all_args = next(
             filter(bool, [args, kwargs]),
-            # always pass args for consistent
-            # resolution of percent escapings
+            # always pass any args for consistent resolution of percent
+            # escapings
             None
         )
 

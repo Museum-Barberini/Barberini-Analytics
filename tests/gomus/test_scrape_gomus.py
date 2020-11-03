@@ -60,7 +60,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
         for i, row in extracted_bookings.iterrows():
             booking_id = row['booking_id']
             new_html_task = FetchGomusHTML(
-                url=f"https://barberini.gomus.de/admin/bookings/{booking_id}")
+                url=f"/admin/bookings/{booking_id}")
             new_html_task.run()
             html_file_names.append(new_html_task.output().path)
 
@@ -175,8 +175,7 @@ class TestScrapeOrderContains(DatabaseTestCase):
         html_file_names = []
         all_order_ids = test_data['order_id'].drop_duplicates()
         for order_id in all_order_ids:
-            new_html_task = FetchGomusHTML(
-                url=f"https://barberini.gomus.de/admin/orders/{order_id}")
+            new_html_task = FetchGomusHTML(url=f"/admin/orders/{order_id}")
             new_html_task.run()
             html_file_names.append(new_html_task.output().path)
 
