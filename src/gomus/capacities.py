@@ -192,7 +192,13 @@ class ExtractCapacities(GomusScraperTask):
 
 
 class FetchCapacities(DataPreparationTask):
-    """Fetch the capacity pages for all known quotas from the gomus system."""
+    """
+    Fetch the capacity pages for all known quotas from the gomus system.
+
+    As a rule of thumb, with the default parameter configuration, this task
+    takes about 1 minute to run per invalidated quota, including downstream
+    dependencies.
+    """
 
     weeks_back = luigi.IntParameter(8)
     weeks_ahead = luigi.IntParameter(52)
