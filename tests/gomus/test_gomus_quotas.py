@@ -14,8 +14,8 @@ class TestExtractQuotas(DatabaseTestCase):
     """Tests the gomus ExtractQuotas task."""
 
     @patch.object(ExtractQuotas, 'input')
-    def test_extract_quotas(self, input_mock):
-
+    def test_extract_mock(self, input_mock):
+        """Give the task some mock data and test how it parses them."""
         self.task = ExtractQuotas()
         input_mock.return_value = luigi.LocalTarget(
             'tests/test_data/gomus/quotas/quotas_in.csv',
@@ -28,6 +28,29 @@ class TestExtractQuotas(DatabaseTestCase):
         with self.task.output().open() as output:
             actual_quotas = pd.read_csv(output)
         pd.testing.assert_frame_equal(expected_quotas, actual_quotas)
+
+    @patch.object(ExtractQuotas, 'input')
+    def test_extract_production(self, input_mock):
+        """Give the task some production data and test how it parses them."""
+        self.task = ExtractQuotas()
+        html_task = FetchGomusHTML(url='/admin/quotas/26')
+        self.run_task(html_task)
+        self.install_mock_target(
+            input_mock,
+            lambda stream:
+                pd.DataFrame([
+                    {'file_path': html_task.output().path}
+                ]).to_csv(stream))
+
+        self.task.run()
+
+        with self.task.output().open() as output:
+            actual_quotas = pd.read_csv(output)
+        self.assertEquals(1, len(actual_quotas))
+        quota = actual_quotas.iloc[0]
+        self.assertEquals(26, quota['quota_id'])
+        self.assertEquals("Kontingent 1 - Werktags", quota['name'])
+        self.assertEquals('2020-08-17 19:08:00', quota['creation_date'])
 
 
 class TestFetchQuotas(DatabaseTestCase):
