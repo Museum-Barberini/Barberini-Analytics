@@ -26,7 +26,8 @@ class TestFetchTwitter(DatabaseTestCase):
             'timestamp']
 
         with freeze_time('2020-02-06'):
-            # on this day our team's account had sent a related tweet
+            # On this day our team's account has posted a related tweet
+            # See https://twitter.com/bpfn2020/status/1225435275301654531
             FetchTwitter(timespan=dt.timedelta(days=1)).run()
 
         with output_target.open('r') as output_file:
