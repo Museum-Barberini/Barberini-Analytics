@@ -68,8 +68,13 @@ class ExtractCapacities(GomusScraperTask):
                 desc="Extracting capacities")
         ]
 
-        df_capacities = pd.concat(capacities)
-        df_capacities['last_updated'] = self.today
+        df_capacities = pd.DataFrame(columns=[
+            'quota_id', 'date', 'time',
+            'max', 'sold', 'reserved', 'available', 'last_updated'
+        ])
+        if capacities:
+            df_capacities = pd.concat([df_capacities, *capacities])
+            df_capacities['last_updated'] = self.today
 
         with self.output().open('w') as output:
             df_capacities.to_csv(output, index=False)
