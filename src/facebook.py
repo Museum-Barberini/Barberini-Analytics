@@ -301,11 +301,11 @@ class FetchFbPostComments(FetchFbPostDetails):
         comments = self.fetch_comments(df)
         df = pd.DataFrame(comments)
 
-        # Posts can appear multiple times, causing comments to
-        # be fetched multiple times as well, causing
-        # primary key violations
-        # See #227
-        if not df.empty:
+        if df.any():
+            # Posts can appear multiple times, causing comments to
+            # be fetched multiple times as well, causing
+            # primary key violations
+            # See #227
             df = df.drop_duplicates(
                 subset=['comment_id', 'post_id'], ignore_index=True)
             df = df.astype({
@@ -322,7 +322,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             """
             This whole else block is a dirty workaround, because the ToDb tasks
             currently cannot deal with completely empty CSV files as input,
-            they assume that at least the header row exists.
+            they assume that at least the header row exists. See #268.
             """
             df = pd.DataFrame(columns=[
                 'post_id',
