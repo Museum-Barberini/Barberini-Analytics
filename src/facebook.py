@@ -301,7 +301,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         comments = self.fetch_comments(df)
         df = pd.DataFrame(comments)
 
-        if df.any():
+        if not df.empty:
             # Posts can appear multiple times, causing comments to
             # be fetched multiple times as well, causing
             # primary key violations
