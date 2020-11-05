@@ -4,7 +4,6 @@ from unittest.mock import patch
 from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
-import numpy as np
 import pandas as pd
 
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
@@ -19,8 +18,8 @@ class TestFetchTwitter(DatabaseTestCase):
         output_target = MockTarget('raw_out', format=UTF8)
         output_mock.return_value = output_target
 
-        none = object()  # Dirty workaround for pandas's peculiarities
-                         # regarding default values
+        # Dirty workaround for pandas's peculiarities regarding default values
+        none = object()
         expected_tweet = {
             'tweet_id': 1225435275301654531,
             'text': "#MuseumBarberini is cool!",

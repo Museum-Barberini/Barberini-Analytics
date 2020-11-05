@@ -2,16 +2,13 @@
 
 import datetime as dt
 import dateutil
-from pytz import utc
-import re
 
 import luigi
 from luigi.format import UTF8
 import pandas as pd
 import twint
-import tzlocal
 
-from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts
 
 
 class TweetsToDb(CsvToDb):
