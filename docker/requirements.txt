@@ -44,6 +44,7 @@ js2py==0.70
 jsonpickle==1.4.1
 jstyleson==0.0.2
 lockfile==0.12.2
+lxml==4.6.1
 mmh3==2.5.1
 nptime==1.1
 numpy==1.19.2
