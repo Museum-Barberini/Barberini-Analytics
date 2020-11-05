@@ -26,8 +26,7 @@ validators==0.18.1
 
 # Data sources
 google-api-python-client==1.12.5
-git+https://github.com/Museum-Barberini-gGmbH/twitterscraper.git#egg=twitterscraper
-twint==2.1.20
+git+https://github.com/twintproject/twint.git#egg=twint
 
 # Analysis tools
 git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
