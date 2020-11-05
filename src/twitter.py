@@ -149,7 +149,7 @@ class FetchTwitter(DataPreparationTask):
                     user_id=tweet.user_id,
                     tweet_id=tweet.id,
                     text=tweet.tweet,
-                    parent_tweet_id=None, # TODO: Nuke
+                    parent_tweet_id=None,  # kept for compatibility reasons
                     timestamp=dateutil.parser.parse(tweet.datetime),
                     likes=tweet.likes_count,
                     retweets=tweet.retweets_count,
