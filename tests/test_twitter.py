@@ -1,11 +1,10 @@
 import datetime as dt
-import pandas as pd
-import unittest
 from unittest.mock import patch
 
 from freezegun import freeze_time
 from luigi.format import UTF8
 from luigi.mock import MockTarget
+import pandas as pd
 
 from twitter import FetchTwitter, ExtractTweets, ExtractTweetPerformance
 from db_test import DatabaseTestCase
@@ -14,22 +13,20 @@ from db_test import DatabaseTestCase
 class TestFetchTwitter(DatabaseTestCase):
     """Tests the FetchTwitter task."""
 
-    # ---
-    # NOTE: Twitterscraper is broken ATM, so we are disabling it temporarily.
-    # See #369. TODO: Fix this later!
-    @unittest.expectedFailure
-    # ---
     @patch.object(FetchTwitter, 'output')
     def test_fetch_twitter(self, output_mock):
         output_target = MockTarget('raw_out', format=UTF8)
         output_mock.return_value = output_target
 
-        desired_attributes = [
-            'user_id',
-            'tweet_id',
-            'text',
-            'parent_tweet_id',
-            'timestamp']
+        # Dirty workaround for pandas's peculiarities regarding default values
+        none = object()
+        expected_tweet = {
+            'tweet_id': 1225435275301654531,
+            'text': "#MuseumBarberini is cool!",
+            'user_id': 1189538451097608193,
+            'parent_tweet_id': none,
+            'timestamp': '2020-02-06 16:05:11+01:00'
+        }
 
         with freeze_time('2020-02-06'):
             # On this day our team's account has posted a related tweet
@@ -38,21 +35,14 @@ class TestFetchTwitter(DatabaseTestCase):
 
         with output_target.open('r') as output_file:
             output_df = pd.read_csv(output_file)
-        for attr in desired_attributes:
-            self.assertTrue(
-                attr in output_df.columns,
-                msg=f'{attr} is not part of the fetched attributes')
-        self.assertTrue(len(output_df.index) >= 1)
-        # guaranteed to be true as long as we don't delete our tweet
+        output_df = output_df.fillna(none)
 
-        # check if timezone is correct on known example
-        got_the_right_value = False
-        for timestamp in output_df['timestamp']:
-            if "2020-02-06 16:05" in timestamp:  # the post time shown online
-                got_the_right_value = True
-        self.assertTrue(
-            got_the_right_value,
-            msg="timestamp of our tweet not found, wrong timezone?")
+        filtered_df = output_df
+        for key, value in expected_tweet.items():
+            filtered_df = filtered_df[filtered_df[key] == value]
+            self.assertTrue(
+                len(filtered_df) >= 1,
+                f"Did not find any tweet with {key} = {value}")
 
 
 class TestExtractTweets(DatabaseTestCase):
