@@ -11,14 +11,15 @@ import regex
 from db_test import DatabaseTestCase
 from _utils import QueryDb
 from gomus.capacities import ExtractCapacities, FetchCapacities
+from gomus._utils.fetch_htmls import FetchGomusHTML
 
 
 class TestExtractCapacities(DatabaseTestCase):
     """Tests the gomus ExtractCapacities task."""
 
     @patch.object(ExtractCapacities, 'input')
-    def test_extract_capacities(self, input_mock):
-
+    def test_extract_mock(self, input_mock):
+        """Give the task some mock data and test how it parses them."""
         # See comments in test HTML files.
 
         self.task = ExtractCapacities(today=dt.date(2020, 10, 29))
@@ -30,6 +31,28 @@ class TestExtractCapacities(DatabaseTestCase):
 
         expected_capacities = pd.read_csv(
             'tests/test_data/gomus/capacities/capacities_out.csv')
+        with self.task.output().open() as output:
+            actual_capacities = pd.read_csv(output)
+        pd.testing.assert_frame_equal(expected_capacities, actual_capacities)
+
+    @patch.object(ExtractCapacities, 'input')
+    def test_extract_production(self, input_mock):
+        """Give the task some production data and test how it parses them."""
+        self.task = ExtractCapacities(today=dt.date(2016, 11, 29))
+        html_task = FetchGomusHTML(
+            url='/admin/quotas/7/capacities?start_at=2016-11-28')
+        self.run_task(html_task)
+        self.install_mock_target(
+            input_mock, lambda stream:
+                pd.DataFrame([
+                    {'file_path': html_task.output().path}
+                ]).to_csv(stream))
+
+        self.task.run()
+
+        expected_capacities = pd.read_csv(
+            'tests/test_data/gomus/capacities/'
+            'capacities_production_7_2016-11-28.csv')
         with self.task.output().open() as output:
             actual_capacities = pd.read_csv(output)
         pd.testing.assert_frame_equal(expected_capacities, actual_capacities)
