@@ -5,11 +5,7 @@ import luigi
 from _posts import PostsToDb, PostPerformanceToDb
 from absa import AspectBasedSentimentAnalysis
 from diagnostics import Diagnostics
-# ---
-# NOTE: We are disabling Twitter temporarily, see #369.
-# TODO: Uncomment and fix this later!
-# from extended_twitter_collection import TwitterExtendedDatasetToDB
-# ---
+from extended_twitter_collection import TwitterExtendedDatasetToDB
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction.predict import PredictionsToDb
@@ -44,11 +40,7 @@ class FillDbDaily(luigi.WrapperTask):
         yield Diagnostics()
 
         # Extended Tweet Gathering
-        # ---
-        # NOTE: We are disabling Twitter temporarily, see #369.
-        # TODO: Uncomment and fix this later!
-        # yield TwitterExtendedDatasetToDB()
-        # ---
+        yield TwitterExtendedDatasetToDB()
 
 
 class FillDbHourly(luigi.WrapperTask):

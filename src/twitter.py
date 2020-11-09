@@ -1,16 +1,14 @@
 """Provides tasks for downloading tweets related to the museum."""
 
 import datetime as dt
-from pytz import utc
-import re
+import dateutil
 
 import luigi
 from luigi.format import UTF8
 import pandas as pd
-import twitterscraper as ts
-import tzlocal
+import twint
 
-from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts
 
 
 class TweetsToDb(CsvToDb):
@@ -114,7 +112,7 @@ class ExtractTweetPerformance(DataPreparationTask):
 
 
 class FetchTwitter(DataPreparationTask):
-    """Fetch tweets related to the museum using the twitterscraper."""
+    """Fetch tweets related to the museum using twint."""
 
     query = luigi.Parameter(default="museumbarberini")
     timespan = luigi.parameter.TimeDeltaParameter(
@@ -132,12 +130,30 @@ class FetchTwitter(DataPreparationTask):
         if self.minimal_mode:
             timespan = dt.timedelta(days=5)
 
-        tweets = ts.query_tweets(
-            self.query,
-            begindate=dt.date.today() - timespan,
-            enddate=dt.date.today() + dt.timedelta(days=1))
+        tweets: twint.tweet.tweet = []
+        twint.run.Search(twint.Config(
+            Search=self.query,
+            Since=str(dt.date.today() - timespan),
+            Until=str(dt.date.today() + dt.timedelta(days=1)),
+            Limit=10000,
+            Store_object=True,
+            Store_object_tweets_list=tweets,
+            Hide_output=True
+        ))
         if tweets:
-            df = pd.DataFrame([tweet.__dict__ for tweet in tweets])
+            df = pd.DataFrame([
+                dict(
+                    user_id=tweet.user_id,
+                    tweet_id=tweet.id,
+                    text=tweet.tweet,
+                    parent_tweet_id=None,  # kept for compatibility reasons
+                    timestamp=dateutil.parser.parse(tweet.datetime),
+                    likes=tweet.likes_count,
+                    retweets=tweet.retweets_count,
+                    replies=tweet.replies_count
+                )
+                for tweet in tweets
+            ])
         else:  # no tweets returned, ensure schema
             df = pd.DataFrame(columns=[
                 'user_id',
@@ -149,28 +165,7 @@ class FetchTwitter(DataPreparationTask):
                 'retweets',
                 'replies'])
 
-        # Filter out false positive matches. This is oviously a workaround,
-        # but at the moment cheaper than repairing or switching the scraper.
-        # See #352.
-        is_false_positive = ~(
-            df['parent_tweet_id'].apply(bool)
-            | df['text'].str.contains(self.query, flags=re.IGNORECASE)
-            | df['screen_name'].str.contains(self.query, flags=re.IGNORECASE))
-        if is_false_positive.any():
-            false_positives = df[is_false_positive]
-            logger.warning(
-                f"Dropping {len(false_positives)} tweets that are not "
-                f"related to the query"
-            )
-            df = df[~is_false_positive]
-
         df = df.drop_duplicates(subset=['tweet_id'])
-
-        # timestamp is utc by default
-        df['timestamp'] = df['timestamp'].apply(
-            lambda utc_dt:
-            utc.localize(utc_dt, is_dst=None).astimezone(
-                tzlocal.get_localzone()))
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
