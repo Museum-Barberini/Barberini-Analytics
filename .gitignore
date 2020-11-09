@@ -122,3 +122,4 @@ webpack.statistics.prod.html
 
 ### Editors ###
 .vscode/
+.DS_Store
