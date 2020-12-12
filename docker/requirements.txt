@@ -45,5 +45,7 @@ pandas==1.1.5
 PyYAML==5.3.1
 requests==2.25.0
 tqdm==4.54.1
-xlrd==2.0.1
+xlrd==1.2.0 # Do not update, v2.0.1 does not support XLSX files:
+            # https://stackoverflow.com/questions/65254535/
+            # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
 xmltodict==0.12.0
