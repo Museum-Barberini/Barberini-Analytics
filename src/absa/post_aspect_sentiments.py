@@ -164,12 +164,16 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
             WITH linear_weight AS (
                 SELECT
                     *,
-                    round(
-                        exp(-(
-                            (linear_distance::numeric / %(weight_alpha)s) ^ 2
-                        )),
-                        6
-                    ) AS linear_weight
+                    (CASE WHEN
+                        linear_distance <= %(weight_alpha)s * sqrt(-ln(1e-6))
+                        THEN round(
+                            exp(-(
+                                (linear_distance::numeric / %(weight_alpha)s) ^ 2
+                            )),
+                            6
+                        )
+                        ELSE 0
+                    END) AS linear_weight
                 FROM {self.phrase_aspect_table}
             )
             SELECT
