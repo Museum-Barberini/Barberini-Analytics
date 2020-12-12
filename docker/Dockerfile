@@ -8,11 +8,11 @@ ENV LANG C.UTF-8
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update
+RUN apt-get update --fix-missing
 RUN apt-get upgrade -y --no-install-recommends apt-utils 2>&1 \
   | grep -v 'debconf: .*apt-utils is not installed'
 
-ARG INSTALL='apt-get install -qq --no-install-recommends'
+ARG INSTALL='apt-get install -qq --no-install-recommends --fix-missing'
 
 
 # Install utilities
