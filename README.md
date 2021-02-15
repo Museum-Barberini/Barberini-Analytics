@@ -1,5 +1,9 @@
 # Barberini Analytics
 
+[![System Architecture Slides](https://img.shields.io/badge/system%20architecture-SlideShare-0077b5)](https://www.slideshare.net/secret/fSNLlGAOzk34)
+[![Official Presentation Video](https://img.shields.io/badge/official%20presentation-YouTube-ff0000)](https://youtu.be/Z8s3fdrzI7c?t=7170)
+[![Press Release](https://img.shields.io/badge/Press%20release-hpi.de-B1063A)](https://hpi.de/fileadmin/user_upload/hpi/veranstaltungen/2020/Bachelorpodium_2020/Pressemitteilung_BP_2020_Bachelorprojekte/Pressemitteilung_BP2020_Pressemitteilung_FN1_V2.pdf)
+
 A suite of data mining, analytics, and visualization solutions to create an awesome dashboard for the Museum Barberini, Potsdam, in order to help them analyze and assess customer, advertising, and social media data!
 
 This solution has been originally developed in part of a Data Analytics project run as a cooperation of the Museum Barberini (MB) and the Hasso Plattner Institute (HPI) in 2019/20 (see [Credits](#credits) below).
