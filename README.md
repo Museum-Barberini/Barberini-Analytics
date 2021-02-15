@@ -6,6 +6,7 @@ This solution has been originally developed in part of a Data Analytics project 
 The project comprises a data mining pipeline that is regularly run on a server and feeds several visualization dashboards that are hosted in a Power BI app.
 For more information, see also the following resources:
 
+- [System architecture slides](https://www.slideshare.net/secret/fSNLlGAOzk34)
 - [Original project description](https://www.museum-barberini.com/site/assets/files/1080779/fg_naumann_bp_barberini_2019-20.pdf) (German)
 - [Final press release](https://hpi.de/fileadmin/user_upload/hpi/veranstaltungen/2020/Bachelorpodium_2020/Pressemitteilung_BP_2020_Bachelorprojekte/Pressemitteilung_BP2020_Pressemitteilung_FN1_V2.pdf) (German)
 - [Official presentation video](https://www.tele-task.de/lecture/video/8266/#t=5961) ([mirror on YouTube](https://youtu.be/Z8s3fdrzI7c?t=7170))
