@@ -1,3 +1,2 @@
 skips: [
-    'B322'  # input is safe in Python 3
 ]
