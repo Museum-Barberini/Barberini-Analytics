@@ -19,7 +19,7 @@ For more information, see also the following resources:
 
 ## Note regarding reuse for other projects
 
-While this solution has been tailored for the individual needs of the MB and the overall project is characterized by the structure of a majestic monolith, we think that it contains some features and components that great have a potential for being reused as part of other solutions.
+While this solution has been tailored for the individual needs of the MB and the overall project is characterized by the structure of a majestic monolith, we think that it contains some features and components that have great potential for being reused as part of other solutions.
 In particular, these features include the following highlights:
 
 - **Gomus binding:** Connectors and scrapers for accessing various data sources from the museum management system _go~mus_.
