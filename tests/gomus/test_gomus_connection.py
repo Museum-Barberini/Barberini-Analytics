@@ -6,8 +6,8 @@ import requests
 from db_test import DatabaseTestCase, logger
 
 BASE_URL = 'https://barberini.gomus.de/'
-EXPECTED_VERSION_NUMBER = 775
-EXPECTED_VERSION_TAG = 'v4.1.7.7 – Premium Edition'
+EXPECTED_VERSION_NUMBER = 770
+EXPECTED_VERSION_TAG = 'v4.1.8 – Premium Edition'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
