@@ -147,7 +147,7 @@ lint-python:
 	flake8 -v --show-source .
 
 lint-markdown:
-	/node_modules/remark-cli/cli.js -f -u validate-links -u remark-lint-no-dead-urls .
+	/node_modules/remark-cli/cli.js -f -u validate-links -u remark-lint-no-dead-urls=skipLocalhost:true .
 	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
 
 python-bandit:
