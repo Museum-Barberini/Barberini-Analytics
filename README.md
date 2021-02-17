@@ -11,7 +11,8 @@ The project comprises a data mining pipeline that is regularly run on a server a
 For more information, see also the following resources:
 
 - [System architecture slides](https://www.slideshare.net/secret/fSNLlGAOzk34)
-- [Original project description](https://www.museum-barberini.com/site/assets/files/1080779/fg_naumann_bp_barberini_2019-20.pdf) (German)
+- [Original project description (organizational)](https://www.slideshare.net/ChristophThiede2/barberini-analytics-optimierung-der-kommunikations-und-marketingstrategie-auf-grundlage-von-datenbasierten-insights) (German)
+- [Original project description (technical)](https://hpi.de/fileadmin/user_upload/hpi/dokumente/studiendokumente/bachelor/bachelorprojekte/2019_20/FG_Naumann_BP_Barberini_2019-20.pdf) (German)
 - [Final press release](https://hpi.de/fileadmin/user_upload/hpi/veranstaltungen/2020/Bachelorpodium_2020/Pressemitteilung_BP_2020_Bachelorprojekte/Pressemitteilung_BP2020_Pressemitteilung_FN1_V2.pdf) (German)
 - [Official presentation video](https://www.tele-task.de/lecture/video/8266/#t=5961) ([mirror on YouTube](https://youtu.be/Z8s3fdrzI7c?t=7170))
 
@@ -130,7 +131,7 @@ make shutdown
 
 #### Actual Installation
 
-1. Download and install Power BI: <https://aka.ms/pbidesktopstore>
+1. Download and install Power BI: <https://powerbi.microsoft.com/downloads>
 2. Enable R-powered visuals
    1. Download and install R: <https://mran.revolutionanalytics.com/download>
    2. Once you open any report, you will be asked to install R Visual for PBI.
