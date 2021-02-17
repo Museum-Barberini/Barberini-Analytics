@@ -2,6 +2,7 @@
     "name": "bp-barberini",
     "version": "1.0.0",
     "description": "Barberini Analytics",
+    "dependencies": {},
     "devDependencies": {
         "markdownlint-cli": "^0.26.0",
         "remark-cli": "^9.0.0",
