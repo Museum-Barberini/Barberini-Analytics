@@ -130,7 +130,7 @@ make shutdown
 
 #### Actual Installation
 
-1. Download and install Power BI: <https://aka.ms/pbidesktopstore>
+1. Download and install Power BI: <https://powerbi.microsoft.com/downloads>
 2. Enable R-powered visuals
    1. Download and install R: <https://mran.revolutionanalytics.com/download>
    2. Once you open any report, you will be asked to install R Visual for PBI.
