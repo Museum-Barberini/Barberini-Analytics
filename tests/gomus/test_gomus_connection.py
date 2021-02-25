@@ -37,8 +37,8 @@ class TestGomusConnection(DatabaseTestCase):
         if EXPECTED_VERSION_LINE_NUMBER != ln:
             logger.error(
                 f"Gomus HTML format has changed (line number of version tag "
-                f"has changed from {EXPECTED_VERSION_LINE_NUMBER} to {ln}), but "
-                f"version number is still the same. Did they push some "
+                f"has changed from {EXPECTED_VERSION_LINE_NUMBER} to {ln}), "
+                f"but version number is still the same. Did they push some "
                 f"undocumented changes?"
             )
 
@@ -48,8 +48,16 @@ class TestGomusConnection(DatabaseTestCase):
         with open(__file__, 'r') as file:
             source = file.read()
 
-        source = regex.sub(rf"(?<=^{nameof(EXPECTED_VERSION_LINE_NUMBER)} = )\d+$", str(ln), source, flags=regex.MULTILINE)
-        source = regex.sub(rf"(?<=^{nameof(EXPECTED_VERSION_TAG)} = ').+(?='$)", version_tag, source, flags=regex.MULTILINE)
+        source = regex.sub(
+            rf"(?<=^{nameof(EXPECTED_VERSION_LINE_NUMBER)} = )\d+$",
+            str(ln),
+            source,
+            flags=regex.MULTILINE)
+        source = regex.sub(
+            rf"(?<=^{nameof(EXPECTED_VERSION_TAG)} = ').+(?='$)",
+            version_tag,
+            source,
+            flags=regex.MULTILINE)
 
         with open(__file__, 'w') as file:
             file.write(source)
