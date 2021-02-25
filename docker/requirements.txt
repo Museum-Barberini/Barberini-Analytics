@@ -49,3 +49,4 @@ xlrd==1.2.0 # Do not update, v2.0.1 does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
 xmltodict==0.12.0
+varname==0.6.2
