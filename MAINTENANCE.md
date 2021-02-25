@@ -2,7 +2,7 @@
 
 ## Symptoms
 
-- `test_gomus_version` failed
+- `TestGomusConnection.test_version` failed
 
   See [Update gomus version](#update-gomus-version).
   Before fixing this test, make sure that `test_valid_session_id` passes or fix that first.
@@ -64,7 +64,7 @@ The `TestGomusVersion` assertions will report any version change.
 #### Remarks
 
 - In the past, we have experienced a few changes in the gomus HTML format without the version number being incremented.
-  In this case, the `test_gomus_version` scraper needs to be updated. See !169.
+  In this case, the `TestGomusConnection.test_version` scraper needs to be updated. See !169.
 
 ### Update gomus session ID
 

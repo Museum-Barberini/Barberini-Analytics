@@ -1,12 +1,14 @@
 import os
 import re
 
+import regex
 import requests
+from varname import nameof
 
 from db_test import DatabaseTestCase, logger
 
 BASE_URL = 'https://barberini.gomus.de/'
-EXPECTED_VERSION_NUMBER = 770
+EXPECTED_VERSION_LINE_NUMBER = 770
 EXPECTED_VERSION_TAG = 'v4.1.8 – Premium Edition'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
@@ -22,8 +24,37 @@ class TestGomusConnection(DatabaseTestCase):
             allow_redirects=False)
         self.assertEqual(200, response.status_code)
 
-    def test_gomus_version(self):
+    def test_version(self):
+        ln, version_tag = self.search_version()
 
+        self.assertEqual(
+            EXPECTED_VERSION_TAG,
+            version_tag,
+            msg="Gomus version number in HTML string has changed! Please "
+                "make sure that all scrapers still work as expected before "
+                "updating this test."
+        )
+        if EXPECTED_VERSION_LINE_NUMBER != ln:
+            logger.error(
+                f"Gomus HTML format has changed (line number of version tag "
+                f"has changed from {EXPECTED_VERSION_LINE_NUMBER} to {ln}), but "
+                f"version number is still the same. Did they push some "
+                f"undocumented changes?"
+            )
+
+    def patch_version(self):
+        ln, version_tag = self.search_version()
+
+        with open(__file__, 'r') as file:
+            source = file.read()
+
+        source = regex.sub(rf"(?<=^{nameof(EXPECTED_VERSION_LINE_NUMBER)} = )\d+$", str(ln), source, flags=regex.MULTILINE)
+        source = regex.sub(rf"(?<=^{nameof(EXPECTED_VERSION_TAG)} = ').+(?='$)", version_tag, source, flags=regex.MULTILINE)
+
+        with open(__file__, 'w') as file:
+            file.write(source)
+
+    def search_version(self):
         if GOMUS_SESS_ID == '':
             raise ValueError(
                 "Please make sure a valid Gomus session ID is provided")
@@ -44,7 +75,6 @@ class TestGomusConnection(DatabaseTestCase):
             ]
             if match
         }
-
         self.assertTrue(
             version_hits,
             msg="Gomus version number could not be found in HTML string"
@@ -54,20 +84,7 @@ class TestGomusConnection(DatabaseTestCase):
             len(version_hits),
             msg="Ambiguous version info in gomus HTML"
         )
+
         ln = list(version_hits.keys())[0]
         version_tag = list(version_hits.values())[0][0]
-
-        self.assertEqual(
-            EXPECTED_VERSION_TAG,
-            version_tag,
-            msg="Gomus version number in HTML string has changed! Please "
-                "make sure that all scrapers still work as expected before "
-                "updating this test."
-        )
-        if EXPECTED_VERSION_NUMBER != ln:
-            logger.error(
-                f"Gomus HTML format has changed (line number of version tag "
-                f"has changed from {EXPECTED_VERSION_NUMBER} to {ln}), but "
-                f"version number is still the same. Did they push some "
-                f"undocumented changes?"
-            )
+        return ln, version_tag

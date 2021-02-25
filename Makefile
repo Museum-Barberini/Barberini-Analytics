@@ -141,6 +141,11 @@ coverage: luigi-clean
 	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
 	$(PYTHON) -m coverage html
 
+patch-gomus-version:
+	read -p "Please scan the gomus change log for breaking changes. Press Enter to continue"
+	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.patch_version
+	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.test_version
+
 lint: lint-python lint-markdown
 
 lint-python:
