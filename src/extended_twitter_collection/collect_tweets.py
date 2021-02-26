@@ -158,6 +158,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         # create dataframe with all the fetched tweets
         tweet_df = pd.concat(tweet_dfs)
         tweet_df = tweet_df.drop_duplicates(subset=['term', 'tweet_id'])
+        tweet_df = self.encode_strings(tweet_df)
 
         with self.output().open('w') as output_file:
             tweet_df.to_csv(output_file, index=False, header=True)
