@@ -166,6 +166,7 @@ class FetchTwitter(DataPreparationTask):
                 'replies'])
 
         df = df.drop_duplicates(subset=['tweet_id'])
+        df = self.encode_strings(df)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)

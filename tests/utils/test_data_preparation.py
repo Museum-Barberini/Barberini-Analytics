@@ -77,6 +77,26 @@ class TestConcatCsvs(DatabaseTestCase):
 class TestDataPreparationTask(DatabaseTestCase):
     """Tests the DataPreparationTask class."""
 
+    def test_encode_strings_line_breaks(self):
+
+        raw_df = pd.DataFrame([
+            [0, 'no linebreaks'],
+            [1, 'line\nfeed'],
+            [2, 'carriage\rreturn'],
+            [3, '2b\r\ncrlf']
+        ])
+        expected_df = pd.DataFrame([
+            [0, 'no linebreaks'],
+            [1, 'line\nfeed'],
+            [2, 'carriage\nreturn'],
+            [3, '2b\ncrlf']
+        ])
+
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        actual_df = self.task.encode_strings(raw_df)
+
+        pd.testing.assert_frame_equal(expected_df, actual_df)
+
     def test_filter_fkey_violations_one_column(self):
 
         self.db_connector.execute(
