@@ -1,3 +1,5 @@
+"""Provides tasks for assessing the opinion of posts based on patterns."""
+
 import json
 import logging
 
@@ -11,7 +13,8 @@ import spacy
 from tqdm import tqdm
 
 from _posts import PostsToDb
-from _utils import ConcatCsvs, CsvToDb, DataPreparationTask, JsoncToJson, QueryDb
+from _utils import (
+    ConcatCsvs, CsvToDb, DataPreparationTask, JsoncToJson, QueryDb)
 from .german_word_embeddings import FetchGermanWordEmbeddings
 from .phrase_polarity import PhrasePolaritiesToDb
 
@@ -53,9 +56,8 @@ class ConcatPostOpinionSentiments(ConcatCsvs):
     def collect_csvs(self):
 
         for match_algorithm, target in zip(
-                    self.sentiment_match_algorithms,
-                    self.input()
-                ):
+                self.sentiment_match_algorithms,
+                self.input()):
             yield self.read_csv(target).assign(
                 sentiment_match_algorithm=match_algorithm
             )[[
@@ -146,11 +148,15 @@ class GroupPostOpinionSentiments(DataPreparationTask):
 
     def cluster_aspects(self, df):
 
-        dbscan = DBSCAN(metric='cosine', eps=self.dbscan_eps, min_samples=self.dbscan_minsamples)
+        dbscan = DBSCAN(
+            metric='cosine',
+            eps=self.dbscan_eps,
+            min_samples=self.dbscan_minsamples
+        )
         if df.empty:
             logger.error("Did not receive any posts for grouping!")
             df['bin'] = []
-            return vecs
+            return df
         df['bin'] = dbscan.fit(list(df['vec'])).labels_
 
         is_noise = df['bin'] == -1
@@ -315,11 +321,13 @@ class CollectPostOpinionPhrases(DataPreparationTask):
     def analyze_grammar(self, post_df):
 
         nlp = spacy.load(self.spacy_model)
-        nlp_cleanse = lambda post: [
-            token
-            for token in nlp(post)
-            if not (self.remove_stopwords and token.is_stop)
-        ]
+
+        def nlp_cleanse(post):
+            return [
+                token
+                for token in nlp(post)
+                if not (self.remove_stopwords and token.is_stop)
+            ]
 
         return post_df.assign(
             doc=lambda post:
@@ -396,10 +404,7 @@ class LoadOpinionPatterns(JsoncToJson):
 
 
 def cross_join(df1, df2):
-    """
-    Return the cross product of two DataFrames.
-    """
-
+    """Return the cross product of two DataFrames."""
     magic_name = 'cross_join_side'
     return pd.merge(
         df1.assign(**{magic_name: None}),
@@ -410,10 +415,10 @@ def cross_join(df1, df2):
 
 def find_subseqs(seq, sub):
     """
-    Find all subsequences of seq that equal sub. Yield the index of each
-    match.
-    """
+    Find all subsequences of seq that equal sub.
 
+    Yield the index of each match.
+    """
     if not isinstance(seq, list):
         return find_subseqs(list(seq), sub)
     n = len(sub)

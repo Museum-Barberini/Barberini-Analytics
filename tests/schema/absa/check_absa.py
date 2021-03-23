@@ -1,16 +1,17 @@
-import validators
+"""Schema assertions for Aspect-Based Sentiment Analysis relations."""
 
 from db_test import DatabaseTestCase
 
 
 class CheckAbsa(DatabaseTestCase):
     """
-    Make quick assertions about the schema. Meant to be run after the database
-    has been filled, e. g. after a minimal pipeline run has been executed.
-    Requires $POSTGRES_DB_TEMPLATE to point to a prepared database.
-    NOTE that if these tests get too slow, we could override setup_database to
-    prevent copying the database for each read-only access. However, at the
-    moment YAGNI.
+    Make quick assertions about the schema.
+
+    Meant to be run after the database has been filled, e. g. after a minimal
+    pipeline run has been executed. Requires $POSTGRES_DB_TEMPLATE to point to
+    a prepared database. NOTE that if these tests get too slow, we could
+    override setup_database to prevent copying the database for each read-only
+    access. However, at the moment YAGNI.
     """
 
     def test_post_aspect_sentiment(self):

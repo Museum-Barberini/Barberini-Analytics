@@ -1,3 +1,5 @@
+"""Provides tasks to fetch German word embeddings model data."""
+
 import logging
 from urllib.request import urlopen
 
