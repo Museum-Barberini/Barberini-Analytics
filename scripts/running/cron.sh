@@ -36,4 +36,4 @@ rm -f "$LOGPATH/$1-$(date -d '2 weeks ago' +%Y-%m-%d).log"
 
     echo "Ending $1 run at [$(date +"%Y-%m-%d %H:%M")]"
     echo "======================================================================="
-} > "$LOGFILE" 2>&1
+} >> "$LOGFILE" 2>&1
