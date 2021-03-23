@@ -151,7 +151,7 @@ class ConvertTargetAspects(DataPreparationTask):
 
 class LoadTargetAspects(JsoncToJson):
 
-    file = luigi.Parameter(default='data/target_aspects.jsonc')
+    file = luigi.Parameter(default='data/absa/target_aspects.jsonc')
 
     def input(self):
         return luigi.LocalTarget(self.file, format=UTF8)

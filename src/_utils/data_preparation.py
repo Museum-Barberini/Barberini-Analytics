@@ -223,13 +223,15 @@ class ConcatCsvs(DataPreparationTask):
 
     def run(self):
 
-        dfs = [
-            self.read_csv(input)
-            for input in luigi.task.flatten(self.input())
-        ]
+        dfs = self.collect_csvs()
         df = pd.concat(dfs)
         with self.output().open('w') as output:
             df.to_csv(output, index=False)
+
+    def collect_csvs(self):
+
+        for target in luigi.task.flatten(self.input()):
+            yield self.read_csv(target)
 
     def read_csv(self, target: luigi.Target):
 

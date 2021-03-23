@@ -1,0 +1,33 @@
+/* POS tag patterns for detecting opinion phrases in posts. See post_opinion_patterns.py. */
+{
+	"adj_noun": [
+		{
+			"pos": "ADJ",
+			"isSentiment": true
+		},
+		{
+			"pos": "NOUN",
+			"isAspect": true
+		}
+	],
+	"noun_adj": [
+		{
+			"pos": "NOUN",
+			"isAspect": true
+		},
+		{
+			"pos": "ADJ",
+			"isSentiment": true
+		}
+	]/* ,
+	"adj_adj": [
+		{
+			"pos": "ADJ",
+			"isSentiment": true
+		},
+		{
+			"pos": "ADJ",
+			"isAspect": true
+		}
+	] */
+}

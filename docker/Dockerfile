@@ -64,8 +64,11 @@ COPY requirements.txt /app
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip check
 
-# Install required nltk resource
+# Download required resources
+## nltk
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
+## spacy
+RUN python3 -m spacy download de_core_news_lg
 
 # Enable bash completion for best dev convenience
 # The following command uncomments a section in the bash.bashrc file which is
