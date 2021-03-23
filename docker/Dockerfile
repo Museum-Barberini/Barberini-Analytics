@@ -8,16 +8,18 @@ ENV LANG C.UTF-8
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update
+RUN apt-get update --fix-missing
 RUN apt-get upgrade -y --no-install-recommends apt-utils 2>&1 \
   | grep -v 'debconf: .*apt-utils is not installed'
 
-ARG INSTALL='apt-get install -qq --no-install-recommends'
+ARG INSTALL='apt-get install -qq --no-install-recommends --fix-missing'
 
 
 # Install utilities
 RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
+# Code analysis tools
+RUN $INSTALL shellcheck
 # Optional tools for best dev convenience
 RUN $INSTALL bash-completion less nano vim
 
@@ -33,16 +35,34 @@ RUN apt-get update
 RUN $INSTALL postgresql-client-12
 
 # Install python
+# NB: We cannot upgrade to python3.7 or something newer at the moment because
+# psycopg2 seems to be incompatible.
 RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev \
   python3-wheel
+RUN python3 -m pip install --upgrade pip
 
 # Install psycopg2 (incl. system dependencies)
 RUN $INSTALL libpq-dev
 
+# Install node.js (required for npm)
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN $INSTALL nodejs
+
+# Install node packages
+# Because of serious trouble with volumes and mounting and so, node_modules
+# must be installed into the root directory. Other approaches, including manual
+# copying of that folder, using [npm install -g], and manipulating the PATH
+# variable failed. Don't touch this unless you absolutely know what you do!
+WORKDIR /
+COPY ./package*.json /
+RUN npm install
+RUN npm audit fix
+WORKDIR /app
+
 # Install python packages
 COPY requirements.txt /app
-RUN pip3 install -r requirements.txt
-RUN pip3 check
+RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip check
 
 # Download required resources
 ## nltk

@@ -141,8 +141,25 @@ coverage: luigi-clean
 	# generate html report. Is stored as artifact in gitlab CI job (stage: coverage)
 	$(PYTHON) -m coverage html
 
-lint:
+patch-gomus-version:
+	read -p "Please scan the gomus change log for breaking changes. Press Enter to continue"
+	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.patch_version
+	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.test_version
+
+lint: lint-python lint-markdown
+
+lint-python:
 	flake8 -v --show-source .
+
+lint-markdown:
+	/node_modules/remark-cli/cli.js -f -u validate-links -u remark-lint-no-dead-urls=$\"skipLocalhost:true, skipUrlPatterns:$\[$\'https://account.google.com$\$\']$\" .
+	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
+
+python-bandit:
+	bandit -c bandit.yml ./**/*.py
+
+shellcheck:
+	shellcheck -s bash $$(find . -name '*.sh')
 
 # --- To access postgres ---
 

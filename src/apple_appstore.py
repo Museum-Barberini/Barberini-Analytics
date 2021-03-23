@@ -1,16 +1,21 @@
+"""Provides tasks for downloading all Apple App Store reviews about the app."""
+
+import datetime as dt
 import json
+import random
+from time import sleep
 
 import luigi
+from luigi.format import UTF8
 import pandas as pd
-import random
 import requests
 import xmltodict
-from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
 
 class AppstoreReviewsToDb(CsvToDb):
+    """Store all download App Store reviews into the database."""
 
     table = 'appstore_review'
 
@@ -19,8 +24,21 @@ class AppstoreReviewsToDb(CsvToDb):
 
 
 class FetchAppstoreReviews(DataPreparationTask):
+    """
+    Download all reviews related to the museum app from the Apple App Store.
+
+    The data is accessed by scanning an RSS feed.
+    """
 
     table = 'appstore_review'
+
+    requests_per_minute = 20
+    worker_timeout = 1200
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.latest_request_time = dt.datetime.min
 
     def requires(self):
 
@@ -43,7 +61,7 @@ class FetchAppstoreReviews(DataPreparationTask):
         data = []
         country_codes = sorted(self.get_country_codes())
         if self.minimal_mode:
-            random_num = random.randint(0, len(country_codes) - 2)
+            random_num = random.randint(0, len(country_codes) - 2)  # nosec
             country_codes = country_codes[random_num:random_num + 2]
             country_codes.append('CA')
 
@@ -88,10 +106,10 @@ class FetchAppstoreReviews(DataPreparationTask):
                 data, url = self.fetch_page(url)
                 data_list += data
             except requests.exceptions.HTTPError as error:
-                if error.response is not None and \
-                        (error.response.status_code == 503 or
-                         (error.response.status_code == 403 and
-                          country_code not in ['DE', 'US', 'GB'])):
+                if error.response is not None and (
+                    error.response.status_code == 503 or (
+                        error.response.status_code in {403, 404}
+                        and country_code not in {'DE', 'US', 'GB'})):
                     logger.error(f"Encountered {error.response.status_code} "
                                  f"server error '{error}' for country code "
                                  f"'{country_code}'")
@@ -112,7 +130,7 @@ class FetchAppstoreReviews(DataPreparationTask):
 
     def fetch_page(self, url):
 
-        response = requests.get(url)
+        response = self.get_metered_request(url)
         response.raise_for_status()
         # specify encoding explicitly because the autodetection fails sometimes
         response.encoding = 'utf-8'
@@ -152,3 +170,15 @@ class FetchAppstoreReviews(DataPreparationTask):
     def find_first_conditional_tag(self, tags, condition):
 
         return next(each for each in tags if condition(each))
+
+    def get_metered_request(self, *args, **kwargs):
+
+        sleep(max(0, (
+            60 / self.requests_per_minute - (
+                dt.datetime.now() - self.latest_request_time
+            ).total_seconds())
+        ))
+        try:
+            return requests.get(*args, **kwargs)
+        finally:
+            self.latest_request_time = dt.datetime.now()

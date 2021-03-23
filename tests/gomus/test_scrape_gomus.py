@@ -16,6 +16,8 @@ from tests.gomus.test_gomus_transformations import BOOKING_COLUMNS
 
 class TestEnhanceBookingsWithScraper(DatabaseTestCase):
     """
+    Tests the EnhanceBookingsWithScraper task.
+
     This test gets a set of booking-IDs (in test_data/scrape_bookings_data.csv)
     and downloads their actual HTML-files.
     It then compares the expected hash (also in the file above)
@@ -58,7 +60,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
         for i, row in extracted_bookings.iterrows():
             booking_id = row['booking_id']
             new_html_task = FetchGomusHTML(
-                url=f"https://barberini.gomus.de/admin/bookings/{booking_id}")
+                url=f"/admin/bookings/{booking_id}")
             new_html_task.run()
             html_file_names.append(new_html_task.output().path)
 
@@ -159,6 +161,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
 
 
 class TestScrapeOrderContains(DatabaseTestCase):
+    """Tests the ScrapeGomusOrderContains task."""
 
     hash_seed = 666
 
@@ -172,8 +175,7 @@ class TestScrapeOrderContains(DatabaseTestCase):
         html_file_names = []
         all_order_ids = test_data['order_id'].drop_duplicates()
         for order_id in all_order_ids:
-            new_html_task = FetchGomusHTML(
-                url=f"https://barberini.gomus.de/admin/orders/{order_id}")
+            new_html_task = FetchGomusHTML(url=f"/admin/orders/{order_id}")
             new_html_task.run()
             html_file_names.append(new_html_task.output().path)
 

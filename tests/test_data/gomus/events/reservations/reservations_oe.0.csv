@@ -1,8 +1,8 @@
-1000.0,"","","","","","","","","","",""
+3000.0,"","","","","","","","","","",""
 "Ein tolles Datum","","","","","","","","","","",""
 "Museum Barberini","","","","","","","","","","",""
-"Ein beschreibender Titel (Öffentliche Führung)","","","","","","","","","","",""
+"Ein beschreibender Titel (Gespräch)","","","","","","","","","","",""
 "","","","","","","","","","","",""
 "Id","Kunde","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail","Teilnehmerinfo"
-1001.0,"Kunde 0",10.0,0.0,0.0,0.0,"No comment","Straße Nr.%
-PLZ Stadt%","","","kunde@oe0.csv",""
+3001.0,"Kunde 4",30.0,0.0,4.0,4.0,"No comment","Straße Nr.%
+PLZ Stadt%","","","kunde@ge0.csv",""

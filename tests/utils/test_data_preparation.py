@@ -1,8 +1,10 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
+from luigi.format import UTF8
+from luigi.mock import MockTarget
 import pandas as pd
 
-from _utils.data_preparation import DataPreparationTask
+from _utils.data_preparation import ConcatCsvs, DataPreparationTask
 from db_test import DatabaseTestCase
 
 TABLE_NAME = 'test_table'
@@ -15,7 +17,85 @@ COLUMN_NAME_FOREIGN = 'test_column_foreign'
 COLUMN_NAME_FOREIGN_2 = 'test_column_foreign_2'
 
 
+class TestConcatCsvs(DatabaseTestCase):
+    """Tests the ConcatCsvs task."""
+
+    @patch.object(ConcatCsvs, 'output')
+    @patch.object(ConcatCsvs, 'input')
+    def test_one(self, input_mock, output_mock):
+
+        df_in = pd.DataFrame([[1, 'foo'], [2, 'bar']], columns=['a', 'b'])
+        self.install_mock_target(
+            input_mock,
+            lambda file: df_in.to_csv(file, index=False)
+        )
+        output_target = MockTarget(str(self))
+        output_mock.return_value = output_target
+
+        self.task = ConcatCsvs()
+        self.run_task(self.task)
+        with output_target.open('r') as output:
+            df_out = pd.read_csv(output)
+
+        pd.testing.assert_frame_equal(df_in, df_out)
+
+    @patch.object(ConcatCsvs, 'output')
+    @patch.object(ConcatCsvs, 'input')
+    def test_two(self, input_mock, output_mock):
+
+        df_in0 = pd.DataFrame(
+            [[1, 'foo'], [2, 'bar']],
+            columns=['a', 'b']
+        )
+        df_in1 = pd.DataFrame(
+            [[42, 'spam'], [1337, 'häm']],
+            columns=['a', 'b']
+        )
+        input_mock.return_value = [
+            self.install_mock_target(
+                MagicMock(),
+                lambda file: df.to_csv(file, index=False)
+            ) for df in [df_in0, df_in1]]
+        output_target = MockTarget(str(self), format=UTF8)
+        output_mock.return_value = output_target
+
+        self.task = ConcatCsvs()
+        self.run_task(self.task)
+        with output_target.open('r') as output:
+            df_out = pd.read_csv(output)
+
+        df_expected = pd.DataFrame(
+            [
+                [1, 'foo'], [2, 'bar'],
+                [42, 'spam'], [1337, 'häm'],
+            ],
+            columns=['a', 'b']
+        )
+        pd.testing.assert_frame_equal(df_expected, df_out)
+
+
 class TestDataPreparationTask(DatabaseTestCase):
+    """Tests the DataPreparationTask class."""
+
+    def test_encode_strings_line_breaks(self):
+
+        raw_df = pd.DataFrame([
+            [0, 'no linebreaks'],
+            [1, 'line\nfeed'],
+            [2, 'carriage\rreturn'],
+            [3, '2b\r\ncrlf']
+        ])
+        expected_df = pd.DataFrame([
+            [0, 'no linebreaks'],
+            [1, 'line\nfeed'],
+            [2, 'carriage\nreturn'],
+            [3, '2b\ncrlf']
+        ])
+
+        self.task = DataPreparationTask(table=TABLE_NAME)
+        actual_df = self.task.encode_strings(raw_df)
+
+        pd.testing.assert_frame_equal(expected_df, actual_df)
 
     def test_filter_fkey_violations_one_column(self):
 
@@ -34,7 +114,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 0, 'z'
             )'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -71,7 +151,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b', 1)
             '''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -109,7 +189,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             f'''INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)''',
             f'''INSERT INTO {TABLE_NAME_FOREIGN_2} VALUES ('a')'''
         )
-        self.assertFilterFkeyViolations(
+        self.assert_filter_fkey_violations(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -153,7 +233,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 ('b')
             '''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[0, 'a'], [0, 'b'], [1, 'a'], [1, 'b']],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -179,7 +259,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'''INSERT INTO {TABLE_NAME} VALUES (0, NULL)'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [[2, 1], [4, 3], [1, 0]],
                 columns=[COLUMN_NAME, COLUMN_NAME_2]),
@@ -207,7 +287,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)'
         )
-        self.denyEnsureForeignKeys(
+        self.deny_ensure_foreign_keys(
             df=pd.DataFrame([[0], [1]], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame(
                 [[0], [1]],
@@ -227,7 +307,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             )''',
             f'INSERT INTO {TABLE_NAME_FOREIGN} VALUES (0)'
         )
-        self.denyEnsureForeignKeys(
+        self.deny_ensure_foreign_keys(
             df=pd.DataFrame([], columns=[COLUMN_NAME]),
             expected_valid=pd.DataFrame([], columns=[COLUMN_NAME])
         )
@@ -251,7 +331,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 'a', 'A'
             )'''
         )
-        self.assertFilterFkeyViolationsOnce(
+        self.assert_filter_fkey_violations_once(
             df=pd.DataFrame(
                 [
                     ['a', 'A'], ['a', 'b'], [None, 'A'], [None, 'B'],
@@ -297,7 +377,7 @@ class TestDataPreparationTask(DatabaseTestCase):
                 pd.DataFrame([[0], [1]], columns=[COLUMN_NAME])
             )
 
-    def assertFilterFkeyViolations(
+    def assert_filter_fkey_violations(
             self, df, expected_valid, expected_foreign_keys):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
@@ -316,7 +396,7 @@ class TestDataPreparationTask(DatabaseTestCase):
             handle_invalid_values.call_count)
         self.assertCountEqual(expected_foreign_keys, actual_foreign_keys)
 
-    def assertFilterFkeyViolationsOnce(
+    def assert_filter_fkey_violations_once(
             self, df, expected_valid, expected_invalid, expected_foreign_key):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
@@ -331,7 +411,7 @@ class TestDataPreparationTask(DatabaseTestCase):
         pd.testing.assert_frame_equal(expected_valid, actual_df)
         handle_invalid_values.assert_called_once()
 
-    def denyEnsureForeignKeys(self, df, expected_valid):
+    def deny_ensure_foreign_keys(self, df, expected_valid):
 
         self.task = DataPreparationTask(table=TABLE_NAME)
         handle_invalid_values = MagicMock()
@@ -366,15 +446,21 @@ class TestDataPreparationTask(DatabaseTestCase):
             ['2', 3, '2020-05-03 00:00:00']],
             columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
 
-        expected_df = pd.DataFrame([
-            ['0', 3, '2020-05-03 00:00:00'],
-            ['2', 3, '2020-05-03 00:00:00']],
-            columns=[COLUMN_NAME, COLUMN_NAME_2, timestamp_column])
+        expected_df = pd.DataFrame(
+            [['0', 3, '2020-05-03 00:00:00', ([2], [3])],
+             ['2', 3, '2020-05-03 00:00:00', ([4], [3])]],
+            columns=[
+                COLUMN_NAME,
+                COLUMN_NAME_2,
+                timestamp_column,
+                f'delta_{COLUMN_NAME_2}'
+            ])
 
         self.task = DataPreparationTask(table=TABLE_NAME)
         actual_df = self.task.condense_performance_values(
             df,
-            timestamp_column=timestamp_column)
+            timestamp_column=timestamp_column,
+            delta_function=lambda old, new: [(list(old), list(new))])
 
         pd.testing.assert_frame_equal(expected_df, actual_df)
 

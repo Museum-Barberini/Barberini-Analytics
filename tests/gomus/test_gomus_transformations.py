@@ -1,3 +1,5 @@
+"""Tests transformations of downloaded gomus stuff."""
+
 import datetime as dt
 from unittest.mock import patch
 
@@ -9,7 +11,6 @@ from db_test import DatabaseTestCase
 from gomus.customers import ExtractGomusToCustomerMapping
 from gomus.daily_entries import ExtractDailyEntryData
 from gomus.events import (cleanse_umlauts,
-                          get_categories,
                           ExtractEventData,
                           FetchCategoryReservations)
 from gomus.orders import ExtractOrderData
@@ -19,6 +20,7 @@ from gomus._utils.fetch_report import FetchEventReservations
 
 
 class GomusTransformationTest(DatabaseTestCase):
+    """The abstract base class for gomus transformation tests."""
 
     def __init__(self, columns, task, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,9 +29,6 @@ class GomusTransformationTest(DatabaseTestCase):
         self.task_two = kwargs.get('task_two')
 
         self.test_data_path = 'tests/test_data/gomus/'
-
-        # TODO: Set up proper MockFileSystem isolation between tests
-        # (apparently, this is just kept constantly otherwise)
 
     # Write contents of file <filename> into passed luigi target
     def write_file_to_target(self, target, filename):
@@ -74,6 +73,7 @@ class GomusTransformationTest(DatabaseTestCase):
 
 
 class TestCustomerTransformation(GomusTransformationTest):
+    """Tests the ExtractCustomerData task."""
 
     def __init__(self, *args, **kwargs):
         super().__init__([
@@ -202,8 +202,13 @@ BOOKING_COLUMNS = [
 ]
 
 
-# This tests only ExtractGomusBookings, the scraper should be tested elsewhere
 class TestBookingTransformation(GomusTransformationTest):
+    """
+    Tests the ExtractGomusBookings task.
+
+    NOTE: This tests only ExtractGomusBookings, the scraper should be tested
+    elsewhere.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -243,6 +248,7 @@ class TestBookingTransformation(GomusTransformationTest):
 
 
 class TestDailyEntryTransformation(GomusTransformationTest):
+    """Tests the ExtractDailyEntryData task."""
 
     def __init__(self, *args, **kwargs):
         super().__init__([
@@ -319,6 +325,7 @@ class TestDailyEntryTransformation(GomusTransformationTest):
 
 
 class TestEventTransformation(GomusTransformationTest):
+    """Tests the ExtractEventData task."""
 
     def __init__(self, *args, **kwargs):
         super().__init__([
@@ -334,10 +341,11 @@ class TestEventTransformation(GomusTransformationTest):
 
         self.test_data_path += 'events/'
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.categories = get_categories()
+    categories = [
+        "Lagerfeuer",
+        "Öffentliches Gespräch",
+        "Crowley Thoth Session"
+    ]
 
     # Provide mock booking IDs to be found by querying
     def setUp(self):
@@ -357,9 +365,11 @@ class TestEventTransformation(GomusTransformationTest):
 
         self.write_file_to_target(input_target, infile)
 
+    @patch('gomus.events.get_categories')
     @patch.object(ExtractEventData, 'output')
-    def test_events_transformation(self, output_mock):
+    def test_events_transformation(self, output_mock, categories_mock):
         output_target = self.prepare_output_target(output_mock)
+        categories_mock.return_value = self.categories
 
         gen = self.execute_task()
         try:

@@ -10,6 +10,7 @@ from google_maps import FetchGoogleMapsReviews
 
 
 class TestFetchGoogleMapsReviews(DatabaseTestCase):
+    """Tests the FetchGoogleMapsReviews task."""
 
     def setUp(self):
         super().setUp()
@@ -24,8 +25,8 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
 
     def test_load_credentials_missing(self):
         self.task = FetchGoogleMapsReviews(
-            token_cache=self.task.token_cache +
-            ".iamafilepaththathopefullydoesnotexist",
+            token_cache=self.task.token_cache
+            + '.iamafilepaththathopefullydoesnotexist',
             is_interactive=False)
         with self.assertRaises(Exception) as context:
             with warnings.catch_warnings():
@@ -52,6 +53,7 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
             {'text': text, 'placeId': place_id}
             for text in [
                 "Wow!",
+                "⭐⭐⭐⭐⭐",
                 "The paintings are not animated",
                 "Van Gogh is dead"
             ]
@@ -92,10 +94,12 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
             latest_page_token = page_token
             page_token = counter
             next_counter = counter + 2
+            next_reviews = all_reviews[counter:next_counter]
             result = {
-                'reviews': all_reviews[counter:next_counter],
                 'totalReviewCount': len(all_reviews)
             }
+            if next_reviews:
+                result['reviews'] = next_reviews
             if counter < len(all_reviews):
                 result['nextPageToken'] = page_token
             counter = next_counter
@@ -115,9 +119,9 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
 
     def test_extract_reviews(self):
         with open(
-                    'tests/test_data/google_maps/raw_reviews.json',
-                    'r',
-                    encoding='utf-8'
+            'tests/test_data/google_maps/raw_reviews.json',
+            'r',
+            encoding='utf-8'
                 ) as raw_reviews_file:
             raw_reviews = json.load(raw_reviews_file)
         expected_extracted_reviews = pd.read_csv(

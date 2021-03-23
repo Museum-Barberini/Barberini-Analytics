@@ -1,6 +1,5 @@
 from ast import literal_eval
 import datetime as dt
-from io import StringIO
 from typing import TypeVar
 
 import luigi
@@ -19,13 +18,14 @@ T = TypeVar('T')
 
 class CsvToDb(CopyToTable):
     """
-    Copies a depended csv file into the a central database.
+    Copies a depended CSV file into the database.
+
     Subclasses have to override columns and requires().
     Don't forget to write a migration script if you change the table schema.
     """
 
     minimal_mode = luigi.parameter.BoolParameter(
-        default=_utils.minimal_mode,
+        default=_utils.minimal_mode(),
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
 
@@ -66,11 +66,12 @@ class CsvToDb(CopyToTable):
         # Pandas stores arrays as "(1,2,3)", but must be specified the
         # following function explicitly in order not to load them as plain
         # string.
-        'ARRAY': literal_eval
+        'ARRAY': literal_eval,
+        'text': str
     }
 
     """
-    Conversion functions to be applied before generating the ouput CSV for
+    Conversion functions to be applied before generating the output CSV for
     postgres.
     """
     converters_out = {
@@ -153,16 +154,15 @@ class CsvToDb(CopyToTable):
         cursor.copy_expert(query, file)
 
     def create_table(self):
-        """
-        Overridden from superclass to forbid dynamical schema changes.
-        """
-
+        """Overridden from superclass to forbid dynamical schema changes."""
         raise Exception(
             "CsvToDb does not support dynamical schema modifications."
             "To change the schema, create and run a migration script.")
 
     def rows(self):
         """
+        Return the rows to be stored into the database.
+
         Completely throw away super's implementation because there are some
         inconsistencies between pandas's and postgres's interpretations of CSV
         files. Mainly, arrays are encoded differently. This requires us to do
@@ -190,8 +190,7 @@ class CsvToDb(CopyToTable):
         with input_csv.open('r') as file:
             # Optimization. We're only interested in the column names, no
             # need to read the whole file.
-            header_stream = StringIO(next(file))
-            csv_columns = pd.read_csv(header_stream).columns
+            csv_columns = pd.read_csv(file, nrows=0).columns
         converters = {
             csv_name: self.converters_in[sql_type]
             for csv_name, (sql_name, sql_type)
@@ -203,10 +202,7 @@ class CsvToDb(CopyToTable):
 
     @property
     def table_path(self):
-        """
-        Split up self.table into schema and table name.
-        """
-
+        """Split up self.table into schema and table name."""
         table = self.table
         segments = table.split('.')
         return (
@@ -221,34 +217,18 @@ class CsvToDb(CopyToTable):
 
 
 class QueryDb(_utils.DataPreparationTask):
-
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        try:
-            self.args = str(self.args)
-        except AttributeError:
-            pass  # args was overridden and does not need conversion
-        try:
-            self.kwargs = str(self.kwargs)
-        except AttributeError:
-            pass  # kwargs was overridden and does not need conversion
+    """Make an SQL query and store the results into an output file."""
 
     query = luigi.Parameter(
         description="The SQL query to perform on the DB"
     )
 
-    # Don't use a ListParameter here to preserve free typing of arguments
-    # TODO: Fix warnings
-    args = luigi.Parameter(
+    args = _utils.ObjectParameter(
         default=(),
         description="The SQL query's positional arguments"
     )
 
-    # Don't use a DictParameter here to preserve free typing of arguments
-    # TODO: Fix warnings
-    kwargs = luigi.Parameter(
+    kwargs = _utils.ObjectParameter(
         default={},
         description="The SQL query's named arguments"
     )
@@ -272,18 +252,9 @@ class QueryDb(_utils.DataPreparationTask):
 
     def run(self):
 
-        args, kwargs = self.args, self.kwargs
-        if isinstance(args, str):
-            # Unpack luigi-serialized parameter
-            args = literal_eval(args)
-        if isinstance(kwargs, str):
-            # Unpack luigi-serialized parameter
-            kwargs = literal_eval(kwargs)
-
         query = self.build_query()
         rows, columns = self.db_connector.query_with_header(
-            query, *args, **kwargs
-        )
+            query, *self.args, **self.kwargs)
         df = pd.DataFrame(rows, columns=columns)
 
         df = self.transform(df)
@@ -302,10 +273,7 @@ class QueryDb(_utils.DataPreparationTask):
         return query
 
     def transform(self, df):
-        """
-        Hook for subclasses.
-        """
-
+        """Provide a hook for subclasses."""
         return df
 
     def write_output(self, df):
@@ -315,18 +283,18 @@ class QueryDb(_utils.DataPreparationTask):
 
 
 class QueryCacheToDb(QueryDb):
+    """
+    Make an SQL query and store the results into a cache table.
+
+    This task is optimized. The query results won't leave the DBMS at any
+    point during updating the cache table.
+    """
 
     def run(self):
 
-        args, kwargs = self.args, self.kwargs
-        if isinstance(args, str):
-            # Unpack luigi-serialized parameter
-            args = literal_eval(args)
-        if isinstance(kwargs, str):
-            # Unpack luigi-serialized parameter
-            kwargs = literal_eval(kwargs)
-        assert not args or not kwargs, "cannot combine args and kwargs"
-        all_args = next(filter(bool, [args, kwargs]), None)
+        assert not self.args or not self.kwargs, \
+            "cannot combine args and kwargs"
+        all_args = next(filter(bool, [self.args, self.kwargs]), None)
 
         query = self.build_query()
         self.db_connector.execute(

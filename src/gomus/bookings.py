@@ -1,10 +1,13 @@
+"""Provides tasks to downloading gomus bookings into the database."""
+
 import luigi
 
 from _utils import CsvToDb
-from gomus._utils.scrape_gomus import EnhanceBookingsWithScraper
+from ._utils.scrape_gomus import EnhanceBookingsWithScraper
 
 
 class BookingsToDb(CsvToDb):
+    """Store fetched gomus bookings into the database."""
 
     table = 'gomus_booking'
 

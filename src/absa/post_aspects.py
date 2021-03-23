@@ -1,3 +1,5 @@
+"""Provides tasks to match all posts to predefined target aspects."""
+
 import luigi
 from luigi.format import UTF8
 
@@ -16,6 +18,8 @@ class PostAspectsToDb(CsvToDb):
 
 class CollectPostAspects(ConcatCsvs):
     """
+    Find all known aspects in posts, applying different matching algorithms.
+
     TODO: Drop topological ancestors ("Ausstellungen" if there is
     also "Ausstellungen/van Gogh")
     TODO: Add column "n" to table post_aspect
@@ -35,6 +39,8 @@ class CollectPostAspects(ConcatCsvs):
 
 class CollectPostAspectsAlgorithm(QueryDb):
     """
+    The abstract superclass for all post-search query algorithms.
+
     Note regarding time consumption: 2020-06-15 each subinstance took less
     than 5 minutes when running the first time.
     """
@@ -112,10 +118,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
         '''
 
     def pre_filter_query(self, post_word_name):
-        """
-        Query to filter post words before applying the algorithm.
-        """
-
+        """Query to filter post words before applying the algorithm."""
         return 'TRUE'
 
 

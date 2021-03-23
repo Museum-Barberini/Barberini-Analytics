@@ -1,16 +1,15 @@
 # Maintenance
 
-
 ## Symptoms
 
-- `test_gomus_version` failed
+- `TestGomusConnection.test_version` failed
 
   See [Update gomus version](#update-gomus-version).
+  Before fixing this test, make sure that `test_valid_session_id` passes or fix that first.
 
-- `test_session_id_is_valid` failed
+- `test_valid_session_id` failed
 
-  tbd
-
+  See [Update gomus session ID](#update-gomus-session-id).
 
 ## Tasks
 
@@ -31,9 +30,9 @@ Thus, updates should be carried out on a regular schedule.
 1. Check out a new branch.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
 3. If `pip check` fails, you need to manually add the required dependencies to `docker/requirements.txt`.
-   This is necessary because of https://github.com/pypa/pip/issues/988.
+   This is necessary because of <https://github.com/pypa/pip/issues/988>.
 
-   **Remark:** You may need to "touch" the Dockerfile manually by editing it's first line in order to make sure that the previous docker cache is not reused, which would lead to the changes in `requirements.txt` are not checked at all!
+   **Remark:** You may need to "touch" the Dockerfile manually by editing its first line to make sure that the previous docker cache is not reused, which would lead to the changes in `requirements.txt` are not checked at all!
 
 4. Create a merge request with your changes and make sure the CI passes.
 5. Once it passes, merge the branch.
@@ -57,12 +56,32 @@ The `TestGomusVersion` assertions will report any version change.
 
 #### Action
 
-1. Check out the [gomus changelog](https://barberini.gomus.de/wiki/spaces/REL/pages/1787854853) (barberini.gomus.de > Helpdesk > Changelog) and search for possible breaking changes (for example, the layout of the customer data could have changed).
+1. Check out the [gomus changelog](https://barberini.gomus.de/wiki/spaces/REL/pages/243073130) (barberini.gomus.de > Helpdesk > Changelog) and search for possible breaking changes (for example, the layout of the customer data could have changed).
 2. Make sure all other gomus tests pass.
 3. If there are any breaking changes, the gomus tasks need to be updated.
-4. Go to `tests/gomus/test_gomus_version.py` and update the `EXPECTED_VERSION_TAG` constant to match the new version name.
+4. Run `make patch-gomus-version` inside of the container.
 
 #### Remarks
 
 - In the past, we have experienced a few changes in the gomus HTML format without the version number being incremented.
-  In this case, the `test_gomus_version` scraper needs to be updated. See !169.
+  In this case, the `TestGomusConnection.test_version` scraper needs to be updated. See !169.
+
+### Update gomus session ID
+
+For accessing gomus, we use a session ID that was obtained from a manual browser session.
+While this session ID used to be valid for multiple months in past, it will expire at some time and need to be renewed.
+
+#### Action
+
+Steps to be done are described in the example of Chromium and related browsers.
+If you need to do this in Firefox/Safari/Netscape Navigator, you will need to improvise.
+
+1. Open the gomus website.
+2. (If logged in, log off first (to make sure you use a freshest possible session ID).)
+3. Log in.
+4. Open the **developer console** by pressing F12.
+5. Switch to tab **Application.**
+6. In the left bar, from the **Storage** section, choose **Cookies > `https://your-museum.gomus.de`.**
+7. From the cookies list, find `_session_id` and copy its value into clipboard.
+8. Log into the VM and open open the `keys.env` file from the secrets folder.
+9. Patch `GOMUS_SESS_ID` with the copied value.

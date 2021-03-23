@@ -15,6 +15,8 @@ services:
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
             - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
+            # used for log_report
+            - /var/log/barberini-analytics/:/var/log/barberini-analytics/:ro
         ports:
             - "8082"
         environment:
@@ -31,6 +33,8 @@ services:
             - GITLAB_CI=${GITLAB_CI}
             - CI_PIPELINE_URL=${CI_PIPELINE_URL}
             - CI_JOB_URL=${CI_JOB_URL}
+            - CI_JOB_ID=${CI_JOB_ID}
+            - BARBERINI_ANALYTICS_CONTEXT=${BARBERINI_ANALYTICS_CONTEXT}
         env_file:
             - /etc/barberini-analytics/secrets/keys.env
             - /etc/barberini-analytics/secrets/database.env

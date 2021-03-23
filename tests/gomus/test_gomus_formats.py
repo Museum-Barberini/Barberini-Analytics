@@ -1,3 +1,5 @@
+"""Tests the format of downloaded gomus stuff."""
+
 import unittest
 import datetime as dt
 import os
@@ -12,6 +14,8 @@ from gomus._utils.fetch_report import FetchGomusReport, FetchEventReservations
 
 
 class GomusFormatTest(DatabaseTestCase):
+    """The abstract base class for gomus format tests."""
+
     def __init__(self, report, expected_format, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.report = report
@@ -19,7 +23,7 @@ class GomusFormatTest(DatabaseTestCase):
 
     def prepare_output_target(self, output_mock):
         self.output_target = MockTarget('data_out', format=UTF8)
-        output_mock.return_value = iter([self.output_target])
+        output_mock.return_value = [self.output_target]
 
     def fetch_gomus_report(self, suffix='_7days', sheet=[0]):
         self.run_task(FetchGomusReport(report=self.report,
@@ -64,6 +68,7 @@ class GomusFormatTest(DatabaseTestCase):
 
 
 class TestCustomersFormat(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'customers',
@@ -97,6 +102,7 @@ class TestCustomersFormat(GomusFormatTest):
 
 
 class TestBookingsFormat(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'bookings',
@@ -131,6 +137,7 @@ class TestBookingsFormat(GomusFormatTest):
 
 
 class TestOrdersFormat(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'orders',
@@ -201,6 +208,7 @@ class TestEntriesSheet1Format(GomusFormatTest):
 
 
 class TestEntriesSheet3Format(GomusFormatTest):
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'entries',
@@ -218,6 +226,8 @@ class TestEntriesSheet3Format(GomusFormatTest):
 
 
 class TestEventsFormat(GomusFormatTest):
+    """Tests the FetchEventReservations task."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(
             'events',
@@ -239,5 +249,5 @@ class TestEventsFormat(GomusFormatTest):
     def test_events_format(self, output_mock):
         self.output_target = MockTarget('data_out', format=UTF8)
         output_mock.return_value = self.output_target
-        self.run_task(FetchEventReservations(123))
+        self.run_task(FetchEventReservations(12345))
         self.check_format(skiprows=5, skipfooter=1)

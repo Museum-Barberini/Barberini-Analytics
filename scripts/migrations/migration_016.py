@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Truncate facebook posts (#213)
+Truncate facebook posts (#213).
+
 We want to do this because in the past, we have collected a number of old
 posts that are not necessarily authored by the museum itself. To avoid wrong
 is_from_museum attributions, we are going to drop all posts so that posts that
 are indeed by the museum will be fetched again automatically (see #184).
 """
+
 import logging
 import os
 import subprocess as sp
@@ -20,8 +22,8 @@ REFERENCING_TABLES = ['fb_post_comment', 'fb_post_performance']
 
 # Are there any existing data to preserve?
 if not any(
-            CONNECTOR.exists(f'SELECT * FROM {table}')
-            for table in REFERENCING_TABLES
+    CONNECTOR.exists(f'SELECT * FROM {table}')
+    for table in REFERENCING_TABLES
         ):
     # Nothing to preserve, get into the fast lane
     logger.info("Truncating fb_post in the fast line")

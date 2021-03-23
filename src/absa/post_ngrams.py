@@ -1,3 +1,5 @@
+"""Provides tasks for extracting relevant n-grams from every post."""
+
 import luigi
 import luigi.format
 import pandas as pd

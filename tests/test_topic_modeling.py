@@ -1,7 +1,7 @@
-import os
-import pickle
-import sys
 from datetime import datetime
+import os
+import pickle  # nosec: We only use pickle for self-generated files.
+import sys
 from unittest.mock import patch
 
 import luigi
@@ -16,6 +16,7 @@ from topic_modeling import (
 
 
 class TestDoc(DatabaseTestCase):
+    """Tests the Doc class."""
 
     def test_guess_language(self):
 
@@ -51,6 +52,7 @@ class TestDoc(DatabaseTestCase):
 
 
 class TestCreateCorpus(DatabaseTestCase):
+    """Tests the TopicModelingCreateCorpus task."""
 
     @patch.object(TopicModelingCreateCorpus, 'output')
     def test_create_corpus(self, output_mock):
@@ -80,7 +82,7 @@ class TestCreateCorpus(DatabaseTestCase):
 
         # ------- INSPECT OUTPUT -------
         with output_target.open("r") as fp:
-            corpus = pickle.load(fp)
+            corpus = pickle.load(fp)  # nosec
 
         self.assertEqual(len(corpus), 2)
         self.assertIsInstance(corpus[0], Doc)
@@ -88,6 +90,7 @@ class TestCreateCorpus(DatabaseTestCase):
 
 
 class TestPreprocessing(DatabaseTestCase):
+    """Tests the TopicModelingPreprocessCorpus task."""
 
     @patch.object(TopicModelingPreprocessCorpus, 'input')
     @patch.object(TopicModelingPreprocessCorpus, 'output')
@@ -119,7 +122,7 @@ class TestPreprocessing(DatabaseTestCase):
 
         # ------- INSPECT OUTPUT -------
         with output_target.open("r") as fp:
-            output = pickle.load(fp)
+            output = pickle.load(fp)  # nosec
         self.assertEqual(len(output), 2)
         self.assertEqual(
             output[0].tokens, ['post', 'landeshauptstadt', 'toll'])
@@ -128,6 +131,7 @@ class TestPreprocessing(DatabaseTestCase):
 
 
 class TestFindTopics(DatabaseTestCase):
+    """Tests the TopicModelingFindTopics task."""
 
     @patch.object(TopicModelingFindTopics, 'output')
     @patch.object(TopicModelingPreprocessCorpus, 'output')

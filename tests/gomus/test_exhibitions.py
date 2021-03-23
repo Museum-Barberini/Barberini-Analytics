@@ -10,6 +10,7 @@ from gomus.exhibitions import FetchExhibitions, FetchExhibitionTimes
 
 
 class TestExhibitions(DatabaseTestCase):
+    """Tests the gomus exhibition tasks."""
 
     @patch('gomus.exhibitions.requests.get')
     @patch.object(FetchExhibitions, 'output')

@@ -1,4 +1,10 @@
-from abc import abstractmethod
+"""
+Provides tasks and utilities for fetching Facebook posts and linked details.
+
+All data are fetched using the Facebook Graph API. An access token has to be
+available in the /etc/secrets/keys.env file.
+"""
+
 import datetime as dt
 import json
 import os
@@ -18,6 +24,7 @@ API_BASE = f'https://graph.facebook.com/{API_VER}'
 
 
 class FbPostsToDb(CsvToDb):
+    """Store all fetched Facebook posts into the database."""
 
     table = 'fb_post'
 
@@ -27,6 +34,7 @@ class FbPostsToDb(CsvToDb):
 
 
 class FbPostPerformanceToDb(CsvToDb):
+    """Store all fetched post performance data into the database."""
 
     table = 'fb_post_performance'
 
@@ -36,6 +44,7 @@ class FbPostPerformanceToDb(CsvToDb):
 
 
 class FbPostCommentsToDb(CsvToDb):
+    """Store all fetched Facebook comments into the database."""
 
     table = 'fb_post_comment'
 
@@ -43,17 +52,11 @@ class FbPostCommentsToDb(CsvToDb):
 
         return FetchFbPostComments(table=self.table)
 
-    def read_csv(self, input_csv):
-
-        df = super().read_csv(input_csv)
-        # This is necessary to prevent pandas from replacing "None" with "NaN"
-        df['response_to'] = df['response_to'].apply(num_to_str)
-        return df
-
 # ======= FetchTasks =======
 
 
 class FetchFbPosts(DataPreparationTask):
+    """Fetch all Facebook post from the museum's profile page."""
 
     def requires(self):
 
@@ -112,10 +115,7 @@ class FetchFbPosts(DataPreparationTask):
 
 
 class FetchFbPostDetails(DataPreparationTask):
-    """
-    This abstract class encapsulates common behavior for tasks
-    such as FetchFbPostPerformance and FetchFbPostComments
-    """
+    """The abstract superclass for tasks fetching post-related information."""
 
     timespan = luigi.parameter.TimeDeltaParameter(
         default=dt.timedelta(days=60),
@@ -141,16 +141,6 @@ class FetchFbPostDetails(DataPreparationTask):
 
         return FetchFbPosts()
 
-    @abstractmethod
-    def output(self):
-
-        pass
-
-    @abstractmethod
-    def run(self):
-
-        pass
-
     @staticmethod
     def post_date(df, index):
 
@@ -161,6 +151,12 @@ class FetchFbPostDetails(DataPreparationTask):
 
 
 class FetchFbPostPerformance(FetchFbPostDetails):
+    """
+    Fetch performance data for every Facebook comment.
+
+    Performance data include the number of likes, shares, and comments for a
+    post.
+    """
 
     def output(self):
 
@@ -181,7 +177,7 @@ class FetchFbPostPerformance(FetchFbPostDetails):
         invalid_count = 0
         pbar = self.tqdm(
             df.index,
-            desc="Fetching performance data for FB post"
+            desc="Fetching performance data for facebook posts"
         )
         for index in pbar:
             page_id, post_id = \
@@ -277,6 +273,12 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
 
 class FetchFbPostComments(FetchFbPostDetails):
+    """Fetch all user comments to Facebook posts."""
+
+    def requires(self):
+
+        yield super().requires()
+        yield MuseumFacts()
 
     def output(self):
 
@@ -286,8 +288,11 @@ class FetchFbPostComments(FetchFbPostDetails):
 
     def run(self):
 
-        with self.input().open() as fb_post_file:
+        input_ = list(self.input())
+        with input_[0].open() as fb_post_file:
             df = pd.read_csv(fb_post_file)
+        with input_[1].open() as facts_file:
+            self.facts = json.load(facts_file)
         comments = []
 
         if self.minimal_mode:
@@ -296,11 +301,11 @@ class FetchFbPostComments(FetchFbPostDetails):
         comments = self.fetch_comments(df)
         df = pd.DataFrame(comments)
 
-        # Posts can appear multiple times, causing comments to
-        # be fetched multiple times as well, causing
-        # primary key violations
-        # See #227
         if not df.empty:
+            # Posts can appear multiple times, causing comments to
+            # be fetched multiple times as well, causing
+            # primary key violations
+            # See #227
             df = df.drop_duplicates(
                 subset=['comment_id', 'post_id'], ignore_index=True)
             df = df.astype({
@@ -309,7 +314,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                 'page_id': str
             })
 
-            df['response_to'] = df['response_to'].apply(num_to_str)
+            df['response_to'] = df['response_to'].apply(_num_to_str)
 
             df = self.filter_fkey_violations(df)
 
@@ -317,7 +322,7 @@ class FetchFbPostComments(FetchFbPostDetails):
             """
             This whole else block is a dirty workaround, because the ToDb tasks
             currently cannot deal with completely empty CSV files as input,
-            they assume that at least the header row exists.
+            they assume that at least the header row exists. See #268.
             """
             df = pd.DataFrame(columns=[
                 'post_id',
@@ -386,7 +391,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                     'page_id': str(page_id),
                     'post_date': comment.get('created_time'),
                     'text': comment.get('message'),
-                    'is_from_museum': self.from_barberini(comment),
+                    'is_from_museum': self.is_from_museum(comment),
                     'response_to': None
                 }
 
@@ -401,7 +406,7 @@ class FetchFbPostComments(FetchFbPostDetails):
                             'post_id': str(post_id),
                             'post_date': reply.get('created_time'),
                             'text': reply.get('message'),
-                            'is_from_museum': self.from_barberini(reply),
+                            'is_from_museum': self.is_from_museum(reply),
                             'response_to': str(comment_id)
                         }
                 except KeyError:
@@ -415,20 +420,18 @@ class FetchFbPostComments(FetchFbPostDetails):
         if invalid_count:
             logger.warning(f"Skipped {invalid_count} posts")
 
-    @staticmethod
-    def from_barberini(comment_json):
+    def is_from_museum(self, comment_json):
 
-        return comment_json.get('from', {}) \
-           .get('name') == 'Museum Barberini'
+        return comment_json.get('from', {}).get('name') == self.facts['name']
 
 
 def try_request_multiple_times(url, **kwargs):
     """
-    Not all requests to the facebook api are successful. To allow
-    some requests to fail (mainly: to time out), request the api up
-    to four times.
-    """
+    Try multiple request to the Facebook Graph API.
 
+    Not all requests to the API are successful. To allow some requests to fail
+    (mainly: to time out), request the API up to four times.
+    """
     headers = kwargs.pop('headers', None)
     if not headers:
         access_token = os.getenv('FB_ACCESS_TOKEN')
@@ -461,13 +464,14 @@ def try_request_multiple_times(url, **kwargs):
     return response
 
 
-def num_to_str(num):
+def _num_to_str(num):
     """
+    Convert number from pandas into CSV-stable representation.
+
     By default, pandas treats columns that contain both integers and None
     values as np.floats. However, we don't want either of this here, we just
     want strings, so convert 'em all!
     """
-
     if not num:
         return None
     if isinstance(num, str):

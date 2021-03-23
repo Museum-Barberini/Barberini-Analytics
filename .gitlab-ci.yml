@@ -8,7 +8,7 @@ workflow:
     - if: $CI_MERGE_REQUEST_IID
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  
-  
+
 # Stages are required a) to priorize jobs and b) to avoid concurrency issues.
 stages:
   - build
@@ -19,8 +19,10 @@ build:
   stage: build
   tags:
     - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
   script:
-    - docker build -t test ./docker $(
+    - docker build -t ${USER}_test ./docker $(
         [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
         && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
         && echo '--no-cache' 
@@ -30,12 +32,14 @@ unittest:
   stage: test
   tags:
     - barberini
-  before_script:  # prepare docker
-    - USER="gitlab_runner_${CI_PIPELINE_ID}"
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
     - make startup
-  script:  # run coverage tests
+  script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage
-  after_script:  # cleanup docker
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
 
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
@@ -48,35 +52,62 @@ minimal-mining-pipeline:
   tags:
     - barberini
   before_script:
-    - USER="gitlab_runner_${CI_PIPELINE_ID}"
+    - USER="gitlab_runner_${CI_JOB_ID}"
   script:
     - ./scripts/tests/run_minimal_mining_pipeline.sh
 
-test-pbi-reports:
-  stage: test
-  rules:
-    - if: '$CI_SERVER_HOST != "gitlab.hpi.de"'
-      when: never  # WORKAROUND: bernd-windows currently only available at HPI
-    - if: '$FULL_TEST'
-      when: always
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /.*test-powerbi.*/ && $CI_MERGE_REQUEST_TITLE =~ /WIP: .*/'
-      when: always
-    - if: '$CI_MERGE_REQUEST_TITLE =~ /.*\[ci-test-pbi\].*/'
-      when: always
-  tags:
-    - bernd-windows
-  before_script:
-    - powershell -Command "&scripts/setup/install_powershell_deps.ps1"
-  script:
-    - powershell -Command "&tests/pbi_reports/test_pbi_reports.ps1"
-  artifacts:
-    when: always
-    paths:
-      - ./output/test_pbi/
-
-lint:
+lint-python:
   stage: analyze
   tags:
     - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
   script:
-    - make lint
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-python
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
+    - make docker-cleanup
+
+python-bandit:
+  stage: analyze
+  tags:
+    - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
+  script:
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make python-bandit
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
+    - make docker-cleanup
+
+shellcheck:
+  stage: analyze
+  tags:
+    - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
+  script:
+    - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make shellcheck
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
+    - make docker-cleanup
+
+lint-markdown:
+  stage: analyze
+  tags:
+    - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
+  script:
+  - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-markdown
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
+    - make docker-cleanup

@@ -1,14 +1,15 @@
-#!/usr/bin/env python3
+"""Provides tasks for downloading all gomus customers into the database."""
+
 import datetime as dt
+
 import luigi
-import pandas as pd
 from luigi.format import UTF8
+import pandas as pd
 
 from _utils import CsvToDb, DataPreparationTask
-
-from gomus._utils.cleanse_data import CleansePostalCodes
-from gomus._utils.extract_customers import hash_id
-from gomus._utils.fetch_report import FetchGomusReport
+from ._utils.cleanse_data import CleansePostalCodes
+from ._utils.extract_customers import hash_id
+from ._utils.fetch_report import FetchGomusReport
 
 
 class CustomersToDb(CsvToDb):
@@ -23,19 +24,6 @@ class CustomersToDb(CsvToDb):
             amount=self.amount,
             columns=[col[0] for col in self.columns],
             today=self.today)
-
-    def read_csv(self, input_csv):
-        df = super().read_csv(input_csv)
-        # This is necessary to prevent pandas from adding
-        # '.0' to some postal codes
-        # TODO: Fix this in super
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].apply(str)
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].str.replace('.0', '', regex=False)
-        df['cleansed_postal_code'] = \
-            df['cleansed_postal_code'].str.replace('nan', '')
-        return df
 
 
 class GomusToCustomerMappingToDb(CsvToDb):

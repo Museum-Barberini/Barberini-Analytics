@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Condense historic post performance values (!225)"""
+
 import sys
 sys.path.insert(0, '.')
 

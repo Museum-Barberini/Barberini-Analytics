@@ -1,3 +1,9 @@
+"""
+Source code for Aspect-Based Sentiment Analysis of user posts.
+
+Developed by Christoph Thiede as part of his Bachelor Thesis in 2020.
+See https://gitlab.hpi.de/bp-barberini/thesis-absa/thesis-absa.
+"""
 import luigi
 
 from .phrase_polarity import PhrasePolaritiesToDb

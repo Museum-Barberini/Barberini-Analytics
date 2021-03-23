@@ -1,3 +1,5 @@
+"""Provides tasks for predicting the number of museum visitors."""
+
 import datetime as dt
 import json
 
@@ -21,6 +23,8 @@ TIMESPAN = 30  # days
 
 
 class PredictionsToDb(CsvToDb):
+    """Store visitor predictions into the database."""
+
     table = 'visitor_prediction'
     replace_content = True
 
@@ -29,6 +33,7 @@ class PredictionsToDb(CsvToDb):
 
 
 class CombinePredictions(DataPreparationTask):
+    """Combine visitor predictions for different timespans."""
 
     def output(self):
         return luigi.LocalTarget(
@@ -52,6 +57,8 @@ class CombinePredictions(DataPreparationTask):
 
 
 class PredictVisitors(DataPreparationTask):
+    """Predict the number of museum visitors for the next days."""
+
     days_to_predict = luigi.parameter.IntParameter(default=7)
     sample_prediction = luigi.parameter.BoolParameter(
         default=False,
@@ -110,6 +117,8 @@ class PredictVisitors(DataPreparationTask):
                 index=pd.date_range(start=dt.date(2020, 1, 1), periods=40),
                 data=[[i] for i in range(40)],
                 columns=['entries'])
+            exhibitions['popularity'] = exhibitions['title'].apply(len)
+        exhibitions['popularity'] = exhibitions['popularity'].apply(int)
 
         if self.sample_prediction:
             all_entries = all_entries.iloc[:-self.days_to_predict].copy()

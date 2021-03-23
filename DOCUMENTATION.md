@@ -3,6 +3,7 @@
 ## Global files
 
 Overview:
+
 - **Private configuration:** `/etc/barberini-analytics/`
   * `secrets/`: [Secret files](#secrets).
 - **Database**: `/var/barberini-analytics/db-data/`
@@ -35,6 +36,7 @@ Overview:
 ## Workflow
 
 Our recommended workflow consists of the following policies:
+
 - a **protected `master`** branch
 - a new **merge request** for every change
 - a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/)).
@@ -47,7 +49,7 @@ Our recommended workflow consists of the following policies:
 - `luigi.cfg`: Configuration file for [luigi](https://luigi.readthedocs.io/en/stable/index.html), a framework for pipeline orchestration which is used for our central [mining pipeline](#data-mining-pipeline).
 
   In particular, you can configure timeouts and notification emails on failures here.
-  By the way: If desired, it is also possible to reduce the number of notification mails by [bundling](https://luigi.readthedocs.io/en/stable/configuration.html#batch-notifier) them.
+  By the way: If desired, it is also possible to reduce the number of notification emails by [bundling](https://luigi.readthedocs.io/en/stable/configuration.html#batch-notifier) them.
 
   See [the official documentation](https://luigi.readthedocs.io/en/stable/configuration.html).
 - `Makefile`: Smorgasbord of every-day commands used during development.
@@ -80,10 +82,10 @@ Our recommended workflow consists of the following policies:
     No claim on completeness.
     See [installation](README.md#installation).
   * `tests/`: Scripts used as part of CI tests.
-    * `run_minimal_mining_pipeline.sh`: See the minimal mining description in [CI stages](#continuous-integration).
+    + `run_minimal_mining_pipeline.sh`: See the minimal mining description in [CI stages](#continuous-integration).
   * `update/`: Scripts for occasional use.
     See particular docmuentations.
-    * `historic_data/`: Scripts to scrape all data from the gomus system again.
+    + `historic_data/`: Scripts to scrape all data from the gomus system again.
 
       Regularly, we only scrape data of the latest few weeks in the daily pipeline.
       This script can be used if older changes have to be respected (e. g. after the VM has been down for a while, or after any retroactive changes in the booking system have been made that go beyond simple cancellations).
@@ -95,7 +97,7 @@ Our recommended workflow consists of the following policies:
   * `_utils/`: Miscellaneous helper methods and classes used for database access and preprocessing.
   * `gomus/`: Component for the integration of the go~mus booking system.
     Museum data are accessed by using web scrapers, undocumented HTTP calls to download reports, and the public API.
-    * `_utils/`: Webscrapers.
+    + `_utils/`: Webscrapers.
 - `tests/`: Unit tests and acceptance tests for the solution.
 
   The rough structure follows the `src/` tree.  
@@ -103,8 +105,6 @@ Our recommended workflow consists of the following policies:
 
   * `_utils/`: Classes for our domain-specific test framework.
   * `utils/`: Unit tests for `src/_utils`.
-  * `pbi_reports/`: Crash tests for our Power BI report files.
-    See the documentation of the [CI stage](#continuous-integration).
   * `schema/`: Acceptance tests for the database schema.
   * `test_data/`: Contains sample files used as mocking inputs or expected outputs of units under test.
 - `visualizations/sigma/`: Custom Power BI Visual for the sigma text graph.
@@ -154,6 +154,8 @@ To rerun a certain task in development, you need to remove its output file and t
 
 This project currently collects and integrates data from the following sources:
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable MD033 -->
 <div class="tg-wrap"><table id="tg-5z1p4">
 <thead>
   <tr>
@@ -245,6 +247,7 @@ This project currently collects and integrates data from the following sources:
   </tr>
 </tbody>
 </table></div>
+<!-- markdownlint-restore -->
 
 ## Continuous integration
 
@@ -256,10 +259,6 @@ These are our different CI stages (non-exhaustive list):
   See [Repository overview](#repository-overview).
 - **minimal-mining-pipeline:** Test setup and running of the entire pipeline in a minimal mode, providing an isolated context against production data.
   See `scripts/test/run_minimal_mining_pipeline.sh`.
-- **test-pbi-reports:** Contains crash tests for loading every single `power_bi/` report file in Power BI Desktop.
-
-  Requires a GitLab Runner on Windows to be available.
-  See `tests/power_bi`.
 - **lint:** Makes sure all Python code in the repository follows the [PEP8 coding style guide](https://www.python.org/dev/peps/pep-0008/).
 
 ## Migration system

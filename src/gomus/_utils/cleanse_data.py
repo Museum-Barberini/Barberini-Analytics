@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 import datetime as dt
-import luigi
-import pandas as pd
-import pgeocode
 import re
 import urllib
+
+import luigi
 from luigi.format import UTF8
+import pandas as pd
+import pgeocode
+from tqdm import tqdm
 
 from _utils import DataPreparationTask, logger
 from .extract_customers import ExtractCustomerData
-from german_postal_codes import GermanPostalCodes
+from german_postal_codes import LoadGermanPostalCodes
 
 
 COUNTRY_TO_DATA = {
@@ -62,13 +64,12 @@ class CleansePostalCodes(DataPreparationTask):
     none_count = 0
     other_country_count = 0
     cleansed_count = 0
-    last_percentage = 0
 
     common_lookahead = r'(?=$|\s|[a-zA-Z])'
     common_lookbehind = r'(?:(?<=^)|(?<=\s)|(?<=[a-zA-Z-]))'
 
     def requires(self):
-        yield GermanPostalCodes()
+        yield LoadGermanPostalCodes()
         yield ExtractCustomerData(
             columns=self.columns,
             today=self.today
@@ -89,16 +90,21 @@ class CleansePostalCodes(DataPreparationTask):
 
         customer_df['cleansed_postal_code'] = None
         customer_df['cleansed_country'] = None
+        if self.minimal_mode:
+            customer_df = customer_df.head(1000)
 
         self.total_count = len(customer_df)
 
         if not customer_df.empty:
-            results = customer_df.apply(
-                    lambda x: self.match_postal_code(
-                        postal_code=x['postal_code'],
-                        country=x['country'],
-                        customer_id=x['customer_id']
-                    ), axis=1)
+            tqdm.pandas(desc="Cleansing postal codes")
+            results = customer_df.progress_apply(
+                lambda x: self.match_postal_code(
+                    postal_code=x['postal_code'],
+                    country=x['country'],
+                    customer_id=x['customer_id']
+                ),
+                axis=1
+            )
 
             customer_df['cleansed_postal_code'] = \
                 [result[0] for result in results]
@@ -122,36 +128,36 @@ class CleansePostalCodes(DataPreparationTask):
                     lat_list.append(data['latitude'])
                     long_list.append(data['longitude'])
 
+                lat_dict = dict(zip(unique_postal, lat_list))
+                long_dict = dict(zip(unique_postal, long_list))
+
+                customer_df['latitude'] = \
+                    customer_df['cleansed_postal_code'].map(lat_dict)
+
+                customer_df['longitude'] = \
+                    customer_df['cleansed_postal_code'].map(long_dict)
+
             except urllib.error.HTTPError as err:
                 if err.code == 404:
                     logger.error(err)
                 else:
                     raise urllib.error.HTTPError(err)
 
-            lat_dict = dict(zip(unique_postal, lat_list))
-            long_dict = dict(zip(unique_postal, long_list))
-
-            customer_df['latitude'] = \
-                customer_df['cleansed_postal_code'].map(lat_dict)
-
-            customer_df['longitude'] = \
-                customer_df['cleansed_postal_code'].map(long_dict)
-
         skip_percentage = '{0:.0%}'.format(
             self.skip_count / self.total_count if self.total_count else 0
         )
 
-        logger.info('')
-        logger.info('-------------------------------------------------')
-        logger.info(f'Skipped {self.skip_count} of {self.total_count} '
-                    'postal codes')
-        logger.info(f'Percentage: {skip_percentage}')
-        logger.info(f'{self.none_count} of all values are empty.')
-        logger.info(' => ' + str(self.skip_count-self.none_count) +
-                    ' values were not validated.')
-        logger.info('Count of less common countries: ' +
-                    str(self.other_country_count))
-        logger.info('-------------------------------------------------')
+        logger.info("")
+        logger.info("-------------------------------------------------")
+        logger.info(f"Skipped {self.skip_count} of {self.total_count} "
+                    "postal codes")
+        logger.info(f"Percentage: {skip_percentage}")
+        logger.info(f"{self.none_count} of all values are empty.")
+        logger.info(f" => {self.skip_count - self.none_count} values were "
+                    "not validated.")
+        logger.info(f"Count of less common countries: "
+                    f"{self.other_country_count}")
+        logger.info("-------------------------------------------------")
 
         with self.output().open('w') as output_csv:
             customer_df.to_csv(output_csv, index=False, header=True)
@@ -209,13 +215,6 @@ class CleansePostalCodes(DataPreparationTask):
             self.other_country_count += 1
 
         self.cleansed_count += 1
-        percentage = int(round(self.cleansed_count/self.total_count*100))
-
-        if self.last_percentage < percentage:
-            print(f"\r{percentage}% cleansed ({self.cleansed_count})",
-                  end='',
-                  flush=True)
-            self.last_percentage = percentage
 
         return result_postal, result_country
 
@@ -258,9 +257,9 @@ class CleansePostalCodes(DataPreparationTask):
         for num in reversed(range(0, digit_count)):
             if not not_null_part:
                 not_null_part = re.findall(
-                    self.common_lookbehind +
-                    rf'\d{{{num + 1}}}' +
-                    self.common_lookahead,
+                    self.common_lookbehind
+                    + rf'\d{{{num + 1}}}'
+                    + self.common_lookahead,
                     postal_code)
                 null_count = digit_count - (num + 1)
 
@@ -293,8 +292,9 @@ class CleansePostalCodes(DataPreparationTask):
             result_code = matching_codes[0]
             if country_code == 'DE':
                 if not(self.german_postal_df[
-                       self.german_postal_df[
-                            'Plz'].str.contains(result_code)].empty):
+                        self.german_postal_df[
+                            'Plz'
+                        ].str.contains(result_code)].empty):
                     return result_code
             else:
                 return result_code

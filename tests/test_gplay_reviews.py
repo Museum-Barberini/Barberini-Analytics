@@ -7,7 +7,7 @@ from luigi.mock import MockTarget
 from unittest.mock import patch
 
 from db_test import DatabaseTestCase
-from gplay import FetchGplayReviews
+from gplay.gplay_reviews import FetchGplayReviews
 
 
 RESPONSE_ELEM_1 = {
@@ -40,6 +40,7 @@ RESPONSE_ELEM_2 = {
 
 
 class TestFetchGplayReviews(DatabaseTestCase):
+    """Tests the FetchGplayReviews task."""
 
     def setUp(self):
         super().setUp()
