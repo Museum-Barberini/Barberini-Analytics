@@ -38,9 +38,9 @@ class TestExtractCapacities(DatabaseTestCase):
     @patch.object(ExtractCapacities, 'input')
     def test_extract_production(self, input_mock):
         """Give the task some production data and test how it parses them."""
-        self.task = ExtractCapacities(today=dt.date(2016, 11, 29))
+        self.task = ExtractCapacities(today=dt.date(2021, 4, 5))
         html_task = FetchGomusHTML(
-            url='/admin/quotas/7/capacities?start_at=2016-11-28')
+            url='/admin/quotas/26/capacities?start_at=2021-04-05')
         self.run_task(html_task)
         self.install_mock_target(
             input_mock, lambda stream:
@@ -52,7 +52,7 @@ class TestExtractCapacities(DatabaseTestCase):
 
         expected_capacities = pd.read_csv(
             'tests/test_data/gomus/capacities/'
-            'capacities_production_7_2016-11-28.csv')
+            'capacities_production_26_2021-04-05.csv')
         with self.task.output().open() as output:
             actual_capacities = pd.read_csv(output)
         pd.testing.assert_frame_equal(expected_capacities, actual_capacities)
