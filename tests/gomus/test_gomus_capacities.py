@@ -36,6 +36,22 @@ class TestExtractCapacities(DatabaseTestCase):
         pd.testing.assert_frame_equal(expected_capacities, actual_capacities)
 
     @patch.object(ExtractCapacities, 'input')
+    def test_extract_gomus_error(self, input_mock):
+        """
+        Give the task some erroneous mock data that should cause an error.
+        """
+        # See comments in test HTML files.
+
+        self.task = ExtractCapacities(today=dt.date(2021, 4, 14))
+        input_mock.return_value = luigi.LocalTarget(
+            'tests/test_data/gomus/capacities/capacities_error.csv',
+            format=UTF8)
+
+        with self.assertRaises(ValueError) as context:
+            self.task.run()
+        self.assertTrue("extract" in str(context.exception))
+
+    @patch.object(ExtractCapacities, 'input')
     def test_extract_production(self, input_mock):
         """Give the task some production data and test how it parses them."""
         self.task = ExtractCapacities(today=dt.date(2021, 4, 5))
