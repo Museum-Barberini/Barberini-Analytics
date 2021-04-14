@@ -34,6 +34,10 @@ class ExtractCapacities(GomusScraperTask):
 
     today = luigi.DateSecondParameter(default=dt.datetime.today())
 
+    ignored_error_messages = [
+        "Für dieses Kontingent können keine Kapazitäten berechnet werden."
+    ]
+
     popover_pattern = regex.compile(
         r'''
         <script> \s* \$\("\#info-\d+"\)\.popover\( ( \{ \s*
@@ -150,6 +154,13 @@ class ExtractCapacities(GomusScraperTask):
         cells = dom.xpath(
             '//body/div[2]/div[2]/div[3]/div/div[2]/div/div[2]/table/tbody/'
             'tr[position()>1]/td[position()>1]')
+        if not cells:
+            all_text = dom.text_content()
+            if any(
+                message in all_text
+                for message in self.ignored_error_messages):
+                    return
+            raise ValueError("Failed to extract any basic capacity from DOM!")
         for cell in cells:
             datetime = dt.datetime.fromtimestamp(
                 int(cell.get('data-timestamp')))
