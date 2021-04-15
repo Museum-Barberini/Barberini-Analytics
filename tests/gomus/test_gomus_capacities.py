@@ -37,9 +37,7 @@ class TestExtractCapacities(DatabaseTestCase):
 
     @patch.object(ExtractCapacities, 'input')
     def test_extract_gomus_error(self, input_mock):
-        """
-        Give the task some erroneous mock data that should cause an error.
-        """
+        """Give the task some erroneous data that should cause an error."""
         # See comments in test HTML files.
 
         self.task = ExtractCapacities(today=dt.date(2021, 4, 14))

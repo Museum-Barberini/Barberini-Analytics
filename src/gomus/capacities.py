@@ -158,8 +158,9 @@ class ExtractCapacities(GomusScraperTask):
             all_text = dom.text_content()
             if any(
                 message in all_text
-                for message in self.ignored_error_messages):
-                    return
+                for message in self.ignored_error_messages
+            ):
+                return
             raise ValueError(f"Failed to extract any basic capacity from DOM "
                              f"for quota_id={self.quota_id}, "
                              f"min_date={self.min_date}!")
