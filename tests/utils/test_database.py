@@ -69,6 +69,19 @@ class TestCsvToDb(DatabaseTestCase):
         )
         self.assertEqual([(0, 1, 'a', 'b'), *EXPECTED_DATA], actual_data)
 
+    def test_empty(self):
+
+        self.dummy.csv = self.dummy.csv.splitlines()[0]
+
+        # Execute code under test
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual([], actual_data)
+
     def test_no_duplicates_are_inserted(self):
 
         # Set up database samples
