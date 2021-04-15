@@ -39,6 +39,11 @@ class ConcatPostOpinionSentiments(ConcatCsvs):
 
     sentiment_match_algorithms = ['identity', 'inflected']
 
+    columns = [
+        'source', 'post_id', 'target_aspect_words', 'count', 'sentiment',
+        'aspect_phrase', 'dataset', 'sentiment_match_algorithm'
+    ]
+
     def requires(self):
 
         for match_algorithm in self.sentiment_match_algorithms:
@@ -58,13 +63,10 @@ class ConcatPostOpinionSentiments(ConcatCsvs):
         for match_algorithm, target in zip(
                 self.sentiment_match_algorithms,
                 self.input()):
-            yield self.read_csv(target).assign(
+            df = self.read_csv(target)
+            yield df.assign(
                 sentiment_match_algorithm=match_algorithm
-            )[[
-                'source', 'post_id', 'target_aspect_words',
-                'count', 'sentiment', 'aspect_phrase',
-                'dataset', 'sentiment_match_algorithm'
-            ]]
+            )[columns] if df else pd.DataFrame(columns=columns)
 
 
 class GroupPostOpinionSentiments(DataPreparationTask):
