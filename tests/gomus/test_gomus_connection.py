@@ -9,7 +9,7 @@ from db_test import DatabaseTestCase, logger
 
 BASE_URL = 'https://barberini.gomus.de/'
 EXPECTED_VERSION_LINE_NUMBER = 770
-EXPECTED_VERSION_TAG = 'v4.1.8.22 – Premium Edition'
+EXPECTED_VERSION_TAG = 'v4.1.9.2 – Premium Edition'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
