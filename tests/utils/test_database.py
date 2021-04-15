@@ -31,6 +31,7 @@ class TestCsvToDb(DatabaseTestCase):
         super().setUp()
 
         self.table_name = 'tmp_csv_table'
+        self.table_name2 = f'{self.table_name}2'
         self.dummy = DummyWriteCsvToDb(
             table=self.table_name,
             csv=EXPECTED_CSV
@@ -39,15 +40,17 @@ class TestCsvToDb(DatabaseTestCase):
         # Set up database
         self.db_connector.execute(
             f'''CREATE TABLE {self.table_name} (
-                id int,
+                id int PRIMARY KEY,
                 A int,
                 B text,
                 C text
             )''',
-            f'''
-                ALTER TABLE {self.table_name}
-                ADD PRIMARY KEY (id);
-            ''')
+            f'''CREATE TABLE {self.table_name2} (
+                id int,
+                id1 int REFERENCES {self.table_name}(id),
+                D text
+            )'''
+        )
 
     def test_adding_data_to_database_existing_table(self):
 
@@ -65,6 +68,19 @@ class TestCsvToDb(DatabaseTestCase):
             f'SELECT * FROM {self.table_name}'
         )
         self.assertEqual([(0, 1, 'a', 'b'), *EXPECTED_DATA], actual_data)
+
+    def test_empty(self):
+
+        self.dummy.csv = self.dummy.csv.splitlines()[0]
+
+        # Execute code under test
+        self.run_task(self.dummy)
+
+        # Inspect result
+        actual_data = self.db_connector.query(
+            f'SELECT * FROM {self.table_name}'
+        )
+        self.assertEqual([], actual_data)
 
     def test_no_duplicates_are_inserted(self):
 
@@ -85,10 +101,23 @@ class TestCsvToDb(DatabaseTestCase):
     def test_replace_content(self):
 
         # Set up database samples
-        self.db_connector.execute(f'''
-                INSERT INTO {self.table_name}
-                VALUES (0, 1, 'a', 'b');
-            ''')
+        self.db_connector.execute(
+            f'''ALTER TABLE {self.table_name2}
+                DROP CONSTRAINT {self.table_name2}_id1_fkey,
+                ADD CONSTRAINT {self.table_name2}_id1_fkey
+                    FOREIGN KEY (id1)
+                    REFERENCES {self.table_name} (id)
+                    ON DELETE CASCADE;
+            ''',
+            f'''INSERT INTO {self.table_name} VALUES
+                (0, 1, 'a', 'b'),  -- not part of EXPECTED_CSV
+                (1, 2, 'ab', 'xy')  -- different than in EXPECTED_CSV
+            ''',
+            f'''INSERT INTO {self.table_name2} VALUES
+                (-1, 0, 'foo'),
+                (-2, 1, 'bar')
+            '''
+        )
 
         # Execute code under test
         self.dummy.replace_content = True
@@ -99,6 +128,10 @@ class TestCsvToDb(DatabaseTestCase):
             f'SELECT * FROM {self.table_name}'
         )
         self.assertEqual(EXPECTED_DATA, actual_data)
+        actual_data2 = self.db_connector.query(
+            f'SELECT * FROM {self.table_name2}'
+        )
+        self.assertEqual([(-2, 1, 'bar')], actual_data2)
 
     def test_columns(self):
 
@@ -152,7 +185,7 @@ tuple,array,str
 
         # Set up database
         self.db_connector.execute(
-            f'DROP TABLE {self.table_name}',
+            f'DROP TABLE {self.table_name} CASCADE',
             f'''CREATE TABLE {self.table_name} (
                 ints int[],
                 texts text[],

@@ -12,9 +12,11 @@ from ._utils.scrape_gomus import GomusScraperTask
 
 
 class QuotasToDb(CsvToDb):
-    """Store extract quotas into the database."""
+    """Store extracted quotas into the database."""
 
     table = 'gomus_quota'
+
+    replace_content = True
 
     def requires(self):
 
