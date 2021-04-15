@@ -139,17 +139,37 @@ class CsvToDb(CopyToTable):
 
     def copy(self, cursor, file):
 
-        if self.replace_content:
-            # delete existing rows to avoid cache invalidation
-            cursor.execute(f'TRUNCATE {self.table}')
+        table = '.'.join(self.table_path)
+        tmp_table = f'{"_".join(self.table_path)}_tmp'
+        columns = ', '.join([col[0] for col in self.columns])
+        query = f'''
+            BEGIN;
+                CREATE TEMPORARY TABLE {tmp_table} (
+                    LIKE {table} INCLUDING ALL);
+                COPY {tmp_table} ({columns}) FROM stdin WITH (FORMAT CSV);
 
-        query = self.load_sql_script(
-            'copy',
-            *self.table_path,
-            self.primary_constraint_name,
-            ', '.join([col[0] for col in self.columns]),
-            ', '.join(
-                [f'{col[0]} = EXCLUDED.{col[0]}' for col in self.columns]))
+                INSERT INTO {table} ({columns})
+                    SELECT {columns} FROM {tmp_table}
+                ON CONFLICT ON CONSTRAINT {self.primary_constraint_name}
+                    DO UPDATE SET {', '.join(
+                        f'{column[0]} = EXCLUDED.{column[0]}'
+                        for column in self.columns
+                    )};
+                {f"""
+                DELETE FROM {table}
+                    WHERE NOT EXISTS (
+                        SELECT NULL
+                        FROM {tmp_table}
+                        WHERE ({', '.join(
+                            f'{self.table}.{column[0]}'
+                            for column in self.columns
+                        )}) = ({', '.join(
+                            f'{tmp_table}.{column[0]}'
+                            for column in self.columns
+                        )}));
+                """ * self.replace_content}
+            COMMIT;
+        '''
         logger.debug(f"{self.__class__}: Executing query: {query}")
         cursor.copy_expert(query, file)
 
@@ -209,11 +229,6 @@ class CsvToDb(CopyToTable):
             '.'.join(segments[:-1]) if segments[:-1] else 'public',
             segments[-1]
         )
-
-    def load_sql_script(self, name, *args):
-
-        with open(self.sql_file_path_pattern.format(name)) as sql_file:
-            return sql_file.read().format(*args)
 
 
 class QueryDb(_utils.DataPreparationTask):
