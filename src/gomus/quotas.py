@@ -45,7 +45,8 @@ class ExtractQuotas(GomusScraperTask):
         tqdm.pandas(desc="Extracting quotas")
         quotas = df_htmls['file_path'].progress_apply(self.extract_quota)
 
-        df_quotas = pd.DataFrame(list(quotas))
+        df_quotas = pd.DataFrame(list(quotas), columns=[
+            'quota_id', 'name', 'creation_date', 'update_date'])
         with self.output().open('w') as output:
             df_quotas.to_csv(output, index=False)
 
@@ -90,7 +91,7 @@ class FetchQuotas(DataPreparationTask):
             while quota_id - last_confirmed_id <= self.max_missing_ids:
                 quota_id += 1
                 if self.minimal_mode:
-                    quota_id += -1 + 5
+                    quota_id += -1 + 4
 
                 html = yield FetchGomusHTML(
                     url=f'/admin/quotas/'f'{quota_id}',
