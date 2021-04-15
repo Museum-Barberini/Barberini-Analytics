@@ -27,14 +27,14 @@ class DataPreparationTask(luigi.Task):
         default=None)
 
     minimal_mode = luigi.parameter.BoolParameter(
-        default=_utils.minimal_mode,
+        default=_utils.minimal_mode(),
         description="If True, only a minimal amount of data will be prepared"
                     "in order to test the pipeline for structural problems")
 
     @property
     def output_dir(self):
 
-        return _utils.OUTPUT_DIR
+        return _utils.output_dir()
 
     def condense_performance_values(
             self,
@@ -52,6 +52,26 @@ class DataPreparationTask(luigi.Task):
         )
         condenser.delta_function = delta_function
         return condenser.condense_performance_values(df)
+
+    def encode_strings(self, df):
+        r"""
+        Apply necessary encodings to all string columns of the dataframe.
+
+        NOTE that for the most encodings, pandas' to_csv() implementation is
+        definitively sufficient and should not be levered out here. In this
+        place, we are only handling edge cases that are treated specially by
+        luigi. Concretely, this only affects carriage returns (\a) at the
+        moment, which otherwise rigorously will be replaced with line feeds
+        (\n) by luigi.Task, causing the output CSV file to contain illegal
+        line breaks. For more information, see #384 and:
+        https://groups.google.com/g/luigi-user/c/tePPe6oJrjk
+
+        Returns an encoded copy of the dataframe.
+        """
+        df = df.copy()
+        for column in df.select_dtypes(include=['object']).columns:
+            df[column] = df[column].str.replace(r'\r\n|\r', '\n')
+        return df
 
     def filter_fkey_violations(
             self,
@@ -196,6 +216,27 @@ class DataPreparationTask(luigi.Task):
         if desc:
             logger.info(desc)
         return tqdm(iterable, **kwargs)
+
+
+class ConcatCsvs(DataPreparationTask):
+    """Concatenate all input CSV files into a single output CSV file."""
+
+    def run(self):
+
+        dfs = self.collect_csvs()
+        df = pd.concat(dfs)
+        with self.output().open('w') as output:
+            df.to_csv(output, index=False)
+
+    def collect_csvs(self):
+
+        for target in luigi.task.flatten(self.input()):
+            yield self.read_csv(target)
+
+    def read_csv(self, target: luigi.Target):
+
+        with target.open('r') as input:
+            return pd.read_csv(input)
 
 
 class PerformanceValueCondenser():

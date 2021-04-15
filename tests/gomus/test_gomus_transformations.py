@@ -30,9 +30,6 @@ class GomusTransformationTest(DatabaseTestCase):
 
         self.test_data_path = 'tests/test_data/gomus/'
 
-        # TODO: Set up proper MockFileSystem isolation between tests
-        # (apparently, this is just kept constantly otherwise)
-
     # Write contents of file <filename> into passed luigi target
     def write_file_to_target(self, target, filename):
         filename = self.test_data_path + filename

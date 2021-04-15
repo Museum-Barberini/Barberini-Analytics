@@ -13,7 +13,7 @@ from luigi.format import UTF8
 import numpy as np
 import pandas as pd
 from stop_words import get_stop_words
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 from _utils import DataPreparationTask, CsvToDb
 from twitter import TweetsToDb

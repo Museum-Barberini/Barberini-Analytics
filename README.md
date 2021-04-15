@@ -1,18 +1,26 @@
 # Barberini Analytics
 
+[![System Architecture Slides](https://img.shields.io/badge/system%20architecture-SlideShare-0077b5)](https://www.slideshare.net/secret/fSNLlGAOzk34)
+[![Official Presentation Video](https://img.shields.io/badge/official%20presentation-YouTube-ff0000)](https://youtu.be/Z8s3fdrzI7c?t=7170)
+[![Press Release](https://img.shields.io/badge/Press%20release-hpi.de-B1063A)](https://hpi.de/fileadmin/user_upload/hpi/veranstaltungen/2020/Bachelorpodium_2020/Pressemitteilung_BP_2020_Bachelorprojekte/Pressemitteilung_BP2020_Pressemitteilung_FN1_V2.pdf)
+
 A suite of data mining, analytics, and visualization solutions to create an awesome dashboard for the Museum Barberini, Potsdam, in order to help them analyze and assess customer, advertising, and social media data!
 
 This solution has been originally developed in part of a Data Analytics project run as a cooperation of the Museum Barberini (MB) and the Hasso Plattner Institute (HPI) in 2019/20 (see [Credits](#credits) below).
 The project comprises a data mining pipeline that is regularly run on a server and feeds several visualization dashboards that are hosted in a Power BI app.
 For more information, see also the following resources:
 
-- [Original project description](https://www.museum-barberini.com/site/assets/files/1080779/fg_naumann_bp_barberini_2019-20.pdf) (German)
+- [System architecture slides](https://www.slideshare.net/secret/fSNLlGAOzk34)
+- [Original project description (organizational)](https://www.slideshare.net/ChristophThiede2/barberini-analytics-optimierung-der-kommunikations-und-marketingstrategie-auf-grundlage-von-datenbasierten-insights) (German)
+- [Original project description (technical)](https://hpi.de/fileadmin/user_upload/hpi/dokumente/studiendokumente/bachelor/bachelorprojekte/2019_20/FG_Naumann_BP_Barberini_2019-20.pdf) (German)
 - [Final press release](https://hpi.de/fileadmin/user_upload/hpi/veranstaltungen/2020/Bachelorpodium_2020/Pressemitteilung_BP_2020_Bachelorprojekte/Pressemitteilung_BP2020_Pressemitteilung_FN1_V2.pdf) (German)
 - [Official presentation video](https://www.tele-task.de/lecture/video/8266/#t=5961) ([mirror on YouTube](https://youtu.be/Z8s3fdrzI7c?t=7170))
 
+![Barberini Analytics Dashboards](banner.png)
+
 ## Note regarding reuse for other projects
 
-While this solution has been tailored for the individual needs of the MB and the overall project is characterized by the structure of a majestic monolith, we think that it contains some features and components that great have a potential for being reused as part of other solutions.
+While this solution has been tailored for the individual needs of the MB and the overall project is characterized by the structure of a majestic monolith, we think that it contains some features and components that have great potential for being reused as part of other solutions.
 In particular, these features include the following highlights:
 
 - **Gomus binding:** Connectors and scrapers for accessing various data sources from the museum management system _go~mus_.
@@ -123,7 +131,7 @@ make shutdown
 
 #### Actual Installation
 
-1. Download and install Power BI: <https://aka.ms/pbidesktopstore>
+1. Download and install Power BI: <https://powerbi.microsoft.com/downloads>
 2. Enable R-powered visuals
    1. Download and install R: <https://mran.revolutionanalytics.com/download>
    2. Once you open any report, you will be asked to install R Visual for PBI.

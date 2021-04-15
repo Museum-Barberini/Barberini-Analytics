@@ -7,7 +7,7 @@ import luigi
 import requests
 from bs4 import BeautifulSoup
 
-from _utils import OUTPUT_DIR
+from _utils import output_dir
 from gomus._utils.fetch_report_helper import REPORT_IDS
 
 # These lists map directly to various Gomus attributes used for editing
@@ -68,7 +68,7 @@ class EditGomusReport(luigi.Task):
     # obsoletes output() and requires()
     def output(self):
         return luigi.LocalTarget(
-            f'{OUTPUT_DIR}/gomus/edit_report_{self.task_id}')
+            f'{output_dir()}/gomus/edit_report_{self.task_id}')
 
     def run(self):
         self.add_to_body(f'_method={METHOD}')

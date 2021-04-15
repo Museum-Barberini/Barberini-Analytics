@@ -8,11 +8,11 @@ ENV LANG C.UTF-8
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update
+RUN apt-get update --fix-missing
 RUN apt-get upgrade -y --no-install-recommends apt-utils 2>&1 \
   | grep -v 'debconf: .*apt-utils is not installed'
 
-ARG INSTALL='apt-get install -qq --no-install-recommends'
+ARG INSTALL='apt-get install -qq --no-install-recommends --fix-missing'
 
 
 # Install utilities
@@ -35,8 +35,11 @@ RUN apt-get update
 RUN $INSTALL postgresql-client-12
 
 # Install python
+# NB: We cannot upgrade to python3.7 or something newer at the moment because
+# psycopg2 seems to be incompatible.
 RUN $INSTALL python3.6 python3-pip python3-setuptools python3-dev \
   python3-wheel
+RUN python3 -m pip install --upgrade pip
 
 # Install psycopg2 (incl. system dependencies)
 RUN $INSTALL libpq-dev
@@ -58,11 +61,14 @@ WORKDIR /app
 
 # Install python packages
 COPY requirements.txt /app
-RUN pip3 install -r requirements.txt
-RUN pip3 check
+RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip check
 
-# Install required nltk resource
+# Download required resources
+## nltk
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
+## spacy
+RUN python3 -m spacy download de_core_news_lg
 
 # Enable bash completion for best dev convenience
 # The following command uncomments a section in the bash.bashrc file which is

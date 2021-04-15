@@ -5,6 +5,7 @@ import luigi
 from _utils import QueryCacheToDb
 from .post_aspects import PostAspectsToDb
 from .post_ngrams import PostNgramsToDb
+from .post_opinion_patterns import PostOpinionSentimentsToDb
 from .post_sentiments import PostPhrasePolaritiesToDb
 
 
@@ -16,6 +17,7 @@ class PostAspectSentimentsToDb(luigi.WrapperTask):
         yield PostPhraseAspectPolaritiesToDb()
 
         yield PostAspectSentimentsLinearDistanceToDb()
+        yield PostOpinionSentimentsToDb()
 
 
 class PostPhraseAspectPolaritiesToDb(QueryCacheToDb):
@@ -164,12 +166,17 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
             WITH linear_weight AS (
                 SELECT
                     *,
-                    round(
+                    (CASE WHEN
+                        linear_distance <= %(weight_alpha)s * sqrt(-ln(1e-6))
+                    THEN round(
                         exp(-(
                             (linear_distance::numeric / %(weight_alpha)s) ^ 2
                         )),
                         6
-                    ) AS linear_weight
+                    )
+                    ELSE
+                        0
+                    END) AS linear_weight
                 FROM {self.phrase_aspect_table}
             )
             SELECT

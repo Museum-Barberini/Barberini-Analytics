@@ -13,7 +13,7 @@ from _utils import CsvToDb, DataPreparationTask, logger
 
 
 class GoogleMapsReviewsToDb(CsvToDb):
-    """Stored fetched Google Maps reviews into the database."""
+    """Store fetched Google Maps reviews into the database."""
 
     table = 'google_maps_review'
 
@@ -106,8 +106,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 self.scopes,
                 secret['redirect_uris'][0])
             authorize_url = flow.step1_get_authorize_url()
-            logger.warning("Go to the following link in your browser: "
-                           f"{authorize_url}")
+            print(
+                f"Go to the following link in your browser: {authorize_url}",
+                file=sys.stderr)
             code = input("Enter verification code: ").strip()
             credentials = flow.step2_exchange(code)
             storage.put(credentials)
@@ -170,13 +171,14 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 parent=location,
                 pageSize=page_size,
                 pageToken=next_page_token).execute()
-            for review in review_list['reviews']:
+            try:
+                reviews = review_list['reviews']
+            except KeyError:
+                break
+
+            for review in reviews:
                 next(pbar_loop)
-            yield from [
-                {**review, 'placeId': place_id}
-                for review
-                in review_list['reviews']
-            ]
+                yield {**review, 'placeId': place_id}
 
             if self.minimal_mode:
                 review_list.pop('nextPageToken')
