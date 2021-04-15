@@ -66,7 +66,7 @@ class ConcatPostOpinionSentiments(ConcatCsvs):
             df = self.read_csv(target)
             yield df.assign(
                 sentiment_match_algorithm=match_algorithm
-            )[columns] if df else pd.DataFrame(columns=columns)
+            )[self.columns] if len(df) else pd.DataFrame(columns=self.columns)
 
 
 class GroupPostOpinionSentiments(DataPreparationTask):
