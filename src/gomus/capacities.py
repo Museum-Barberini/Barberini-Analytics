@@ -89,12 +89,12 @@ class ExtractCapacities(GomusScraperTask):
             src = file.read()
         dom: html.HtmlElement = html.fromstring(src)
 
-        quota_id, min_date = self.extract_header(dom)
+        self.quota_id, self.min_date = self.extract_header(dom)
         logger.debug(
             "Scraping capacities from quota_id=%s for min_date=%s",
-            quota_id, min_date)
+            self.quota_id, self.min_date)
 
-        capacities = self.create_zero_data(min_date)
+        capacities = self.create_zero_data(self.min_date)
 
         def load_data(data):
             return pd.DataFrame(
@@ -107,11 +107,11 @@ class ExtractCapacities(GomusScraperTask):
         capacities.update(basic_capacities)
 
         detailed_capacities = load_data(
-            self.extract_detailed_capacities(src, min_date))
+            self.extract_detailed_capacities(src, self.min_date))
         capacities.update(detailed_capacities)
 
         capacities = capacities.reset_index()
-        capacities.insert(0, 'quota_id', quota_id)
+        capacities.insert(0, 'quota_id', self.quota_id)
 
         return capacities
 
@@ -160,7 +160,9 @@ class ExtractCapacities(GomusScraperTask):
                 message in all_text
                 for message in self.ignored_error_messages):
                     return
-            raise ValueError("Failed to extract any basic capacity from DOM!")
+            raise ValueError(f"Failed to extract any basic capacity from DOM "
+                             f"for quota_id={self.quota_id}, "
+                             f"min_date={self.min_date}!")
         for cell in cells:
             datetime = dt.datetime.fromtimestamp(
                 int(cell.get('data-timestamp')))
