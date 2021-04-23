@@ -234,7 +234,7 @@ class FetchIgPostThumbnails(DataPreparationTask):
         yield IgPostsToDb()
         posts = yield QueryDb(query=f'''
             SELECT ig_post_id, permalink
-            FROM {IgPostsToDb.table}
+            FROM {IgPostsToDb.table}  -- # nosec - constant
             WHERE (length(thumbnail_uri) > 0) IS NOT TRUE
         ''')
         with posts.open('r') as stream:

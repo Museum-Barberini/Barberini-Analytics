@@ -110,7 +110,7 @@ class TestInstagram(DatabaseTestCase):
 
         actual_data = pd.DataFrame(self.db_connector.query(f'''
             SELECT permalink, thumbnail_uri
-            FROM {instagram.IgPostsToDb.table}
+            FROM {instagram.IgPostsToDb.table}  -- # nosec - constant
         '''), columns=['permalink', 'thumbnail_uri'])
         pd.testing.assert_frame_equal(
             actual_data,
