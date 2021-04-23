@@ -122,11 +122,13 @@ class TestInstagram(DatabaseTestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPostThumbnails, 'get_thumbnail_url')
     def test_get_thumbnail_uri(self, url_mock, request_mock):
-        thumbnails = pd.read_csv(f'{IG_TEST_DATA}/post_thumbnails.csv', keep_default_na=False)
+        thumbnails = pd.read_csv(
+            f'{IG_TEST_DATA}/post_thumbnails.csv', keep_default_na=False)
 
         url_mock.side_effect = lambda permalink: \
             thumbnails[thumbnails['permalink'] == permalink][
                 'thumbnail_url'].values[0]
+
         # Mock URLs requests and answer local files instead
         def mocked_request(url, **kwargs):
             match = re.match(r'^test://(?P<path>.*\.(?P<ext>[^.]+))$', url)
