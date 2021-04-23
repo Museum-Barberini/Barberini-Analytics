@@ -221,8 +221,8 @@ class FetchIgPostThumbnails(DataPreparationTask):
     """Fetch thumbnails for all fetched Instagram posts."""
 
     thumbnail_width = 512
-
     empty_data_uri = 'data:image/png,'
+    worker_timeout = 3600  # 60 min
 
     def output(self):
         return luigi.LocalTarget(
