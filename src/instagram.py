@@ -5,6 +5,7 @@ All data are fetched using the Facebook Graph API. The credentials are shared
 with the access token used in the facebook module. See documentation there.
 """
 
+import base64
 import datetime as dt
 import json
 import os
@@ -12,10 +13,11 @@ import sys
 
 from dateutil import parser as dtparser
 import luigi
-import pandas as pd
 from luigi.format import UTF8
+import pandas as pd
+from tqdm import tqdm
 
-from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
+from _utils import CsvToDb, DataPreparationTask, MuseumFacts, QueryDb, logger
 from _utils.data_preparation import PerformanceValueCondenser
 from facebook import API_BASE, try_request_multiple_times
 
@@ -28,6 +30,7 @@ class IgToDb(luigi.WrapperTask):
 
     def requires(self):
         yield IgPostsToDb()
+        yield IgPostThumbnailsToDb()
         yield IgProfileMetricsDevelopmentToDb()
         yield IgTotalProfileMetricsToDb()
         yield IgAudienceGenderAgeToDb()
@@ -50,8 +53,31 @@ class IgPostsToDb(CsvToDb):
 
     table = 'ig_post'
 
+    @property
+    def columns(self):
+        return [
+            (col_name, col_type) for col_name, col_type in super().columns
+            if col_name != 'thumbnail_uri'
+        ]
+
     def requires(self):
         return FetchIgPosts()
+
+
+class IgPostThumbnailsToDb(CsvToDb):
+    """Store all fetched Instagram post thumbnails into the database."""
+
+    table = 'ig_post'
+
+    @property
+    def columns(self):
+        return [
+            (col_name, col_type) for col_name, col_type in super().columns
+            if col_name in ['ig_post_id', 'thumbnail_uri']
+        ]
+
+    def requires(self):
+        return FetchIgPostThumbnails()
 
 
 class IgProfileMetricsDevelopmentToDb(CsvToDb):
@@ -176,7 +202,6 @@ class FetchIgPosts(DataPreparationTask):
 
         if sys.stdout.isatty():
             print()  # have to manually print newline
-
         logger.info("Fetching of Instagram posts complete")
 
         df = pd.DataFrame([
@@ -190,6 +215,68 @@ class FetchIgPosts(DataPreparationTask):
         ])
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
+
+
+class FetchIgPostThumbnails(DataPreparationTask):
+    """Fetch thumbnails for all fetched Instagram posts."""
+
+    thumbnail_width = 512
+
+    empty_data_uri = 'data:image/png,'
+
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/instagram/ig_post_thumbnails.csv',
+            format=UTF8)
+
+    def run(self):
+        # Run deps in certain order
+        yield IgPostsToDb()
+        posts = yield QueryDb(query=f'''
+            SELECT ig_post_id, permalink
+            FROM {IgPostsToDb.table}  -- # nosec - constant
+            WHERE (length(thumbnail_uri) > 0) IS NOT TRUE
+        ''')
+        with posts.open('r') as stream:
+            df = pd.read_csv(stream)
+
+        tqdm.pandas(desc="Downloading thumbnails")
+        df['thumbnail_uri'] = df['permalink'].progress_apply(
+            self.get_thumbnail_uri)
+        del df['permalink']
+
+        with self.output().open('w') as output_file:
+            df.to_csv(output_file, index=False)
+
+    def get_thumbnail_uri(self, permalink):
+        url = self.get_thumbnail_url(permalink)
+        if not url:
+            return None
+        if url == self.empty_data_uri:
+            return url
+
+        response = try_request_multiple_times(url)
+        data_type = response.headers['Content-Type']
+        data = base64.b64encode(response.content)
+        return f'data:{data_type};base64,{data.decode()}'
+
+    def get_thumbnail_url(self, permalink):
+        url = (f'{API_BASE}/instagram_oembed?url={permalink}'
+               f'&fields=thumbnail_url&maxwidth={self.thumbnail_width}')
+        response = try_request_multiple_times(url)
+        if not response.ok:
+            try:
+                response_json = response.json()
+                if response_json['error']['code'] == 24:
+                    # Error: "The requested resource does not exist".
+                    # Return a truthy value instead of None to avoid redundant
+                    # retrys upon every later execution of the task.
+                    return self.empty_data_uri
+            except (KeyError, ValueError):
+                pass
+            return None
+        response_json = response.json()
+        return response_json['thumbnail_url']
 
 
 class FetchIgPostPerformance(DataPreparationTask):
@@ -315,24 +402,18 @@ class FetchIgProfileMetricsDevelopment(DataPreparationTask):
         response_data = response.json()['data']
 
         timestamp = response_data[0]['values'][0]['end_time']
+        metrics = self.extract_metrics(response_data)
 
-        impressions = response_data[0]['values'][0]['value']
-        reach = response_data[1]['values'][0]['value']
-        profile_views = response_data[2]['values'][0]['value']
-        follower_count = response_data[3]['values'][0]['value']
-        website_clicks = response_data[4]['values'][0]['value']
-
-        df.loc[0] = [
-            timestamp,
-            impressions,
-            reach,
-            profile_views,
-            follower_count,
-            website_clicks
-        ]
+        df = df.append({'timestamp': timestamp, **metrics}, ignore_index=True)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
+
+    def extract_metrics(self, datas):
+        return {
+            data['name']: data['values'][0]['value']
+            for data in datas
+        }
 
 
 class FetchIgTotalProfileMetrics(DataPreparationTask):

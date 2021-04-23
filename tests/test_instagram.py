@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import re
 from unittest.mock import MagicMock, patch
 
 from freezegun import freeze_time
@@ -8,6 +9,7 @@ from luigi.mock import MockTarget
 import pandas as pd
 
 from db_test import DatabaseTestCase
+from .utils.test_database import DummyWriteCsvToDb
 import instagram
 
 IG_TEST_DATA = 'tests/test_data/instagram'
@@ -19,8 +21,7 @@ class TestInstagram(DatabaseTestCase):
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
-    def test_post_transformation(
-            self, fact_mock, output_mock, request_mock):
+    def test_post_transformation(self, fact_mock, output_mock, request_mock):
         fact_target = MockTarget('facts_in', format=UTF8)
         fact_mock.return_value = fact_target
         output_target = MockTarget('post_out', format=UTF8)
@@ -30,27 +31,21 @@ class TestInstagram(DatabaseTestCase):
                   'r',
                   encoding='utf-8') as data_in:
             input_data = data_in.read()
+        expected_data = pd.read_csv(f'{IG_TEST_DATA}/post_expected.csv')
 
-        with open(f'{IG_TEST_DATA}/post_expected.csv',
-                  'r',
-                  encoding='utf-8') as data_out:
-            expected_data = data_out.read()
-
-        def mock_json():
-            return json.loads(input_data)
-        mock_response = MagicMock(ok=True, json=mock_json)
-        request_mock.return_value = mock_response
+        request_mock.side_effect = lambda url: \
+            MagicMock(ok=True, json=lambda: json.loads(input_data))
 
         self.run_task(instagram.FetchIgPosts())
 
         with output_target.open('r') as output_data:
-            self.assertEqual(output_data.read(), expected_data)
+            actual_data = pd.read_csv(output_data)
+        pd.testing.assert_frame_equal(actual_data, expected_data)
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPosts, 'output')
     @patch.object(instagram.MuseumFacts, 'output')
-    def test_pagination(
-            self, fact_mock, output_mock, request_mock):
+    def test_pagination(self, fact_mock, output_mock, request_mock):
         # This is very similar to test_facebook.test_pagination
 
         fact_target = MockTarget('facts_in', format=UTF8)
@@ -61,7 +56,6 @@ class TestInstagram(DatabaseTestCase):
         with open(f'{IG_TEST_DATA}/post_next.json', 'r') \
                 as next_data_in:
             next_data = next_data_in.read()
-
         with open(f'{IG_TEST_DATA}/post_previous.json', 'r') \
                 as previous_data_in:
             previous_data = previous_data_in.read()
@@ -77,12 +71,84 @@ class TestInstagram(DatabaseTestCase):
 
         request_mock.side_effect = [
             next_response,
+            next_response,
             previous_response
         ]
 
         self.run_task(instagram.FetchIgPosts())
 
-        self.assertEqual(request_mock.call_count, 2)
+        self.assertEqual(request_mock.call_count, 3)
+
+    @patch.object(instagram.IgPostsToDb, 'complete')
+    @patch.object(instagram.FetchIgPostThumbnails, 'get_thumbnail_uri')
+    @patch.object(instagram.FetchIgPostThumbnails, 'output')
+    def test_thumbnails_to_db(self, output_mock, uri_mock, to_db_mock):
+        thumbnails = pd.read_csv(f'{IG_TEST_DATA}/post_thumbnails.csv')
+        post_data = pd.read_csv(f'{IG_TEST_DATA}/post_expected.csv')
+
+        # Prepare database with posts (some with, others without a thumbnail)
+        merged = thumbnails.merge(post_data, on='permalink')
+        post_data['thumbnail_uri'] = merged['thumbnail_uri']
+        post_data.loc[
+            post_data.index == len(post_data) - 1, 'thumbnail_uri'
+        ] = None
+        input_task = DummyWriteCsvToDb(
+            table=instagram.IgPostsToDb.table,
+            csv=post_data.to_csv(index=False))
+        self.run_task(input_task)
+
+        # Mock get_thumbnail_uri() to answer mocked URIs directly
+        output_target = MockTarget('post_out')
+        output_mock.return_value = output_target
+        uri_mock.side_effect = lambda permalink: \
+            thumbnails[thumbnails['permalink'] == permalink][
+                'thumbnail_uri'].values[0]
+        to_db_mock.return_value = True
+
+        # Let's go!
+        self.run_task(instagram.IgPostThumbnailsToDb())
+
+        actual_data = pd.DataFrame(self.db_connector.query(f'''
+            SELECT permalink, thumbnail_uri
+            FROM {instagram.IgPostsToDb.table}  -- # nosec - constant
+        '''), columns=['permalink', 'thumbnail_uri'])
+        pd.testing.assert_frame_equal(
+            actual_data,
+            thumbnails[['permalink', 'thumbnail_uri']])
+        self.assertEquals(
+            uri_mock.call_count,
+            post_data['thumbnail_uri'].isna().sum())
+
+    @patch('instagram.try_request_multiple_times')
+    @patch.object(instagram.FetchIgPostThumbnails, 'get_thumbnail_url')
+    def test_get_thumbnail_uri(self, url_mock, request_mock):
+        thumbnails = pd.read_csv(
+            f'{IG_TEST_DATA}/post_thumbnails.csv', keep_default_na=False)
+
+        url_mock.side_effect = lambda permalink: \
+            thumbnails[thumbnails['permalink'] == permalink][
+                'thumbnail_url'].values[0]
+
+        # Mock URLs requests and answer local files instead
+        def mocked_request(url, **kwargs):
+            match = re.match(r'^test://(?P<path>.*\.(?P<ext>[^.]+))$', url)
+            self.assertTrue(match)
+            full_path = f"{IG_TEST_DATA}/thumbnails/{match['path']}"
+            with open(full_path, 'rb') as stream:
+                return MagicMock(
+                    ok=True,
+                    content=stream.read(),
+                    headers={'Content-Type': f"image/{match['ext']}"})
+        request_mock.side_effect = mocked_request
+
+        # Let's go!
+        self.task = instagram.FetchIgPostThumbnails()
+        actual_thumbnails = thumbnails['permalink'].apply(
+            self.task.get_thumbnail_uri)
+
+        pd.testing.assert_series_equal(
+            actual_thumbnails, thumbnails['thumbnail_uri'],
+            check_names=False)
 
     @patch('instagram.try_request_multiple_times')
     @patch.object(instagram.FetchIgPostPerformance, 'output')
@@ -132,6 +198,7 @@ class TestInstagram(DatabaseTestCase):
         mock_no_video_response = MagicMock(ok=True, json=mock_no_video_json)
         request_mock.side_effect = [
             mock_video_response,
+            mock_no_video_response,
             mock_no_video_response]
 
         with freeze_time('2020-01-01 00:00:05'):

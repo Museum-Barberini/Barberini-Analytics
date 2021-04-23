@@ -334,29 +334,49 @@ class DatabaseTestCase(unittest.TestCase):
 
         This is probably some kind of reinvention of the wheel,
         but I don't know how to do this better.
-        Note that this approach does not support dynamic dependencies.
+        Note that there is no guarantee that this works exactly the same as
+        the luigi scheduler.
         """
-        all_tasks = Queue()
-        all_tasks.put(task)
-        requirements = []
-        while all_tasks.qsize():
-            next_task = all_tasks.get()
-            if next_task.complete():
+        tasks = Queue()
+        tasks.put(task)
+        while tasks.qsize():
+            task = tasks.get()
+            if task.complete():
                 continue
-            requirements.insert(0, next_task)
-            next_requirement = next_task.requires()
+
+            # Check dependencies
+            deps = task.deps()
+            for dep in deps:
+                if not dep.complete():
+                    # Handle this one first
+                    tasks.put(dep)
+                    tasks.put(task)
+                    task = None
+                    break
+            if not task:
+                continue
+
+            # Run task ...
+            result = task.run()
+            # ... while checking optional dynamic dependencies
             try:
-                for requirement in next_requirement:
-                    all_tasks.put(requirement)
+                try:
+                    dep = next(result)
+                    while True:
+                        if not dep.complete():
+                            # Handle this one first
+                            tasks.put(dep)
+                            tasks.put(task)
+                            task = None
+                            break
+                        dep = result.send(dep.output())
+                    if not task:
+                        continue
+                except StopIteration:
+                    pass
             except TypeError:
-                all_tasks.put(next_requirement)
-        for requirement in list(dict.fromkeys(requirements)):
-            result = requirement.run()
-            try:
-                deps = list(result)  # could generate dynamic dependencies
-                assert not deps, "Cannot debug dynamic dependencies!"
-            except TypeError:
-                pass  # no dynamic dependencies
+                # no dynamic dependencies
+                pass
 
     @staticmethod
     def run_task_externally(task_class: luigi.task_register.Register):

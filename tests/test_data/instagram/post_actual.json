@@ -17,6 +17,15 @@
             "like_count": 512,
             "comments_count": 1024,
             "permalink": "https://www.instagram.com/thisisanotherpermalink"
+        },
+        {
+            "id": "42",
+            "caption": "Alle guten Dinge sind 3",
+            "timestamp": "2021-04-23 16:27:00+0000",
+            "media_type": "IMAGE",
+            "like_count": 0,
+            "comments_count": 0,
+            "permalink": "https://www.instagram.com/link/three"
         }
     ],
     "paging": {

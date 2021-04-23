@@ -17,7 +17,7 @@ from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
-API_VER = 'v6.0'
+API_VER = 'v10.0'
 API_BASE = f'https://graph.facebook.com/{API_VER}'
 
 # ======= ToDb Tasks =======
@@ -425,7 +425,7 @@ class FetchFbPostComments(FetchFbPostDetails):
         return comment_json.get('from', {}).get('name') == self.facts['name']
 
 
-def try_request_multiple_times(url, **kwargs):
+def try_request_multiple_times(url, **kwargs) -> requests.Response:
     """
     Try multiple request to the Facebook Graph API.
 
