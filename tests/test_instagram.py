@@ -79,10 +79,10 @@ class TestInstagram(DatabaseTestCase):
 
         self.assertEqual(request_mock.call_count, 3)
 
+    @patch.object(instagram.IgPostsToDb, 'complete')
     @patch.object(instagram.FetchIgPostThumbnails, 'get_thumbnail_uri')
     @patch.object(instagram.FetchIgPostThumbnails, 'output')
-    def test_thumbnails_to_db(
-            self, output_mock, uri_mock):
+    def test_thumbnails_to_db(self, output_mock, uri_mock, to_db_mock):
         thumbnails = pd.read_csv(f'{IG_TEST_DATA}/post_thumbnails.csv')
         post_data = pd.read_csv(f'{IG_TEST_DATA}/post_expected.csv')
 
@@ -103,6 +103,7 @@ class TestInstagram(DatabaseTestCase):
         uri_mock.side_effect = lambda permalink: \
             thumbnails[thumbnails['permalink'] == permalink][
                 'thumbnail_uri'].values[0]
+        to_db_mock.return_value = True
 
         # Let's go!
         self.run_task(instagram.IgPostThumbnailsToDb())
