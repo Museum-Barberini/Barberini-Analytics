@@ -315,24 +315,18 @@ class FetchIgProfileMetricsDevelopment(DataPreparationTask):
         response_data = response.json()['data']
 
         timestamp = response_data[0]['values'][0]['end_time']
+        metrics = self.extract_metrics(response_data)
 
-        impressions = response_data[0]['values'][0]['value']
-        reach = response_data[1]['values'][0]['value']
-        profile_views = response_data[2]['values'][0]['value']
-        follower_count = response_data[3]['values'][0]['value']
-        website_clicks = response_data[4]['values'][0]['value']
-
-        df.loc[0] = [
-            timestamp,
-            impressions,
-            reach,
-            profile_views,
-            follower_count,
-            website_clicks
-        ]
+        df = df.append({'timestamp': timestamp, **metrics}, ignore_index=True)
 
         with self.output().open('w') as output_file:
             df.to_csv(output_file, index=False, header=True)
+
+    def extract_metrics(self, datas):
+        return {
+            data['name']: data['values'][0]['value']
+            for data in datas
+        }
 
 
 class FetchIgTotalProfileMetrics(DataPreparationTask):
