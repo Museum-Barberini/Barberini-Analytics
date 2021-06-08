@@ -92,6 +92,9 @@ class GroupPostOpinionSentiments(DataPreparationTask):
 
         logger.info("Loading input ...")
         df, self.model = self.load_input()
+        if not len(df):
+            logger.info("Empty input data, terminating.")
+            return
 
         logger.info("Computing word vectors ...")
         df['vec'] = df['aspect_phrase'].progress_apply(self.word2vec)
