@@ -91,7 +91,40 @@ class GroupPostOpinionSentiments(DataPreparationTask):
     def run(self):
 
         logger.info("Loading input ...")
-        df, self.model = self.load_input()
+        raw, self.model = self.load_input()
+
+        grouped = self.group_data(raw)
+
+        logger.info("Storing ...")
+        with self.output().open('w') as stream:
+            grouped.to_csv(stream, index=True)
+        logger.info("Done.")
+
+    def load_input(self):
+
+        input_ = self.input()
+        with input_[0].open() as stream:
+            df = pd.read_csv(stream)
+        model = gensim.models.KeyedVectors.load_word2vec_format(
+            input_[1].path,
+            binary=True
+        )
+        return df, model
+
+    def group_data(self, raw):
+        if not len(raw):
+            logger.info("Empty input data, skipping grouping.")
+            return pd.DataFrame(columns=[
+                'source',
+                'post_id',
+                'dataset',
+                'target_aspect_words',
+                'aspect_phrase',
+                'sentiment',
+                'count'
+            ])
+
+        df = raw.copy()
 
         logger.info("Computing word vectors ...")
         df['vec'] = df['aspect_phrase'].progress_apply(self.word2vec)
@@ -111,21 +144,7 @@ class GroupPostOpinionSentiments(DataPreparationTask):
             'count': 'sum'
         }).rename({'aspect_phrases': 'aspect_phrase'})
 
-        logger.info("Storing ...")
-        with self.output().open('w') as stream:
-            df.to_csv(stream, index=True)
-        logger.info("Done.")
-
-    def load_input(self):
-
-        input_ = self.input()
-        with input_[0].open() as stream:
-            df = pd.read_csv(stream)
-        model = gensim.models.KeyedVectors.load_word2vec_format(
-            input_[1].path,
-            binary=True
-        )
-        return df, model
+        return df
 
     word2vec_trans = str.maketrans({
         " ": '_',
