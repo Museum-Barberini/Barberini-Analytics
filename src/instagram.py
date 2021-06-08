@@ -242,13 +242,15 @@ class FetchIgPostThumbnails(DataPreparationTask):
 
         tqdm.pandas(desc="Downloading thumbnails")
         demo_count = 0
+
         def get_thumbnail_uri_demo(permalink):
             nonlocal demo_count
             if demo_count > 10:
                 return 'data:demo'
             demo_count += 1
             return self.get_thumbnail_uri(permalink)
-        get_thumbnail_uri = (self.get_thumbnail_uri
+        get_thumbnail_uri = (
+            self.get_thumbnail_uri
             if not self.minimal_mode
             else get_thumbnail_uri_demo)
         df['thumbnail_uri'] = df['permalink'].progress_apply(get_thumbnail_uri)
