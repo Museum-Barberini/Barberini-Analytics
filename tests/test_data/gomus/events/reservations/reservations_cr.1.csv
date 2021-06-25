@@ -3,6 +3,6 @@
 "Museum Barberini","","","","","","","","","","",""
 "Ein beschreibender Titel (Lesung)","","","","","","","","","","",""
 "","","","","","","","","","","",""
-"Id","Kunde","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail","Teilnehmerinfo"
-6003.0,"Kunde 11",65.0,0.0,11.0,11.0,"No comment","Straße Nr.%
-PLZ Stadt%","","","kunde@le1.csv",""
+"Id","Name","Nachname","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
+6003.0,"Kunde 11","Kunde",65.0,0.0,11.0,11.0,"No comment","Straße Nr.%
+PLZ Stadt%","","","kunde@le1.csv"

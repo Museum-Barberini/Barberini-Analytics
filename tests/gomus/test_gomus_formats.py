@@ -242,8 +242,7 @@ class TestEventsFormat(GomusFormatTest):
              ("Anschrift", 'STRING'),
              ("Telefon", 'STRING'),
              ("Mobil", 'STRING'),
-             ("E-Mail", 'STRING'),
-             ("Teilnehmerinfo", 'STRING')],
+             ("E-Mail", 'STRING')],
             *args, **kwargs)
 
     @patch.object(FetchEventReservations, 'output')
