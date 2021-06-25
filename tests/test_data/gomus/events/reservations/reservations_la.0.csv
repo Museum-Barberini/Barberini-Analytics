@@ -3,6 +3,6 @@
 "Museum Barberini","","","","","","","","","","",""
 "Ein beschreibender Titel (Kinder-Workshop)","","","","","","","","","","",""
 "","","","","","","","","","","",""
-"Id","Kunde","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail","Teilnehmerinfo"
-4001.0,"Kunde 6",40.0,0.0,6.0,6.0,"No comment","Straße Nr.%
-PLZ Stadt%","","","kunde@ki0.csv",""
+"Id","Name","Nachname","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
+4001.0,"Kunde 6","Kunde",40.0,0.0,6.0,6.0,"No comment","Straße Nr.%
+PLZ Stadt%","","","kunde@ki0.csv"

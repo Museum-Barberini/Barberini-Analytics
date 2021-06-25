@@ -232,7 +232,8 @@ class TestEventsFormat(GomusFormatTest):
         super().__init__(
             'events',
             [("Id", 'FLOAT'),
-             ("Kunde", 'STRING'),
+             ("Name", 'STRING'),
+             ("Nachname", 'STRING'),
              ("Plätze", 'FLOAT'),
              ("Preis", 'FLOAT'),
              ("Datum", 'FLOAT'),
@@ -241,8 +242,7 @@ class TestEventsFormat(GomusFormatTest):
              ("Anschrift", 'STRING'),
              ("Telefon", 'STRING'),
              ("Mobil", 'STRING'),
-             ("E-Mail", 'STRING'),
-             ("Teilnehmerinfo", 'STRING')],
+             ("E-Mail", 'STRING')],
             *args, **kwargs)
 
     @patch.object(FetchEventReservations, 'output')
