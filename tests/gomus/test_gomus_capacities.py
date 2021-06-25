@@ -63,14 +63,26 @@ class TestExtractCapacities(DatabaseTestCase):
                 ]).to_csv(stream))
 
         self.task.run()
-
-        expected_capacities = pd.read_csv(
-            'tests/test_data/gomus/capacities/'
-            'capacities_production_26_2021-04-05.csv')
         with self.task.output().open() as output:
             actual_capacities = pd.read_csv(output)
-        pd.testing.assert_frame_equal(expected_capacities, actual_capacities)
 
+        # Make some plausibility checks here.
+
+        # Data format
+        self.assertEqual(7, len(actual_capacities.groupby('date')))
+        self.assertEqual(4 * 24, len(actual_capacities.groupby('time')))
+
+        # Value range
+        for column in ['max', 'sold', 'reserved', 'available']:
+            self.assertTrue(all(0 <= value <= 1000 for value in actual_capacities[column]))
+            sums = actual_capacities.groupby('date')[column].sum()
+            self.assertTrue(all(0 <= value <= 10000 for value in sums))
+
+        # Consistency
+        pd.testing.assert_series_equal(actual_capacities['available'], actual_capacities['max'] - actual_capacities['sold'] - actual_capacities['reserved'], check_names=False)
+
+        # Anything
+        self.assertGreater((actual_capacities['max'] > 0).sum(), 1)
 
 class TestFetchCapacities(DatabaseTestCase):
     """Tests the gomus FetchCapacities task."""
