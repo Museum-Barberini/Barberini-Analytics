@@ -232,7 +232,8 @@ class TestEventsFormat(GomusFormatTest):
         super().__init__(
             'events',
             [("Id", 'FLOAT'),
-             ("Kunde", 'STRING'),
+             ("Name", 'STRING'),
+             ("Nachname", 'STRING'),
              ("Plätze", 'FLOAT'),
              ("Preis", 'FLOAT'),
              ("Datum", 'FLOAT'),
