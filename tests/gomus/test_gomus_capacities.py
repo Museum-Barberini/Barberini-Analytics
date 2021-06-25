@@ -74,15 +74,24 @@ class TestExtractCapacities(DatabaseTestCase):
 
         # Value range
         for column in ['max', 'sold', 'reserved', 'available']:
-            self.assertTrue(all(0 <= value <= 1000 for value in actual_capacities[column]))
+            self.assertTrue(all(
+                0 <= value <= 1000
+                for value in actual_capacities[column]
+            ))
             sums = actual_capacities.groupby('date')[column].sum()
             self.assertTrue(all(0 <= value <= 10000 for value in sums))
 
         # Consistency
-        pd.testing.assert_series_equal(actual_capacities['available'], actual_capacities['max'] - actual_capacities['sold'] - actual_capacities['reserved'], check_names=False)
+        pd.testing.assert_series_equal(
+            actual_capacities['available'],
+            actual_capacities['max'] - (
+                actual_capacities['sold'] + actual_capacities['reserved']),
+            check_names=False
+        )
 
         # Anything
         self.assertGreater((actual_capacities['max'] > 0).sum(), 1)
+
 
 class TestFetchCapacities(DatabaseTestCase):
     """Tests the gomus FetchCapacities task."""
