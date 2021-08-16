@@ -1,3 +1,4 @@
+from itertools import groupby
 import os
 import re
 
@@ -6,10 +7,11 @@ import requests
 from varname import nameof
 
 from db_test import DatabaseTestCase, logger
+from _utils import utils
 
 BASE_URL = 'https://barberini.gomus.de/'
 EXPECTED_VERSION_LINE_NUMBER = 770
-EXPECTED_VERSION_TAG = 'v4.1.10.1 – Premium Edition'
+EXPECTED_VERSION_TAG = '4.1.11.1'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
@@ -73,15 +75,13 @@ class TestGomusConnection(DatabaseTestCase):
         response.raise_for_status()
 
         version_hits = {
-            ln: match
-            for ln, match in [
-                (ln, re.match(
-                    r'^v\d+\.\d+\.\d+(?:\.\d+)? – .+ Edition$',
-                    line
-                ))
-                for ln, line in enumerate(response.text.splitlines())
-            ]
-            if match
+            utils.strcoord(response.text, match.start(0))[0]: match
+            for match in re.finditer(
+                r'''<small class='text-muted' title='go~mus Version'>
+(\d+\.\d+\.\d+(?:\.\d+)?)
+ - .+ Edition''',
+                response.text
+            )
         }
         self.assertTrue(
             version_hits,
@@ -94,5 +94,5 @@ class TestGomusConnection(DatabaseTestCase):
         )
 
         ln = list(version_hits.keys())[0]
-        version_tag = list(version_hits.values())[0][0]
+        version_tag = list(version_hits.values())[0][1]
         return ln, version_tag
