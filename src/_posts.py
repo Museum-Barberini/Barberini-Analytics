@@ -3,7 +3,7 @@
 import luigi
 
 from apple_appstore import AppstoreReviewsToDb
-from facebook import FbPostsToDb, FbPostCommentsToDb, FbPostPerformanceToDb
+from facebook import FbPostsToDb, FbPostPerformanceToDb
 from google_maps import GoogleMapsReviewsToDb
 from gplay import GooglePlaystoreReviewsToDb
 from instagram import IgToDb, IgPostPerformanceToDb
@@ -22,7 +22,8 @@ class PostsToDb(luigi.WrapperTask):
 
         yield AppstoreReviewsToDb()
         yield FbPostsToDb()
-        yield FbPostCommentsToDb()
+        # WORKAROUND: Facebook comments endpoint is currently defect, see #393.
+        # yield FbPostCommentsToDb()
         yield GoogleMapsReviewsToDb()
         yield GooglePlaystoreReviewsToDb()
         yield IgToDb()

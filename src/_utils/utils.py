@@ -6,6 +6,7 @@ from typing import Union
 
 import jsonpickle
 import luigi
+from varname import nameof
 
 from backports.datetime_fromisoformat import MonkeyPatch
 MonkeyPatch.patch_fromisoformat()
@@ -76,3 +77,11 @@ def set_log_level_temporarily(logger: logging.Logger, level: Union[int, str]):
         yield
     finally:
         logger.setLevel(old_level)
+
+
+def strcoord(string: str, index: int):
+    """Convert the index in the string into a cooordinate tuple (row, col)."""
+    if index > len(string):
+        raise IndexError(f"{nameof(index)} out of range")
+    lines = string[:index + 1].splitlines(keepends=True)
+    return len(lines), len(lines[-1])
