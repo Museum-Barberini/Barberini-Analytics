@@ -9,7 +9,6 @@ import base64
 import datetime as dt
 import json
 import os
-from requests import HTTPError
 import sys
 
 from dateutil import parser as dtparser

@@ -5,7 +5,6 @@ from shutil import copyfile
 from unittest.mock import MagicMock, patch
 
 from freezegun import freeze_time
-import instaloader
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 import pandas as pd
@@ -117,7 +116,7 @@ class TestInstagram(DatabaseTestCase):
         pd.testing.assert_frame_equal(
             actual_data,
             thumbnails[['permalink', 'thumbnail_uri']])
-        self.assertEquals(
+        self.assertEqual(
             uri_mock.call_count,
             post_data['thumbnail_uri'].isna().sum())
 
