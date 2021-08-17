@@ -1,9 +1,11 @@
 import datetime as dt
 import json
 import re
+from shutil import copyfile
 from unittest.mock import MagicMock, patch
 
 from freezegun import freeze_time
+import instaloader
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 import pandas as pd
@@ -119,9 +121,9 @@ class TestInstagram(DatabaseTestCase):
             uri_mock.call_count,
             post_data['thumbnail_uri'].isna().sum())
 
-    @patch('instagram.try_request_multiple_times')
+    @patch.object(instagram.FetchIgPostThumbnails, 'create_instaloader')
     @patch.object(instagram.FetchIgPostThumbnails, 'get_thumbnail_url')
-    def test_get_thumbnail_uri(self, url_mock, request_mock):
+    def test_get_thumbnail_uri(self, url_mock, instaloader_mock):
         thumbnails = pd.read_csv(
             f'{IG_TEST_DATA}/post_thumbnails.csv', keep_default_na=False)
 
@@ -129,17 +131,15 @@ class TestInstagram(DatabaseTestCase):
             thumbnails[thumbnails['permalink'] == permalink][
                 'thumbnail_url'].values[0]
 
-        # Mock URLs requests and answer local files instead
-        def mocked_request(url, **kwargs):
-            match = re.match(r'^test://(?P<path>.*\.(?P<ext>[^.]+))$', url)
-            self.assertTrue(match)
-            full_path = f"{IG_TEST_DATA}/thumbnails/{match['path']}"
-            with open(full_path, 'rb') as stream:
-                return MagicMock(
-                    ok=True,
-                    content=stream.read(),
-                    headers={'Content-Type': f"image/{match['ext']}"})
-        request_mock.side_effect = mocked_request
+        # Mock download calls and copy local files instead
+        def mocked_download(download_path, url, mtime):
+            url_match = re.match(
+                r'^test://(?P<path>.*\.(?P<ext>[^.]+))(?:&ext=\w+)$', url)
+            self.assertTrue(url_match)
+            local_path = f"{IG_TEST_DATA}/thumbnails/{url_match['path']}"
+            copyfile(local_path, f'{download_path}.jpg')
+            return True
+        instaloader_mock.return_value = MagicMock(download_pic=mocked_download)
 
         # Let's go!
         self.task = instagram.FetchIgPostThumbnails()
