@@ -22,7 +22,8 @@ class PostsToDb(luigi.WrapperTask):
 
         yield AppstoreReviewsToDb()
         yield FbPostsToDb()
-        yield FbPostCommentsToDb()
+        # WORKAROUND: Facebook comments endpoint is currently defect, see #393.
+        # yield FbPostCommentsToDb()
         yield GoogleMapsReviewsToDb()
         yield GooglePlaystoreReviewsToDb()
         yield IgToDb()
