@@ -55,6 +55,7 @@ pandas==1.1.5
 PyYAML==5.4.1
 requests==2.26.0
 tqdm==4.62.1
+tzdata==2021.1  # required for dateparser
 xlrd==1.2.0 # Do not update, v2.0.1 does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
