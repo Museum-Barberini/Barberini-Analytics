@@ -55,10 +55,9 @@ def _perform_query(query):
         database='postgres'
     )
     try:
-        with connection:
-            connection.autocommit = True  # required for meta queries
-            with connection.cursor() as cursor:
-                return cursor.execute(query)
+        connection.autocommit = True  # required for meta queries
+        with connection.cursor() as cursor:
+            return cursor.execute(query)
     finally:
         connection.close()
 
