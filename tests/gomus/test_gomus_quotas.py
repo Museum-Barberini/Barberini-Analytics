@@ -46,11 +46,11 @@ class TestExtractQuotas(DatabaseTestCase):
 
         with self.task.output().open() as output:
             actual_quotas = pd.read_csv(output)
-        self.assertEquals(1, len(actual_quotas))
+        self.assertEqual(1, len(actual_quotas))
         quota = actual_quotas.iloc[0]
-        self.assertEquals(26, quota['quota_id'])
-        self.assertEquals("Kontingent 1 - Werktags", quota['name'])
-        self.assertEquals('2020-08-17 19:08:00', quota['creation_date'])
+        self.assertEqual(26, quota['quota_id'])
+        self.assertEqual("Kontingent 1 - Werktags", quota['name'])
+        self.assertEqual('2020-08-17 19:08:00', quota['creation_date'])
 
 
 class TestFetchQuotas(DatabaseTestCase):

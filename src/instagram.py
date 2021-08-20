@@ -12,9 +12,11 @@ import os
 import sys
 
 from dateutil import parser as dtparser
+import instaloader
 import luigi
 from luigi.format import UTF8
 import pandas as pd
+import regex
 from tqdm import tqdm
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, QueryDb, logger
@@ -220,9 +222,16 @@ class FetchIgPosts(DataPreparationTask):
 class FetchIgPostThumbnails(DataPreparationTask):
     """Fetch thumbnails for all fetched Instagram posts."""
 
-    thumbnail_width = 512
     empty_data_uri = 'data:image/png,'
     worker_timeout = 3600  # 60 min
+
+    @property
+    def username(self):
+        return os.getenv('INSTA_USER')
+
+    @property
+    def password(self):
+        return os.getenv('INSTA_PASS')
 
     def output(self):
         return luigi.LocalTarget(
@@ -263,31 +272,53 @@ class FetchIgPostThumbnails(DataPreparationTask):
         url = self.get_thumbnail_url(permalink)
         if not url:
             return None
-        if url == self.empty_data_uri:
-            return url
 
-        response = try_request_multiple_times(url)
-        data_type = response.headers['Content-Type']
-        data = base64.b64encode(response.content)
-        return f'data:{data_type};base64,{data.decode()}'
+        permalink_match = regex.search(
+            r'instagram\.com/(?P<type>p|tv)/(?P<id>[\w-]+)/', permalink)
+        if permalink_match['type'] != 'p':
+            # TODO: Support IGTV thumbnails as well. See #395 (comment 20498).
+            logger.info(f"Skipping unsupported media type for post {url}")
+            return self.empty_data_uri
+        short_id = permalink_match['id']
+
+        loader = self.create_instaloader(
+            quiet=True,
+            download_videos=False,
+            download_geotags=False,
+            download_comments=False,
+            save_metadata=False
+        )
+
+        directory = f'{self.output_dir}/instagram/thumbnails'
+        filepath = f'{directory}/{short_id}'
+        ext = 'jpg'
+        url += f'&ext={ext}'
+        os.makedirs(directory, exist_ok=True)
+        loader.download_pic(filepath, url, dt.datetime.now())
+        filepath += f'.{ext}'
+
+        # Current width of downloaded thumbnails is 320 px. If this is
+        # changed, we might want to resize it here.
+        with open(filepath, 'rb') as data_file:
+            data = base64.b64encode(data_file.read())
+        return f'data:image/jpeg;base64,{data.decode()}'
 
     def get_thumbnail_url(self, permalink):
-        url = (f'{API_BASE}/instagram_oembed?url={permalink}'
-               f'&fields=thumbnail_url&maxwidth={self.thumbnail_width}')
-        response = try_request_multiple_times(url)
-        if not response.ok:
-            try:
-                response_json = response.json()
-                if response_json['error']['code'] == 24:
-                    # Error: "The requested resource does not exist".
-                    # Return a truthy value instead of None to avoid redundant
-                    # retrys upon every later execution of the task.
-                    return self.empty_data_uri
-            except (KeyError, ValueError):
-                pass
-            return None
-        response_json = response.json()
-        return response_json['thumbnail_url']
+        return f'{permalink}media?size=m'
+
+    def create_instaloader(self, **kwargs):
+        # Possible refactoring for later: Extract separate classes
+        # InstaloaderTask & InstaloaderTarget
+        loader = instaloader.Instaloader(**kwargs)
+
+        session_path = f'{self.output_dir}/instagram/session'
+        try:
+            loader.load_session_from_file(self.username, session_path)
+        except FileNotFoundError:
+            loader.login(self.username, self.password)
+            loader.save_session_to_file(session_path)
+
+        return loader
 
 
 class FetchIgPostPerformance(DataPreparationTask):

@@ -23,6 +23,7 @@ validators==0.18.2
 
 # Data sources
 google-api-python-client==2.17.0
+instaloader==4.8.1
 git+https://github.com/twintproject/twint.git#egg=twint
 
 # Analysis tools
