@@ -294,7 +294,15 @@ class FetchIgPostThumbnails(DataPreparationTask):
         ext = 'jpg'
         url += f'&ext={ext}'
         os.makedirs(directory, exist_ok=True)
-        loader.download_pic(filepath, url, dt.datetime.now())
+        try:
+            loader.download_pic(filepath, url, dt.datetime.now())
+        except instaloader.exceptions.ConnectionException as error:
+            if "404 when accessing" not in str(error):
+                raise
+            # Return a truthy value instead of None to avoid redundant
+            # retrys upon every later execution of the task.
+            return self.empty_data_uri
+
         filepath += f'.{ext}'
 
         # Current width of downloaded thumbnails is 320 px. If this is
