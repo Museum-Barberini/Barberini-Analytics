@@ -26,6 +26,9 @@ class TwitterExtendedDatasetToDB(CsvToDb):
 
 class TwitterExtendedDataset(DataPreparationTask):
 
+    # TODO: Query below is SLOW - use index for terms in candidates?
+    worker_timeout = 3600
+
     # Define thresholds for filtering algorithm.
     r_thresh = luigi.IntParameter(default=50)
     ranking_thresh = luigi.FloatParameter(default=0.8)
