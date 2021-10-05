@@ -100,6 +100,8 @@ class FetchGomusHTML(DataPreparationTask):
                 raise
             else:
                 output = output.as_error()
+        if response.url.endswith('/users/sign_in'):
+            raise ConnectionError("Could not log in to gomus system, please check the session ID")
 
         with output.open('wb') as html_out:
             for block in response.iter_content(1024):

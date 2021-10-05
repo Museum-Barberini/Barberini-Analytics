@@ -78,8 +78,8 @@ class FetchEventReservations(luigi.Task):
         url = f'{BASE_URL}/bookings/{self.booking_id}/seats.xlsx'
         response = requests.get(url, cookies=dict(
             _session_id=os.environ['GOMUS_SESS_ID']))
+        response.raise_for_status()
         response_content = response.content
 
         with self.output().open('w') as target_csv:
-            if response.status_code != 500:
-                csv_from_excel(response_content, target_csv, self.status)
+            csv_from_excel(response_content, target_csv, self.status)
