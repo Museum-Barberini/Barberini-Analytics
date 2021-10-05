@@ -1,4 +1,5 @@
 import datetime as dt
+import unittest
 from unittest.mock import patch
 
 from freezegun import freeze_time
@@ -14,6 +15,8 @@ class TestFetchTwitter(DatabaseTestCase):
     """Tests the FetchTwitter task."""
 
     @patch.object(FetchTwitter, 'output')
+    # See: https://github.com/twintproject/twint/issues/1281
+    @unittest.expectedFailure
     def test_fetch_twitter(self, output_mock):
         output_target = MockTarget('raw_out', format=UTF8)
         output_mock.return_value = output_target
