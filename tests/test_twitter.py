@@ -15,7 +15,8 @@ class TestFetchTwitter(DatabaseTestCase):
     """Tests the FetchTwitter task."""
 
     @patch.object(FetchTwitter, 'output')
-    @unittest.expectedFailure  # See: https://github.com/twintproject/twint/issues/1281
+    # See: https://github.com/twintproject/twint/issues/1281
+    @unittest.expectedFailure
     def test_fetch_twitter(self, output_mock):
         output_target = MockTarget('raw_out', format=UTF8)
         output_mock.return_value = output_target
