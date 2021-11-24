@@ -19,6 +19,7 @@ flake8==4.0.1
 flake8-docstrings==1.6.0
 freezegun==1.1.0
 pep8-naming==0.12.1
+twython==3.9.1
 validators==0.18.2
 
 # Data sources
