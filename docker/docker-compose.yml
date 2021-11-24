@@ -46,7 +46,7 @@ services:
 
     barberini_analytics_db:
         container_name: barberini_analytics_db
-        image: postgres:12.3
+        image: postgres:12.7
         restart: always
         shm_size: 1g
         ports:
