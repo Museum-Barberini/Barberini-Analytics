@@ -37,11 +37,35 @@ Thus, updates should be carried out on a regular schedule.
 4. Create a merge request with your changes and make sure the CI passes.
 5. Once it passes, merge the branch.
 
+#### Update docker installation
+
+1. Check your current version:
+
+   ```sh
+   docker -v
+   ```
+
+2. Visit <https://docs.docker.com/engine/release-notes/> to learn about open CVEs.
+
+3. Identify upgradable packages:
+
+   ```sh
+   apt list --installed | grep docker
+   ```
+
+4. Upgrade relevant packages:
+
+   ```sh
+   apt upgrade <package name>
+   ```
+
 #### Update docker images
 
 Each used docker image is specified either in `docker/docker-compose.yml` or in the linked Dockerfile.
 For more information about the docker containers, please refer to the [documentation](DOCUMENTATION.md#docker-containers).
 
+0. First of all, search for breaking changes of an update, e.g., [here](https://www.postgresql.org/docs/release/) for Postgresql.
+   You can find all existing CVEs for Postgresql [here](https://www.postgresql.org/support/security/).
 1. To update a docker image, edit the `image` key in the yaml file respectively the `FROM` command in the Dockerfile.
    Be careful to watch for any breaking changes in the updates.
 2. Restart the container by running `make shutdown-<docker> startup-<docker>`.
