@@ -49,11 +49,21 @@ class ExtractGomusBookings(DataPreparationTask):
                     x['Uhrzeit von'], x['Uhrzeit bis']), axis=1)
 
             # order_date and language are added by scraper
+
+            # Historically, there was only a single column 'Angebot/Termin' -
+            # as our database schema relies on this aggregation, we preserve
+            # this format here.
+            bookings['Angebot/Termin'] = bookings.apply(
+                lambda booking: booking['Angebot']
+                if not pd.isna(booking['Angebot'])
+                else booking['Termin'],
+                axis=1)
         else:
-            # manually append "Startzeit" and "Dauer" to ensure pandas
+            # manually append required columns to ensure pandas
             # doesn't crash even though nothing will be added
             bookings['Startzeit'] = 0
             bookings['Dauer'] = 0
+            bookings['Angebot/Termin'] = ''
 
         bookings = bookings.filter(['Buchung',
                                     'Angebotskategorie',
