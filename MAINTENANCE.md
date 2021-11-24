@@ -25,11 +25,11 @@ b) can break the connection to external access points whose interface has change
 c) may leave recently discovered security leaks unfixed.
 Thus, updates should be carried out on a regular schedule.
 
-#### Update python (pip) dependencies
+#### Update python (pip) & JavaScript (npm) dependencies
 
 1. Check out a new branch.
 2. Connect to the docker (`make connect`), and run `make upgrade-requirements`.
-3. Revise the changes in `requirements.txt`.
+3. Revise the changes in `requirements.txt` and `package*.json`.
 4. If `pip check` fails, you need to manually add the required dependencies to `docker/requirements.txt`.
    This is necessary because of <https://github.com/pypa/pip/issues/988>.
 

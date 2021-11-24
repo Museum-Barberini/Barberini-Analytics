@@ -191,5 +191,6 @@ db-schema-report:
 upgrade-requirements:
 	pip-upgrade docker/requirements.txt --skip-virtualenv-check -p all
 	bash -c 'pip3 check || (echo "⚠ Please define these deps explicitely in requirements.txt" && false)'
+	cd docker && ncu -u && npm install
 	echo "Upgrade successful, please run the CI now before merging the" \
 		 "upgrades into the master!"
