@@ -25,6 +25,12 @@ class TestFetchTwitter(DatabaseTestCase):
 
     def post_tweet(self, text):
         from twython import Twython
+        # HOW TO GET THESE KEYS:
+        # 1. Register app on https://developer.twitter.com/en/portal/projects
+        # 2. Under settings, give your app permissions to read and write posts
+        # 3. Under "Consumer Keys", generate the "API Key" and "API Secret"
+        # 4. Under "Authentication Tokens", generate the "Access Token" and
+        #    "Access Token Secret"
         app_key = os.getenv('TWYTHON_APP_KEY')
         app_secret = os.getenv('TWYTHON_APP_SECRET')
         access_token = os.getenv('TWYTHON_ACCESS_TOKEN')
