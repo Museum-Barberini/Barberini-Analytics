@@ -38,7 +38,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
     is_interactive = luigi.BoolParameter(default=sys.stdin.isatty())
     scopes = ['https://www.googleapis.com/auth/business.manage']
     google_gmb_discovery_url = ('https://developers.google.com/my-business/'
-                                'samples/mybusiness_google_rest_v4p5.json')
+                                'samples/mybusiness_google_rest_v4p9.json')
 
     api_service_name = 'mybusiness'
     api_version = 'v4'
