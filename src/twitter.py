@@ -119,6 +119,11 @@ class FetchTwitter(DataPreparationTask):
         default=dt.timedelta(weeks=2),
         description="For how many days tweets should be fetched")
 
+    # twint fails sporadically with RefreshTokenException on our VM as Twitter
+    # is blocking too many accesses from certain IPs.
+    # See https://github.com/twintproject/twint/issues/957.
+    retry_count = 3
+
     def output(self):
         return luigi.LocalTarget(
             f'{self.output_dir}/twitter/raw_tweets.csv',
