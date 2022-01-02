@@ -116,6 +116,11 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
     # for a given keyword-interval
     collection_r_limit = luigi.IntParameter(default=50)
 
+    # twint fails sporadically with RefreshTokenException on our VM as Twitter
+    # is blocking too many accesses from certain IPs.
+    # See https://github.com/twintproject/twint/issues/957.
+    retry_count = 3
+
     def requires(self):
         return KeywordIntervalsToDB()
 
