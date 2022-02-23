@@ -184,7 +184,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                 aspect_id,
                 avg(linear_distance) AS linear_distance,
                 CASE
-                    WHEN sum(polarity) = 0 THEN NULL
+                    WHEN sum(polarity * linear_weight) = 0 THEN NULL
                     ELSE sum(polarity ^ 2 * linear_weight)
                         / sum(polarity * linear_weight)
                 END AS sentiment,
