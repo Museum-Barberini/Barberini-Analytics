@@ -209,23 +209,31 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             # See for details:
             # https://gitlab.com/Museum-Barberini/Barberini-Analytics/issues/79
             # We want to keep both original and English translation.
-            (
-                extracted['text'],
-                extracted['text_english'],
-                extracted['language']
-            ) = (
-                # english reviews are as is; (Original) may be part of the text
-                (raw_comment, raw_comment, "english")
-                if "(Translated by Google)" not in raw_comment else (
-                    # Other reviews have this format:
-                    #   (Translated by Google)[english translation]\n\n
-                    #   (Original)\n[original review]
-                    raw_comment.split("(Original)")[1].strip(),
-                    raw_comment.split("(Original)")[0].split(
-                        "(Translated by Google)"
-                    )[1].strip(),
-                    "other"
-                )
-            )
+            if "(Translated by Google)" not in raw_comment:
+                extracted['text'] = extracted['text_english'] = raw_comment
+                extracted['language'] = "english"
+                # NOTE: New reviews might not yet have been translated even if
+                # they are not in English.
+            elif raw_comment.startswith("(Translated by Google)"):
+                # Review has the format:
+                #   (Translated by Google) [English translation]
+                #
+                #   (Original)
+                #   [original text]
+                texts = raw_comment[len("(Translated by Google)"):].split(
+                    "(Original)")
+                extracted['text'] = texts[1].strip()
+                extracted['text_english'] = texts[0].strip()
+                extracted['language'] = "other"
+            else:
+                # Review has the format:
+                #   [original text]
+                #
+                #   (Translated by Google)
+                #   [English translation]
+                texts = raw_comment.split("(Translated by Google)")
+                extracted['text'] = texts[1].strip()
+                extracted['text_english'] = texts[0].strip()
+                extracted['language'] = "german"
 
         return extracted
