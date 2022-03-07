@@ -1,6 +1,6 @@
 {
     "name": "sigma-text-graph",
-    "repository": "https://gitlab.hpi.de/bp-barberini/bp-barberini",
+    "repository": "https://gitlab.com/Museum-Barberini/Barberini-Analytics",
     "author": "Christoph Thiede",
     "license": "UNLICENSED",
     "scripts": {

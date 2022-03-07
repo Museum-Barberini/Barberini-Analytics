@@ -207,7 +207,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         if raw_comment:
             # This assumes possibly unintended behavior of Google's API.
             # See for details:
-            # https://gitlab.hpi.de/bp-barberini/bp-barberini/issues/79
+            # https://gitlab.com/Museum-Barberini/Barberini-Analytics/issues/79
             # We want to keep both original and English translation.
             (
                 extracted['text'],
