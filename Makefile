@@ -153,7 +153,7 @@ lint-python:
 
 lint-markdown:
 	/node_modules/remark-cli/cli.js -f -u validate-links -u remark-lint-no-dead-urls=$\"skipLocalhost:true, skipUrlPatterns:$\[$\'https://account.google.com$\$\']$\" .
-	/node_modules/markdownlint-cli/markdownlint.js . --ignore $(realpath docker/node_modules)
+	/node_modules/markdownlint-cli/markdownlint.js .
 
 python-bandit:
 	bandit -c bandit.yml ./**/*.py
