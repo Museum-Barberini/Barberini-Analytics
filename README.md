@@ -30,17 +30,17 @@ In particular, these features include the following highlights:
 - **Visitor Prediction:** Machine-Learning (ML) based solution to predict the future number of museum visitors by extrapolating historic visitor data.
   See [`src/visitor_prediction`](./src/visitor_prediction).
   
-  Credits go to Georg Tennigkeit (@georg.tennigkeit/@georgt99).
+  Credits go to Georg Tennigkeit ([@georgt99](https://github.com/georgt99)).
 - **Postal Code Cleansing:** Collection of heuristics to correct address information entered by humans with errors.
   See [`src/_utils/cleanse_data.py`].
   
-  Credits go to Laura Holz (@laura.holz/@lauraholz).
+  Credits go to Laura Holz ([@lauraholz](https://github.com/lauraholz)).
 - **Power BI Crash Tests:** Load & crash tests for Power BI visualization reports.
   See <https://github.com/LinqLover/pbi-crash-tests>.
   
-  Credits go to Christoph Thiede (@christoph.thiede/@LinqLover).
+  Credits go to Christoph Thiede ([@LinqLover](https://github.com/LinqLover)).
 
-Development is currently being continued in a private GitLab instance but a [mirror of the repository is available on GitHub](https://github.com/Museum-Barberini-gGmbH/Barberini-Analytics).
+Development is currently being continued on [GitLab](https://gitlab.com/Museum-Barberini/Barberini-Analytics) but a [mirror of the repository is available on GitHub](https://github.com/Museum-Barberini-gGmbH/Barberini-Analytics).
 
 If you are interested in reusing any part of our solution and have further questions, ideas, or bug reports, please do not hesitate to contact us!
 
@@ -147,5 +147,5 @@ See [`MAINTENANCE.md`](MAINTENANCE.md).
 
 ## Credits
 
-**Authors:** Laura Holz, Selina Reinhard, Leon Schmidt, Georg Tennigkeit, Christoph Thiede, Tom Wollnik (bachelor project BP-FN1 @ HPI, 2019/20).  
+**Authors:** [Laura Holz](https://github.com/lauraholz), Selina Reinhard, [Leon Schmidt](https://github.com/leonschmidt99), [Georg Tennigkeit](https://github.com/georgt99), [Christoph Thiede](https://github.com/LinqLover), [Tom Wollnik](https://github.com/twollnik) (bachelor project BP-FN1 @ HPI, 2019/20).  
 **Organizations:** [Hasso Plattner Institute, Potsdam](https://hpi.de/en); [Museum Barberini](https://www.museum-barberini.com/en/); Hasso Plattner Foundation.
