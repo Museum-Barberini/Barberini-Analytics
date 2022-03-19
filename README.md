@@ -40,7 +40,7 @@ In particular, these features include the following highlights:
   
   Credits go to Christoph Thiede ([@LinqLover](https://github.com/LinqLover)).
 
-Development is currently being continued on [GitLab](https://gitlab.com/Museum-Barberini/Barberini-Analytics) but a [mirror of the repository is available on GitHub](https://github.com/Museum-Barberini-gGmbH/Barberini-Analytics).
+Development is currently being continued on [GitLab](https://gitlab.com/Museum-Barberini/Barberini-Analytics) (private repo) but a [mirror of the repository is available on GitHub](https://github.com/Museum-Barberini-gGmbH/Barberini-Analytics).
 
 If you are interested in reusing any part of our solution and have further questions, ideas, or bug reports, please do not hesitate to contact us!
 
