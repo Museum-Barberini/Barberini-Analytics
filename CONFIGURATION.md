@@ -21,6 +21,7 @@ To configure the mailing service, edit the `/etc/barberini-analytics/secrets/smt
 - `SMTP_PORT`
 - `SMTP_USERNAME`
 - `SMTP_PASSWORD`
+- `SMTP_RECEIVER`
 
 ## TLS Encryption
 
