@@ -49,7 +49,7 @@ class TestExtractQuotas(DatabaseTestCase):
         self.assertEqual(1, len(actual_quotas))
         quota = actual_quotas.iloc[0]
         self.assertEqual(26, quota['quota_id'])
-        self.assertEqual("Kontingent 1 - Werktags", quota['name'])
+        self.assertEqual("Barberini - Kontingent 1 - Werktags", quota['name'])
         self.assertEqual('2020-08-17 19:08:00', quota['creation_date'])
 
 
