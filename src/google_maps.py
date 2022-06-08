@@ -2,7 +2,7 @@
 
 import json
 import sys
-from typings import Dict
+from typing import Dict
 
 import googleapiclient.discovery
 import luigi
