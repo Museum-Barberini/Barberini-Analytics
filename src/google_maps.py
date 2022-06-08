@@ -2,6 +2,7 @@
 
 import json
 import sys
+from typings import Dict
 
 import googleapiclient.discovery
 import luigi
@@ -10,6 +11,26 @@ import pandas as pd
 from oauth2client.file import Storage
 
 from _utils import CsvToDb, DataPreparationTask, logger
+
+SERVICE_SPECS = {
+    'accounts': ('mybusinessaccountmanagement', 'v1', None),
+    'businesses': ('mybusinessbusinessinformation', 'v1', None),
+    'my_business': (
+        'mybusiness',
+        'v4',
+        ('https://developers.google.com/my-business/samples/'
+         'mybusiness_google_rest_v4p9.json')
+    )
+}
+
+STARS = dict({  # Google returns rating as a string
+    'STAR_RATING_UNSPECIFIED': None,
+    'ONE': 1,
+    'TWO': 2,
+    'THREE': 3,
+    'FOUR': 4,
+    'FIVE': 5
+})
 
 
 class GoogleMapsReviewsToDb(CsvToDb):
@@ -37,20 +58,6 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         default='secret_files/google_gmb_client_secret.json')
     is_interactive = luigi.BoolParameter(default=sys.stdin.isatty())
     scopes = ['https://www.googleapis.com/auth/business.manage']
-    google_gmb_discovery_url = ('https://developers.google.com/my-business/'
-                                'samples/mybusiness_google_rest_v4p9.json')
-
-    api_service_name = 'mybusiness'
-    api_version = 'v4'
-
-    stars_dict = dict({  # Google returns rating as a string
-        'STAR_RATING_UNSPECIFIED': None,
-        'ONE': 1,
-        'TWO': 2,
-        'THREE': 3,
-        'FOUR': 4,
-        'FIVE': 5
-    })
 
     def output(self):
 
@@ -64,10 +71,10 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         logger.info("loading credentials...")
         credentials = self.load_credentials()
         try:
-            logger.info("creating service...")
-            service = self.load_service(credentials)
+            logger.info("creating services...")
+            services = self.load_services(credentials)
             logger.info("fetching reviews...")
-            raw_reviews = list(self.fetch_raw_reviews(service))
+            raw_reviews = list(self.fetch_raw_reviews(services))
         except googleapiclient.errors.HttpError as error:
             logger.warn(
                 "HTTP error: %s",
@@ -119,15 +126,22 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
         return credentials
 
-    def load_service(self, credentials) -> googleapiclient.discovery.Resource:
+    def load_services(self, credentials) -> \
+            Dict[str, googleapiclient.discovery.Resource]:
 
-        return googleapiclient.discovery.build(
-            self.api_service_name,
-            self.api_version,
-            credentials=credentials,
-            discoveryServiceUrl=self.google_gmb_discovery_url)
+        return {
+            key: googleapiclient.discovery.build(
+                service_name,
+                version,
+                credentials=credentials,
+                discoveryServiceUrl=discovery_url or (
+                    f'https://{service_name}.googleapis.com/'
+                    f'$discovery/rest?version={version}'))
+            for key, (service_name, version, discovery_url)
+            in SERVICE_SPECS.items()
+        }
 
-    def fetch_raw_reviews(self, service, page_size=100):
+    def fetch_raw_reviews(self, services, page_size=100):
         """
         Fetch raw reviews from the Google My Business API.
 
@@ -135,57 +149,63 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         An authenticated user has account(s), an accounts contains locations,
         and a location contains reviews (which we need to request one by one).
         """
-        # get account identifier
-        account_list = service.accounts().list().execute()
-        # in almost all cases one only has access to one account
-        account = account_list['accounts'][0]['name']
+        account_list = services['accounts'].accounts().list().execute()
+        assert len(account_list['accounts']) > 0
 
-        # get location identifier of the first location
-        # available to this account
-        # it seems like this identifier is unique per user
-        location_list = service.accounts().locations()\
-            .list(parent=account).execute()
-        if len(location_list['locations']) == 0:
-            raise Exception(
-                ("ERROR: This user seems to not have access to any google "
-                 "location, unable to fetch reviews"))
-        location = location_list['locations'][0]['name']
-        place_id = location_list['locations'][0]['locationKey']['placeId']
+        for account in account_list['accounts']:
+            account_name = account['name']
 
-        # get reviews for that location
-        review_list = service.accounts().locations().reviews().list(
-            parent=location,
-            pageSize=page_size).execute()
-        yield from [
-            {**review, 'placeId': place_id}
-            for review
-            in review_list['reviews']
-        ]
-        total_reviews = review_list['totalReviewCount']
+            location_list = services['businesses'].accounts().locations()\
+                .list(
+                    parent=account_name,
+                    readMask=','.join(['name', 'metadata'])
+                )\
+                .execute()
+            assert len(location_list['locations']) > 0
 
-        pbar_loop = iter(self.tqdm(
-            range(total_reviews),
-            desc="Fetching Google Maps pages"
-        ))
-        while 'nextPageToken' in review_list:
-            next_page_token = review_list['nextPageToken']
-            # TODO: optimize by requesting the latest review from DB rather
-            # than fetching more pages once that one is found
-            review_list = service.accounts().locations().reviews().list(
-                parent=location,
-                pageSize=page_size,
-                pageToken=next_page_token).execute()
-            try:
-                reviews = review_list['reviews']
-            except KeyError:
-                break
+            for location in location_list['locations']:
+                location_name = location['name']
+                place_id = location['metadata']['placeId']
 
-            for review in reviews:
-                next(pbar_loop)
-                yield {**review, 'placeId': place_id}
+                review_resource = services['my_business'].accounts()\
+                    .locations().reviews()
+                global_location_name = f'{account_name}/{location_name}'
 
-            if self.minimal_mode:
-                review_list.pop('nextPageToken')
+                review_list = review_resource\
+                    .list(parent=global_location_name, pageSize=page_size)\
+                    .execute()
+                yield from [
+                    {**review, 'placeId': place_id}
+                    for review
+                    in review_list['reviews']
+                ]
+                total_reviews = review_list['totalReviewCount']
+
+                pbar_loop = iter(self.tqdm(
+                    range(total_reviews),
+                    desc="Fetching Google Maps pages"
+                ))
+                while 'nextPageToken' in review_list:
+                    next_page_token = review_list['nextPageToken']
+                    # TODO: optimize by requesting the latest review from DB
+                    # rather than fetching more pages once that one is found
+                    review_list = review_resource\
+                        .list(
+                            parent=global_location_name,
+                            pageSize=page_size,
+                            pageToken=next_page_token)\
+                        .execute()
+                    try:
+                        reviews = review_list['reviews']
+                    except KeyError:
+                        break
+
+                    for review in reviews:
+                        next(pbar_loop)
+                        yield {**review, 'placeId': place_id}
+
+                    if self.minimal_mode:
+                        review_list.pop('nextPageToken')
 
     def extract_reviews(self, raw_reviews) -> pd.DataFrame:
 
@@ -196,7 +216,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
         extracted = {
             'google_maps_review_id': raw['reviewId'],
             'post_date': raw['createTime'],
-            'rating': self.stars_dict[raw['starRating']],
+            'rating': STARS[raw['starRating']],
             'text': None,
             'text_english': None,
             'language': None,
