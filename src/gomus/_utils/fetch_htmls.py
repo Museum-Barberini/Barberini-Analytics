@@ -137,7 +137,7 @@ class FetchBookingsHTML(DataPreparationTask):
         db_booking_rows = self.db_connector.query(f'''
             SELECT booking_id FROM gomus_booking
             WHERE start_datetime < '{today_time}'
-        ''')
+        ''')  # nosec B608
 
         for i, row in bookings.iterrows():
             booking_id = row['booking_id']
@@ -184,7 +184,7 @@ class FetchOrdersHTML(DataPreparationTask):
             ON a.order_id = b.order_id
             WHERE ticket IS NULL
             {query_limit}
-        ''')
+        ''')  # nosec B608
 
         return order_ids
 

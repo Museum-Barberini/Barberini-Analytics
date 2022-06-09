@@ -368,7 +368,8 @@ class TestDataPreparationTask(DatabaseTestCase):
                     REFERENCES {TABLE_NAME_FOREIGN} ({COLUMN_NAME_FOREIGN})
             )''')
         # no values are inserted into DB prior
-        print(self.db_connector.query(f"SELECT * FROM {TABLE_NAME_FOREIGN}"))
+        print(self.db_connector.query(
+            f'SELECT * FROM {TABLE_NAME_FOREIGN}'))  # nosec B608
         with self.assertRaisesRegex(
                 ValueError,
                 "All values have been discarded "

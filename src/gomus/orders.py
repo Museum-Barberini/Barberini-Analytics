@@ -93,7 +93,7 @@ class ExtractOrderData(DataPreparationTask):
             f'''
                 SELECT customer_id FROM gomus_to_customer_mapping
                 WHERE gomus_id = {org_id}
-            ''',
+            ''',  # nosec B608
             only_first=True)
         customer_id = customer_row[0] if customer_row else np.nan
         return customer_id

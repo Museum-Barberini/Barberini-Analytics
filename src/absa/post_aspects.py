@@ -115,7 +115,7 @@ class CollectPostAspectsAlgorithm(QueryDb):
                     JOIN absa.target_aspect_word USING (aspect_id)
             GROUP BY
                 source, post_id, word_index, aspect_id
-        '''
+        '''  # nosec B608
 
     def pre_filter_query(self, post_word_name):
         """Query to filter post words before applying the algorithm."""

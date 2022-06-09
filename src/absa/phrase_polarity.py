@@ -90,7 +90,7 @@ class FetchSentiWs(DataPreparationTask):
 
     def run(self):
 
-        response = urlopen(self.url)
+        response = urlopen(self.url)  # nosec B310
         archive = ZipFile(BytesIO(response.read()))
         rows = self.load_polarities(archive)
         df = pd.DataFrame(

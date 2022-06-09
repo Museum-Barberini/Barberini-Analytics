@@ -21,7 +21,8 @@ def main():  # noqa: D103
 
         key_columns = condenser.get_key_columns()
         performance_columns = condenser.get_performance_columns(key_columns)
-        data, header = CONNECTOR.query_with_header(f'SELECT * FROM {table}')
+        data, header = CONNECTOR.\
+            query_with_header(f'SELECT * FROM {table}')  # nosec B608
         df = pd.DataFrame(data, columns=header)
 
         # Special treatment because of multi-column key
@@ -68,7 +69,7 @@ def main():  # noqa: D103
                 DELETE FROM {table}
                 WHERE {key_column} = '{row[key_column]}'
                 AND {TIMESTAMP_COLUMN} = '{row[TIMESTAMP_COLUMN]}'
-                '''
+                '''  # nosec B608
             )
         if queries:
             CONNECTOR.execute(*queries)

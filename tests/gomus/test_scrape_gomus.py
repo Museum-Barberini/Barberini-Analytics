@@ -138,10 +138,12 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
 
         # Insert test values
         self.db_connector.execute(
-            f'INSERT INTO gomus_customer VALUES ({fake_customer_id})',
+            f'''INSERT INTO gomus_customer VALUES (
+                {fake_customer_id})
+            ''',  # nosec B608
             f'''INSERT INTO gomus_to_customer_mapping VALUES (
                 {gomus_id}, {fake_customer_id})
-            ''')
+            ''')  # nosec B608
 
         # Run fetch_updated_mail
         self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
@@ -155,7 +157,7 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
                 SELECT customer_id
                 FROM gomus_to_customer_mapping
                 WHERE gomus_id = {gomus_id}
-            ''',
+            ''',  # nosec B608
             only_first=True)
         self.assertEqual(new_id[0], real_customer_id)
 

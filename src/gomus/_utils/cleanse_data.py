@@ -168,8 +168,10 @@ class CleansePostalCodes(DataPreparationTask):
 
         if self.amount == 'all':
 
-            customer_data = self.db_connector.query(
-                query=f'SELECT * FROM gomus_customer {query_limit}')
+            customer_data = self.db_connector.query(query=f'''
+                SELECT *
+                FROM gomus_customer {query_limit}
+                ''')  # nosec B608
 
             customer_df = pd.DataFrame(customer_data,
                                        columns=self.columns)

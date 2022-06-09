@@ -73,11 +73,11 @@ class FuzzyJoinPhrases(QueryDb):
                 source, post_id, word_index, n;
 
             {self.final_query()}
-        '''
+        '''  # nosec B608
 
     def known_post_ids_query(self):
 
-        return f'SELECT post_id FROM {self.table}'
+        return f'SELECT post_id FROM {self.table}'  # nosec B310
 
     def final_query(self):
 

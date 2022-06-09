@@ -90,7 +90,7 @@ class DbConnector:
         return self.exists(f'''
                 SELECT * FROM information_schema.tables
                 WHERE LOWER(table_name) = LOWER('{table}')
-            ''')
+            ''')  # nosec B608
 
     def query(
             self,

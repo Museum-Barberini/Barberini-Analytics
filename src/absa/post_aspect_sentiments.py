@@ -137,7 +137,7 @@ class PostAspectSentimentsLinearDistanceLimitToDb(QueryCacheToDb):
                 source, post_id, aspect_id,
                 dataset, aspect_match_algorithm,
                 sentiment_match_algorithm
-        '''
+        '''  # nosec B608
 
 
 class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
@@ -199,7 +199,7 @@ class PostAspectSentimentsLinearDistanceWeightToDb(QueryCacheToDb):
                 source, post_id, aspect_id,
                 dataset, aspect_match_algorithm,
                 sentiment_match_algorithm
-        '''
+        '''  # nosec B608
 
 
 class PostPhraseAspectPolaritiesLinearDistanceToDb(QueryCacheToDb):
@@ -252,4 +252,4 @@ class PostPhraseAspectPolaritiesLinearDistanceToDb(QueryCacheToDb):
             )
             SELECT *
             FROM linear_distance
-        '''
+        '''  # nosec B608

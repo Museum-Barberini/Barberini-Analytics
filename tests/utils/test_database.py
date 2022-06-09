@@ -65,7 +65,7 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name}'
+            f'SELECT * FROM {self.table_name}'  # nosec B608
         )
         self.assertEqual([(0, 1, 'a', 'b'), *EXPECTED_DATA], actual_data)
 
@@ -78,7 +78,7 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name}'
+            f'SELECT * FROM {self.table_name}'  # nosec B608
         )
         self.assertEqual([], actual_data)
 
@@ -95,7 +95,7 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name}')
+            f'SELECT * FROM {self.table_name}')  # nosec B608
         self.assertEqual(EXPECTED_DATA, actual_data)
 
     def test_replace_content(self):
@@ -125,11 +125,11 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name}'
+            f'SELECT * FROM {self.table_name}'  # nosec B608
         )
         self.assertEqual(EXPECTED_DATA, actual_data)
         actual_data2 = self.db_connector.query(
-            f'SELECT * FROM {self.table_name2}'
+            f'SELECT * FROM {self.table_name2}'  # nosec B608
         )
         self.assertEqual([(-2, 1, 'bar')], actual_data2)
 
@@ -168,7 +168,7 @@ class TestCsvToDb(DatabaseTestCase):
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name}')
+            f'SELECT * FROM {self.table_name}')  # nosec B608
         self.assertEqual(EXPECTED_DATA, actual_data)
 
     def test_array_columns(self):
@@ -199,7 +199,7 @@ tuple,array,str
 
         # Inspect result
         actual_data = self.db_connector.query(
-            f'SELECT * FROM {self.table_name}'
+            f'SELECT * FROM {self.table_name}'  # nosec B608
         )
         self.assertEqual(
             [(list(row[0]), *row[1:]) for row in complex_data],
@@ -248,7 +248,8 @@ class TestDbConnector(DatabaseTestCase):
 
     def test_query(self):
 
-        rows = self.connector.query(f'SELECT * FROM {self.temp_table}')
+        rows = self.connector.query(
+            f'SELECT * FROM {self.temp_table}')  # nosec B608
         self.assertEqual([(1, 2), (3, 4)], rows)
 
     def test_query_args(self):
@@ -270,7 +271,7 @@ class TestDbConnector(DatabaseTestCase):
     def test_query_with_header(self):
 
         rows, columns = self.connector.query_with_header(
-            f'SELECT * FROM {self.temp_table}')
+            f'SELECT * FROM {self.temp_table}')  # nosec B608
         self.assertEqual([(1, 2), (3, 4)], rows)
         self.assertSequenceEqual(['col1', 'col2'], columns)
 
@@ -288,11 +289,11 @@ class TestDbConnector(DatabaseTestCase):
         self.connector.execute(f'''
             DELETE FROM {self.temp_table}
             WHERE col1 = 1
-        ''')
+        ''')  # nosec B608
 
         with self.connection as conn:
             with conn.cursor() as cur:
-                cur.execute(f'SELECT * FROM {self.temp_table}')
+                cur.execute(f'SELECT * FROM {self.temp_table}')  # nosec B608
                 table_content = cur.fetchall()
 
         self.assertEqual([(3, 4)], table_content)
@@ -303,13 +304,13 @@ class TestDbConnector(DatabaseTestCase):
             f'''
                 DELETE FROM {self.temp_table}
                 WHERE col1 = %s
-            ''',
+            ''',  # nosec B608
             (1,)
         ))
 
         with self.connection as conn:
             with conn.cursor() as cur:
-                cur.execute(f'SELECT * FROM {self.temp_table}')
+                cur.execute(f'SELECT * FROM {self.temp_table}')  # nosec B608
                 table_content = cur.fetchall()
 
         self.assertEqual([(3, 4)], table_content)
@@ -320,15 +321,15 @@ class TestDbConnector(DatabaseTestCase):
             f'''
                 DELETE FROM {self.temp_table}
                 WHERE col1 = 1
-            ''',
+            ''',  # nosec B608
             f'''
                 DELETE FROM {self.temp_table}
                 WHERE col1 = 3
-            ''')
+            ''')  # nosec B608
 
         with self.connection as conn:
             with conn.cursor() as cur:
-                cur.execute(f'SELECT * FROM {self.temp_table}')
+                cur.execute(f'SELECT * FROM {self.temp_table}')  # nosec B608
                 table_content = cur.fetchall()
 
         self.assertFalse(table_content)  # empty
@@ -339,15 +340,15 @@ class TestDbConnector(DatabaseTestCase):
             (f'''
                 DELETE FROM {self.temp_table}
                 WHERE col1 = %(foo)s - %(bar)s
-            ''', {'foo': 7, 'bar': 6}),
+            ''', {'foo': 7, 'bar': 6}),  # nosec B608
             f'''
                 DELETE FROM {self.temp_table}
                 WHERE col1 = 3
-            ''')
+            ''')  # nosec B608
 
         with self.connection as conn:
             with conn.cursor() as cur:
-                cur.execute(f'SELECT * FROM {self.temp_table}')
+                cur.execute(f'SELECT * FROM {self.temp_table}')  # nosec B608
                 table_content = cur.fetchall()
 
         self.assertFalse(table_content)  # empty
@@ -356,7 +357,7 @@ class TestDbConnector(DatabaseTestCase):
 
         exists = self.connector.exists(f'''
             SELECT * FROM {self.temp_table}
-        ''')
+        ''')  # nosec B608
 
         self.assertTrue(exists)
 
@@ -365,7 +366,7 @@ class TestDbConnector(DatabaseTestCase):
         exists = self.connector.exists(f'''
             SELECT * FROM {self.temp_table}
             WHERE col1 = 10
-        ''')
+        ''')  # nosec B608
 
         self.assertFalse(exists)
 
@@ -411,7 +412,7 @@ class TestQueryDb(DatabaseTestCase):
 
     def test_query(self):
 
-        self.task = QueryDb(query=f'SELECT * FROM {self.table}')
+        self.task = QueryDb(query=f'SELECT * FROM {self.table}')  # nosec B608
         self.task.output = lambda: \
             MockTarget(f'output/{self.table}')
 
@@ -494,7 +495,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
         )
 
         self.assertFalse(
-            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}'),  # nosec B608
             msg="Cache table should be empty before running the task"
         )
 
@@ -502,7 +504,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
         self.assertSequenceEqual(
             [(1, 'foo'), (2, 'bar')],
-            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}'),  # nosec B608
             msg="Cache table should have been filled after running the task"
         )
 
@@ -510,7 +513,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
         self.assertSequenceEqual(
             [(1, 'foo'), (2, 'bar')],
-            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}'),  # nosec B608
             msg="Cache table should have been replaced after running the task"
         )
 
@@ -532,7 +536,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
         self.assertEqual(
             [(42, "🥳")],
-            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}'),  # nosec B608
             msg="Cache table should contain old values before running the "
                 "task"
         )
@@ -542,7 +547,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
         self.assertEqual(
             [(42, "🥳")],
-            self.db_connector.query(f'SELECT * FROM {self.table}'),
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}'),  # nosec B608
             msg="Cache table should still contain old values after the task "
                 "failed"
         )
@@ -566,7 +572,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
         self.assertSequenceEqual(
             [(1, 'foo'), (2, '%')],
-            self.db_connector.query(f'SELECT * FROM {self.table}')
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}')  # nosec B608
         )
 
     def test_kwargs(self):
@@ -587,7 +594,8 @@ class TestQueryCacheToDb(DatabaseTestCase):
 
         self.assertSequenceEqual(
             [(42, 'foo')],
-            self.db_connector.query(f'SELECT * FROM {self.table}')
+            self.db_connector.query(
+                f'SELECT * FROM {self.table}')  # nosec B608
         )
 
 

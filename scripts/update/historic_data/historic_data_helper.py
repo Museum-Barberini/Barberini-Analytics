@@ -2,7 +2,7 @@
 
 import os
 import shutil
-import subprocess as sp
+import subprocess as sp  # nosec B404
 
 
 def prepare_task():
