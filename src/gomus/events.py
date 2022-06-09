@@ -128,7 +128,7 @@ class FetchCategoryReservations(DataPreparationTask):
                 FROM gomus_booking
                 WHERE
                      category=\'{self.category}\'
-                     AND start_datetime > \'{two_weeks_ago}\''
+                     AND start_datetime > \'{two_weeks_ago}\'
             '''  # nosec B608: gomus categories are trusted
 
         booking_ids = self.db_connector.query(query)
