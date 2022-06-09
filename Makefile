@@ -176,7 +176,7 @@ db-do:
 
 db-backup:
 	docker exec barberini_analytics_db pg_dump -U postgres barberini \
-		> /var/barberini-analytics/db-backups/db_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+		> /var/barberini-analytics/db-backups/db_dump_`date +%Y-%m-%d"_"%H_%M_%S`.sql
 
 # Restore the database from a dump/backup
 db-restore:
