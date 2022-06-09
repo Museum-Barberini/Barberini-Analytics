@@ -26,7 +26,7 @@ class FetchGermanWordEmbeddings(DataPreparationTask):
     def run(self):
 
         logger.info("Downloading german_word_embeddings")
-        response = urlopen(self.url)
+        response = urlopen(self.url)  # nosec B310
 
         logger.info("Writing german_word_embeddings to file")
         with self.output().open('wb') as output:

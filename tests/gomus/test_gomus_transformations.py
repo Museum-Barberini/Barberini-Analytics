@@ -356,7 +356,7 @@ class TestEventTransformation(GomusTransformationTest):
             DEFAULT, DEFAULT, DEFAULT,
             DEFAULT, DEFAULT, DEFAULT,
             '{dt.datetime.today()}',
-            DEFAULT, DEFAULT)''')
+            DEFAULT, DEFAULT)''')  # nosec B608
 
     def prepare_input_target(self, input_mock, infile):
         input_target = MockTarget('data_in', format=UTF8)

@@ -10,7 +10,7 @@ are indeed by the museum will be fetched again automatically (see #184).
 
 import logging
 import os
-import subprocess as sp
+import subprocess as sp  # nosec B404
 
 from _utils import db_connector, logger
 CONNECTOR = db_connector()
@@ -22,7 +22,7 @@ REFERENCING_TABLES = ['fb_post_comment', 'fb_post_performance']
 
 # Are there any existing data to preserve?
 if not any(
-    CONNECTOR.exists(f'SELECT * FROM {table}')
+    CONNECTOR.exists(f'SELECT * FROM {table}')  # nosec B608
     for table in REFERENCING_TABLES
         ):
     # Nothing to preserve, get into the fast lane
@@ -46,7 +46,7 @@ try:
                 cur.execute(f'''
                     ALTER TABLE {table}
                     DROP CONSTRAINT {table}_page_id_post_id_fkey
-                ''')
+                ''')  # nosec B608
 
             # 2. Truncate post table
             logger.info("Truncating fb_post")
@@ -77,7 +77,7 @@ try:
                     DELETE FROM {table}
                     WHERE (page_id, post_id)
                     NOT IN (select page_id, post_id from fb_post)
-                ''')
+                ''')  # nosec B608
 
             # 5. Reconnect related tables
             logger.info("Reconnecting")

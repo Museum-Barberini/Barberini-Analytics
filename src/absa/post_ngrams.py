@@ -165,4 +165,4 @@ class CollectPostNgrams(DataPreparationTask):
                         'word{i}.word_index + 1 = word{j}.word_index'
                     )}
             AND     word{0}.post_id IN (SELECT * FROM new_post_id)
-        '''
+        '''  # nosec B608

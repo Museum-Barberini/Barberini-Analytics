@@ -4,7 +4,7 @@ import distutils.util
 import logging
 import os
 from shutil import rmtree
-import subprocess as sp
+import subprocess as sp  # nosec B404
 import unittest
 from queue import Queue
 
@@ -187,7 +187,7 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         connector.execute(f'''
             UPDATE pg_database SET datistemplate = TRUE
             WHERE datname = '{self.template_name}'
-        ''')
+        ''')  # nosec B608
         logger.info("Template database was recreated.")
 
         # --- Update cache database ---
@@ -207,14 +207,14 @@ class DatabaseTestSuite(suitable.FixtureTestSuite):
         _perform_query(f'''
             UPDATE pg_database SET datistemplate = TRUE
             WHERE datname = '{database_name}'
-        ''')
+        ''')  # nosec B608
 
     def drop_database(self, name):
 
         _perform_query(f'''  -- Necessary for dropping the database
             UPDATE pg_database SET datistemplate = FALSE
             WHERE datname = '{name}'
-        ''')
+        ''')  # nosec B608
         _perform_query(f'''
             DROP DATABASE IF EXISTS {name}
         ''')

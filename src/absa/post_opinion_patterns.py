@@ -244,7 +244,7 @@ class CollectPostOpinionSentiments(DataPreparationTask):
                 'identity': f'''
                     SELECT dataset, phrase, weight
                     FROM {self.polarity_table}
-                ''',
+                ''',  # nosec B608
                 'inflected': f'''
                     SELECT pp.dataset, inflected AS phrase, weight
                     FROM {self.polarity_table} AS pp
@@ -253,7 +253,7 @@ class CollectPostOpinionSentiments(DataPreparationTask):
                     ) = (
                         inflection.dataset, word
                     )
-                '''
+                '''  # nosec B608
             }[self.sentiment_match_algorithm],
             limit=-2
         )
@@ -296,7 +296,7 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             FROM {self.post_table}
             WHERE NOT is_from_museum
             AND text IS NOT NULL
-        ''')
+        ''')  # nosec B608
 
     def output(self):
 

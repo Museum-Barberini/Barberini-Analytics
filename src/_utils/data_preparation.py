@@ -199,7 +199,7 @@ class DataPreparationTask(luigi.Task):
                     array_agg(foreign_column_name)
                 FROM foreign_keys
                 GROUP BY constraint_name, foreign_table_name;
-            ''')
+            ''')  # nosec B608
         }
 
     def tqdm(self, iterable, **kwargs):
@@ -339,7 +339,7 @@ class PerformanceValueCondenser():
                                 AND a.attnum = ANY(i.indkey)
             WHERE  i.indrelid = '{self.table}'::regclass
             AND    i.indisprimary
-            ''')
+            ''')  # nosec B608
         return [
             row[0]
             for row in primary_key_columns
@@ -353,7 +353,7 @@ class PerformanceValueCondenser():
             SELECT column_name
             FROM information_schema.columns
             WHERE table_name = '{self.table}'
-            ''')
+            ''')  # nosec B608
         return [
             column for (column,) in db_columns
             if column not in key_columns

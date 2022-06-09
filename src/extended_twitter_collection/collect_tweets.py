@@ -83,7 +83,7 @@ class TwitterExtendedDataset(DataPreparationTask):
                      likes, retweets, replies
             -- Only keep top-ranked tweets
             HAVING sum(1 / r_interval) >= {self.ranking_thresh}
-        ''')
+        ''')  # nosec B608
 
         # create a dataframe from the filtering results
         extended_dataset = pd.DataFrame(
@@ -139,7 +139,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
             FROM twitter_keyword_intervals
             WHERE end_date >= CURRENT_DATE
             {'LIMIT 500' if self.minimal_mode else ''}
-        ''')
+        ''')  # nosec B608
 
         seven_days_ago = (
             dt.datetime.today() - dt.timedelta(days=7)
