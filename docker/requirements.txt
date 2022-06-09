@@ -18,7 +18,7 @@ django==3.2.9
 flake8==4.0.1
 flake8-docstrings==1.6.0
 freezegun==1.2.1
-pep8-naming==0.12.1
+pep8-naming==0.13.0
 twython==3.9.1
 validators==0.18.2
 
