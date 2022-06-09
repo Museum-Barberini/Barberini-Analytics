@@ -61,5 +61,5 @@ tzdata==2022.1  # required for dateparser
 xlrd==1.2.0,<2.0.0 # v2.x does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
-xmltodict==0.12.0
+xmltodict==0.13.0
 varname==0.8.3
