@@ -111,7 +111,7 @@ class CsvToDb(CopyToTable):
                     AND is_generated = 'NEVER'
                     AND column_default IS NULL
                 ORDER BY ordinal_position
-            ''')
+            ''')  # nosec B608
             if not self._columns:
                 raise UndefinedTable(self.table)
 
@@ -131,7 +131,7 @@ class CsvToDb(CopyToTable):
                     constraint_type = 'PRIMARY KEY'
                     AND (table_schema, table_name)
                         = ('{table_path[0]}', '{table_path[1]}')
-            ''', only_first=True)[0]
+            ''', only_first=True)[0]  # nosec B608
             if not self._primary_constraint_name:
                 raise UndefinedTable(self.table)
 
@@ -169,7 +169,7 @@ class CsvToDb(CopyToTable):
                         )}));
                 """ * self.replace_content}
             COMMIT;
-        '''
+        '''  # nosec B608
         logger.debug(f"{self.__class__}: Executing query: {query}")
         cursor.copy_expert(query, file)
 
@@ -317,7 +317,8 @@ class QueryCacheToDb(QueryDb):
             (f'INSERT INTO {self.table} {query}', all_args)
         )
 
-        count = self.db_connector.query(f'SELECT COUNT(*) FROM {self.table}')
+        count = self.db_connector.query(
+            f'SELECT COUNT(*) FROM {self.table}')  # nosec B608
 
         # Write dummy output for sake of complete()
         with self.output().open('w') as file:

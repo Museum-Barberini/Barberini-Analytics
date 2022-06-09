@@ -1,2 +1,3 @@
-skips: [
-]
+skips:
+- B101  # we don't compile Python to optimized bytecode
+- B410  # we trust the lxml module

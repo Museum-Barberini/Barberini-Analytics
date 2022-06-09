@@ -58,7 +58,7 @@ class FuzzyJoinPostSentiments(FuzzyJoinPhrases):
                 FROM post
                 WHERE post_date <= NOW() - INTERVAL '3 days'
             )
-        '''
+        '''  # nosec B608
 
     def final_query(self):
 
@@ -86,7 +86,7 @@ class FuzzyJoinPostSentiments(FuzzyJoinPhrases):
                 dataset, match_algorithm
             FROM post_phrase_polarity
             GROUP BY source, post_id, dataset, match_algorithm
-        '''
+        '''  # nosec B608
 
 
 class CollectFuzzyPostSentiments(FuzzyMatchPhrases):
@@ -136,7 +136,7 @@ class CollectPostSentimentsAbstract(QueryDb):
                 {self.query_select()},
                 dataset, match_algorithm,
                 word_count.count
-        '''
+        '''  # nosec B608
 
     def query_from(self):
 
@@ -280,4 +280,4 @@ class CollectPostPhrasePolarities(QueryDb):
             GROUP BY
                 source, post_id, post_ngram.n, word_index,
                 phrase_polarity.dataset
-        '''
+        '''  # nosec B608

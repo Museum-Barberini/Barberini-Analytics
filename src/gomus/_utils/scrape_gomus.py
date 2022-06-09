@@ -191,8 +191,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         # and gomus_to_customer_mapping
         customer_id = hash_id(customer_email)
         old_customer = self.db_connector.query(
-            query=f'SELECT customer_id FROM gomus_to_customer_mapping '
-                  f'WHERE gomus_id = {gomus_id}',
+            query=f'''
+                SELECT customer_id
+                FROM gomus_to_customer_mapping
+                WHERE gomus_id = {gomus_id}
+            ''',  # nosec B608
+                  # we trust gomus HTML/IDs
             only_first=True)
         if not old_customer:
             logger.warning(
@@ -210,7 +214,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
             UPDATE gomus_customer
             SET customer_id = {customer_id}
             WHERE customer_id = {old_customer_id}
-        ''')
+        ''')  # nosec B608
 
 
 class ScrapeGomusOrderContains(GomusScraperTask):

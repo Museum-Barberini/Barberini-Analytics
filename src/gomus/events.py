@@ -120,12 +120,16 @@ class FetchCategoryReservations(DataPreparationTask):
                 SELECT booking_id FROM gomus_booking
                 WHERE category='{self.category}'
                 ORDER BY start_datetime DESC LIMIT 2
-            '''
+            '''  # nosec B608: gomus categories are trusted
         else:
             two_weeks_ago = dt.datetime.today() - dt.timedelta(weeks=2)
-            query = (f'SELECT booking_id FROM gomus_booking WHERE '
-                     f'category=\'{self.category}\' '
-                     f'AND start_datetime > \'{two_weeks_ago}\'')
+            query = f'''
+                SELECT booking_id
+                FROM gomus_booking
+                WHERE
+                     category=\'{self.category}\'
+                     AND start_datetime > \'{two_weeks_ago}\''
+            '''  # nosec B608: gomus categories are trusted
 
         booking_ids = self.db_connector.query(query)
 

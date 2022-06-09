@@ -76,7 +76,7 @@ class ConvertTargetAspectWords(DataPreparationTask):
                     SELECT aspect_id
                     FROM {cls.label_table}
                     WHERE aspect = %s
-                ''',
+                ''',  # nosec B608
                 list(aspect),
                 only_first=True
             )

@@ -69,7 +69,8 @@ class FetchGplayReviews(DataPreparationTask):
         # the language codes to fetch all reviews.
         language_codes = self.load_language_codes()
         if self.minimal_mode:
-            random_num = random.randint(0, len(language_codes) - 2)
+            random_num = random.randint(  # nosec B311: no cryptography
+                0, len(language_codes) - 2)
             language_codes = list({
                 *language_codes[random_num:random_num + 2],
                 'de'  # make sure we do not get zero reviews

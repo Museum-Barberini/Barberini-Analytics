@@ -117,7 +117,7 @@ class CollectPostWords(DataPreparationTask):
                 FROM {self.post_table}
                 NATURAL JOIN new_post_id
                 WHERE text <> ''
-            ''',
+            ''',  # nosec B608
             limit=self.limit,
             shuffle=self.shuffle)
         with posts_target.open('r') as posts_stream:
