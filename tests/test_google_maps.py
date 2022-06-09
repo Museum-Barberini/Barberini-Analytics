@@ -51,8 +51,9 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
         account_name = 'myaccount'
         location_name = 'mylocation'
         place_id = 'abc456'
+        place_uri = 'https://example.com/place'
         all_reviews = [
-            {'text': text, 'placeId': place_id}
+            {'text': text, 'placeId': place_id, 'uri': place_uri}
             for text in [
                 "Wow!",
                 "⭐⭐⭐⭐⭐",
@@ -84,7 +85,8 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
             'locations': [{
                 'name': location_name,
                 'metadata': {
-                    'placeId': place_id
+                    'placeId': place_id,
+                    'uri': place_uri
                 }
             }]
         }

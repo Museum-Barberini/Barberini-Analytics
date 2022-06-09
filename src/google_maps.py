@@ -166,6 +166,9 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             for location in location_list['locations']:
                 location_name = location['name']
                 place_id = location['metadata']['placeId']
+                place_uri = location['metadata']['mapsUri']
+                # GMB API does not provide fine-grained permalinks. See also:
+                # https://support.google.com/business/thread/11131183
 
                 review_resource = services['my_business'].accounts()\
                     .locations().reviews()
@@ -175,7 +178,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                     .list(parent=global_location_name, pageSize=page_size)\
                     .execute()
                 yield from [
-                    {**review, 'placeId': place_id}
+                    {**review, 'placeId': place_id, 'uri': place_uri}
                     for review
                     in review_list['reviews']
                 ]
@@ -202,7 +205,11 @@ class FetchGoogleMapsReviews(DataPreparationTask):
 
                     for review in reviews:
                         next(pbar_loop)
-                        yield {**review, 'placeId': place_id}
+                        yield {
+                            **review,
+                            'placeId': place_id,
+                            'uri': place_uri
+                        }
 
                     if self.minimal_mode:
                         review_list.pop('nextPageToken')
@@ -220,7 +227,8 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             'text': None,
             'text_english': None,
             'language': None,
-            'place_id': raw['placeId']
+            'place_id': raw['placeId'],
+            'uri': raw['uri']
         }
 
         raw_comment = raw.get('comment', None)
