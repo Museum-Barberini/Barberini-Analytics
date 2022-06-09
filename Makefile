@@ -89,7 +89,7 @@ luigi-scheduler:
 luigi-restart-scheduler:
 	killall luigid || true
 	$(MAKE) luigi-scheduler
-	
+
 luigi:
 	$(MAKE) luigi-task LMODULE=_fill_db LTASK=FillDb
 
@@ -156,7 +156,7 @@ lint-markdown:
 	/node_modules/markdownlint-cli/markdownlint.js .
 
 python-bandit:
-	bandit -c bandit.yml ./**/*.py
+	shopt -s globstar && bandit -c bandit.yml ./**/*.py
 
 shellcheck:
 	shellcheck -s bash $$(find . -name '*.sh')
