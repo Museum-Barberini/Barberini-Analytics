@@ -95,6 +95,11 @@ class TestFetchGplayReviews(DatabaseTestCase):
         # If the supplied language code does not exist, english reviews
         # are returned.This test ensures that we notice if the
         # behaviour changes.
+
+        # Ignore IDs which are indeed changed by Google.
+        reviews = [(review, review.pop('id'))[0] for review in reviews]
+        reviews_en = [(review, review.pop('id'))[0] for review in reviews_en]
+
         self.assertCountEqual(reviews, reviews_en)
 
     @patch('gplay.gplay_reviews.FetchGplayReviews.fetch_for_language',
