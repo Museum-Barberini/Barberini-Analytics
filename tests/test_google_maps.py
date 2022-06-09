@@ -86,7 +86,7 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
                 'name': location_name,
                 'metadata': {
                     'placeId': place_id,
-                    'uri': place_uri
+                    'mapsUri': place_uri
                 }
             }]
         }
