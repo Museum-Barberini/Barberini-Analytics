@@ -70,6 +70,11 @@ For more information about the docker containers, please refer to the [documenta
 1. To update a docker image, edit the `image` key in the yaml file respectively the `FROM` command in the Dockerfile.
    Be careful to watch for any breaking changes in the updates.
 2. Restart the container by running `make shutdown-<docker> startup-<docker>`.
+3. Re-run the CI to preclude any regressions.
+
+Hypothesis (not confirmed): For some major version upgrades, just rebuilding the container won't work because the database format might have changed.
+In this case, use `make db-dump` and `make db-restore` before and after rebuilding the container.
+As always, convince yourself afterward that the database is still intact and contains all data.
 
 ### Update gomus version
 
