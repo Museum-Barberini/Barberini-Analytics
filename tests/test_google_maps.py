@@ -38,19 +38,22 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
     # https://github.com/googleapis/google-api-python-client/issues/618
     # This is an error of the API, not our fault. Don't fix it. Just for you
     # to know.
-    def test_load_service(self):
+    def test_load_services(self):
         credentials = self.task.load_credentials()
-        service = self.task.load_service(credentials)
-        self.assertIsNotNone(service)
-        self.assertIsInstance(service, googleapiclient.discovery.Resource)
+        services = self.task.load_services(credentials)
+        self.assertGreater(len(services), 0)
+        for service in services.values():
+            self.assertIsNotNone(service)
+            self.assertIsInstance(service, googleapiclient.discovery.Resource)
 
     def test_fetch_raw_reviews(self):
         # ----- Set up test parameters -----
         account_name = 'myaccount'
         location_name = 'mylocation'
         place_id = 'abc456'
+        place_uri = 'https://example.com/place'
         all_reviews = [
-            {'text': text, 'placeId': place_id}
+            {'text': text, 'placeId': place_id, 'uri': place_uri}
             for text in [
                 "Wow!",
                 "⭐⭐⭐⭐⭐",
@@ -63,29 +66,38 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
         latest_page_token = None
         counter = 0
 
-        service = MagicMock()
+        accounts_service = MagicMock()
         accounts = MagicMock()
-        service.accounts.return_value = accounts
+        accounts_service.accounts.return_value = accounts
         accounts.list.return_value = MagicMock()
         accounts.list().execute.return_value = {
             'accounts': [{'name': account_name}]
         }
 
+        businesses_service = MagicMock()
+        businesses_accounts = MagicMock()
+        businesses_service.accounts.return_value = businesses_accounts
         locations = MagicMock()
-        accounts.locations.return_value = locations
+        businesses_accounts.locations.return_value = locations
         locations_list_mock = MagicMock()
         locations.list.return_value = locations_list_mock
         locations_list_mock.execute.return_value = {
             'locations': [{
                 'name': location_name,
-                'locationKey': {
-                    'placeId': place_id
+                'metadata': {
+                    'placeId': place_id,
+                    'mapsUri': place_uri
                 }
             }]
         }
 
+        my_business_service = MagicMock()
+        my_business_accounts = MagicMock()
+        my_business_service.accounts.return_value = my_business_accounts
+        my_business_locations = MagicMock()
+        my_business_accounts.locations.return_value = my_business_locations
         reviews = MagicMock()
-        locations.reviews.return_value = reviews
+        my_business_locations.reviews.return_value = reviews
         reviews_list_mock = MagicMock()
         reviews.list.return_value = reviews_list_mock
 
@@ -106,14 +118,22 @@ class TestFetchGoogleMapsReviews(DatabaseTestCase):
             return result
         reviews_list_mock.execute.side_effect = reviews_list_execute
 
+        services = {
+            'accounts': accounts_service,
+            'businesses': businesses_service,
+            'my_business': my_business_service
+        }
+
         # ----- Execute code under test ----
-        result_reviews = list(self.task.fetch_raw_reviews(service, page_size))
+        result_reviews = list(self.task.fetch_raw_reviews(
+            services, page_size))
 
         # ----- Inspect result ------
         self.assertSequenceEqual(all_reviews, result_reviews)
-        locations.list.assert_called_once_with(parent=account_name)
+        locations.list.assert_called_once()
+        self.assertEqual(locations.list.call_args[1]['parent'], account_name)
         reviews.list.assert_called_with(
-            parent=location_name,
+            parent=f'{account_name}/{location_name}',
             pageSize=page_size,
             pageToken=latest_page_token)  # refers to last call
 

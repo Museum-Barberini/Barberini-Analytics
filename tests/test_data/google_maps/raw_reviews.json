@@ -9,7 +9,8 @@
         "createTime": "2020-01-01T15:00:00.000Z",
         "updateTime": "2020-01-01T15:00:00.000Z",
         "name": "wedontcareabouttheresourcename",
-        "placeId": "987fed"
+        "placeId": "987fed",
+        "uri": "https://example.com/place/987fed"
     },
     {
         "reviewId": "id_of_english_review",
@@ -22,7 +23,8 @@
         "createTime": "2020-01-02T16:00:00.000Z",
         "updateTime": "2020-01-02T16:00:00.000Z",
         "name": "wedontcareabouttheresourcename",
-        "placeId": "111hij"
+        "placeId": "111hij",
+        "uri": "https://example.com/place/111hij"
     },
     {
         "reviewId": "id_of_german_review",
@@ -35,7 +37,8 @@
         "createTime": "2020-01-03T17:00:00.000Z",
         "updateTime": "2020-01-03T17:00:00.000Z",
         "name": "thesetestfilesarewhereweshouldputourfunnyeastereggs",
-        "placeId": "northp0l3"
+        "placeId": "northp0l3",
+        "uri": "https://example.com/place/northp0l3"
     },
     {
         "reviewId": "id_of_other_review",
@@ -48,6 +51,7 @@
         "createTime": "2020-01-04T18:00:00.000Z",
         "updateTime": "2020-01-04T18:00:00.000Z",
         "name": "wedontcareabouttheresourcename",
-        "placeId": "aplac3"
+        "placeId": "aplac3",
+        "uri": "https://example.com/place/aplac3"
     }
 ]
