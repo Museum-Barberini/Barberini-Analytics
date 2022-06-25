@@ -9,6 +9,6 @@ BEGIN;
                     || app_id
                     || '?see-all=reviews'
                 -- Apple seems not to support review-specific URLs
-            ) STORED
+            ) STORED;
 
 COMMIT;
