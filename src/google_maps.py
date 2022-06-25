@@ -237,12 +237,17 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             # See for details:
             # https://gitlab.com/Museum-Barberini/Barberini-Analytics/issues/79
             # We want to keep both original and English translation.
+            # TODO: Find out whether there is any option to indiciate the
+            # display language to the API to retrieve translations in German
+            # rather than in English
             if "(Translated by Google)" not in raw_comment:
                 extracted['text'] = extracted['text_english'] = raw_comment
                 extracted['language'] = "english"
                 # NOTE: New reviews might not yet have been translated even if
                 # they are not in English.
             elif raw_comment.startswith("(Translated by Google)"):
+                # English display language, review was originally in German
+                # German display language, review was originally in Russian
                 # Review has the format:
                 #   (Translated by Google) [English translation]
                 #
@@ -254,14 +259,16 @@ class FetchGoogleMapsReviews(DataPreparationTask):
                 extracted['text_english'] = texts[0].strip()
                 extracted['language'] = "other"
             else:
+                # German display language, review was originally in English
+                # English display language, review was originally in German
                 # Review has the format:
                 #   [original text]
                 #
                 #   (Translated by Google)
                 #   [English translation]
                 texts = raw_comment.split("(Translated by Google)")
-                extracted['text'] = texts[1].strip()
-                extracted['text_english'] = texts[0].strip()
+                extracted['text'] = texts[0].strip()
+                extracted['text_english'] = texts[1].strip()
                 extracted['language'] = "german"
 
         return extracted
