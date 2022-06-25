@@ -13,8 +13,8 @@ def send_failure_mail(url):
     with enforce_luigi_notifications(format='html'):
         luigi.notifications.send_error_email(
             subject=("Scheduled pipeline failed"),
-            message=("A scheduled pipeline has failed. For details, see: "
-                     f"{url}.")
+            message=("A scheduled pipeline has failed. For details, visit: "
+                     f"{url}")
         )
 
 
