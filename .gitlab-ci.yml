@@ -28,6 +28,7 @@ build:
         && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
         && echo '--no-cache'
       )
+    - echo fake error && false
 
 unittest:
   stage: test
@@ -116,8 +117,8 @@ lint-markdown:
 send-failure-mail:
   stage: post-anything
   when: on_failure
-  only:
-    - schedules
+  #only:
+  #  - schedules
   tags:
     - barberini
   script:
