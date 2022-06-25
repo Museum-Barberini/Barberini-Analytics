@@ -4,7 +4,7 @@ import sys
 
 import luigi.notifications
 
-from _utils import enforce_luigi_notifications
+from _utils.utils import enforce_luigi_notifications
 
 logging.basicConfig(level=logging.INFO)
 

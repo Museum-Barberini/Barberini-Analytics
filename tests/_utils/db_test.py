@@ -13,7 +13,7 @@ import luigi.mock
 import luigi.notifications
 import psycopg2
 
-from _utils import db_connector, enforce_luigi_notifications, utils
+from _utils import db_connector, utils
 import suitable
 
 
@@ -75,7 +75,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         ci_job_url = os.getenv('CI_JOB_URL')
         ci_pipeline_url = os.getenv('CI_PIPELINE_URL')
 
-        with enforce_luigi_notifications(format='html'):
+        with utils.enforce_luigi_notifications(format='html'):
             django_renderer = utils.load_django_renderer()
             unsuccessful_count = len(ChainMap({}, *unsuccessful.values()))
             luigi.notifications.send_error_email(
