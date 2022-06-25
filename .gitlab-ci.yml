@@ -122,4 +122,4 @@ send-failure-mail:
   tags:
     - barberini
   script:
-    - make docker exec $USER-barberini_analytics_luigi /app/scripts/running/notify_ci_failure.py "${CI_PIPELINE_URL}"
+    - docker exec $USER-barberini_analytics_luigi /app/scripts/running/notify_ci_failure.py "${CI_PIPELINE_URL}"
