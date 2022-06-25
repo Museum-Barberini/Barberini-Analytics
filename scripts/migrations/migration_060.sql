@@ -7,7 +7,7 @@ BEGIN;
        exists, so we can safely drop the degenerated and redundat items. The
        current revision of the connector does not generate the falsy IDs any
        longer. */
-    DELETE FROM google_maps_reviews
+    DELETE FROM google_maps_review
         WHERE google_maps_review_id LIKE '%==';
 
 COMMIT;
