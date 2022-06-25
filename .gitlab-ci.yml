@@ -14,6 +14,7 @@ stages:
   - build
   - test
   - analyze
+  - post-anything
 
 build:
   stage: build
