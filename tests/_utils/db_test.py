@@ -1,5 +1,4 @@
 from collections import ChainMap
-from contextlib import contextmanager
 import distutils.util
 import logging
 import os
@@ -14,25 +13,13 @@ import luigi.mock
 import luigi.notifications
 import psycopg2
 
-from _utils import db_connector, utils
+from _utils import db_connector, enforce_luigi_notifications, utils
 import suitable
 
 
 logging.basicConfig()
 logger = logging.getLogger('db_test')
 logger.setLevel(logging.INFO)
-
-
-@contextmanager
-def enforce_luigi_notifications(format):
-    """Encorce sending luigi notification mails."""
-    email = luigi.notifications.email()
-    original = email.force_send, email.format
-    luigi.notifications.email().format = format
-    try:
-        yield
-    finally:
-        email.force_send, email.format = original
 
 
 def check_env(name: str) -> bool:

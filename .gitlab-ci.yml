@@ -111,3 +111,13 @@ lint-markdown:
     - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
       USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
+
+send-failure-mail:
+  stage: post-anything
+  when: on_failure
+  only:
+    - schedules
+  tags:
+    - barberini
+  script:
+    - make docker exec $USER-barberini_analytics_luigi /app/scripts/running/notify_ci_failure.py "${CI_PIPELINE_URL}"
