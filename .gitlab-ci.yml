@@ -121,5 +121,12 @@ send-failure-mail:
   #  - schedules
   tags:
     - barberini
+  before_script:
+    - USER="gitlab_runner_${CI_JOB_ID}"
+    - make startup
   script:
     - docker exec $USER-barberini_analytics_luigi /app/scripts/running/notify_ci_failure.py "${CI_PIPELINE_URL}"
+  after_script:
+    - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
+      USER="gitlab_runner_${CI_JOB_ID}"
+    - make docker-cleanup
