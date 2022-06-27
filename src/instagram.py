@@ -32,7 +32,9 @@ class IgToDb(luigi.WrapperTask):
 
     def requires(self):
         yield IgPostsToDb()
-        yield IgPostThumbnailsToDb()
+        # WORKAROUND: We're currently hitting rate limits, let's turn this
+        # off for a couple of days.
+        # yield IgPostThumbnailsToDb()
         yield IgProfileMetricsDevelopmentToDb()
         yield IgTotalProfileMetricsToDb()
         yield IgAudienceGenderAgeToDb()
