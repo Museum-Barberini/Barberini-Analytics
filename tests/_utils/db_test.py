@@ -1,5 +1,4 @@
 from collections import ChainMap
-from contextlib import contextmanager
 import distutils.util
 import logging
 import os
@@ -21,18 +20,6 @@ import suitable
 logging.basicConfig()
 logger = logging.getLogger('db_test')
 logger.setLevel(logging.INFO)
-
-
-@contextmanager
-def enforce_luigi_notifications(format):
-    """Encorce sending luigi notification mails."""
-    email = luigi.notifications.email()
-    original = email.force_send, email.format
-    luigi.notifications.email().format = format
-    try:
-        yield
-    finally:
-        email.force_send, email.format = original
 
 
 def check_env(name: str) -> bool:
@@ -88,7 +75,7 @@ class DatabaseTestProgram(suitable.PluggableTestProgram):
         ci_job_url = os.getenv('CI_JOB_URL')
         ci_pipeline_url = os.getenv('CI_PIPELINE_URL')
 
-        with enforce_luigi_notifications(format='html'):
+        with utils.enforce_luigi_notifications(format='html'):
             django_renderer = utils.load_django_renderer()
             unsuccessful_count = len(ChainMap({}, *unsuccessful.values()))
             luigi.notifications.send_error_email(

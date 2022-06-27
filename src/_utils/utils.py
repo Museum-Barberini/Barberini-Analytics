@@ -53,6 +53,18 @@ class StreamToLogger:
             sys.stdout = outer_stream
 
 
+@contextmanager
+def enforce_luigi_notifications(format):
+    """Encorce sending luigi notification mails."""
+    email = luigi.notifications.email()
+    original = email.force_send, email.format
+    luigi.notifications.email().format = format
+    try:
+        yield
+    finally:
+        email.force_send, email.format = original
+
+
 def load_django_renderer():
     """Load Django's renderer for generating HTML files."""
     import django
