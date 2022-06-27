@@ -4,7 +4,7 @@ Supports sending a notification email about a critical production error.
 
 The intention of this script is to send an error mail even outside of
 Luigi's default capability, so that external errors are noticed (make
-startup is still assumed to work, since luigi's send_error_mail is used)
+startup is still assumed to work, since luigi's send_error_mail is used).
 """
 
 import logging
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def send_error_mail(error_source):
-    """Send an error email informing that the pipeline has failed."""
+    """Send an error email informing that the data pipeline has failed."""
     luigi.notifications.send_error_email(
         subject=("External error in production pipeline. "
                  f"Host: {socket.gethostname()}"),
