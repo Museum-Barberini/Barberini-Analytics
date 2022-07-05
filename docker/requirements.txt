@@ -24,7 +24,7 @@ validators==0.18.2
 
 # Data sources
 google-api-python-client==2.41.0
-instaloader==4.8.4
+instaloader==4.9.2
 git+https://github.com/Museum-Barberini/twint.git#egg=twint
 
 # Analysis tools
