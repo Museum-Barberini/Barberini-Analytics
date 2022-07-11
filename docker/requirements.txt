@@ -28,7 +28,7 @@ instaloader==4.8.4
 git+https://github.com/Museum-Barberini/twint.git#egg=twint
 
 # Analysis tools
-scikit-learn==0.24.2
+scikit-learn==1.1.1
 pgeocode==0.3.0
 ## ABSA
 gensim==4.1.2
