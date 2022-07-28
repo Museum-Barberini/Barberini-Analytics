@@ -56,7 +56,8 @@ RUN $INSTALL nodejs
 WORKDIR /
 COPY ./package*.json /
 RUN npm install
-RUN npm audit fix
+# RUN npm audit fix  # wants to downgrade some remark packages, so we need to
+#                      disable it
 WORKDIR /app
 
 # Install python packages
