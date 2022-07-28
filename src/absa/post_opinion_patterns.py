@@ -372,14 +372,20 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             columns={'tokens_list': 'tokens'}
         )
 
-        post_pattern_df['aspect_phrase'] = post_pattern_df.apply(
-            lambda row: self.extract_segment(row.pattern, row, 'isAspect'),
-            axis=1
-        )
-        post_pattern_df['sentiment_phrase'] = post_pattern_df.apply(
-            lambda row: self.extract_segment(row.pattern, row, 'isSentiment'),
-            axis=1
-        )
+        if not post_pattern_df.empty:
+            post_pattern_df['aspect_phrase'] = post_pattern_df.apply(
+                lambda row: self.extract_segment(row.pattern, row, 'isAspect'),
+                axis=1
+            )
+            post_pattern_df['sentiment_phrase'] = post_pattern_df.apply(
+                lambda row: self.extract_segment(
+                    row.pattern, row, 'isSentiment'),
+                axis=1
+            )
+        else:
+            logger.warning("No patterns found.")
+            post_pattern_df['aspect_phrase'] = []
+            post_pattern_df['sentiment_phrase'] = []
 
         post_pattern_df.drop('tokens', axis=1)
         return post_pattern_df
