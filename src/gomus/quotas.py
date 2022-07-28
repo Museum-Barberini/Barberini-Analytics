@@ -71,7 +71,8 @@ class ExtractQuotas(GomusScraperTask):
 class FetchQuotas(DataPreparationTask):
     """Fetch all quota pages from the gomus site."""
 
-    max_missing_ids = 20
+    """Maximum number of consecutive invalid quota IDs to tolerate."""
+    max_missing_ids = 100
 
     def output(self):
 
