@@ -151,6 +151,10 @@ class FetchIgPosts(DataPreparationTask):
         'permalink': str
     }
 
+    column_defaults = {
+        'caption': None
+    }
+
     def requires(self):
         return MuseumFacts()
 
@@ -208,7 +212,10 @@ class FetchIgPosts(DataPreparationTask):
 
         df = pd.DataFrame([
             {
-                column: adapter(media[column])
+                column:
+                    self.column_defaults[column]
+                    if column not in media and column in self.column_defaults
+                    else adapter(media[column])
                 for (column, adapter)
                 in self.columns.items()
             }
