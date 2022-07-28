@@ -384,6 +384,8 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             )
         else:
             logger.warning("No patterns found.")
+            post_pattern_df['aspect_phrase'] = []
+            post_pattern_df['sentiment_phrase'] = []
 
         post_pattern_df.drop('tokens', axis=1)
         return post_pattern_df
