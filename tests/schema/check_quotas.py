@@ -17,16 +17,16 @@ class CheckQuotas(DatabaseTestCase):
 
     def test_capacities(self):
         """At least one capacity is present."""
-        self.assertGreater(
-            self.db_connector.query('SELECT COUNT(*) FROM gomus_capacity'),
-            0,
-            msg="No capacity is present"
-        )
+        count = self.db_connector.query(
+            'SELECT COUNT(*) FROM gomus_capacity'
+        )[0][0]
+
+        self.assertGreater(count, 0, msg="No capacity is present")
 
     def test_quotas(self):
         """At least one quota is present."""
-        self.assertGreater(
-            self.db_connector.query('SELECT COUNT(*) FROM gomus_quota'),
-            0,
-            msg="No quota is present"
-        )
+        count = self.db_connector.query(
+            'SELECT COUNT(*) FROM gomus_quota'
+        )[0][0]
+
+        self.assertGreater(count, 0, msg="No quota is present")
