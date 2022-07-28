@@ -45,7 +45,7 @@ backports-datetime-fromisoformat==1.0.0
 bs4==0.0.1
 dateparser==1.1.1
 js2py==0.71
-jsonpickle==2.1.0
+jsonpickle==2.2.0
 jstyleson==0.0.2
 lockfile==0.12.2
 lxml==4.8.0
