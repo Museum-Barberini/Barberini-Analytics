@@ -58,7 +58,7 @@ PyYAML==6.0
 requests==2.27.1
 tqdm==4.63.0
 tzdata==2022.1  # required for dateparser
-xlrd==1.2.0,<2.0.0 # v2.x does not support XLSX files:
+xlrd==2.0.1 # v2.x does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
 xmltodict==0.12.0
