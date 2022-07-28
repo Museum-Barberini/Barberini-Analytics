@@ -151,6 +151,10 @@ class FetchIgPosts(DataPreparationTask):
         'permalink': str
     }
 
+    column_defaults = {
+        'caption': None
+    }
+
     def requires(self):
         return MuseumFacts()
 
@@ -208,7 +212,10 @@ class FetchIgPosts(DataPreparationTask):
 
         df = pd.DataFrame([
             {
-                column: adapter(media[column])
+                column:
+                    self.column_defaults[column]
+                    if column not in media and column in self.column_defaults
+                    else adapter(media[column])
                 for (column, adapter)
                 in self.columns.items()
             }
@@ -274,7 +281,7 @@ class FetchIgPostThumbnails(DataPreparationTask):
             return None
 
         permalink_match = regex.search(
-            r'instagram\.com/(?P<type>p|tv)/(?P<id>[\w-]+)/', permalink)
+            r'instagram\.com/(?P<type>p|reel|tv)/(?P<id>[\w-]+)/', permalink)
         if permalink_match['type'] != 'p':
             # TODO: Support IGTV thumbnails as well. See #395 (comment 20498).
             logger.info(f"Skipping unsupported media type for post {url}")
