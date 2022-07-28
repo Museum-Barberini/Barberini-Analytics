@@ -45,7 +45,7 @@ RUN python3 -m pip install --upgrade pip
 RUN $INSTALL libpq-dev
 
 # Install node.js (required for npm)
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN $INSTALL nodejs
 
 # Install node packages
@@ -56,7 +56,8 @@ RUN $INSTALL nodejs
 WORKDIR /
 COPY ./package*.json /
 RUN npm install
-RUN npm audit fix
+# RUN npm audit fix  # wants to downgrade some remark packages, so we need to
+#                      disable it
 WORKDIR /app
 
 # Install python packages

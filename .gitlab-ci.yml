@@ -106,6 +106,7 @@ lint-markdown:
   before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
     - make startup
+    - docker exec $USER-barberini_analytics_luigi git config --global --add safe.directory /app
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make lint-markdown
   after_script:
