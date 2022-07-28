@@ -45,7 +45,7 @@ RUN python3 -m pip install --upgrade pip
 RUN $INSTALL libpq-dev
 
 # Install node.js (required for npm)
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN $INSTALL nodejs
 
 # Install node packages
