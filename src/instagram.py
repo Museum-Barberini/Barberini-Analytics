@@ -284,7 +284,8 @@ class FetchIgPostThumbnails(DataPreparationTask):
         permalink_match = regex.search(
             r'instagram\.com/(?P<type>p|reel|tv)/(?P<id>[\w-]+)/', permalink)
         if permalink_match['type'] != 'p':
-            # TODO: Support IGTV thumbnails as well. See #395 (comment 20498).
+            # TODO: Support IGTV/reel thumbnails as well.
+            # See #395 (comment 20498).
             logger.info(f"Skipping unsupported media type for post {url}")
             return self.empty_data_uri
         short_id = permalink_match['id']
