@@ -231,6 +231,7 @@ class FetchIgPostThumbnails(DataPreparationTask):
 
     empty_data_uri = 'data:image/png,'
     worker_timeout = 3600  # 60 min
+    _instaloader = None
 
     @property
     def username(self):
@@ -288,21 +289,13 @@ class FetchIgPostThumbnails(DataPreparationTask):
             return self.empty_data_uri
         short_id = permalink_match['id']
 
-        loader = self.create_instaloader(
-            quiet=True,
-            download_videos=False,
-            download_geotags=False,
-            download_comments=False,
-            save_metadata=False
-        )
-
         directory = f'{self.output_dir}/instagram/thumbnails'
         filepath = f'{directory}/{short_id}'
         ext = 'jpg'
         url += f'&ext={ext}'
         os.makedirs(directory, exist_ok=True)
         try:
-            loader.download_pic(filepath, url, dt.datetime.now())
+            self.instaloader.download_pic(filepath, url, dt.datetime.now())
         except instaloader.exceptions.ConnectionException as error:
             if "404 when accessing" not in str(error):
                 raise
@@ -320,6 +313,20 @@ class FetchIgPostThumbnails(DataPreparationTask):
 
     def get_thumbnail_url(self, permalink):
         return f'{permalink}media?size=m'
+
+    @property
+    def instaloader(self):
+        if self._instaloader is not None:
+            return self._instaloader
+
+        self._instaloader = self.create_instaloader(
+            quiet=True,
+            download_videos=False,
+            download_geotags=False,
+            download_comments=False,
+            save_metadata=False
+        )
+        return self._instaloader
 
     def create_instaloader(self, **kwargs):
         # Possible refactoring for later: Extract separate classes
