@@ -229,8 +229,14 @@ class FetchIgPosts(DataPreparationTask):
 class FetchIgPostThumbnails(DataPreparationTask):
     """Fetch thumbnails for all fetched Instagram posts."""
 
+    # secret_files is a folder mounted from
+    # /etc/barberini-analytics/secrets via docker-compose
+    session_path = luigi.Parameter(
+        default='secret_files/ig_session')
+
     empty_data_uri = 'data:image/png,'
     worker_timeout = 3600  # 60 min
+    _instaloader = None
 
     @property
     def username(self):
@@ -283,18 +289,11 @@ class FetchIgPostThumbnails(DataPreparationTask):
         permalink_match = regex.search(
             r'instagram\.com/(?P<type>p|reel|tv)/(?P<id>[\w-]+)/', permalink)
         if permalink_match['type'] != 'p':
-            # TODO: Support IGTV thumbnails as well. See #395 (comment 20498).
+            # TODO: Support IGTV/reel thumbnails as well.
+            # See #395 (comment 20498).
             logger.info(f"Skipping unsupported media type for post {url}")
             return self.empty_data_uri
         short_id = permalink_match['id']
-
-        loader = self.create_instaloader(
-            quiet=True,
-            download_videos=False,
-            download_geotags=False,
-            download_comments=False,
-            save_metadata=False
-        )
 
         directory = f'{self.output_dir}/instagram/thumbnails'
         filepath = f'{directory}/{short_id}'
@@ -302,7 +301,7 @@ class FetchIgPostThumbnails(DataPreparationTask):
         url += f'&ext={ext}'
         os.makedirs(directory, exist_ok=True)
         try:
-            loader.download_pic(filepath, url, dt.datetime.now())
+            self.instaloader.download_pic(filepath, url, dt.datetime.now())
         except instaloader.exceptions.ConnectionException as error:
             if "404 when accessing" not in str(error):
                 raise
@@ -321,17 +320,30 @@ class FetchIgPostThumbnails(DataPreparationTask):
     def get_thumbnail_url(self, permalink):
         return f'{permalink}media?size=m'
 
+    @property
+    def instaloader(self):
+        if self._instaloader is not None:
+            return self._instaloader
+
+        self._instaloader = self.create_instaloader(
+            quiet=True,
+            download_videos=False,
+            download_geotags=False,
+            download_comments=False,
+            save_metadata=False
+        )
+        return self._instaloader
+
     def create_instaloader(self, **kwargs):
         # Possible refactoring for later: Extract separate classes
         # InstaloaderTask & InstaloaderTarget
         loader = instaloader.Instaloader(**kwargs)
 
-        session_path = f'{self.output_dir}/instagram/session'
         try:
-            loader.load_session_from_file(self.username, session_path)
+            loader.load_session_from_file(self.username, self.session_path)
         except FileNotFoundError:
             loader.login(self.username, self.password)
-            loader.save_session_to_file(session_path)
+            loader.save_session_to_file(self.session_path)
 
         return loader
 
