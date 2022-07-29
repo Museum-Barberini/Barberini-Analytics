@@ -229,6 +229,11 @@ class FetchIgPosts(DataPreparationTask):
 class FetchIgPostThumbnails(DataPreparationTask):
     """Fetch thumbnails for all fetched Instagram posts."""
 
+    # secret_files is a folder mounted from
+    # /etc/barberini-analytics/secrets via docker-compose
+    session_path = luigi.Parameter(
+        default='secret_files/ig_session')
+
     empty_data_uri = 'data:image/png,'
     worker_timeout = 3600  # 60 min
     _instaloader = None
@@ -334,12 +339,11 @@ class FetchIgPostThumbnails(DataPreparationTask):
         # InstaloaderTask & InstaloaderTarget
         loader = instaloader.Instaloader(**kwargs)
 
-        session_path = f'{self.output_dir}/instagram/session'
         try:
-            loader.load_session_from_file(self.username, session_path)
+            loader.load_session_from_file(self.username, self.session_path)
         except FileNotFoundError:
             loader.login(self.username, self.password)
-            loader.save_session_to_file(session_path)
+            loader.save_session_to_file(self.session_path)
 
         return loader
 
