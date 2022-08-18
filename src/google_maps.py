@@ -76,7 +76,7 @@ class FetchGoogleMapsReviews(DataPreparationTask):
             logger.info("fetching reviews...")
             raw_reviews = list(self.fetch_raw_reviews(services))
         except googleapiclient.errors.HttpError as error:
-            logger.warn(
+            logger.warning(
                 "HTTP error: %s",
                 error.resp.status or "<no status code>"
             )
