@@ -376,6 +376,11 @@ class FetchIgPostPerformance(DataPreparationTask):
         with self.input().open('r') as input_file:
             post_df = pd.read_csv(input_file)
 
+        # exclude reel posts
+        post_df = post_df[~post_df['permalink'].str.contains('/reel/')]
+        # reset index to avoid problems in performance value condenser
+        post_df = post_df.reset_index(drop=True)
+
         if self.minimal_mode:
             post_df = post_df.head(5)
 
