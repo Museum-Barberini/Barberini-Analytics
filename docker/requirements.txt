@@ -31,7 +31,7 @@ git+https://github.com/Museum-Barberini/twint.git#egg=twint
 scikit-learn==0.24.2
 pgeocode==0.3.0
 ## ABSA
-gensim==4.2.0,<4.2.0  # requires Python >= 3.8
+gensim==4.1.2,<4.2.0  # requires Python >= 3.8
 spacy==3.4.1
 ## topic_modeling
 git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
