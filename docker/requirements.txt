@@ -7,7 +7,7 @@ docutils<0.16,>=0.10  # for botocore
 setuptools>=40.3.0  # for google-auth
 
 # Framework
-luigi==3.0.3
+luigi==3.1.1
 psycopg2==2.9.3
 
 # Testing tools
@@ -15,24 +15,24 @@ bandit==1.7.1
 checksumdir==1.2.0
 coverage==6.1.2
 django==3.2.9
-flake8==4.0.1
+flake8==5.0.4
 flake8-docstrings==1.6.0
-freezegun==1.2.1
-pep8-naming==0.12.1
+freezegun==1.2.2
+pep8-naming==0.13.1
 twython==3.9.1
-validators==0.18.2
+validators==0.20.0
 
 # Data sources
 google-api-python-client==2.41.0
-instaloader==4.8.4
+instaloader==4.9.3
 git+https://github.com/Museum-Barberini/twint.git#egg=twint
 
 # Analysis tools
 scikit-learn==0.24.2
 pgeocode==0.3.0
 ## ABSA
-gensim==4.1.2
-spacy==3.2.3
+gensim==4.2.0
+spacy==3.4.1
 ## topic_modeling
 git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
 langdetect==1.0.9
@@ -45,10 +45,10 @@ backports-datetime-fromisoformat==1.0.0
 bs4==0.0.1
 dateparser==1.1.1
 js2py==0.71
-jsonpickle==2.1.0
+jsonpickle==2.2.0
 jstyleson==0.0.2
 lockfile==0.12.2
-lxml==4.8.0
+lxml==4.9.1
 mmh3==3.0.0
 nptime==1.1
 numpy==1.19.5
@@ -56,10 +56,10 @@ oauth2client==4.1.3
 pandas==1.1.5
 PyYAML==6.0
 requests==2.27.1
-tqdm==4.63.0
-tzdata==2022.1  # required for dateparser
+tqdm==4.64.0
+tzdata==2022.2  # required for dateparser
 xlrd==1.2.0,<2.0.0 # v2.x does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
-xmltodict==0.12.0
-varname==0.8.3
+xmltodict==0.13.0
+varname==0.9.0
