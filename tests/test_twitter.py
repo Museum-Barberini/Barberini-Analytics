@@ -18,7 +18,7 @@ class TestFetchTwitter(DatabaseTestCase):
     """Tests the FetchTwitter task."""
 
     def generate_random_hex_string(self, length):
-        return''.join(   # nosec - this is just a random string
+        return ''.join(   # nosec - this is just a random string
             hex(int(16 * (random() % 1)))[2:].zfill(2)
             for _ in range(length)
         )

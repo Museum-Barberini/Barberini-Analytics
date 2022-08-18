@@ -1,4 +1,7 @@
 FROM ubuntu:18.04
+LABEL last_updated="2022-08-18 18:05:01"
+# (The above line needs to be changed after touching any dependency file to
+# trigger a rebuild)
 
 WORKDIR /app
 VOLUME /app

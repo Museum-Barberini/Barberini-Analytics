@@ -293,7 +293,7 @@ class CleansePostalCodes(DataPreparationTask):
         if len(matching_codes):
             result_code = matching_codes[0]
             if country_code == 'DE':
-                if not(self.german_postal_df[
+                if not (self.german_postal_df[
                         self.german_postal_df[
                             'Plz'
                         ].str.contains(result_code)].empty):
