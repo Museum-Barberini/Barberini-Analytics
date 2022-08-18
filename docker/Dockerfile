@@ -1,3 +1,7 @@
+# Last updated: 2022-08-18 17:42:48
+# (The above line needs to be changed after touching any dependency file to
+# trigger a rebuild)
+
 FROM ubuntu:18.04
 
 WORKDIR /app
