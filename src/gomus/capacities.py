@@ -34,6 +34,8 @@ class ExtractCapacities(GomusScraperTask):
 
     today = luigi.DateSecondParameter(default=dt.datetime.today())
 
+    worker_timeout = 1800  # 30 minutes (1 it/s)
+
     ignored_error_messages = [
         "Für dieses Kontingent können keine Kapazitäten berechnet werden."
     ]
