@@ -71,8 +71,6 @@ RUN python3 -m pip check
 # Download required resources
 ## nltk
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
-## spacy
-RUN python3 -m spacy download de_core_news_lg
 
 # Enable bash completion for best dev convenience
 # The following command uncomments a section in the bash.bashrc file which is
