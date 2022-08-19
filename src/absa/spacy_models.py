@@ -1,3 +1,5 @@
+"""Provides tasks to fetch spacy models and cache them across containers."""
+
 import io
 import logging
 import os
