@@ -153,7 +153,7 @@ lint-python:
 
 lint-markdown:
 	/node_modules/remark-cli/cli.js -f -u validate-links -u remark-lint-no-dead-urls=$\"skipLocalhost:true, skipUrlPatterns:$\[$\'https://account.google.com$\$\', $\'https://gitlab.com/Museum-Barberini/Barberini-Analytics$\$\']$\" .
-	/node_modules/markdownlint-cli/markdownlint.js .
+	/node_modules/markdownlint-cli/markdownlint.js --ignore ./secret_files .
 
 python-bandit:
 	shopt -s globstar && bandit -c bandit.yml ./**/*.py
