@@ -62,7 +62,7 @@ class FetchSpacyModel(DataPreparationTask):
                    f'{self.name}-{latest_version}.tar.gz')
 
             logger.info(f"Downloading and extracting {url} ...")
-            response = urlopen(url)
+            response = urlopen(url)  # nosec B310
             with tarfile.open(
                 name=None,
                 fileobj=io.BytesIO(response.read())
