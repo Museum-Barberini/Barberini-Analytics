@@ -17,6 +17,7 @@ from _utils import (
     ConcatCsvs, CsvToDb, DataPreparationTask, JsoncToJson, QueryDb)
 from .german_word_embeddings import FetchGermanWordEmbeddings
 from .phrase_polarity import PhrasePolaritiesToDb
+from .spacy_models import FetchSpacyModel
 
 
 logger = logging.getLogger('luigi-interface')
@@ -297,6 +298,7 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             WHERE NOT is_from_museum
             AND text IS NOT NULL
         ''')  # nosec B608
+        yield FetchSpacyModel(name=self.spacy_model)
 
     def output(self):
 
@@ -307,10 +309,10 @@ class CollectPostOpinionPhrases(DataPreparationTask):
 
     def run(self):
 
-        pattern_df, post_df = self.load_input()
+        pattern_df, post_df, spacy_model_path = self.load_input()
 
         logger.info("Analyzing posts ...")
-        post_df = self.analyze_grammar(post_df)
+        post_df = self.analyze_grammar(post_df, spacy_model_path)
         logger.info("Collecting opinion phrases ...")
         post_pattern_df = self.collect_phrases(pattern_df, post_df)
 
@@ -331,17 +333,19 @@ class CollectPostOpinionPhrases(DataPreparationTask):
             patterns = json.load(stream)
         with input_[1].open() as stream:
             post_df = pd.read_csv(stream)
+        with input_[2].open() as stream:
+            spacy_model_path = stream.read()
 
         pattern_df = pd.DataFrame(
             patterns.items(),
             columns=['pattern_name', 'pattern']
         )
 
-        return pattern_df, post_df
+        return pattern_df, post_df, spacy_model_path
 
-    def analyze_grammar(self, post_df):
+    def analyze_grammar(self, post_df, spacy_model_path):
 
-        nlp = spacy.load(self.spacy_model)
+        nlp = spacy.load(spacy_model_path)
 
         def nlp_cleanse(post):
             return [
