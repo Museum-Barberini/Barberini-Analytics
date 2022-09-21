@@ -82,4 +82,5 @@ class FetchEventReservations(luigi.Task):
         response_content = response.content
 
         with self.output().open('w') as target_csv:
-            csv_from_excel(response_content, target_csv, self.status)
+            # sheet 0 is overview
+            csv_from_excel(response_content, target_csv, self.status + 1)

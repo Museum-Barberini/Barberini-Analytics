@@ -148,7 +148,7 @@ class TestOrdersFormat(GomusFormatTest):
              ("Kunde", 'STRING'),
              ("Bestellwert", 'STRING'),
              ("Gutscheinwert", 'STRING'),
-             ("Gesamtbetrag", 'STRING'),
+             ("Betrag", 'STRING'),
              ("ist gültig?", 'STRING'),
              ("Bezahlstatus", 'STRING'),
              ("Bezahlmethode", 'STRING'),
