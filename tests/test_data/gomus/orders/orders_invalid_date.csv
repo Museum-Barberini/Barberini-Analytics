@@ -1,2 +1,2 @@
-"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen"
+"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Betrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen"
 607231.0,10698846.0,0,"Christoph Thiede",0.0,0.0,0.0,"Ja","bezahlt","Offline","Ja","Mars","bla","foo","keks","keks-bar"

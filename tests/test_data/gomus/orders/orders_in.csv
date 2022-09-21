@@ -1,4 +1,4 @@
-"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Gesamtbetrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen"
+"Bestellnummer","Erstellt","Kundennummer","Kunde","Bestellwert","Gutscheinwert","Betrag","ist gültig?","Bezahlstatus","Bezahlmethode","ist storniert?","Herkunft","Kostenstellen","In Rechnung gestellt am","Rechnungen","Korrekturrechnungen"
 607230.0,43840.96925925926,117899.0,"Tom Wollnik",0.0,0.0,0.0,"Nein","unbezahlt","Online","Ja","Online Shop","","","",""
 607231.0,43841.96925925926,117900.0,"Christoph Thiede",0.0,0.0,0.0,"Ja","bezahlt","Offline","Ja","Mars","bla","foo","keks","keks-bar"
 607231.0,43841.96925925926,,"Another one",0.0,0.0,0.0,"Ja","bezahlt","Offline","Ja","Jupiter","foo","bar","cookie","jar"
