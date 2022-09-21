@@ -8,7 +8,7 @@ import luigi
 import pandas as pd
 import requests
 
-from _utils import DataPreparationTask
+from _utils import DataPreparationTask, logger
 from ..orders import OrdersToDb
 from .extract_bookings import ExtractGomusBookings
 
@@ -193,7 +193,14 @@ class FetchOrdersHTML(DataPreparationTask):
 
         for i in range(len(self.order_ids)):
             html_target = yield FetchGomusHTML(
-                url=f'/admin/orders/{self.order_ids[i]}')
+                url=f'/admin/orders/{self.order_ids[i]}',
+                ignored_status_codes=[
+                    403  # whyever, some orders are not accessible
+                ])
+            if html_target.has_error():
+                logger.error(
+                    f'Could not fetch order {self.order_ids[i]}')
+                continue
             self.output_list.append(html_target.path)
 
         with self.output().open('w') as html_files:
