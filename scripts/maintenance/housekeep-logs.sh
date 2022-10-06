@@ -13,7 +13,9 @@
 
 # powered by GitHub Copilot
 
-cd /root/bp-barberini || exit 1
+APPPATH="/root/bp-barberini"
+LOGPATH="/var/log/barberini-analytics"
+DAYS_TO_KEEP=90
 
 # the date format is not always the same, so we have to use a regex
 # to get the date out of the folder name
@@ -23,7 +25,7 @@ DATE_REGEX='[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
 NOW=$(date +%s)
 
 # find all output folders
-find . -type d -iname "output-*-run-*" -print0 |
+{ find "$APPPATH" -type d -iname "output-*-run-*" -print0 & find "$LOGPATH" -type f -iname "*ly*.log" -print0; } |
     while IFS= read -r -d '' FOLDER; do
         # get the date from the folder name
         FOLDER_DATE=$(echo "$FOLDER" | grep -o "$DATE_REGEX")
@@ -31,8 +33,8 @@ find . -type d -iname "output-*-run-*" -print0 |
         FOLDER_DATE=$(date --date="$FOLDER_DATE" +%s)
         # calculate the difference between the current date and the folder date
         DIFF=$(( (NOW - FOLDER_DATE) / 86400 ))
-        # delete the folder if it is older than 90 days
-        if [ $DIFF -gt 90 ]; then
+        # delete the folder if it is older than max days
+        if [ $DIFF -gt $DAYS_TO_KEEP ]; then
             echo "deleting $FOLDER"
             rm -rf "$FOLDER"
         fi
