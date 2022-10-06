@@ -11,9 +11,6 @@ TMPFILE=$(mktemp --suffix=.log)
 EMAIL_STR="INFO: Sending email to \[.+\]"
 export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
 
-# Delete 2 weeks old log
-rm -f "$LOGPATH/$1-$(date -d '2 weeks ago' +%Y-%m-%d).log"
-
 
 {
     echo "===================================================================="
