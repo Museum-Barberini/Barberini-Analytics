@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2046
 # NOTE: Some of the following might be required only as a workaround for stale luigi schedulers: https://github.com/spotify/luigi/issues/2070
 
 docker rm $(docker ps -qaf status=exited)
