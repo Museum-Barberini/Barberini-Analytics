@@ -193,8 +193,26 @@ class CollectLogReport(luigi.Task):
             ])
         else:
             logs = logs.explode(column='logs')
+            max_rows = 5000
+            truncated = len(logs) - max_rows
+            if truncated > 0:
+                logs = logs.head(max_rows)
             logs['log_level'], logs['log_string'] = zip(*logs['logs'])
             del logs['logs']
+            if truncated > 0:
+                logs = logs.append(
+                    pd.DataFrame(
+                        dict(
+                            date=None,
+                            task_name=None,
+                            task_params=None,
+                            log_level=None,
+                            log_string=f'... and {truncated} more.'
+                        ),
+                        index=[0]
+                    ),
+                    ignore_index=True
+                )
 
         with self.output().open('w') as csv:
             logs.to_csv(csv, index=False)
