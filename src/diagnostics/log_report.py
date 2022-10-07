@@ -4,6 +4,7 @@ import datetime as dt
 import glob
 from pathlib import Path
 import socket
+import textwrap
 
 import luigi
 from luigi.notifications import send_error_email
@@ -12,6 +13,9 @@ import pandas as pd
 from tqdm import tqdm
 
 from _utils import utils, output_dir
+
+
+tqdm.pandas()
 
 
 # Log patterns ---
@@ -193,11 +197,20 @@ class CollectLogReport(luigi.Task):
             ])
         else:
             logs = logs.explode(column='logs')
+
             max_rows = 5000
             truncated = len(logs) - max_rows
             if truncated > 0:
                 logs = logs.head(max_rows)
-            logs['log_level'], logs['log_string'] = zip(*logs['logs'])
+
+            max_chars = 2000
+            logs['log_level'], logs['log_string'] = zip(
+                *logs['logs'].progress_apply(
+                    lambda log: [
+                        log[:-1],
+                        textwrap.shorten(
+                            log[-1], max_chars, placeholder="...etc...")
+                        ]))
             del logs['logs']
             if truncated > 0:
                 logs = logs.append(
@@ -207,7 +220,7 @@ class CollectLogReport(luigi.Task):
                             task_name=None,
                             task_params=None,
                             log_level=None,
-                            log_string=f'... and {truncated} more.'
+                            log_string=f"... and {truncated} more."
                         ),
                         index=[0]
                     ),
