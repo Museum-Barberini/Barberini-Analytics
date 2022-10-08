@@ -170,7 +170,7 @@ class CollectLogReport(luigi.Task):
         }
         log_strings = {
             date: '\n'.join(
-                Path(name).read_text()
+                self._truncate_log(Path(name).read_text())
                 for name in names
             )
             for date, names in log_names.items()
@@ -229,3 +229,14 @@ class CollectLogReport(luigi.Task):
 
         with self.output().open('w') as csv:
             logs.to_csv(csv, index=False)
+
+    def _truncate_log(self, log_string):
+
+        max_chars = 2000000
+        lines = log_string.splitlines()
+        truncated = len(lines) - max_chars
+        if truncated > 0:
+            lines = lines[:max_chars]
+            lines.append(
+                f"ERROR: Log file too long. Truncated {truncated} lines.")
+        return '\n'.join(lines)
