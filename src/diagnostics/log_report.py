@@ -2,7 +2,9 @@
 
 import datetime as dt
 import glob
+import itertools
 from pathlib import Path
+import random
 import socket
 import textwrap
 
@@ -12,7 +14,7 @@ import regex
 import pandas as pd
 from tqdm import tqdm
 
-from _utils import utils, output_dir
+from _utils import DataPreparationTask, utils, output_dir
 
 
 tqdm.pandas()
@@ -144,15 +146,17 @@ class SendLogReport(luigi.Task):
             file.write("Done.")
 
 
-class CollectLogReport(luigi.Task):
+class CollectLogReport(DataPreparationTask):
     """Create a report of incidents logged during recent pipeline runs."""
 
     today = luigi.DateParameter()
     days_back = luigi.IntParameter()
 
+    worker_timeout = 18000  # 5 hours (sometimes the logs are VERY long)
+
     def output(self):
 
-        return luigi.LocalTarget(f'{output_dir()}/log_report.csv')
+        return luigi.LocalTarget(f'{self.output_dir}/log_report.csv')
 
     def run(self):
 
@@ -168,13 +172,20 @@ class CollectLogReport(luigi.Task):
             ]
             for date in log_dates
         }
+        if self.minimal_mode:
+            log_names = dict(random.sample(log_names.items(), 2))
+
         log_strings = {
             date: '\n'.join(
                 self._truncate_log(Path(name).read_text())
                 for name in names
             )
-            for date, names in log_names.items()
+            for date, names in tqdm(
+                log_names.items(),
+                desc="Reading logs"
+            )
         }
+
         logs = pd.DataFrame(
             dict(
                 date=date,
@@ -189,7 +200,11 @@ class CollectLogReport(luigi.Task):
                 log_strings.items(),
                 desc="Scanning logs"
             )
-            for match in regex.finditer(PATTERN, log_string)
+            for match in (
+                itertools.islice(
+                    regex.finditer(PATTERN, log_string), 10)
+                if self.minimal_mode
+                else regex.finditer(PATTERN, log_string))
         )
         if logs.empty:
             logs = pd.DataFrame(columns=[
@@ -232,11 +247,11 @@ class CollectLogReport(luigi.Task):
 
     def _truncate_log(self, log_string):
 
-        max_chars = 2000000
+        max_lines = 20_000
         lines = log_string.splitlines()
-        truncated = len(lines) - max_chars
+        truncated = len(lines) - max_lines
         if truncated > 0:
-            lines = lines[:max_chars]
+            lines = lines[:max_lines]
             lines.append(
                 f"ERROR: Log file too long. Truncated {truncated} lines.")
         return '\n'.join(lines)
