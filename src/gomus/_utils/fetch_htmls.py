@@ -190,18 +190,28 @@ class FetchOrdersHTML(DataPreparationTask):
 
     def run(self):
         self.order_ids = [order_id[0] for order_id in self.get_order_ids()]
+        failed_order_ids = []
 
-        for i in range(len(self.order_ids)):
+        for order_id in self.order_ids:
             html_target = yield FetchGomusHTML(
-                url=f'/admin/orders/{self.order_ids[i]}',
+                url=f'/admin/orders/{order_id}',
                 ignored_status_codes=[
                     403  # whyever, some orders are not accessible
                 ])
             if html_target.has_error():
-                logger.error(
-                    f'Could not fetch order {self.order_ids[i]}')
+                failed_order_ids.append(order_id)
                 continue
             self.output_list.append(html_target.path)
+
+        if failed_order_ids:
+            logger.error(f"Could not fetch the following orders: "
+                         f"""{
+                            ", ".join(map(str, failed_order_ids[:3]))
+                         }{
+                            f", ... ({len(failed_order_ids) - 3} more)"
+                            if len(failed_order_ids) > 3
+                            else ""
+                         }""")
 
         with self.output().open('w') as html_files:
             html_files.write('\n'.join(self.output_list))
