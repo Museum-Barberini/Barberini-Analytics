@@ -192,6 +192,6 @@ upgrade-requirements:
 	pip-upgrade docker/requirements.txt --skip-virtualenv-check -p all
 	bash -c 'pip3 check || (echo "⚠ Please define these deps explicitely in requirements.txt" && false)'
 	cd docker && ncu -u && npm install
-	sed -i '2 s/\(^LABEL last_updated="\).*\("$\)/\1'"$(date +"%Y-%m-%d %H:%M:%S")"'\2/' docker/Dockerfile | less
+	sed -i '2 s/\(^LABEL last_updated="\).*\("$$\)/\1'"$(date +"%Y-%m-%d %H:%M:%S")"'\2/' docker/Dockerfile
 	echo "Upgrade successful, please run the CI now before merging the" \
 		 "upgrades into the master!"

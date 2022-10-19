@@ -8,7 +8,7 @@ setuptools>=40.3.0  # for google-auth
 
 # Framework
 luigi==3.1.1
-psycopg2==2.9.3
+psycopg2==2.9.4
 
 # Testing tools
 bandit==1.7.1
@@ -24,7 +24,7 @@ validators==0.20.0
 
 # Data sources
 google-api-python-client==2.41.0
-instaloader==4.9.3
+instaloader==4.9.5
 git+https://github.com/Museum-Barberini/twint.git#egg=twint
 
 # Analysis tools
@@ -56,10 +56,10 @@ oauth2client==4.1.3
 pandas==1.1.5
 PyYAML==6.0
 requests==2.27.1
-tqdm==4.64.0
-tzdata==2022.2  # required for dateparser
+tqdm==4.64.1
+tzdata==2022.5  # required for dateparser
 xlrd==1.2.0,<2.0.0 # v2.x does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported
 xmltodict==0.13.0
-varname==0.9.0
+varname==0.10.0

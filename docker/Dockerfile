@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-LABEL last_updated="2022-08-18 18:05:01"
+LABEL last_updated=""
 # (The above line needs to be changed after touching any dependency file to
 # trigger a rebuild)
 
@@ -59,6 +59,7 @@ RUN $INSTALL nodejs
 WORKDIR /
 COPY ./package*.json /
 RUN npm install
+RUN npm install -g npm-check-updates
 # RUN npm audit fix  # wants to downgrade some remark packages, so we need to
 #                      disable it
 WORKDIR /app
