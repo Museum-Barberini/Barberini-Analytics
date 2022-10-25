@@ -150,6 +150,8 @@ class TermCounts(DataPreparationTask):
 
         with self.input().open("r") as input_file:
             initial_dataset = pd.read_csv(input_file)
+            if self.minimal_mode:
+                initial_dataset = initial_dataset.head(1000)
 
         # extract hashtags from initial dataset
         hashtags = []
