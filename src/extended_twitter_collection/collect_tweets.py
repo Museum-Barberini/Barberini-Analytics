@@ -112,14 +112,25 @@ class TwitterCandidateTweetsToDB(CsvToDb):
 
 class TwitterCollectCandidateTweets(DataPreparationTask):
 
+    timeout = 7200  # 20 minutes - required in case of hypes
+
     # only fetch the first count * collection_r_limit tweets
     # for a given keyword-interval
-    collection_r_limit = luigi.IntParameter(default=50)
+    collection_r_limit = luigi.IntParameter(default=-1)
+
+    max_topics = luigi.IntParameter(default=-1)
 
     # twint fails sporadically with RefreshTokenException on our VM as Twitter
     # is blocking too many accesses from certain IPs.
     # See https://github.com/twintproject/twint/issues/957.
     retry_count = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.collection_r_limit == -1:
+            self.collection_r_limit = 5 if self.minimal_mode else 50
+        if self.max_topics == -1:
+            self.max_topics = 5 if self.minimal_mode else 50
 
     def requires(self):
         return KeywordIntervalsToDB()
@@ -138,7 +149,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
             SELECT term, count_interval
             FROM twitter_keyword_intervals
             WHERE end_date >= CURRENT_DATE
-            {'LIMIT 500' if self.minimal_mode else ''}
+            LIMIT {self.max_topics}
         ''')  # nosec B608
 
         seven_days_ago = (
@@ -160,7 +171,7 @@ class TwitterCollectCandidateTweets(DataPreparationTask):
         tweet_dfs.append(self.fetch_tweets(
             query="museumbarberini",
             start_date=seven_days_ago,
-            limit=10000
+            limit=10000 if self.minimal_mode else 10
         ))
 
         # create dataframe with all the fetched tweets

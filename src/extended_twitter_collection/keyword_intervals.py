@@ -150,6 +150,8 @@ class TermCounts(DataPreparationTask):
 
         with self.input().open("r") as input_file:
             initial_dataset = pd.read_csv(input_file)
+            if self.minimal_mode:
+                initial_dataset = initial_dataset.head(1000)
 
         # extract hashtags from initial dataset
         hashtags = []
@@ -180,15 +182,15 @@ class TermCounts(DataPreparationTask):
         # count occurrences of hashtags.
         # Only count max one occurrence per tweet.
         term_counts = defaultdict(lambda: 0)
-        for term in hashtags:
-            print(term, end="\r")  # display progress
-            regex = rf"\b{term}\b"
-            for tweet in initial_dataset["text"].tolist():
+        for term in self.tqdm(hashtags, desc="Counting terms"):
+            regex = rf'\b{term}\b'
+            for tweet in initial_dataset['text'].tolist():
                 if not tweet:
                     # skip None or NA tweets
                     continue
                 tweet = tweet.lower()
-                term_counts[term] += 1 if re.findall(regex, tweet) else 0
+                if re.search(regex, tweet):
+                    term_counts[term] += 1
 
         # Sort terms based on number of occurences. Create dataframe.
         terms_ordered = sorted(
