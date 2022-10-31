@@ -222,7 +222,7 @@ class CollectLogReport(DataPreparationTask):
             logs['log_level'], logs['log_string'] = zip(
                 *logs['logs'].progress_apply(
                     lambda log: [
-                        log[:-1],
+                        *log[:-1],
                         textwrap.shorten(
                             log[-1], max_chars, placeholder="...etc...")
                         ]))
