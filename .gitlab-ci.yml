@@ -43,7 +43,7 @@ unittest:
     - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
       USER="gitlab_runner_${CI_JOB_ID}"
     - if [ "$CI" = "true" ] && grep -q "Gomus version number in HTML string has changed!" unittest.log; then
-        docker exec --env --env CI_PROJECT_ID=$CI_PROJECT_ID --env CI_PROJECT_PATH=$CI_PROJECT_PATH --env CI_SERVER_HOST=$CI_SERVER_HOST --env CI_SERVER_URL=$CI_SERVER_URL GITLAB_OAUTH_TOKEN=$GITLAB_OAUTH_TOKEN $USER-barberini_analytics_luigi make patch-gomus-version-mr;
+        docker exec --env CI_PROJECT_ID=$CI_PROJECT_ID --env CI_PROJECT_PATH=$CI_PROJECT_PATH --env CI_SERVER_HOST=$CI_SERVER_HOST --env CI_SERVER_URL=$CI_SERVER_URL --env GITLAB_OAUTH_TOKEN=$GITLAB_OAUTH_TOKEN $USER-barberini_analytics_luigi make patch-gomus-version-mr;
       fi
     - make docker-cleanup
 
