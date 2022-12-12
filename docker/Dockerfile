@@ -73,7 +73,7 @@ RUN python3 -m pip check
 ## nltk
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
 
-# Fix git
+# Fix git permissions
 RUN git config --global --add safe.directory /app
 
 # Enable bash completion for best dev convenience

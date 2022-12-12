@@ -68,7 +68,6 @@ class TestGomusConnection(DatabaseTestCase):
 
     def mr_patch_version(self):
         """Create a GitLab merge request to update the version number."""
-
         version_tag = self.patch_version()
 
         date = dt.datetime.now().strftime('%Y%m%d')
@@ -76,7 +75,7 @@ class TestGomusConnection(DatabaseTestCase):
         changelog_url = ('https://barberini.gomus.de/wiki/spaces/REL/pages/'
                          '243073130')
 
-        import subprocess as sp
+        import subprocess as sp  # nosec B404
         sp.run(['git', 'checkout', '-b', branch_name], check=True)
         sp.run(['git', 'add', __file__], check=True)
         sp.run(['git',
