@@ -70,7 +70,6 @@ class TestGomusConnection(DatabaseTestCase):
         """Create a GitLab merge request to update the version number."""
 
         version_tag = self.patch_version()
-        self.test_version()
 
         date = dt.datetime.now().strftime('%Y%m%d')
         branch_name = f'update-gomus-version-{date}'
