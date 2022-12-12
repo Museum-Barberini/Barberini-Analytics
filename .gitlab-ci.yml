@@ -38,10 +38,10 @@ unittest:
     - make startup
   script:
     - docker exec --env FULL_TEST=$FULL_TEST $USER-barberini_analytics_luigi make coverage | tee coverage.txt 2> >(tee unittest.log >&2)
+  after_script:
     - if [ "$CI" = "true" ] && grep -q "Gomus version number in HTML string has changed!" unittest.log; then
         docker exec $USER-barberini_analytics_luigi make patch-gomus-version-mr;
       fi
-  after_script:
     - # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3088
       USER="gitlab_runner_${CI_JOB_ID}"
     - make docker-cleanup
