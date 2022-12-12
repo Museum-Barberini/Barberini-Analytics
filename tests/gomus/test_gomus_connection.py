@@ -1,3 +1,4 @@
+import datetime as dt
 import os
 import re
 
@@ -62,6 +63,53 @@ class TestGomusConnection(DatabaseTestCase):
 
         with open(__file__, 'w') as file:
             file.write(source)
+
+        return version_tag
+
+    def mr_patch_version(self):
+        """Create a GitLab merge request to update the version number."""
+
+        version_tag = self.patch_version()
+        self.test_version()
+
+        date = dt.datetime.now().strftime('%Y%m%d')
+        branch_name = f'update-gomus-version-{date}'
+        changelog_url = ('https://barberini.gomus.de/wiki/spaces/REL/pages/'
+                         '243073130')
+
+        import subprocess as sp
+        sp.run(['git', 'checkout', '-b', branch_name], check=True)
+        sp.run(['git', 'add', __file__], check=True)
+        sp.run(['git',
+                '-c', 'user.name=\'GitLab CI\'',
+                '-c', 'user.email=\'GitLab CI <noreply@gitlab.com>\'',
+                'commit', '-m',
+                f"Update gomus version number to v{version_tag}"],
+               check=True)
+        sp.run(['git', 'remote', 'add', 'origin-token',
+                f'https://token:{os.environ["GITLAB_OAUTH_TOKEN"]}@'
+                f'{os.environ["CI_SERVER_HOST"]}/'
+                f'{os.environ["CI_PROJECT_PATH"]}.git'],
+               check=True)
+        sp.run(['git', 'push', 'origin-token', branch_name], check=True)
+
+        import gitlab
+        gl = gitlab.Gitlab(url=os.environ['CI_SERVER_URL'],
+                           private_token=os.environ['GITLAB_OAUTH_TOKEN'])
+        project = gl.projects.get(os.environ['CI_PROJECT_ID'])
+        mr = project.mergerequests.create({
+            'source_branch': branch_name,
+            'target_branch': 'master',
+            'title': f"Update gomus version number to v{version_tag}",
+            'description': "Gomus version number has changed to "
+                           f"{version_tag}.\n\nGomus changelog: "
+                           f"{changelog_url}\n\n"
+                           "(This MR was created automatically by a CI job.)",
+            'labels': ['maintenance']
+        })
+        print(f"Created merge request: {mr.web_url}")
+
+        sp.run(['git', 'checkout', '-'], check=True)
 
     def search_version(self):
         if GOMUS_SESS_ID == '':
