@@ -146,6 +146,9 @@ patch-gomus-version:
 	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.patch_version
 	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.test_version
 
+patch-gomus-version-mr:
+	$(MAKE) test test=tests.gomus.test_gomus_connection.TestGomusConnection.mr_patch_version
+
 lint: lint-python lint-markdown
 
 lint-python:

@@ -73,6 +73,9 @@ RUN python3 -m pip check
 ## nltk
 RUN python3 -c "import nltk; nltk.download('punkt')" 2>&1
 
+# Fix git permissions
+RUN git config --global --add safe.directory /app
+
 # Enable bash completion for best dev convenience
 # The following command uncomments a section in the bash.bashrc file which is
 # responsible for activating the application-specific autocomplete feature of
