@@ -90,7 +90,8 @@ class TestGomusConnection(DatabaseTestCase):
                 f'{os.environ["CI_SERVER_HOST"]}/'
                 f'{os.environ["CI_PROJECT_PATH"]}.git'],
                check=True)
-        sp.run(['git', 'push', 'origin-token', branch_name], check=True)
+        sp.run(['git', '-c', 'http.sslVerify=false', 'push', 'origin-token',
+                branch_name], check=True)
 
         import gitlab
         gl = gitlab.Gitlab(url=os.environ['CI_SERVER_URL'],
