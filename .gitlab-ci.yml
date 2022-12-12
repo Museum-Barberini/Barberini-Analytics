@@ -2,6 +2,7 @@ image: docker:latest
 
 variables:
   BARBERINI_ANALYTICS_CONTEXT: CI
+  GITLAB_OAUTH_TOKEN: $GITLAB_OAUTH_TOKEN
 
 workflow:
   rules:
