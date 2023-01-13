@@ -38,8 +38,8 @@ class ExtractGomusBookings(DataPreparationTask):
 
         if not bookings.empty:
             bookings['Buchung'] = bookings['Buchung'].apply(int)
-            bookings['Teilnehmerzahl'] = bookings['Teilnehmerzahl'].apply(
-                self.safe_parse_int)
+            bookings['Anzahl Teilnehmende'] = bookings['Anzahl Teilnehmende']\
+                .apply(self.safe_parse_int)
             bookings['Guide'] = bookings['Guide'].apply(self.hash_guide)
             bookings['Startzeit'] = bookings.apply(
                 lambda x: self.calculate_start_datetime(
@@ -67,7 +67,7 @@ class ExtractGomusBookings(DataPreparationTask):
 
         bookings = bookings.filter(['Buchung',
                                     'Angebotskategorie',
-                                    'Teilnehmerzahl',
+                                    'Anzahl Teilnehmende',
                                     'Guide',
                                     'Dauer',
                                     'Ausstellung',
