@@ -117,7 +117,7 @@ class TestBookingsFormat(GomusFormatTest):
              ("Angebotskategorie", 'STRING'),
              ("Termin", 'STRING'),
              ("Angebot", 'STRING'),
-             ("Teilnehmerzahl", 'FLOAT'),
+             ("Anzahl Teilnehmende", 'FLOAT'),
              ("Guide", 'STRING'),
              ("Kunde", 'STRING'),
              ("E-Mail", 'STRING'),
