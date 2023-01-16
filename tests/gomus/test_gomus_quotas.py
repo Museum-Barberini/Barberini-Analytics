@@ -1,13 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import luigi
 from luigi.format import UTF8
-from luigi.mock import MockTarget
 import pandas as pd
 
 from db_test import DatabaseTestCase
-from gomus.quotas import ExtractQuotas, FetchQuotas
-from gomus._utils.fetch_htmls import FailableTarget, FetchGomusHTML
+from gomus._utils.fetch_htmls import FetchGomusHTML
+from gomus.quotas import ExtractQuotas, FetchQuotaIds
 
 
 class TestExtractQuotas(DatabaseTestCase):
@@ -53,60 +52,50 @@ class TestExtractQuotas(DatabaseTestCase):
         self.assertEqual('2020-08-17 19:08:00', quota['creation_date'])
 
 
-class TestFetchQuotas(DatabaseTestCase):
-    """Tests the gomus FetchQuotas task."""
+class TestFetchQuotaIds(DatabaseTestCase):
+    """Tests the gomus FetchQuotaIds task."""
 
-    def test_fetch_quotas(self):
+    def test_fetch_mock(self):
+        """Give the task some mock data and test how it parses them."""
+        self.task = FetchQuotaIds()
+        self._mock_html_targets(self.task.run(), {
+            '/admin/quotas?per_page=5': 'quotas?page=1.html',
+            '/admin/quotas?page=2.html': 'quotas?page=2.html'
+        })
 
-        self.task = FetchQuotas()
-        self.task.max_missing_ids = 3
-        mock_codes = [
-            404, 200, 200, 404, 404, 404, 200, 200, 200, 200, 404, 404, 404,
-            404, 200]
+        expected_quota_ids = pd.read_csv(
+            'tests/test_data/gomus/quotas/quota_ids.csv')
+        with self.task.output().open() as output:
+            actual_quota_ids = pd.read_csv(output)
+        pd.testing.assert_frame_equal(expected_quota_ids, actual_quota_ids)
 
-        self.iter_task(mock_codes, max_index=13)
+    def test_fetch_production(self):
+        """Give the task some production data and test how it parses them."""
+        self.task = FetchQuotaIds()
+        # make sure to test pagination
+        self.task.url = '/admin/quotas?per_page=5'
+
+        self.run_task(self.task)
 
         with self.task.output().open() as output:
-            output_df = pd.read_csv(output)
+            actual_quota_ids = pd.read_csv(output)
+        self.assertGreater(len(actual_quota_ids), 0)
+        self.assertTrue((actual_quota_ids['quota_id'] > 0).all())
+        self.assertTrue((actual_quota_ids['quota_id'] < 1000).all())
 
-        pd.testing.assert_frame_equal(
-            pd.DataFrame([
-                {'file_path': f'quota_{i}.html'}
-                for i in [1, 2, 6, 7, 8, 9]
-            ]),
-            output_df)
-
-    def test_http_error(self):
-
-        self.task = FetchQuotas()
-        self.task.max_missing_ids = 3
-        mock_codes = [404, 200, 200, 404, 404, 404, 200, 500, 200]
-
-        with self.assertRaises(ValueError):
-            self.iter_task(mock_codes, max_index=7)
-
-        self.assertFalse(self.task.complete())
-
-    def iter_task(self, mock_codes, max_index):
-
-        gen = self.task.run()
-        dep = next(gen)
-        for i, code in enumerate(mock_codes):
-            self.assertIsInstance(dep, FetchGomusHTML)
-            self.assertLessEqual(i, max_index)
-
-            if 200 <= code < 300:
-                target = MockTarget(f'quota_{i}.html')
-            elif code in dep.ignored_status_codes:
-                target = MockTarget(f'quota_{i}.html.error')
-            else:
-                raise ValueError("Unhandled status code")
-            with target.open('w'):
-                pass
-
-            try:
-                dep = gen.send(FailableTarget(target))
-            except StopIteration:
-                dep = None
-                break
-        self.assertFalse(dep)
+    def _mock_html_targets(self, gen, mock_files):
+        try:
+            dep = next(gen)
+            while True:
+                if isinstance(dep, FetchGomusHTML):
+                    dep.output = MagicMock()
+                    mock_file = mock_files[dep.url]
+                    with open('tests/test_data/gomus/quotas/' + mock_file)\
+                            as input_file:
+                        mock_content = input_file.read()
+                    self.install_mock_target(
+                        dep.output,
+                        lambda stream: stream.write(mock_content))
+                dep = gen.send(dep.output())
+        except StopIteration:
+            pass

@@ -71,34 +71,75 @@ class ExtractQuotas(GomusScraperTask):
 class FetchQuotas(DataPreparationTask):
     """Fetch all quota pages from the gomus site."""
 
-    """Maximum number of consecutive invalid quota IDs to tolerate."""
-    max_missing_ids = 100
-
     def output(self):
-
         return luigi.LocalTarget(
             f'{self.output_dir}/gomus/quota_files.csv',
             format=UTF8
         )
 
+    def requires(self):
+        return FetchQuotaIds()
+
     def run(self):
-        # Approach: Sequentially fetch all quota IDs, ignoring missing ones.
-        # Stop when more than max_missing_ids consecutive IDs were invalid.
+        with self.input().open() as f:
+            quota_ids = pd.read_csv(f)['quota_id']
 
-        quota_id = last_confirmed_id = 0
+        if self.minimal_mode:
+            quota_ids = quota_ids[:5]
+
+        quota_files = []
         with self.output().open('w') as output:
-            print('file_path', file=output)
-
-            while quota_id - last_confirmed_id <= self.max_missing_ids:
-                quota_id += 1
-                if self.minimal_mode:
-                    quota_id += -1 + 4
-
-                html = yield FetchGomusHTML(
+            for quota_id in quota_ids:
+                html_target = yield FetchGomusHTML(
                     url=f'/admin/quotas/'f'{quota_id}',
                     ignored_status_codes=[404])
-                if html.has_error():
-                    logger.debug(f"Skipping invalid quota_id={quota_id}")
+                if html_target.has_error():
+                    logger.error(f"Skipping invalid quota_id={quota_id}")
                     continue
-                last_confirmed_id = quota_id
-                print(html.path, file=output)
+                quota_files.append(html_target.path)
+
+        df = pd.DataFrame(quota_files, columns=['file_path'])
+        with self.output().open('w') as output:
+            df.to_csv(output, index=False)
+
+
+class FetchQuotaIds(DataPreparationTask):
+    def output(self):
+        return luigi.LocalTarget(
+            f'{self.output_dir}/gomus/quota_ids.csv',
+            format=UTF8
+        )
+
+    url = '/admin/quotas?per_page=100'
+
+    def run(self):
+        quota_ids = []
+        url = self.url
+        page = 0
+        while True:
+            logger.debug(f"Fetching {url}...")
+            html_target = yield FetchGomusHTML(url=url)
+            with html_target.open() as f:
+                dom: html.HtmlElement = html.fromstring(f.read())
+            quota_ids.extend([
+                int(a.attrib['href'].split('/')[-1])
+                for a in dom.xpath(
+                    '/html/body/div[2]/div[2]/div[3]/div/div[2]/div/div[2]/'
+                    'table/tbody/tr/td[1]/a'
+                )
+            ])
+            next_page = dom.xpath(
+                '/html/body/div[2]/div[2]/div[3]/div/div[2]/div/div[2]/div/'
+                'div[1]/ul/li/a[@rel="next"]'
+            )
+            if not next_page:
+                break
+            url = next_page[0].attrib['href']
+            print(url)
+            if self.minimal_mode and page > 1:
+                break
+            page += 1
+
+        df = pd.DataFrame(quota_ids, columns=['quota_id'])
+        with self.output().open('w') as output:
+            df.to_csv(output, index=False)
