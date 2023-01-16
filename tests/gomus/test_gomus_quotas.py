@@ -59,7 +59,7 @@ class TestFetchQuotaIds(DatabaseTestCase):
         """Give the task some mock data and test how it parses them."""
         self.task = FetchQuotaIds()
         self._mock_html_targets(self.task.run(), {
-            '/admin/quotas?per_page=5': 'quotas?page=1.html',
+            '/admin/quotas?per_page=100': 'quotas?page=1.html',
             '/admin/quotas?page=2.html': 'quotas?page=2.html'
         })
 
