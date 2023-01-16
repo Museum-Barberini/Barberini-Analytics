@@ -20,17 +20,17 @@ class FailableTarget:
     This allows a task to complete despite a failure occured during execution.
     """
 
-    def __init__(self, task):
+    def __init__(self, target):
 
         super().__init__()
-        self.task = task
+        self.target = target
 
     def __getattribute__(self, name):
-        """Forward calls to underlying targe instance dynamically."""
+        """Forward calls to underlying target instance dynamically."""
         try:
             return super().__getattribute__(name)
         except AttributeError:
-            return self.task.__getattribute__(name)
+            return self.target.__getattribute__(name)
 
     @property
     def is_error(self):
@@ -45,7 +45,7 @@ class FailableTarget:
 
     def exists(self):
 
-        if self.task.exists():
+        if self.target.exists():
             return True
         if self.is_error:
             return False
@@ -55,9 +55,9 @@ class FailableTarget:
 
         if self.is_error:
             return self
-        error_task = copy(self.task)
-        error_task.path = f'{error_task.path}.error'
-        return type(self)(error_task)
+        error_target = copy(self.target)
+        error_target.path = f'{error_target.path}.error'
+        return type(self)(error_target)
 
 
 class FetchGomusHTML(DataPreparationTask):
