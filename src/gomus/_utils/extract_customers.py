@@ -74,10 +74,13 @@ class ExtractCustomerData(DataPreparationTask):
         df['register_date'] = pd.to_datetime(
             df['register_date'], format='%d.%m.%Y', errors='coerce')
         invalid_dates = df[df['register_date'].isna()]
-        if invalid_dates.any().any():
+        invalid_count = len(invalid_dates)
+        if invalid_count:
             logger.warning(
                 f'Found {len(invalid_dates)} invalid dates in report. '
                 f'Dropping them.')
+            if 1 - invalid_count / len(df) < 0.5:
+                raise ValueError("Too many invalid dates! Aborting.")
             df = df[df['register_date'] != pd.NaT]
 
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)

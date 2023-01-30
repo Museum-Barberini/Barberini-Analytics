@@ -9,6 +9,7 @@ from unittest.mock import patch
 from luigi.format import UTF8
 from luigi.mock import MockTarget
 
+from _utils import logger
 from db_test import DatabaseTestCase
 from gomus._utils.fetch_report import FetchGomusReport, FetchEventReservations
 
@@ -37,20 +38,24 @@ class GomusFormatTest(DatabaseTestCase):
                              skiprows=skiprows,
                              engine='python')
 
+            if len(df) == 0:
+                logger.info("Report has no rows")
             for i in range(len(self.expected_format)):
                 if df.columns[i] == 'Keine Daten vorhanden':
                     break
                 # this checks whether the columns are named right
                 self.assertEqual(df.columns[i],
                                  self.expected_format[i][0])
+                if len(df) == 0:
+                    continue
                 checks = df.apply(lambda x: self.check_type(
                     x[self.expected_format[i][0]],
                     self.expected_format[i][1]),
                     axis=1)
                 self.assertGreaterEqual(checks.mean(), 0.99, msg=(
-                    f'Column "{self.expected_format[i][0]}" '
-                    f'has wrong type {self.expected_format[i][1]} '
-                    f'({checks.mean() * 100:.2f}% of values are correct)'))
+                    f"Column '{self.expected_format[i][0]}' "
+                    f"has wrong type {self.expected_format[i][1]} "
+                    f"({checks.mean() * 100:.2f}% of values are correct)"))
 
     def check_type(self, data, expected_type):
         try:
