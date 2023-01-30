@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from luigi.format import UTF8
 
-from _utils import DataPreparationTask
+from _utils import DataPreparationTask, logger
 from .fetch_report import FetchGomusReport
 
 
@@ -69,8 +69,17 @@ class ExtractCustomerData(DataPreparationTask):
         df['postal_code'] = df['postal_code'].apply(self.cut_decimal_digits)
         df['newsletter'] = df['newsletter'].apply(self.parse_boolean)
         df['gender'] = df['gender'].apply(self.parse_gender)
+
+        # Sometimes columns are shifted in exports -> exclude them for now
         df['register_date'] = pd.to_datetime(
-            df['register_date'], format='%d.%m.%Y')
+            df['register_date'], format='%d.%m.%Y', errors='coerce')
+        invalid_dates = df[df['register_date'].isna()]
+        if invalid_dates.any().any():
+            logger.warning(
+                f'Found {len(invalid_dates)} invalid dates in report. '
+                f'Dropping them.')
+            df = df[df['register_date'] != pd.NaT]
+
         df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
         # TODO: find a better way to pass an empty list
         df['tourism_tags'] = df['tourism_tags'].fillna('[]')

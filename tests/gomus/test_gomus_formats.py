@@ -43,28 +43,35 @@ class GomusFormatTest(DatabaseTestCase):
                 # this checks whether the columns are named right
                 self.assertEqual(df.columns[i],
                                  self.expected_format[i][0])
-                df.apply(lambda x: self.check_type(
+                checks = df.apply(lambda x: self.check_type(
                     x[self.expected_format[i][0]],
                     self.expected_format[i][1]),
                     axis=1)
+                self.assertGreaterEqual(checks.mean(), 0.99, msg=(
+                    f'Column "{self.expected_format[i][0]}" '
+                    f'has wrong type {self.expected_format[i][1]} '
+                    f'({checks.mean() * 100:.2f}% of values are correct)'))
 
     def check_type(self, data, expected_type):
-        # To check if the data in the columns has the right type,
-        # we try to converte the string into the expected type and
-        # catch a ValueError or TypeError, if something goes wrong.
+        try:
+            self.parse_type(data, expected_type)
+        except Exception:
+            return False
+        return True
+
+    def parse_type(self, data, expected_type):
         # As we don't process data from type "STRING"/ just store
         # it as text, we don't have to explicitly check the type.
-        try:
-            if data == '':
-                pass
-            elif expected_type == 'FLOAT':
-                float(data)
-            elif expected_type == 'DATE':
-                dt.datetime.strptime(data, '%d.%m.%Y')
-            elif expected_type == 'TIME':
-                dt.datetime.strptime(data, '%H:%M')
-        except (ValueError, TypeError):
-            self.assertTrue(False, f'{data} is not from type {expected_type}')
+        if data == '':
+            return data
+        elif expected_type == 'FLOAT':
+            return float(data)
+        elif expected_type == 'DATE':
+            return dt.datetime.strptime(data, '%d.%m.%Y')
+        elif expected_type == 'TIME':
+            return dt.datetime.strptime(data, '%H:%M')
+        else:
+            return data
 
 
 class TestCustomersFormat(GomusFormatTest):
