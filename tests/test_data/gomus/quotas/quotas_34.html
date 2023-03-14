@@ -4,7 +4,7 @@
 <head>
 <meta charset='utf-8'>
 <meta content='width=device-width, initial-scale=1.0' name='viewport'>
-<title>Kontingente // barberini.go~mus</title>
+<title>Kontingente // Museum Barberini</title>
 <script>
   var _rollbarConfig = {
     accessToken: "removed",
@@ -24,34 +24,28 @@
   !function(r){function e(n){if(o[n])return o[n].exports;var t=o[n]={exports:{},id:n,loaded:!1};return r[n].call(t.exports,t,t.exports,e),t.loaded=!0,t.exports}var o={};return e.m=r,e.c=o,e.p="",e(0)}([function(r,e,o){"use strict";var n=o(1),t=o(4);_rollbarConfig=_rollbarConfig||{},_rollbarConfig.rollbarJsUrl=_rollbarConfig.rollbarJsUrl||"https://cdnjs.cloudflare.com/ajax/libs/rollbar.js/2.3.8/rollbar.min.js",_rollbarConfig.async=void 0===_rollbarConfig.async||_rollbarConfig.async;var a=n.setupShim(window,_rollbarConfig),l=t(_rollbarConfig);window.rollbar=n.Rollbar,a.loadFull(window,document,!_rollbarConfig.async,_rollbarConfig,l)},function(r,e,o){"use strict";function n(r){return function(){try{return r.apply(this,arguments)}catch(r){try{console.error("[Rollbar]: Internal error",r)}catch(r){}}}}function t(r,e){this.options=r,this._rollbarOldOnError=null;var o=s++;this.shimId=function(){return o},"undefined"!=typeof window&&window._rollbarShims&&(window._rollbarShims[o]={handler:e,messages:[]})}function a(r,e){if(r){var o=e.globalAlias||"Rollbar";if("object"==typeof r[o])return r[o];r._rollbarShims={},r._rollbarWrappedError=null;var t=new p(e);return n(function(){e.captureUncaught&&(t._rollbarOldOnError=r.onerror,i.captureUncaughtExceptions(r,t,!0),i.wrapGlobals(r,t,!0)),e.captureUnhandledRejections&&i.captureUnhandledRejections(r,t,!0);var n=e.autoInstrument;return e.enabled!==!1&&(void 0===n||n===!0||"object"==typeof n&&n.network)&&r.addEventListener&&(r.addEventListener("load",t.captureLoad.bind(t)),r.addEventListener("DOMContentLoaded",t.captureDomContentLoaded.bind(t))),r[o]=t,t})()}}function l(r){return n(function(){var e=this,o=Array.prototype.slice.call(arguments,0),n={shim:e,method:r,args:o,ts:new Date};window._rollbarShims[this.shimId()].messages.push(n)})}var i=o(2),s=0,d=o(3),c=function(r,e){return new t(r,e)},p=d.bind(null,c);t.prototype.loadFull=function(r,e,o,t,a){var l=function(){var e;if(void 0===r._rollbarDidLoad){e=new Error("rollbar.js did not load");for(var o,n,t,l,i=0;o=r._rollbarShims[i++];)for(o=o.messages||[];n=o.shift();)for(t=n.args||[],i=0;i<t.length;++i)if(l=t[i],"function"==typeof l){l(e);break}}"function"==typeof a&&a(e)},i=!1,s=e.createElement("script"),d=e.getElementsByTagName("script")[0],c=d.parentNode;s.crossOrigin="",s.src=t.rollbarJsUrl,o||(s.async=!0),s.onload=s.onreadystatechange=n(function(){if(!(i||this.readyState&&"loaded"!==this.readyState&&"complete"!==this.readyState)){s.onload=s.onreadystatechange=null;try{c.removeChild(s)}catch(r){}i=!0,l()}}),c.insertBefore(s,d)},t.prototype.wrap=function(r,e,o){try{var n;if(n="function"==typeof e?e:function(){return e||{}},"function"!=typeof r)return r;if(r._isWrap)return r;if(!r._rollbar_wrapped&&(r._rollbar_wrapped=function(){o&&"function"==typeof o&&o.apply(this,arguments);try{return r.apply(this,arguments)}catch(o){var e=o;throw"string"==typeof e&&(e=new String(e)),e._rollbarContext=n()||{},e._rollbarContext._wrappedSource=r.toString(),window._rollbarWrappedError=e,e}},r._rollbar_wrapped._isWrap=!0,r.hasOwnProperty))for(var t in r)r.hasOwnProperty(t)&&(r._rollbar_wrapped[t]=r[t]);return r._rollbar_wrapped}catch(e){return r}};for(var u="log,debug,info,warn,warning,error,critical,global,configure,handleUncaughtException,handleUnhandledRejection,captureEvent,captureDomContentLoaded,captureLoad".split(","),f=0;f<u.length;++f)t.prototype[u[f]]=l(u[f]);r.exports={setupShim:a,Rollbar:p}},function(r,e){"use strict";function o(r,e,o){if(r){var t;"function"==typeof e._rollbarOldOnError?t=e._rollbarOldOnError:r.onerror&&!r.onerror.belongsToShim&&(t=r.onerror,e._rollbarOldOnError=t);var a=function(){var o=Array.prototype.slice.call(arguments,0);n(r,e,t,o)};a.belongsToShim=o,r.onerror=a}}function n(r,e,o,n){r._rollbarWrappedError&&(n[4]||(n[4]=r._rollbarWrappedError),n[5]||(n[5]=r._rollbarWrappedError._rollbarContext),r._rollbarWrappedError=null),e.handleUncaughtException.apply(e,n),o&&o.apply(r,n)}function t(r,e,o){if(r){"function"==typeof r._rollbarURH&&r._rollbarURH.belongsToShim&&r.removeEventListener("unhandledrejection",r._rollbarURH);var n=function(r){var o,n,t;try{o=r.reason}catch(r){o=void 0}try{n=r.promise}catch(r){n="[unhandledrejection] error getting `promise` from event"}try{t=r.detail,!o&&t&&(o=t.reason,n=t.promise)}catch(r){t="[unhandledrejection] error getting `detail` from event"}o||(o="[unhandledrejection] error getting `reason` from event"),e&&e.handleUnhandledRejection&&e.handleUnhandledRejection(o,n)};n.belongsToShim=o,r._rollbarURH=n,r.addEventListener("unhandledrejection",n)}}function a(r,e,o){if(r){var n,t,a="EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");for(n=0;n<a.length;++n)t=a[n],r[t]&&r[t].prototype&&l(e,r[t].prototype,o)}}function l(r,e,o){if(e.hasOwnProperty&&e.hasOwnProperty("addEventListener")){for(var n=e.addEventListener;n._rollbarOldAdd&&n.belongsToShim;)n=n._rollbarOldAdd;var t=function(e,o,t){n.call(this,e,r.wrap(o),t)};t._rollbarOldAdd=n,t.belongsToShim=o,e.addEventListener=t;for(var a=e.removeEventListener;a._rollbarOldRemove&&a.belongsToShim;)a=a._rollbarOldRemove;var l=function(r,e,o){a.call(this,r,e&&e._rollbar_wrapped||e,o)};l._rollbarOldRemove=a,l.belongsToShim=o,e.removeEventListener=l}}r.exports={captureUncaughtExceptions:o,captureUnhandledRejections:t,wrapGlobals:a}},function(r,e){"use strict";function o(r,e){this.impl=r(e,this),this.options=e,n(o.prototype)}function n(r){for(var e=function(r){return function(){var e=Array.prototype.slice.call(arguments,0);if(this.impl[r])return this.impl[r].apply(this.impl,e)}},o="log,debug,info,warn,warning,error,critical,global,configure,handleUncaughtException,handleUnhandledRejection,_createItem,wrap,loadFull,shimId,captureEvent,captureDomContentLoaded,captureLoad".split(","),n=0;n<o.length;n++)r[o[n]]=e(o[n])}o.prototype._swapAndProcessMessages=function(r,e){this.impl=r(this.options);for(var o,n,t;o=e.shift();)n=o.method,t=o.args,this[n]&&"function"==typeof this[n]&&("captureDomContentLoaded"===n||"captureLoad"===n?this[n].apply(this,[t[0],o.ts]):this[n].apply(this,t));return this},r.exports=o},function(r,e){"use strict";r.exports=function(r){return function(e){if(!e&&!window._rollbarInitialized){r=r||{};for(var o,n,t=r.globalAlias||"Rollbar",a=window.rollbar,l=function(r){return new a(r)},i=0;o=window._rollbarShims[i++];)n||(n=o.handler),o.handler._swapAndProcessMessages(l,o.messages);window[t]=n,window._rollbarInitialized=!0}}}}]);
 </script>
 
-<link href="/assets/4/application-58da41569b30c13fd8c18e08afe57b9f.css" media="all" rel="stylesheet" type="text/css" />
-<link href="/admin/customize/tenants/1/theme.css" media="screen" rel="stylesheet" type="text/css" />
-<link href='/assets/favicon/apple-touch-icon-57x57-9c34eb7f61f305234b297108de86081d.png' rel='apple-touch-icon' sizes='57x57'>
-<link href='/assets/favicon/apple-touch-icon-60x60-fb0f29d07abc97c02587b20aacd43d33.png' rel='apple-touch-icon' sizes='60x60'>
-<link href='/assets/favicon/apple-touch-icon-72x72-a2d6aa14ab2d02d16654150e650581a7.png' rel='apple-touch-icon' sizes='72x72'>
-<link href='/assets/favicon/apple-touch-icon-76x76-eec22a58334f355edb5cdbc7831074fa.png' rel='apple-touch-icon' sizes='76x76'>
-<link href='/assets/favicon/apple-touch-icon-114x114-8e4ccea060830f32120c155037a0233b.png' rel='apple-touch-icon' sizes='114x114'>
-<link href='/assets/favicon/apple-touch-icon-120x120-7b991d5557e8b252e7f7d125cc96347a.png' rel='apple-touch-icon' sizes='120x120'>
-<link href='/assets/favicon/apple-touch-icon-144x144-4d82256a1fe7f92538eb6d683797911b.png' rel='apple-touch-icon' sizes='144x144'>
-<link href='/assets/favicon/apple-touch-icon-152x152-7ac0ddbb06fa8ea146d85760cc9bb492.png' rel='apple-touch-icon' sizes='152x152'>
-<link href='/assets/favicon/apple-touch-icon-180x180-da6f5bcfc1c92aeb6109e3c44ddcbb3f.png' rel='apple-touch-icon' sizes='180x180'>
-<link href='/assets/favicon/favicon-32x32-7bd3962c2907d4ca7c3f7ba4c9e1db2f.png' rel='icon' sizes='32x32' type='image/png'>
-<link href='/assets/favicon/favicon-194x194-5db0eb93c04e1924f418a415379cb6d7.png' rel='icon' sizes='194x194' type='image/png'>
-<link href='/assets/favicon/favicon-96x96-d42c3c91776468b938a7f5431a361d53.png' rel='icon' sizes='96x96' type='image/png'>
-<link href='/assets/favicon/android-chrome-192x192-b6d03efc95f1d324153c5a12d4666f6d.png' rel='icon' sizes='192x192' type='image/png'>
-<link href='/assets/favicon/favicon-16x16-17627c8a000ee5572e3897aa6973032a.png' rel='icon' sizes='16x16' type='image/png'>
-<link href='/assets/favicon/manifest-24472399f5108a222a116a960a617b5e.json' rel='manifest'>
-<link color='#1ab394' href='/assets/favicon/safari-pinned-tab-4163b8c93fe34c62acdb0565f23b15e4.svg' rel='mask-icon'>
-<link href='/assets/favicon/favicon-18c781b576065031f942918f84c81eef.ico' rel='shortcut icon'>
-<meta content='#1ab394' name='msapplication-TileColor'>
-<meta content='/assets/favicon/mstile-144x144-42daf1ab3e733e293bb55af237e567d4.png' name='msapplication-TileImage'>
-<meta content='/assets/favicon/browserconfig-c91d8f530eb27dace45c8060b5c67301.xml' name='msapplication-config'>
-<meta content='#1ab394' name='theme-color'>
+<link href="/assets/4/application-ae12aed86ade1db70bb85ca7393246ba6290bf43c03140da4e4a8058ba73e258.css" media="all" rel="stylesheet" />
+<link href="/admin/customize/tenants/1/theme.css?ts=1619446621" media="screen" rel="stylesheet" />
+<link href='/production/tenants/1/favicon/4RbzsYBM_400x400.png' rel='shortcut icon'>
+<link href='/production/tenants/1/favicon_57x57/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='57x57'>
+<link href='/production/tenants/1/favicon_60x60/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='60x60'>
+<link href='/production/tenants/1/favicon_72x72/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='72x72'>
+<link href='/production/tenants/1/favicon_76x76/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='76x76'>
+<link href='/production/tenants/1/favicon_114x114/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='114x114'>
+<link href='/production/tenants/1/favicon_120x120/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='120x120'>
+<link href='/production/tenants/1/favicon_144x144/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='144x144'>
+<link href='/production/tenants/1/favicon_152x152/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='152x152'>
+<link href='/production/tenants/1/favicon_180x180/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='180x180'>
+<link href='/production/tenants/1/favicon_32x32/4RbzsYBM_400x400.png' rel='icon' sizes='32x32' type='image/png'>
+<link href='/production/tenants/1/favicon_194x194/4RbzsYBM_400x400.png' rel='icon' sizes='194x194' type='image/png'>
+<link href='/production/tenants/1/favicon_96x96/4RbzsYBM_400x400.png' rel='icon' sizes='96x96' type='image/png'>
+<link href='/production/tenants/1/favicon_192x192/4RbzsYBM_400x400.png' rel='icon' sizes='192x192' type='image/png'>
+<link href='/production/tenants/1/favicon_16x16/4RbzsYBM_400x400.png' rel='icon' sizes='16x16' type='image/png'>
 
 <meta content="authenticity_token" name="csrf-param" />
 <meta content="somebase64stuff=" name="csrf-token" />
 </head>
-<body class='action_show controller_quotas md-skin sidebar-overflow' data-gotosearch='/search/global/goto' data-helpdesk='true'>
+<body class='md-skin controller_quotas action_show env_production sidebar-overflow' data-gotosearch='/search/global/goto' data-helpdesk='true'>
 <div id='flash-messages'>
 </div>
 
@@ -61,6 +55,9 @@
 <ul class='nav metismenu' id='side-menu'>
 <li class='nav-header'>
 <div class='dropdown profile-element'>
+<div class='pull-left' style='margin-right: 15px;'>
+<img alt="HPI_MuB Analytics Projekt" class="img-circle" src="https://secure.gravatar.com/avatar/sometoken?default=mm&amp;secure=true" style="border: 1px solid #117469;" width="48" />
+</div>
 <a class='dropdown-toggle' data-toggle='dropdown' href='#'>
 <span class='clear'>
 <span class='block m-t-xs'>
@@ -99,13 +96,13 @@ Meine Aktivitäten
 <hr>
 </li>
 <li>
-<a href="/users/sign_out" data-method="delete" rel="nofollow"><i class='fa fa-fw fa-power-off'></i>
+<a data-method="delete" href="/users/sign_out" rel="nofollow"><i class='fa fa-fw fa-power-off'></i>
 Abmelden
 </a></li>
 </ul>
 </div>
 <div class='logo-element'>
-<a href="https://barberini.gomus.de/">go~
+<a href="https://barberini.gomus.de/">MBP
 </a></div>
 </li>
 <li>
@@ -181,7 +178,7 @@ Affiliates
 </a>
 <ul class='nav nav-second-level'>
 <li>
-<a href="/bookings?end_at=2021-01-27&amp;start_at=2020-10-27"><i class='fa fa-fw fa-th-list'></i>
+<a href="/bookings?end_at=2023-06-14&amp;start_at=2023-03-14"><i class='fa fa-fw fa-th-list'></i>
 Buchungsliste
 </a></li>
 <li class='divider'></li>
@@ -202,17 +199,13 @@ Monatsliste
 <a href="/admin/dates"><i class='fa fa-fw fa-calendar'></i>
 Termine
 </a></li>
-<li>
-<a href="/admin/courses"><i class='fa fa-paint-brush'></i>
-Termingruppen
-</a></li>
 <li class='divider'></li>
 <li>
-<a href="/admin/calendar?show_events=true"><i class='fa fa-fw fa-calendar'></i>
+<a href="/admin/calendar"><i class='fa fa-fw fa-calendar'></i>
 Monatskalender
 </a></li>
 <li>
-<a href="/admin/disposition/calendar?exclude_archived=true&amp;guides_needed=false&amp;hide_zero_guides_necessary=false"><i class='fa fa-fw fa-calendar-plus-o'></i>
+<a href="/admin/disposition/calendar?exclude_archived=true&amp;guides_needed=false&amp;hide_zero_guides_necessary=false&amp;show_events=true"><i class='fa fa-fw fa-calendar-plus-o'></i>
 Dispositionskalender
 </a></li>
 </ul>
@@ -241,6 +234,10 @@ Mitgliedschaften
 <a href="/admin/disclosure_cases"><i class='fa fa-fw fa-cloud'></i>
 Auskunftsrechtsfälle
 </a></li>
+<li>
+<a href="/admin/attendees"><i class='fa fa-fw fa-users'></i>
+Anwesenheitsdokumentation
+</a></li>
 </ul>
 </li>
 
@@ -251,6 +248,15 @@ Auskunftsrechtsfälle
 <span class='fa arrow'></span>
 </a>
 <ul class='nav nav-second-level'>
+<li>
+<a class='disabled'>
+Angebote
+</a>
+</li>
+<li>
+<a class="" data-ajax="true" data-target="#modal" data-toggle="remote-modal" href="/admin/reports?report_type=Reports%3A%3AProducts%3A%3AUtilizations"><i class='fa fa-fw fa-line-chart'></i>
+Auslastung
+</a></li>
 <li>
 <a class='disabled'>
 Tagesschecks
@@ -287,11 +293,11 @@ Ticket-Tagescheck
 </a>
 <ul class='nav nav-second-level'>
 <li>
-<a href="/admin/billings/index_groups?end_at=2020-10-31&amp;start_at=2020-10-01"><i class='fa fa-folder-open'></i>
+<a href="/admin/billings/index_groups?end_at=2023-03-31&amp;start_at=2023-03-01"><i class='fa fa-folder-open'></i>
 Gruppenführungen
 </a></li>
 <li>
-<a href="/admin/billings/index_public_tours?end_at=2020-10-31&amp;start_at=2020-10-01"><i class='fa fa-folder-open'></i>
+<a href="/admin/billings/index_public_tours?end_at=2023-03-31&amp;start_at=2023-03-01"><i class='fa fa-folder-open'></i>
 Öffentliche Führungen
 </a></li>
 <li>
@@ -307,6 +313,14 @@ Besucherabfrage
 <li>
 <a href="/admin/reports/bookings/storno"><i class='fa fa-fw fa-list'></i>
 Stornierungen
+</a></li>
+<li>
+<a class="" data-ajax="true" data-target="#modal" data-toggle="remote-modal" href="/admin/reports?report_params%5Bend_at%5D=&amp;report_params%5Border_source%5D=&amp;report_params%5Borderable_type%5D%5B%5D=Booking&amp;report_params%5Borderable_type%5D%5B%5D=BookingSeat&amp;report_params%5Borderable_type%5D%5B%5D=BookingCourse&amp;report_params%5Borderable_type%5D%5B%5D=TicketSale&amp;report_params%5Borderable_type%5D%5B%5D=CouponSale&amp;report_params%5Borderable_type%5D%5B%5D=MerchandiseSale&amp;report_params%5Borderable_type%5D%5B%5D=AccountingArticleSale&amp;report_params%5Bpayment_mode%5D=&amp;report_params%5Bstart_at%5D=&amp;report_type=Reports%3A%3ASales"><i class='fa fa-fw fa-line-chart'></i>
+Umsatzbericht
+</a></li>
+<li>
+<a class="" data-ajax="true" data-target="#modal" data-toggle="remote-modal" href="/admin/reports?report_params%5Bend_at%5D=&amp;report_params%5Bstart_at%5D=&amp;report_type=Reports%3A%3AEntries"><i class='fa fa-fw fa-line-chart'></i>
+Eintrittsbericht
 </a></li>
 <li class='divider'></li>
 <li>
@@ -405,7 +419,7 @@ Angebote
 </a></li>
 <li>
 <a href="/admin/coupons"><i class='fa fa-fw fa-gift'></i>
-Wertgutscheine
+Gutscheine
 </a></li>
 <li>
 <a href="/admin/merchandises"><i class='fa fa-fw fa-shopping-basket'></i>
@@ -495,12 +509,16 @@ Shops
 </a>
 <ul class='nav nav-second-level'>
 <li>
-<a href="/admin/age_groups"><i class='fa fa-birthday-cake fa-fw'></i>
+<a href="/admin/age_groups"><i class='fa fa-fw fa-birthday-cake'></i>
 Altersgruppen
 </a></li>
 <li>
-<a href="/admin/product_categories"><i class='fa fa-check-square fa-fw'></i>
+<a href="/admin/product_categories"><i class='fa fa-fw fa-check-square'></i>
 Angebotskategorien
+</a></li>
+<li>
+<a href="/admin/customer_salutations"><i class='fa fa-fw fa-commenting'></i>
+Anreden
 </a></li>
 <li>
 <a href="/admin/proposal_categories"><i class='fa fa-fw fa-lightbulb-o'></i>
@@ -511,11 +529,11 @@ Besucherkategorien
 Einschränkungen
 </a></li>
 <li>
-<a href="/admin/holidays"><i class='fa fa-calendar fa-fw'></i>
+<a href="/admin/holidays"><i class='fa fa-fw fa-calendar'></i>
 Feiertage
 </a></li>
 <li>
-<a href="/admin/skills"><i class='fa fa-diamond fa-fw'></i>
+<a href="/admin/skills"><i class='fa fa-fw fa-diamond'></i>
 Fähigkeiten
 </a></li>
 <li>
@@ -547,7 +565,11 @@ Schlagwörter
 Sprachen
 </a></li>
 <li>
-<a href="/admin/audiences"><i class='fa fa-child fa-fw'></i>
+<a href="/admin/customer_titles"><i class='fa fa-fw fa-info'></i>
+Titel
+</a></li>
+<li>
+<a href="/admin/audiences"><i class='fa fa-fw fa-child'></i>
 Zielgruppen
 </a></li>
 </ul>
@@ -592,7 +614,7 @@ Sidebar verkleinern
 </div>
 <ul class='nav navbar-top-links navbar-right'>
 <li>
-<a href="/search/global/find" class="visible-xs"><i class='fa fa-fw fa-search'></i>
+<a class="visible-xs" href="/search/global/find"><i class='fa fa-fw fa-search'></i>
 </a></li>
 <li>
 <a class='disabled'>
@@ -606,7 +628,7 @@ Sidebar verkleinern
 </a>
 </li>
 <li>
-<a href="/wiki/context?context=%2Fadmin%2Fquotas%2F34" data-target="#modal" data-toggle="remote-modal"><i class='fa fa-question'></i>
+<a data-target="#modal" data-toggle="remote-modal" href="/wiki/context?context=%2Fadmin%2Fquotas%2F34"><i class='fa fa-question'></i>
 </a></li>
 </ul>
 </nav>
@@ -614,6 +636,7 @@ Sidebar verkleinern
 
 <div class='row wrapper border-bottom white-bg page-heading'>
 <div class='col-lg-12'>
+
 
 <div class='pull-left'>
 <ol class='breadcrumb'>
@@ -653,7 +676,7 @@ Optionen
 <div class='ibox-content ibox-options'>
 <ul class='nav nav-pills nav-stacked'>
 <li>
-<a href="/admin/quotas/34/edit"><i class='fa fa-fw fa-edit'></i>
+<a class="quota-edit-link" href="/admin/quotas/34/edit"><i class='fa fa-fw fa-edit'></i>
 Kontingent bearbeiten
 </a></li>
 <li>
@@ -792,13 +815,13 @@ Kontingentregeln
 <table class='table table-striped table-hover table-sticky table-sorter table-filter table-condensed table-small'>
 <thead>
 <tr>
-<th class="{sorter: 'digit'}">
+<th class='{sorter: &#39;digit&#39;}'>
 ID
 </th>
-<th class="{sorter: 'text'}">
+<th class='{sorter: &#39;text&#39;}'>
 Typ
 </th>
-<th class="{sorter: 'digit'}">
+<th class='{sorter: &#39;digit&#39;}'>
 Kapazität
 </th>
 <th class='{sorter: false}'></th>
@@ -829,7 +852,7 @@ bis
 <table>
 <tr>
 <td class='text-success' style='padding-right: 5px;'>
-<i class='fa fa-check fa-fw'></i>
+<i class='fa fa-fw fa-check'></i>
 Mo.
 </td>
 <td class='text-muted' style='padding-right: 5px;'>
@@ -837,53 +860,59 @@ Mo.
 Di.
 </td>
 <td class='text-success' style='padding-right: 5px;'>
-<i class='fa fa-check fa-fw'></i>
+<i class='fa fa-fw fa-check'></i>
 Mi.
 </td>
 <td class='text-success' style='padding-right: 5px;'>
-<i class='fa fa-check fa-fw'></i>
+<i class='fa fa-fw fa-check'></i>
 Do.
 </td>
 <td class='text-success' style='padding-right: 5px;'>
-<i class='fa fa-check fa-fw'></i>
+<i class='fa fa-fw fa-check'></i>
 Fr.
 </td>
 <td class='text-success' style='padding-right: 5px;'>
-<i class='fa fa-check fa-fw'></i>
+<i class='fa fa-fw fa-check'></i>
 Sa.
 </td>
 <td class='text-success' style='padding-right: 5px;'>
-<i class='fa fa-check fa-fw'></i>
+<i class='fa fa-fw fa-check'></i>
 So.
 </td>
 </tr>
 </table>
 <div class='row'>
 <div class='col-md-12'>
+26. September 2022 – 11. Juni 2023
+<br>
+<span class='text-muted'>
+1
+zurückliegende Gültigkeitszeiträume
+</span>
 </div>
 </div>
 </td>
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1374" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1374/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1374"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1374/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1374" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1374" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='collapse out active 34_quota_rules  '>
+<tr class='  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1375"><span class='badge badge-primary'>
 1375
 </span>
 </a></td>
 <td>
-Kalendertag
+Wochentag
 </td>
 <td>
 0
@@ -895,27 +924,61 @@ bis
 18:00 Uhr
 </td>
 <td>
-am
-11. September 2020
+<table>
+<tr>
+<td class='text-success' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-check'></i>
+Mo.
+</td>
+<td class='text-muted' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-times'></i>
+Di.
+</td>
+<td class='text-success' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-check'></i>
+Mi.
+</td>
+<td class='text-success' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-check'></i>
+Do.
+</td>
+<td class='text-success' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-check'></i>
+Fr.
+</td>
+<td class='text-success' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-check'></i>
+Sa.
+</td>
+<td class='text-success' style='padding-right: 5px;'>
+<i class='fa fa-fw fa-check'></i>
+So.
+</td>
+</tr>
+</table>
 <div class='row'>
 <div class='col-md-12'>
+<span class='text-muted'>
+1
+zurückliegende Gültigkeitszeiträume
+</span>
 </div>
 </div>
 </td>
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1375" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1375/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1375"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1375/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1375" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1375" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1376"><span class='badge badge-primary'>
 1376
@@ -944,17 +1007,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1376" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1376/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1376"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1376/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1376" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1376" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1377"><span class='badge badge-primary'>
 1377
@@ -983,17 +1046,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1377" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1377/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1377"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1377/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1377" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1377" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1378"><span class='badge badge-primary'>
 1378
@@ -1022,17 +1085,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1378" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1378/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1378"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1378/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1378" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1378" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1379"><span class='badge badge-primary'>
 1379
@@ -1061,17 +1124,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1379" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1379/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1379"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1379/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1379" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1379" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1380"><span class='badge badge-primary'>
 1380
@@ -1100,11 +1163,11 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1380" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1380/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1380"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1380/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1380" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1380" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
@@ -1139,17 +1202,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1381" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1381/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1381"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1381/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1381" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1381" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1382"><span class='badge badge-primary'>
 1382
@@ -1178,17 +1241,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1382" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1382/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1382"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1382/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1382" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1382" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1383"><span class='badge badge-primary'>
 1383
@@ -1217,17 +1280,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1383" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1383/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1383"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1383/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1383" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1383" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1384"><span class='badge badge-primary'>
 1384
@@ -1256,17 +1319,17 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1384" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1384/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1384"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1384/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1384" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1384" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
 </tr>
 
-<tr class='  '>
+<tr class='collapse out active 34_quota_rules  '>
 <td>
 <a href="/admin/quotas/34/quota_rules/1385"><span class='badge badge-primary'>
 1385
@@ -1295,11 +1358,11 @@ am
 <td class='inline-table'>
 <nobr class='pull-right'>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1385" class="btn btn-default btn-xs"><i class='fa fa-eye'></i>
-</a><a href="/admin/quotas/34/quota_rules/1385/edit?layout=false" class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" title="Kontingentregel bearbeiten"><i class='fa fa-edit'></i>
+<a class="btn btn-default btn-xs" href="/admin/quotas/34/quota_rules/1385"><i class='fa fa-fw fa-eye'></i>
+</a><a class="btn btn-primary btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/1385/edit?layout=false" title="Kontingentregel bearbeiten"><i class='fa fa-fw fa-edit'></i>
 </a></div>
 <div class='btn-group'>
-<a href="/admin/quotas/34/quota_rules/1385" class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-trash-o'></i>
+<a class="btn btn-xs btn-danger btn-load" data-confirm="Kontingentregel wirklich löschen?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_rules/1385" rel="nofollow" title="Kontingentregel löschen"><i class='fa fa-fw fa-trash-o'></i>
 </a></div>
 </nobr>
 </td>
@@ -1315,7 +1378,7 @@ vergangene Regeln ein/ausblenden
 </small>
 
 <div class='form-actions'>
-<a href="/admin/quotas/34/quota_rules/new?layout=false" class="btn btn-success btn-xs" data-target="#modal" data-toggle="remote-modal" title="Regel hinzufügen"><i class='fa fa-plus'></i>
+<a class="btn btn-success btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_rules/new?layout=false" title="Regel hinzufügen"><i class='fa fa-plus'></i>
 Regel hinzufügen
 </a></div>
 </div>
@@ -1334,19 +1397,19 @@ Tickets
 <table class='table table-striped table-hover table-sticky table-sorter table-filter table-condensed table-small'>
 <thead>
 <tr>
-<th class="{sorter: 'digit'}">
+<th class='{sorter: &#39;digit&#39;}'>
 ID
 </th>
-<th class="{sorter: 'text'}">
+<th class='{sorter: &#39;text&#39;}'>
 Intern
 </th>
-<th class="{sorter: 'text'}">
+<th class='{sorter: &#39;text&#39;}'>
 Bezeichnung
 </th>
-<th class="{sorter: 'digit'}">
+<th class='{sorter: &#39;digit&#39;}'>
 Preis
 </th>
-<th class="{sorter: 'digit'}">
+<th class='{sorter: &#39;digit&#39;}'>
 Zeitfenster
 </th>
 <th class='{sorter: false}'></th>
@@ -1366,32 +1429,34 @@ Eintritt regulär evening Tagesticket
 </div>
 </td>
 <td class='filterable'>
-<a href="/admin/tickets/178">Eintritt regulär evening
+<a href="/admin/tickets/178">Hausticket regulär evening
 </a></td>
 <td class='filterable text-right' data-sort-value='10.0'>
-10,00 €
+<nobr>10,00 €</nobr>
 </td>
 <td class='filterable'>
+<nobr>
 <span class='text-muted'>
 nicht limitiert
 </span>
+</nobr>
 </td>
 <td>
 <div class='pull-right' style='padding: 3px; padding-left: 10px;'>
 <div class='nobr'>
 <i class='fa fa-fw fa-globe text-muted' title='Ist nicht über öffentliche API sichtbar'></i>
-<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller verkaufbar'></i>
-<i class='fa fa-fw fa-money text-success' title='Ist für Kasse verkaufbar'></i>
-<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen verkaufbar'></i>
-<i class='fa fa-fw fa-check text-success' title='Ist zur Zeit gültig'></i>
-<i class='fa fa-fw fa-bookmark text-success' title='Ist zur Zeit verkaufbar'></i>
+<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller freigeschaltet'></i>
+<i class='fa fa-fw fa-money text-success' title='Ist für Kasse freigeschaltet'></i>
+<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen freigeschaltet'></i>
+<i class='fa fa-fw fa-check text-muted' title='Ist zur Zeit nicht gültig'></i>
+<i class='fa fa-fw fa-bookmark text-muted' title='Ist zur Zeit nicht verkaufbar'></i>
 </div>
 </div>
 </td>
 <td class='inline-table'>
 <div class='pull-right'>
 <div class='btn-group nobr'>
-<a href="/admin/quotas/34/quota_allocations/222" class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-times'></i>
+<a class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_allocations/222" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-fw fa-times'></i>
 </a></div>
 </div>
 </td>
@@ -1408,32 +1473,34 @@ Eintritt ermäßigt evening Tagesticket
 </div>
 </td>
 <td class='filterable'>
-<a href="/admin/tickets/179">Eintritt ermäßigt evening 
+<a href="/admin/tickets/179">Hausticket ermäßigt evening
 </a></td>
 <td class='filterable text-right' data-sort-value='8.0'>
-8,00 €
+<nobr>8,00 €</nobr>
 </td>
 <td class='filterable'>
+<nobr>
 <span class='text-muted'>
 nicht limitiert
 </span>
+</nobr>
 </td>
 <td>
 <div class='pull-right' style='padding: 3px; padding-left: 10px;'>
 <div class='nobr'>
 <i class='fa fa-fw fa-globe text-muted' title='Ist nicht über öffentliche API sichtbar'></i>
-<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller verkaufbar'></i>
-<i class='fa fa-fw fa-money text-success' title='Ist für Kasse verkaufbar'></i>
-<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen verkaufbar'></i>
-<i class='fa fa-fw fa-check text-success' title='Ist zur Zeit gültig'></i>
-<i class='fa fa-fw fa-bookmark text-success' title='Ist zur Zeit verkaufbar'></i>
+<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller freigeschaltet'></i>
+<i class='fa fa-fw fa-money text-success' title='Ist für Kasse freigeschaltet'></i>
+<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen freigeschaltet'></i>
+<i class='fa fa-fw fa-check text-muted' title='Ist zur Zeit nicht gültig'></i>
+<i class='fa fa-fw fa-bookmark text-muted' title='Ist zur Zeit nicht verkaufbar'></i>
 </div>
 </div>
 </td>
 <td class='inline-table'>
 <div class='pull-right'>
 <div class='btn-group nobr'>
-<a href="/admin/quotas/34/quota_allocations/223" class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-times'></i>
+<a class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_allocations/223" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-fw fa-times'></i>
 </a></div>
 </div>
 </td>
@@ -1450,32 +1517,34 @@ Eintritt Aufpreis Ticket evening Tagesticket
 </div>
 </td>
 <td class='filterable'>
-<a href="/admin/tickets/180">Eintritt Aufpreis Ticket evening
+<a href="/admin/tickets/180">Hausticket Aufpreis evening
 </a></td>
 <td class='filterable text-right' data-sort-value='2.0'>
-2,00 €
+<nobr>2,00 €</nobr>
 </td>
 <td class='filterable'>
+<nobr>
 <span class='text-muted'>
 nicht limitiert
 </span>
+</nobr>
 </td>
 <td>
 <div class='pull-right' style='padding: 3px; padding-left: 10px;'>
 <div class='nobr'>
 <i class='fa fa-fw fa-globe text-muted' title='Ist nicht über öffentliche API sichtbar'></i>
-<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller verkaufbar'></i>
-<i class='fa fa-fw fa-money text-success' title='Ist für Kasse verkaufbar'></i>
-<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen verkaufbar'></i>
-<i class='fa fa-fw fa-check text-success' title='Ist zur Zeit gültig'></i>
-<i class='fa fa-fw fa-bookmark text-success' title='Ist zur Zeit verkaufbar'></i>
+<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller freigeschaltet'></i>
+<i class='fa fa-fw fa-money text-success' title='Ist für Kasse freigeschaltet'></i>
+<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen freigeschaltet'></i>
+<i class='fa fa-fw fa-check text-muted' title='Ist zur Zeit nicht gültig'></i>
+<i class='fa fa-fw fa-bookmark text-muted' title='Ist zur Zeit nicht verkaufbar'></i>
 </div>
 </div>
 </td>
 <td class='inline-table'>
 <div class='pull-right'>
 <div class='btn-group nobr'>
-<a href="/admin/quotas/34/quota_allocations/224" class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-times'></i>
+<a class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_allocations/224" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-fw fa-times'></i>
 </a></div>
 </div>
 </td>
@@ -1492,32 +1561,34 @@ Eintritt frei evening Tagesticket
 </div>
 </td>
 <td class='filterable'>
-<a href="/admin/tickets/185">Eintritt frei evening
+<a href="/admin/tickets/185">Hausticket frei evening
 </a></td>
 <td class='filterable text-right' data-sort-value='0.0'>
-0,00 €
+<nobr>0,00 €</nobr>
 </td>
 <td class='filterable'>
+<nobr>
 <span class='text-muted'>
 nicht limitiert
 </span>
+</nobr>
 </td>
 <td>
 <div class='pull-right' style='padding: 3px; padding-left: 10px;'>
 <div class='nobr'>
 <i class='fa fa-fw fa-globe text-muted' title='Ist nicht über öffentliche API sichtbar'></i>
-<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller verkaufbar'></i>
-<i class='fa fa-fw fa-money text-success' title='Ist für Kasse verkaufbar'></i>
-<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen verkaufbar'></i>
-<i class='fa fa-fw fa-check text-success' title='Ist zur Zeit gültig'></i>
-<i class='fa fa-fw fa-bookmark text-success' title='Ist zur Zeit verkaufbar'></i>
+<i class='fa fa-fw fa-shopping-cart text-muted' title='Ist nicht für Shop &amp; Reseller freigeschaltet'></i>
+<i class='fa fa-fw fa-money text-success' title='Ist für Kasse freigeschaltet'></i>
+<i class='fa fa-fw fa-search text-muted' title='Ist nicht für Suchen &amp; Buchen freigeschaltet'></i>
+<i class='fa fa-fw fa-check text-muted' title='Ist zur Zeit nicht gültig'></i>
+<i class='fa fa-fw fa-bookmark text-muted' title='Ist zur Zeit nicht verkaufbar'></i>
 </div>
 </div>
 </td>
 <td class='inline-table'>
 <div class='pull-right'>
 <div class='btn-group nobr'>
-<a href="/admin/quotas/34/quota_allocations/230" class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-times'></i>
+<a class="btn btn-xs btn-warning btn-load" data-confirm="Sind Sie sicher?" data-method="delete" data-remote="true" href="/admin/quotas/34/quota_allocations/230" rel="nofollow" title="Zuordnung aufheben"><i class='fa fa-fw fa-times'></i>
 </a></div>
 </div>
 </td>
@@ -1527,7 +1598,7 @@ nicht limitiert
 </table>
 
 <div class='form-actions'>
-<a href="/admin/quotas/34/quota_allocations/new?layout=false" class="btn btn-success btn-xs" data-target="#modal" data-toggle="remote-modal" title="Diesem Kontingent bestehende Tickets zuordnen"><i class='fa fa-plus'></i>
+<a class="btn btn-success btn-xs" data-target="#modal" data-toggle="remote-modal" href="/admin/quotas/34/quota_allocations/new?layout=false" title="Diesem Kontingent bestehende Tickets zuordnen"><i class='fa fa-plus'></i>
 Tickets zuordnen
 </a></div>
 </div>
@@ -1544,14 +1615,14 @@ Tickets zuordnen
 <small class='text-muted'>
 © by
 <a href="https://giantmonkey.de" target="_blank">Giant Monkey GmbH</a>
-2012 – 2020
+2012 – 2023
 </small>
 </div>
 <div class='pull-right'>
-<small class='text-muted'>
-v4.1.6 – Premium Edition
-<strong title='Rafiki is the spiritual Leader of Simba, the Lion King. Our Rafiki-Release will guide us through a new Roadmap and many exciting adventures - ehm - features.'>
-Rafiki
+<small class='text-muted' title='go~mus Version'>
+4.1.20.5 - Premium Edition
+<strong title='Just as without monkeys there would be no man, Donkey Kong&#39;s responsible for some videogame evolution of his own. Mario first appeared in a Donkey Kong game.'>
+Donkey Kong
 </strong>
 <a href="/wiki/spaces/REL/pages/243073130"><i class='fa fa-fw fa-gift'></i>
 changelog
@@ -1583,7 +1654,13 @@ HPI_MuB Analytics Projekt
 </h3>
 </div>
 <div class='sidebar-message settings-item'>
-<a href="/users/sign_out" data-method="delete" rel="nofollow"><div class='media-body'>
+<a href="/users/reports"><div class='media-body'>
+<i class='fa fa-fw fa-line-chart'></i>
+Berichte / Exporte
+</div>
+</a></div>
+<div class='sidebar-message settings-item'>
+<a data-method="delete" href="/users/sign_out" rel="nofollow"><div class='media-body'>
 <i class='fa fa-fw fa-power-off'></i>
 Abmelden
 </div>
@@ -1600,7 +1677,7 @@ Benötigen Sie Unterstützung? Nutzen Sie den Helpdesk!
 <div class='col-md-12'>
 <br>
 <div class='pull-right'>
-<a href="/wiki" class="btn btn-success btn-xs" title="Helpdesk aufrufen"><i class='fa fa-fw fa-question'></i>
+<a class="btn btn-success btn-xs" href="/wiki" title="Helpdesk aufrufen"><i class='fa fa-fw fa-question'></i>
 Helpdesk
 </a></div>
 </div>
@@ -1620,7 +1697,7 @@ Erstelle einfach und kompfortable Shortcuts zu häufig besuchten Seiten.
 <ul class='sidebar-list'>
 <li>
 <strong>
-<a href="/users/112/add_shortcut?title=Kontingente&amp;url=%2Fadmin%2Fquotas%2F34" data-method="post" data-remote="true" rel="nofollow"><i class='fa fa-fw fa-plus-square'></i>
+<a data-method="post" data-remote="true" href="/users/112/add_shortcut?title=Kontingente&amp;url=%2Fadmin%2Fquotas%2F34" rel="nofollow"><i class='fa fa-fw fa-plus-square'></i>
 Shortcut anlegen
 </a></strong>
 </li>
@@ -1704,7 +1781,7 @@ Speichern
 </div>
 </div>
 
-<script src="/assets/4/application-ad300b66f61757163c478da88858f539.js" type="text/javascript"></script>
+<script src="/assets/4/application-c2d0448ff49bd33877724a0527f7f2366b6404c2959d701d1722488a01bf12ee.js"></script>
 
 </body>
 </html>

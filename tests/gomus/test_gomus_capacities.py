@@ -52,9 +52,9 @@ class TestExtractCapacities(DatabaseTestCase):
     @patch.object(ExtractCapacities, 'input')
     def test_extract_production(self, input_mock):
         """Give the task some production data and test how it parses them."""
-        self.task = ExtractCapacities(today=dt.date(2021, 4, 5))
+        self.task = ExtractCapacities(today=dt.date(2023, 2, 13))
         html_task = FetchGomusHTML(
-            url='/admin/quotas/26/capacities?start_at=2021-04-05')
+            url='/admin/quotas/26/capacities?start_at=2023-02-13')
         self.run_task(html_task)
         self.install_mock_target(
             input_mock, lambda stream:

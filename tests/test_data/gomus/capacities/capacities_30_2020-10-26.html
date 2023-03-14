@@ -3,19 +3,18 @@
   Quota ID: 30
   Non-zero values (avail = max - sold - reserved):
     2020-10-26T09:00 -- 35 = 75 - 30 - 10
-    2020-10-27T09:00 -- -1 (occasional error in gomus, no itemization)
     2020-10-28T09:00 -- 17 = 75 - 57 - 1
     2020-10-28T10:00 -- 100 = 111 - 10 - 1
     2020-10-29T09:00 -- 150 = 750 - 600 - 0
     2020-10-30T09:00 -- 1 = 3 - 1 - 1
-    2020-11-01T13:00 -- -123 (occasional error in gomus, no itemization)
+    2020-11-01T13:00 -- 0 = 50 - 75 - 98 (overbooked quota)
 -->
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset='utf-8'>
 <meta content='width=device-width, initial-scale=1.0' name='viewport'>
-<title>Kontingente // barberini.go~mus</title>
+<title>Kontingente // Museum Barberini</title>
 <script>
   var _rollbarConfig = {
     accessToken: "sometoken",
@@ -35,34 +34,28 @@
   !function(r){function e(n){if(o[n])return o[n].exports;var t=o[n]={exports:{},id:n,loaded:!1};return r[n].call(t.exports,t,t.exports,e),t.loaded=!0,t.exports}var o={};return e.m=r,e.c=o,e.p="",e(0)}([function(r,e,o){"use strict";var n=o(1),t=o(4);_rollbarConfig=_rollbarConfig||{},_rollbarConfig.rollbarJsUrl=_rollbarConfig.rollbarJsUrl||"https://cdnjs.cloudflare.com/ajax/libs/rollbar.js/2.3.8/rollbar.min.js",_rollbarConfig.async=void 0===_rollbarConfig.async||_rollbarConfig.async;var a=n.setupShim(window,_rollbarConfig),l=t(_rollbarConfig);window.rollbar=n.Rollbar,a.loadFull(window,document,!_rollbarConfig.async,_rollbarConfig,l)},function(r,e,o){"use strict";function n(r){return function(){try{return r.apply(this,arguments)}catch(r){try{console.error("[Rollbar]: Internal error",r)}catch(r){}}}}function t(r,e){this.options=r,this._rollbarOldOnError=null;var o=s++;this.shimId=function(){return o},"undefined"!=typeof window&&window._rollbarShims&&(window._rollbarShims[o]={handler:e,messages:[]})}function a(r,e){if(r){var o=e.globalAlias||"Rollbar";if("object"==typeof r[o])return r[o];r._rollbarShims={},r._rollbarWrappedError=null;var t=new p(e);return n(function(){e.captureUncaught&&(t._rollbarOldOnError=r.onerror,i.captureUncaughtExceptions(r,t,!0),i.wrapGlobals(r,t,!0)),e.captureUnhandledRejections&&i.captureUnhandledRejections(r,t,!0);var n=e.autoInstrument;return e.enabled!==!1&&(void 0===n||n===!0||"object"==typeof n&&n.network)&&r.addEventListener&&(r.addEventListener("load",t.captureLoad.bind(t)),r.addEventListener("DOMContentLoaded",t.captureDomContentLoaded.bind(t))),r[o]=t,t})()}}function l(r){return n(function(){var e=this,o=Array.prototype.slice.call(arguments,0),n={shim:e,method:r,args:o,ts:new Date};window._rollbarShims[this.shimId()].messages.push(n)})}var i=o(2),s=0,d=o(3),c=function(r,e){return new t(r,e)},p=d.bind(null,c);t.prototype.loadFull=function(r,e,o,t,a){var l=function(){var e;if(void 0===r._rollbarDidLoad){e=new Error("rollbar.js did not load");for(var o,n,t,l,i=0;o=r._rollbarShims[i++];)for(o=o.messages||[];n=o.shift();)for(t=n.args||[],i=0;i<t.length;++i)if(l=t[i],"function"==typeof l){l(e);break}}"function"==typeof a&&a(e)},i=!1,s=e.createElement("script"),d=e.getElementsByTagName("script")[0],c=d.parentNode;s.crossOrigin="",s.src=t.rollbarJsUrl,o||(s.async=!0),s.onload=s.onreadystatechange=n(function(){if(!(i||this.readyState&&"loaded"!==this.readyState&&"complete"!==this.readyState)){s.onload=s.onreadystatechange=null;try{c.removeChild(s)}catch(r){}i=!0,l()}}),c.insertBefore(s,d)},t.prototype.wrap=function(r,e,o){try{var n;if(n="function"==typeof e?e:function(){return e||{}},"function"!=typeof r)return r;if(r._isWrap)return r;if(!r._rollbar_wrapped&&(r._rollbar_wrapped=function(){o&&"function"==typeof o&&o.apply(this,arguments);try{return r.apply(this,arguments)}catch(o){var e=o;throw"string"==typeof e&&(e=new String(e)),e._rollbarContext=n()||{},e._rollbarContext._wrappedSource=r.toString(),window._rollbarWrappedError=e,e}},r._rollbar_wrapped._isWrap=!0,r.hasOwnProperty))for(var t in r)r.hasOwnProperty(t)&&(r._rollbar_wrapped[t]=r[t]);return r._rollbar_wrapped}catch(e){return r}};for(var u="log,debug,info,warn,warning,error,critical,global,configure,handleUncaughtException,handleUnhandledRejection,captureEvent,captureDomContentLoaded,captureLoad".split(","),f=0;f<u.length;++f)t.prototype[u[f]]=l(u[f]);r.exports={setupShim:a,Rollbar:p}},function(r,e){"use strict";function o(r,e,o){if(r){var t;"function"==typeof e._rollbarOldOnError?t=e._rollbarOldOnError:r.onerror&&!r.onerror.belongsToShim&&(t=r.onerror,e._rollbarOldOnError=t);var a=function(){var o=Array.prototype.slice.call(arguments,0);n(r,e,t,o)};a.belongsToShim=o,r.onerror=a}}function n(r,e,o,n){r._rollbarWrappedError&&(n[4]||(n[4]=r._rollbarWrappedError),n[5]||(n[5]=r._rollbarWrappedError._rollbarContext),r._rollbarWrappedError=null),e.handleUncaughtException.apply(e,n),o&&o.apply(r,n)}function t(r,e,o){if(r){"function"==typeof r._rollbarURH&&r._rollbarURH.belongsToShim&&r.removeEventListener("unhandledrejection",r._rollbarURH);var n=function(r){var o,n,t;try{o=r.reason}catch(r){o=void 0}try{n=r.promise}catch(r){n="[unhandledrejection] error getting `promise` from event"}try{t=r.detail,!o&&t&&(o=t.reason,n=t.promise)}catch(r){t="[unhandledrejection] error getting `detail` from event"}o||(o="[unhandledrejection] error getting `reason` from event"),e&&e.handleUnhandledRejection&&e.handleUnhandledRejection(o,n)};n.belongsToShim=o,r._rollbarURH=n,r.addEventListener("unhandledrejection",n)}}function a(r,e,o){if(r){var n,t,a="EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");for(n=0;n<a.length;++n)t=a[n],r[t]&&r[t].prototype&&l(e,r[t].prototype,o)}}function l(r,e,o){if(e.hasOwnProperty&&e.hasOwnProperty("addEventListener")){for(var n=e.addEventListener;n._rollbarOldAdd&&n.belongsToShim;)n=n._rollbarOldAdd;var t=function(e,o,t){n.call(this,e,r.wrap(o),t)};t._rollbarOldAdd=n,t.belongsToShim=o,e.addEventListener=t;for(var a=e.removeEventListener;a._rollbarOldRemove&&a.belongsToShim;)a=a._rollbarOldRemove;var l=function(r,e,o){a.call(this,r,e&&e._rollbar_wrapped||e,o)};l._rollbarOldRemove=a,l.belongsToShim=o,e.removeEventListener=l}}r.exports={captureUncaughtExceptions:o,captureUnhandledRejections:t,wrapGlobals:a}},function(r,e){"use strict";function o(r,e){this.impl=r(e,this),this.options=e,n(o.prototype)}function n(r){for(var e=function(r){return function(){var e=Array.prototype.slice.call(arguments,0);if(this.impl[r])return this.impl[r].apply(this.impl,e)}},o="log,debug,info,warn,warning,error,critical,global,configure,handleUncaughtException,handleUnhandledRejection,_createItem,wrap,loadFull,shimId,captureEvent,captureDomContentLoaded,captureLoad".split(","),n=0;n<o.length;n++)r[o[n]]=e(o[n])}o.prototype._swapAndProcessMessages=function(r,e){this.impl=r(this.options);for(var o,n,t;o=e.shift();)n=o.method,t=o.args,this[n]&&"function"==typeof this[n]&&("captureDomContentLoaded"===n||"captureLoad"===n?this[n].apply(this,[t[0],o.ts]):this[n].apply(this,t));return this},r.exports=o},function(r,e){"use strict";r.exports=function(r){return function(e){if(!e&&!window._rollbarInitialized){r=r||{};for(var o,n,t=r.globalAlias||"Rollbar",a=window.rollbar,l=function(r){return new a(r)},i=0;o=window._rollbarShims[i++];)n||(n=o.handler),o.handler._swapAndProcessMessages(l,o.messages);window[t]=n,window._rollbarInitialized=!0}}}}]);
 </script>
 
-<link href="/assets/4/application-58da41569b30c13fd8c18e08afe57b9f.css" media="all" rel="stylesheet" type="text/css" />
-<link href="/admin/customize/tenants/1/theme.css" media="screen" rel="stylesheet" type="text/css" />
-<link href='/assets/favicon/apple-touch-icon-57x57-9c34eb7f61f305234b297108de86081d.png' rel='apple-touch-icon' sizes='57x57'>
-<link href='/assets/favicon/apple-touch-icon-60x60-fb0f29d07abc97c02587b20aacd43d33.png' rel='apple-touch-icon' sizes='60x60'>
-<link href='/assets/favicon/apple-touch-icon-72x72-a2d6aa14ab2d02d16654150e650581a7.png' rel='apple-touch-icon' sizes='72x72'>
-<link href='/assets/favicon/apple-touch-icon-76x76-eec22a58334f355edb5cdbc7831074fa.png' rel='apple-touch-icon' sizes='76x76'>
-<link href='/assets/favicon/apple-touch-icon-114x114-8e4ccea060830f32120c155037a0233b.png' rel='apple-touch-icon' sizes='114x114'>
-<link href='/assets/favicon/apple-touch-icon-120x120-7b991d5557e8b252e7f7d125cc96347a.png' rel='apple-touch-icon' sizes='120x120'>
-<link href='/assets/favicon/apple-touch-icon-144x144-4d82256a1fe7f92538eb6d683797911b.png' rel='apple-touch-icon' sizes='144x144'>
-<link href='/assets/favicon/apple-touch-icon-152x152-7ac0ddbb06fa8ea146d85760cc9bb492.png' rel='apple-touch-icon' sizes='152x152'>
-<link href='/assets/favicon/apple-touch-icon-180x180-da6f5bcfc1c92aeb6109e3c44ddcbb3f.png' rel='apple-touch-icon' sizes='180x180'>
-<link href='/assets/favicon/favicon-32x32-7bd3962c2907d4ca7c3f7ba4c9e1db2f.png' rel='icon' sizes='32x32' type='image/png'>
-<link href='/assets/favicon/favicon-194x194-5db0eb93c04e1924f418a415379cb6d7.png' rel='icon' sizes='194x194' type='image/png'>
-<link href='/assets/favicon/favicon-96x96-d42c3c91776468b938a7f5431a361d53.png' rel='icon' sizes='96x96' type='image/png'>
-<link href='/assets/favicon/android-chrome-192x192-b6d03efc95f1d324153c5a12d4666f6d.png' rel='icon' sizes='192x192' type='image/png'>
-<link href='/assets/favicon/favicon-16x16-17627c8a000ee5572e3897aa6973032a.png' rel='icon' sizes='16x16' type='image/png'>
-<link href='/assets/favicon/manifest-24472399f5108a222a116a960a617b5e.json' rel='manifest'>
-<link color='#1ab394' href='/assets/favicon/safari-pinned-tab-4163b8c93fe34c62acdb0565f23b15e4.svg' rel='mask-icon'>
-<link href='/assets/favicon/favicon-18c781b576065031f942918f84c81eef.ico' rel='shortcut icon'>
-<meta content='#1ab394' name='msapplication-TileColor'>
-<meta content='/assets/favicon/mstile-144x144-42daf1ab3e733e293bb55af237e567d4.png' name='msapplication-TileImage'>
-<meta content='/assets/favicon/browserconfig-c91d8f530eb27dace45c8060b5c67301.xml' name='msapplication-config'>
-<meta content='#1ab394' name='theme-color'>
+<link href="/assets/4/application-ae12aed86ade1db70bb85ca7393246ba6290bf43c03140da4e4a8058ba73e258.css" media="all" rel="stylesheet" />
+<link href="/admin/customize/tenants/1/theme.css?ts=1619446621" media="screen" rel="stylesheet" />
+<link href='/production/tenants/1/favicon/4RbzsYBM_400x400.png' rel='shortcut icon'>
+<link href='/production/tenants/1/favicon_57x57/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='57x57'>
+<link href='/production/tenants/1/favicon_60x60/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='60x60'>
+<link href='/production/tenants/1/favicon_72x72/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='72x72'>
+<link href='/production/tenants/1/favicon_76x76/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='76x76'>
+<link href='/production/tenants/1/favicon_114x114/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='114x114'>
+<link href='/production/tenants/1/favicon_120x120/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='120x120'>
+<link href='/production/tenants/1/favicon_144x144/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='144x144'>
+<link href='/production/tenants/1/favicon_152x152/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='152x152'>
+<link href='/production/tenants/1/favicon_180x180/4RbzsYBM_400x400.png' rel='apple-touch-icon' sizes='180x180'>
+<link href='/production/tenants/1/favicon_32x32/4RbzsYBM_400x400.png' rel='icon' sizes='32x32' type='image/png'>
+<link href='/production/tenants/1/favicon_194x194/4RbzsYBM_400x400.png' rel='icon' sizes='194x194' type='image/png'>
+<link href='/production/tenants/1/favicon_96x96/4RbzsYBM_400x400.png' rel='icon' sizes='96x96' type='image/png'>
+<link href='/production/tenants/1/favicon_192x192/4RbzsYBM_400x400.png' rel='icon' sizes='192x192' type='image/png'>
+<link href='/production/tenants/1/favicon_16x16/4RbzsYBM_400x400.png' rel='icon' sizes='16x16' type='image/png'>
 
 <meta content="authenticity_token" name="csrf-param" />
 <meta content="somebase64=" name="csrf-token" />
 </head>
-<body class='action_capacities controller_quotas md-skin sidebar-overflow' data-gotosearch='/search/global/goto' data-helpdesk='true'>
+<body class='md-skin controller_quotas action_capacities env_production sidebar-overflow' data-gotosearch='/search/global/goto' data-helpdesk='true'>
 <div id='flash-messages'>
 </div>
 
@@ -72,6 +65,9 @@
 <ul class='nav metismenu' id='side-menu'>
 <li class='nav-header'>
 <div class='dropdown profile-element'>
+<div class='pull-left' style='margin-right: 15px;'>
+<img alt="HPI_MuB Analytics Projekt" class="img-circle" src="https://secure.gravatar.com/avatar/sometoken?default=mm&amp;secure=true" style="border: 1px solid #117469;" width="48" />
+</div>
 <a class='dropdown-toggle' data-toggle='dropdown' href='#'>
 <span class='clear'>
 <span class='block m-t-xs'>
@@ -110,13 +106,13 @@ Meine Aktivitäten
 <hr>
 </li>
 <li>
-<a href="/users/sign_out" data-method="delete" rel="nofollow"><i class='fa fa-fw fa-power-off'></i>
+<a data-method="delete" href="/users/sign_out" rel="nofollow"><i class='fa fa-fw fa-power-off'></i>
 Abmelden
 </a></li>
 </ul>
 </div>
 <div class='logo-element'>
-<a href="https://barberini.gomus.de/">go~
+<a href="https://barberini.gomus.de/">MBP
 </a></div>
 </li>
 <li>
@@ -192,7 +188,7 @@ Affiliates
 </a>
 <ul class='nav nav-second-level'>
 <li>
-<a href="/bookings?end_at=2021-01-29&amp;start_at=2020-10-29"><i class='fa fa-fw fa-th-list'></i>
+<a href="/bookings?end_at=2023-06-14&amp;start_at=2023-03-14"><i class='fa fa-fw fa-th-list'></i>
 Buchungsliste
 </a></li>
 <li class='divider'></li>
@@ -213,17 +209,13 @@ Monatsliste
 <a href="/admin/dates"><i class='fa fa-fw fa-calendar'></i>
 Termine
 </a></li>
-<li>
-<a href="/admin/courses"><i class='fa fa-paint-brush'></i>
-Termingruppen
-</a></li>
 <li class='divider'></li>
 <li>
-<a href="/admin/calendar?show_events=true"><i class='fa fa-fw fa-calendar'></i>
+<a href="/admin/calendar"><i class='fa fa-fw fa-calendar'></i>
 Monatskalender
 </a></li>
 <li>
-<a href="/admin/disposition/calendar?exclude_archived=true&amp;guides_needed=false&amp;hide_zero_guides_necessary=false"><i class='fa fa-fw fa-calendar-plus-o'></i>
+<a href="/admin/disposition/calendar?exclude_archived=true&amp;guides_needed=false&amp;hide_zero_guides_necessary=false&amp;show_events=true"><i class='fa fa-fw fa-calendar-plus-o'></i>
 Dispositionskalender
 </a></li>
 </ul>
@@ -252,6 +244,10 @@ Mitgliedschaften
 <a href="/admin/disclosure_cases"><i class='fa fa-fw fa-cloud'></i>
 Auskunftsrechtsfälle
 </a></li>
+<li>
+<a href="/admin/attendees"><i class='fa fa-fw fa-users'></i>
+Anwesenheitsdokumentation
+</a></li>
 </ul>
 </li>
 
@@ -262,6 +258,15 @@ Auskunftsrechtsfälle
 <span class='fa arrow'></span>
 </a>
 <ul class='nav nav-second-level'>
+<li>
+<a class='disabled'>
+Angebote
+</a>
+</li>
+<li>
+<a class="" data-ajax="true" data-target="#modal" data-toggle="remote-modal" href="/admin/reports?report_type=Reports%3A%3AProducts%3A%3AUtilizations"><i class='fa fa-fw fa-line-chart'></i>
+Auslastung
+</a></li>
 <li>
 <a class='disabled'>
 Tagesschecks
@@ -298,11 +303,11 @@ Ticket-Tagescheck
 </a>
 <ul class='nav nav-second-level'>
 <li>
-<a href="/admin/billings/index_groups?end_at=2020-10-31&amp;start_at=2020-10-01"><i class='fa fa-folder-open'></i>
+<a href="/admin/billings/index_groups?end_at=2023-03-31&amp;start_at=2023-03-01"><i class='fa fa-folder-open'></i>
 Gruppenführungen
 </a></li>
 <li>
-<a href="/admin/billings/index_public_tours?end_at=2020-10-31&amp;start_at=2020-10-01"><i class='fa fa-folder-open'></i>
+<a href="/admin/billings/index_public_tours?end_at=2023-03-31&amp;start_at=2023-03-01"><i class='fa fa-folder-open'></i>
 Öffentliche Führungen
 </a></li>
 <li>
@@ -318,6 +323,14 @@ Besucherabfrage
 <li>
 <a href="/admin/reports/bookings/storno"><i class='fa fa-fw fa-list'></i>
 Stornierungen
+</a></li>
+<li>
+<a class="" data-ajax="true" data-target="#modal" data-toggle="remote-modal" href="/admin/reports?report_params%5Bend_at%5D=&amp;report_params%5Border_source%5D=&amp;report_params%5Borderable_type%5D%5B%5D=Booking&amp;report_params%5Borderable_type%5D%5B%5D=BookingSeat&amp;report_params%5Borderable_type%5D%5B%5D=BookingCourse&amp;report_params%5Borderable_type%5D%5B%5D=TicketSale&amp;report_params%5Borderable_type%5D%5B%5D=CouponSale&amp;report_params%5Borderable_type%5D%5B%5D=MerchandiseSale&amp;report_params%5Borderable_type%5D%5B%5D=AccountingArticleSale&amp;report_params%5Bpayment_mode%5D=&amp;report_params%5Bstart_at%5D=2020-10-26&amp;report_type=Reports%3A%3ASales"><i class='fa fa-fw fa-line-chart'></i>
+Umsatzbericht
+</a></li>
+<li>
+<a class="" data-ajax="true" data-target="#modal" data-toggle="remote-modal" href="/admin/reports?report_params%5Bend_at%5D=&amp;report_params%5Bstart_at%5D=2020-10-26&amp;report_type=Reports%3A%3AEntries"><i class='fa fa-fw fa-line-chart'></i>
+Eintrittsbericht
 </a></li>
 <li class='divider'></li>
 <li>
@@ -416,7 +429,7 @@ Angebote
 </a></li>
 <li>
 <a href="/admin/coupons"><i class='fa fa-fw fa-gift'></i>
-Wertgutscheine
+Gutscheine
 </a></li>
 <li>
 <a href="/admin/merchandises"><i class='fa fa-fw fa-shopping-basket'></i>
@@ -506,12 +519,16 @@ Shops
 </a>
 <ul class='nav nav-second-level'>
 <li>
-<a href="/admin/age_groups"><i class='fa fa-birthday-cake fa-fw'></i>
+<a href="/admin/age_groups"><i class='fa fa-fw fa-birthday-cake'></i>
 Altersgruppen
 </a></li>
 <li>
-<a href="/admin/product_categories"><i class='fa fa-check-square fa-fw'></i>
+<a href="/admin/product_categories"><i class='fa fa-fw fa-check-square'></i>
 Angebotskategorien
+</a></li>
+<li>
+<a href="/admin/customer_salutations"><i class='fa fa-fw fa-commenting'></i>
+Anreden
 </a></li>
 <li>
 <a href="/admin/proposal_categories"><i class='fa fa-fw fa-lightbulb-o'></i>
@@ -522,11 +539,11 @@ Besucherkategorien
 Einschränkungen
 </a></li>
 <li>
-<a href="/admin/holidays"><i class='fa fa-calendar fa-fw'></i>
+<a href="/admin/holidays"><i class='fa fa-fw fa-calendar'></i>
 Feiertage
 </a></li>
 <li>
-<a href="/admin/skills"><i class='fa fa-diamond fa-fw'></i>
+<a href="/admin/skills"><i class='fa fa-fw fa-diamond'></i>
 Fähigkeiten
 </a></li>
 <li>
@@ -558,7 +575,11 @@ Schlagwörter
 Sprachen
 </a></li>
 <li>
-<a href="/admin/audiences"><i class='fa fa-child fa-fw'></i>
+<a href="/admin/customer_titles"><i class='fa fa-fw fa-info'></i>
+Titel
+</a></li>
+<li>
+<a href="/admin/audiences"><i class='fa fa-fw fa-child'></i>
 Zielgruppen
 </a></li>
 </ul>
@@ -603,7 +624,7 @@ Sidebar verkleinern
 </div>
 <ul class='nav navbar-top-links navbar-right'>
 <li>
-<a href="/search/global/find" class="visible-xs"><i class='fa fa-fw fa-search'></i>
+<a class="visible-xs" href="/search/global/find"><i class='fa fa-fw fa-search'></i>
 </a></li>
 <li>
 <a class='disabled'>
@@ -617,7 +638,7 @@ Sidebar verkleinern
 </a>
 </li>
 <li>
-<a href="/wiki/context?context=%2Fadmin%2Fquotas%2F30%2Fcapacities" data-target="#modal" data-toggle="remote-modal"><i class='fa fa-question'></i>
+<a data-target="#modal" data-toggle="remote-modal" href="/wiki/context?context=%2Fadmin%2Fquotas%2F30%2Fcapacities"><i class='fa fa-question'></i>
 </a></li>
 </ul>
 </nav>
@@ -625,6 +646,7 @@ Sidebar verkleinern
 
 <div class='row wrapper border-bottom white-bg page-heading'>
 <div class='col-lg-12'>
+
 
 <div class='pull-left'>
 <ol class='breadcrumb'>
@@ -637,7 +659,7 @@ Kontingente
 30
 </div>
 <span style='margin-right:5px;'>
-Kontingent 5 - Schulen
+Barberini - Kontingent 5 - Schulen
 </span>
 </a></li>
 <li class='active'>
@@ -665,12 +687,50 @@ Filtern
 </div>
 </div>
 <div class='ibox-content ibox-filter'>
-<form accept-charset="UTF-8" action="/admin/quotas/30/capacities" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
+<form accept-charset="UTF-8" action="/admin/quotas/30/capacities" method="get"><div style="display:none"><input name="utf8" type="hidden" value="&#x2713;" /></div>
 <div class='row'>
 <div class='col-md-12'>
 <div class='form-group'>
 <div class='date-picker-week' data-date='26.10.2020'></div>
 <input id="start_at" name="start_at" type="hidden" value="26.10.2020" />
+</div>
+</div>
+</div>
+<div class='row'>
+<div class='col-md-12 col-sm-6 col-xs-6'>
+<h4 class='filter-collapse'>
+Nach Verkaufskanal
+<div class='pull-right'>
+<i class='fa text-muted fa-chevron-down' title='Filter ein-/ausblenden'></i>
+</div>
+</h4>
+<div class='form-group filters' style=''>
+<div class='wrap' style='display: block; padding: 0px; padding-left: 10px; margin: 0;'>
+<div class='radio'>
+<label>
+<input id="usage_online" name="usage" type="radio" value="online" />
+Online Shop
+</label>
+</div>
+<div class='radio'>
+<label>
+<input id="usage_backend" name="usage" type="radio" value="backend" />
+Backend
+</label>
+</div>
+<div class='radio'>
+<label>
+<input id="usage_offline" name="usage" type="radio" value="offline" />
+Kasse
+</label>
+</div>
+<div class='radio'>
+<label>
+<input checked="checked" id="usage_" name="usage" type="radio" value="" />
+Alle
+</label>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -685,7 +745,7 @@ Filtern
 </div>
 <div class='col-md-6 pull-right-md'>
 <div class='form-actions'>
-<button class="btn btn-success btn-sm btn-load" type="submit"><i class='fa fa-fw fa-check'></i>
+<button class="btn btn-success btn-sm btn-load" name="button" type="submit"><i class='fa fa-fw fa-check'></i>
 Filtern
 </button></div>
 </div>
@@ -704,15 +764,15 @@ Filtern
 <div class='col-xs-8'>
 <h5>
 <i class='fa fa-fw fa-ticket'></i>
-Kapazitäten für Kontingent 5 - Schulen
+Kapazitäten für Barberini - Kontingent 5 - Schulen
 </h5>
 </div>
 <div class='col-xs-4'>
 <div class='pull-right'>
-<a href="/admin/quotas/30/capacities?start_at=2020-10-19" class="btn btn-default btn-xs btn-load" title="Vorherige Woche"><i class='fa fa-fw fa-arrow-left'></i>
-</a><a href="/admin/quotas/30/capacities?start_at=2020-10-26" class="btn btn-default btn-xs btn-load"><i class='fa fa-fw fa-calendar'></i>
+<a class="btn btn-default btn-xs btn-load" href="/admin/quotas/30/capacities?start_at=2020-10-19" title="Vorherige Woche"><i class='fa fa-fw fa-arrow-left'></i>
+</a><a class="btn btn-default btn-xs btn-load" href="/admin/quotas/30/capacities?start_at=2023-03-13"><i class='fa fa-fw fa-calendar'></i>
 aktuelle Woche
-</a><a href="/admin/quotas/30/capacities?start_at=2020-11-02" class="btn btn-default btn-xs btn-load" title="Nächste Woche"><i class='fa fa-fw fa-arrow-right'></i>
+</a><a class="btn btn-default btn-xs btn-load" href="/admin/quotas/30/capacities?start_at=2020-11-02" title="Nächste Woche"><i class='fa fa-fw fa-arrow-right'></i>
 </a></div>
 </div>
 </div>
@@ -769,37 +829,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q0-9 selectable text-right' data-timestamp='1603699200' data-toggle='collapse' id='info-1603699200'>
+<td class='text-right selectable q0-9' data-timestamp='1603699200' data-toggle='collapse' id='info-1603699200'>
 <small class='sold'>
 35
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603785600' data-toggle='collapse' id='info-1603785600'>
+<td class='text-right selectable q-1-9' data-timestamp='1603785600' data-toggle='collapse' id='info-1603785600'>
 <small class='sold text-muted'>
--1
+0
 </small>
 </td>
-<td class='q8-9 selectable text-right' data-timestamp='1603872000' data-toggle='collapse' id='info-1603872000'>
+<td class='text-right selectable q6-9' data-timestamp='1603872000' data-toggle='collapse' id='info-1603872000'>
 <small class='sold'>
 17
 </small>
 </td>
-<td class='q8-9 selectable text-right' data-timestamp='1603958400' data-toggle='collapse' id='info-1603958400'>
+<td class='text-right selectable q6-9' data-timestamp='1603958400' data-toggle='collapse' id='info-1603958400'>
 <small class='sold'>
 150
 </small>
 </td>
-<td class='q0-9 selectable text-right' data-timestamp='1604044800' data-toggle='collapse' id='info-1604044800'>
+<td class='text-right selectable q0-9' data-timestamp='1604044800' data-toggle='collapse' id='info-1604044800'>
 <small class='sold'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604131200' data-toggle='collapse' id='info-1604131200'>
+<td class='text-right selectable q-1-9' data-timestamp='1604131200' data-toggle='collapse' id='info-1604131200'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604217600' data-toggle='collapse' id='info-1604217600'>
+<td class='text-right selectable q-1-9' data-timestamp='1604217600' data-toggle='collapse' id='info-1604217600'>
 <small class='sold text-muted'>
 0
 </small>
@@ -814,37 +874,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603702800' data-toggle='collapse' id='info-1603702800'>
+<td class='text-right selectable q0-9' data-timestamp='1603702800' data-toggle='collapse' id='info-1603702800'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603789200' data-toggle='collapse' id='info-1603789200'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603789200' data-toggle='collapse' id='info-1603789200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603875600' data-toggle='collapse' id='info-1603875600'>
-<small class='sold text-muted'>
+<td class='text-right selectable q0-9' data-timestamp='1603875600' data-toggle='collapse' id='info-1603875600'>
+<small class='sold'>
 100
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603962000' data-toggle='collapse' id='info-1603962000'>
-<small class='sold text-muted'>
+<td class='text-right selectable q0-9' data-timestamp='1603962000' data-toggle='collapse' id='info-1603962000'>
+<small class='sold'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604048400' data-toggle='collapse' id='info-1604048400'>
-<small class='sold text-muted'>
+<td class='text-right selectable q0-9' data-timestamp='1604048400' data-toggle='collapse' id='info-1604048400'>
+<small class='sold'>
 1
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604134800' data-toggle='collapse' id='info-1604134800'>
+<td class='text-right selectable q-1-9' data-timestamp='1604134800' data-toggle='collapse' id='info-1604134800'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604221200' data-toggle='collapse' id='info-1604221200'>
+<td class='text-right selectable q-1-9' data-timestamp='1604221200' data-toggle='collapse' id='info-1604221200'>
 <small class='sold text-muted'>
 0
 </small>
@@ -859,37 +919,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603706400' data-toggle='collapse' id='info-1603706400'>
+<td class='text-right selectable q0-9' data-timestamp='1603706400' data-toggle='collapse' id='info-1603706400'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603792800' data-toggle='collapse' id='info-1603792800'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603792800' data-toggle='collapse' id='info-1603792800'>
+<td class='text-right selectable q0-9' data-timestamp='1603879200' data-toggle='collapse' id='info-1603879200'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603965600' data-toggle='collapse' id='info-1603965600'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604052000' data-toggle='collapse' id='info-1604052000'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604138400' data-toggle='collapse' id='info-1604138400'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603879200' data-toggle='collapse' id='info-1603879200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603965600' data-toggle='collapse' id='info-1603965600'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604052000' data-toggle='collapse' id='info-1604052000'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604138400' data-toggle='collapse' id='info-1604138400'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604224800' data-toggle='collapse' id='info-1604224800'>
+<td class='text-right selectable q-1-9' data-timestamp='1604224800' data-toggle='collapse' id='info-1604224800'>
 <small class='sold text-muted'>
 0
 </small>
@@ -904,37 +964,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603710000' data-toggle='collapse' id='info-1603710000'>
+<td class='text-right selectable q0-9' data-timestamp='1603710000' data-toggle='collapse' id='info-1603710000'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603796400' data-toggle='collapse' id='info-1603796400'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603796400' data-toggle='collapse' id='info-1603796400'>
+<td class='text-right selectable q0-9' data-timestamp='1603882800' data-toggle='collapse' id='info-1603882800'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603969200' data-toggle='collapse' id='info-1603969200'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604055600' data-toggle='collapse' id='info-1604055600'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604142000' data-toggle='collapse' id='info-1604142000'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603882800' data-toggle='collapse' id='info-1603882800'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603969200' data-toggle='collapse' id='info-1603969200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604055600' data-toggle='collapse' id='info-1604055600'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604142000' data-toggle='collapse' id='info-1604142000'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604228400' data-toggle='collapse' id='info-1604228400'>
+<td class='text-right selectable q-1-9' data-timestamp='1604228400' data-toggle='collapse' id='info-1604228400'>
 <small class='sold text-muted'>
 0
 </small>
@@ -949,39 +1009,39 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603713600' data-toggle='collapse' id='info-1603713600'>
+<td class='text-right selectable q0-9' data-timestamp='1603713600' data-toggle='collapse' id='info-1603713600'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603800000' data-toggle='collapse' id='info-1603800000'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603800000' data-toggle='collapse' id='info-1603800000'>
+<td class='text-right selectable q0-9' data-timestamp='1603886400' data-toggle='collapse' id='info-1603886400'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603972800' data-toggle='collapse' id='info-1603972800'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604059200' data-toggle='collapse' id='info-1604059200'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604145600' data-toggle='collapse' id='info-1604145600'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603886400' data-toggle='collapse' id='info-1603886400'>
+<td class='text-right selectable q-1-9' data-timestamp='1604232000' data-toggle='collapse' id='info-1604232000'>
 <small class='sold text-muted'>
 0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603972800' data-toggle='collapse' id='info-1603972800'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604059200' data-toggle='collapse' id='info-1604059200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604145600' data-toggle='collapse' id='info-1604145600'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604232000' data-toggle='collapse' id='info-1604232000'>
-<small class='sold text-muted'>
--123
 </small>
 </td>
 </tr>
@@ -994,37 +1054,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603717200' data-toggle='collapse' id='info-1603717200'>
+<td class='text-right selectable q0-9' data-timestamp='1603717200' data-toggle='collapse' id='info-1603717200'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603803600' data-toggle='collapse' id='info-1603803600'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603803600' data-toggle='collapse' id='info-1603803600'>
+<td class='text-right selectable q0-9' data-timestamp='1603890000' data-toggle='collapse' id='info-1603890000'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603976400' data-toggle='collapse' id='info-1603976400'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604062800' data-toggle='collapse' id='info-1604062800'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604149200' data-toggle='collapse' id='info-1604149200'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603890000' data-toggle='collapse' id='info-1603890000'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603976400' data-toggle='collapse' id='info-1603976400'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604062800' data-toggle='collapse' id='info-1604062800'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604149200' data-toggle='collapse' id='info-1604149200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604235600' data-toggle='collapse' id='info-1604235600'>
+<td class='text-right selectable q-1-9' data-timestamp='1604235600' data-toggle='collapse' id='info-1604235600'>
 <small class='sold text-muted'>
 0
 </small>
@@ -1039,37 +1099,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603720800' data-toggle='collapse' id='info-1603720800'>
+<td class='text-right selectable q0-9' data-timestamp='1603720800' data-toggle='collapse' id='info-1603720800'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603807200' data-toggle='collapse' id='info-1603807200'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603807200' data-toggle='collapse' id='info-1603807200'>
+<td class='text-right selectable q0-9' data-timestamp='1603893600' data-toggle='collapse' id='info-1603893600'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603980000' data-toggle='collapse' id='info-1603980000'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604066400' data-toggle='collapse' id='info-1604066400'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604152800' data-toggle='collapse' id='info-1604152800'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603893600' data-toggle='collapse' id='info-1603893600'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603980000' data-toggle='collapse' id='info-1603980000'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604066400' data-toggle='collapse' id='info-1604066400'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604152800' data-toggle='collapse' id='info-1604152800'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604239200' data-toggle='collapse' id='info-1604239200'>
+<td class='text-right selectable q-1-9' data-timestamp='1604239200' data-toggle='collapse' id='info-1604239200'>
 <small class='sold text-muted'>
 0
 </small>
@@ -1084,37 +1144,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603724400' data-toggle='collapse' id='info-1603724400'>
+<td class='text-right selectable q0-9' data-timestamp='1603724400' data-toggle='collapse' id='info-1603724400'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603810800' data-toggle='collapse' id='info-1603810800'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603810800' data-toggle='collapse' id='info-1603810800'>
+<td class='text-right selectable q0-9' data-timestamp='1603897200' data-toggle='collapse' id='info-1603897200'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603983600' data-toggle='collapse' id='info-1603983600'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604070000' data-toggle='collapse' id='info-1604070000'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604156400' data-toggle='collapse' id='info-1604156400'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603897200' data-toggle='collapse' id='info-1603897200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603983600' data-toggle='collapse' id='info-1603983600'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604070000' data-toggle='collapse' id='info-1604070000'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604156400' data-toggle='collapse' id='info-1604156400'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604242800' data-toggle='collapse' id='info-1604242800'>
+<td class='text-right selectable q-1-9' data-timestamp='1604242800' data-toggle='collapse' id='info-1604242800'>
 <small class='sold text-muted'>
 0
 </small>
@@ -1129,37 +1189,37 @@ So, 01.11.
 <span class='muted'>Uhr</span>
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603728000' data-toggle='collapse' id='info-1603728000'>
+<td class='text-right selectable q0-9' data-timestamp='1603728000' data-toggle='collapse' id='info-1603728000'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1603814400' data-toggle='collapse' id='info-1603814400'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603814400' data-toggle='collapse' id='info-1603814400'>
+<td class='text-right selectable q0-9' data-timestamp='1603900800' data-toggle='collapse' id='info-1603900800'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1603987200' data-toggle='collapse' id='info-1603987200'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q0-9' data-timestamp='1604073600' data-toggle='collapse' id='info-1604073600'>
+<small class='sold'>
+0
+</small>
+</td>
+<td class='text-right selectable q-1-9' data-timestamp='1604160000' data-toggle='collapse' id='info-1604160000'>
 <small class='sold text-muted'>
 0
 </small>
 </td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603900800' data-toggle='collapse' id='info-1603900800'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1603987200' data-toggle='collapse' id='info-1603987200'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604073600' data-toggle='collapse' id='info-1604073600'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604160000' data-toggle='collapse' id='info-1604160000'>
-<small class='sold text-muted'>
-0
-</small>
-</td>
-<td class='q-1-9 selectable text-right' data-timestamp='1604246400' data-toggle='collapse' id='info-1604246400'>
+<td class='text-right selectable q-1-9' data-timestamp='1604246400' data-toggle='collapse' id='info-1604246400'>
 <small class='sold text-muted'>
 0
 </small>
@@ -1180,14 +1240,14 @@ So, 01.11.
 <small class='text-muted'>
 © by
 <a href="https://giantmonkey.de" target="_blank">Giant Monkey GmbH</a>
-2012 – 2020
+2012 – 2023
 </small>
 </div>
 <div class='pull-right'>
-<small class='text-muted'>
-v4.1.6 – Premium Edition
-<strong title='Rafiki is the spiritual Leader of Simba, the Lion King. Our Rafiki-Release will guide us through a new Roadmap and many exciting adventures - ehm - features.'>
-Rafiki
+<small class='text-muted' title='go~mus Version'>
+4.1.20.5 - Premium Edition
+<strong title='Just as without monkeys there would be no man, Donkey Kong&#39;s responsible for some videogame evolution of his own. Mario first appeared in a Donkey Kong game.'>
+Donkey Kong
 </strong>
 <a href="/wiki/spaces/REL/pages/243073130"><i class='fa fa-fw fa-gift'></i>
 changelog
@@ -1219,7 +1279,13 @@ HPI_MuB Analytics Projekt
 </h3>
 </div>
 <div class='sidebar-message settings-item'>
-<a href="/users/sign_out" data-method="delete" rel="nofollow"><div class='media-body'>
+<a href="/users/reports"><div class='media-body'>
+<i class='fa fa-fw fa-line-chart'></i>
+Berichte / Exporte
+</div>
+</a></div>
+<div class='sidebar-message settings-item'>
+<a data-method="delete" href="/users/sign_out" rel="nofollow"><div class='media-body'>
 <i class='fa fa-fw fa-power-off'></i>
 Abmelden
 </div>
@@ -1236,7 +1302,7 @@ Benötigen Sie Unterstützung? Nutzen Sie den Helpdesk!
 <div class='col-md-12'>
 <br>
 <div class='pull-right'>
-<a href="/wiki" class="btn btn-success btn-xs" title="Helpdesk aufrufen"><i class='fa fa-fw fa-question'></i>
+<a class="btn btn-success btn-xs" href="/wiki" title="Helpdesk aufrufen"><i class='fa fa-fw fa-question'></i>
 Helpdesk
 </a></div>
 </div>
@@ -1256,7 +1322,7 @@ Erstelle einfach und kompfortable Shortcuts zu häufig besuchten Seiten.
 <ul class='sidebar-list'>
 <li>
 <strong>
-<a href="/users/112/add_shortcut?title=Kontingente&amp;url=%2Fadmin%2Fquotas%2F30%2Fcapacities%3Fstart_at%3D2020-10-26" data-method="post" data-remote="true" rel="nofollow"><i class='fa fa-fw fa-plus-square'></i>
+<a data-method="post" data-remote="true" href="/users/112/add_shortcut?title=Kontingente&amp;url=%2Fadmin%2Fquotas%2F30%2Fcapacities%3Fstart_at%3D2020-10-26" rel="nofollow"><i class='fa fa-fw fa-plus-square'></i>
 Shortcut anlegen
 </a></strong>
 </li>
@@ -1340,7 +1406,7 @@ Speichern
 </div>
 </div>
 
-<script src="/assets/4/application-ad300b66f61757163c478da88858f539.js" type="text/javascript"></script>
+<script src="/assets/4/application-c2d0448ff49bd33877724a0527f7f2366b6404c2959d701d1722488a01bf12ee.js"></script>
 <script>
   $("#info-1603699200").popover({
     placement : 'right',
@@ -1348,7 +1414,7 @@ Speichern
     html: 'true',
     trigger: 'hover',
     container: 'body',
-    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n75\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft:\n<\/td>\n<td>\n30\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert:\n<\/td>\n<td>\n10\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n35\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
+    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n75\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft in allen Kanälen:\n<\/td>\n<td>\n30\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert in allen Kanälen:\n<\/td>\n<td>\n10\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n35\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
   });
 </script>
 <script>
@@ -1358,7 +1424,7 @@ Speichern
     html: 'true',
     trigger: 'hover',
     container: 'body',
-    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n75\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft:\n<\/td>\n<td>\n57\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n17\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
+    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n75\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft in allen Kanälen:\n<\/td>\n<td>\n57\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert in allen Kanälen:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n17\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
   });
 </script>
 <script>
@@ -1368,7 +1434,7 @@ Speichern
     html: 'true',
     trigger: 'hover',
     container: 'body',
-    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n111\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft:\n<\/td>\n<td>\n10\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n100\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
+    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n111\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft in allen Kanälen:\n<\/td>\n<td>\n10\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert in allen Kanälen:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n100\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
   });
 </script>
 <script>
@@ -1378,7 +1444,7 @@ Speichern
     html: 'true',
     trigger: 'hover',
     container: 'body',
-    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n750\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft:\n<\/td>\n<td>\n600\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert:\n<\/td>\n<td>\n0\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n150\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
+    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n750\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft in allen Kanälen:\n<\/td>\n<td>\n600\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert in allen Kanälen:\n<\/td>\n<td>\n0\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n150\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
   });
 </script>
 <script>
@@ -1388,7 +1454,17 @@ Speichern
     html: 'true',
     trigger: 'hover',
     container: 'body',
-    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n3\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n1\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
+    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n3\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft in allen Kanälen:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert in allen Kanälen:\n<\/td>\n<td>\n1\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n1\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
+  });
+</script>
+<script>
+  $("#info-1604232000").popover({
+    placement : 'right',
+    title : '<strong><i class="fa fa-puzzle-piece"></i> 1. November, 13:00 Uhr</strong>',
+    html: 'true',
+    trigger: 'hover',
+    container: 'body',
+    content : '<table class=\'table table-condensed table-small\' style=\'margin: 0; padding: 0;\'>\n<thead>\n<tr>\n<th colspan=\'2\'>\n<i class=\'fa fa-fw fa-ticket\'><\/i>\nTickets\n<\/th>\n<\/tr>\n<\/thead>\n<tbody class=\'text-right\'>\n<tr>\n<td style=\'border: none;\'>\nmaximal:\n<\/td>\n<td style=\'border: none;\'>\n50\n<\/td>\n<\/tr>\n<tr>\n<td>\nverkauft in allen Kanälen:\n<\/td>\n<td>\n75\n<\/td>\n<\/tr>\n<tr>\n<td>\nreserviert in allen Kanälen:\n<\/td>\n<td>\n98\n<\/td>\n<\/tr>\n<\/tbody>\n<tfooter>\n<tr>\n<td class=\'text-right text-success\'>\n<strong>\nverfügbar:\n<\/strong>\n<\/td>\n<td class=\'text-right text-success\'>\n<strong>\n0\n<\/strong>\n<\/td>\n<\/tr>\n<\/tfooter>\n<\/table>\n'
   });
 </script>
 
