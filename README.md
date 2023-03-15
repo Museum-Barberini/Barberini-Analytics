@@ -40,7 +40,7 @@ In particular, these features include the following highlights:
   
   Credits go to Christoph Thiede ([@LinqLover](https://github.com/LinqLover)).
 
-Development is currently being continued on [GitLab](https://gitlab.com/Museum-Barberini/Barberini-Analytics) (private repo) but a [mirror of the repository is available on GitHub](https://github.com/Museum-Barberini-gGmbH/Barberini-Analytics).
+Development is currently being continued on [GitLab](https://gitlab.com/Museum-Barberini/Barberini-Analytics) (private repo) but a [mirror of the repository is available on GitHub](https://github.com/Museum-Barberini/Barberini-Analytics).
 
 If you are interested in reusing any part of our solution and have further questions, ideas, or bug reports, please do not hesitate to contact us!
 
@@ -60,7 +60,7 @@ If you use a different configuration, you may need to adjust the toolchain insta
 1. Clone the repository using git
 
    ```bash
-   git clone https://github.com/Museum-Barberini-gGmbH/Barberini-Analytics.git
+   git clone https://github.com/Museum-Barberini/Barberini-Analytics.git
    ```
 
    * For best convenience, clone it into `/root/bp-barberini`.
@@ -131,11 +131,7 @@ make shutdown
 
 #### Actual Installation
 
-1. Download and install Power BI: <https://powerbi.microsoft.com/downloads>
-2. Enable R-powered visuals
-   1. Download and install R: <https://mran.revolutionanalytics.com/download>
-   2. Once you open any report, you will be asked to install R Visual for PBI.
-      Confirm that.
+Download and install Power BI: <https://powerbi.microsoft.com/downloads>
 
 ## Complete documentation
 
