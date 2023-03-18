@@ -26,7 +26,7 @@ build:
   script:
     - docker build -t ${USER}_test ./docker $(
         [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
-        && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
+        && git diff --name-only "${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}" "${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA}" | grep -q docker/
         && echo '--no-cache'
       )
 
