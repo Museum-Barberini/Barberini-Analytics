@@ -1,1 +1,0 @@
-../scripts/setup/install_shellcheck.sh
