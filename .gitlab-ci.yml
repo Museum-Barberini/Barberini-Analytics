@@ -29,7 +29,7 @@ build:
     - echo DEBUG CI_MERGE_REQUEST_DIFF_BASE_SHA=$CI_MERGE_REQUEST_DIFF_BASE_SHA
     - docker build -t ${USER}_test ./docker $(
         [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]] && [[ -n $"CI_MERGE_REQUEST_DIFF_BASE_SHA" ]]
-        && git diff --name-only "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}" "${CI_MERGE_REQUEST_DIFF_BASE_SHA}" | grep -q docker/
+        && git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} && git diff --name-only "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}" "${CI_MERGE_REQUEST_DIFF_BASE_SHA}" | grep -q docker/
         && echo '--no-cache'
       )
 
