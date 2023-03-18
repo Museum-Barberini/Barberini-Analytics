@@ -24,6 +24,9 @@ build:
   before_script:
     - USER="gitlab_runner_${CI_JOB_ID}"
   script:
+    - echo DEBUG CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
+    - echo DEBUG CI_MERGE_REQUEST_TARGET_BRANCH_SHA=$CI_MERGE_REQUEST_TARGET_BRANCH_SHA
+    - echo DEBUG CI_MERGE_REQUEST_DIFF_BASE_SHA=$CI_MERGE_REQUEST_DIFF_BASE_SHA
     - docker build -t ${USER}_test ./docker $(
         [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]] && [[ -n $"CI_MERGE_REQUEST_DIFF_BASE_SHA" ]]
         && git diff --name-only "${CI_MERGE_REQUEST_TARGET_BRANCH_SHA}" "${CI_MERGE_REQUEST_DIFF_BASE_SHA}" | grep -q docker/
