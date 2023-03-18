@@ -11,21 +11,25 @@
 #     3.6 MiB [          ] /output-hourly-run-2022-01-01_21-02
 # we want to delete all of these folders that are older than 90 days
 
-# powered by GitHub Copilot
-
 APPPATH="/root/bp-barberini"
 LOGPATH="/var/log/barberini-analytics"
-DAYS_TO_KEEP=90
+DAYS_TO_KEEP=${DAYS_TO_KEEP:-90}
+TYPES=${TYPES:-"log output"}
+# split into array
+IFS=' ' read -r -a TYPES <<< "$TYPES"
+DRY=${DRY:-false}
 
-# the date format is not always the same, so we have to use a regex
-# to get the date out of the folder name
 DATE_REGEX='[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
 
-# get the current date
 NOW=$(date +%s)
+shopt -s lastpipe  # nonlocal variables
+COUNT=0
+SIZE=0
 
-# find all output folders
-{ find "$APPPATH" -type d -iname "output-*-run-*" -print0 & find "$LOGPATH" -type f -iname "*ly*.log" -print0; } |
+{
+    ([[ " ${TYPES[*]} " =~ "log" ]] && find "$LOGPATH" -type f -iname "*ly*.log" -print0) || true \
+    & ([[ " ${TYPES[*]} " =~ "output" ]] && find "$APPPATH" -type d -iname "output-*-run-*" -print0) || true;
+} |
     while IFS= read -r -d '' FOLDER; do
         # get the date from the folder name
         FOLDER_DATE=$(echo "$FOLDER" | grep -o "$DATE_REGEX")
@@ -34,8 +38,14 @@ NOW=$(date +%s)
         # calculate the difference between the current date and the folder date
         DIFF=$(( (NOW - FOLDER_DATE) / 86400 ))
         # delete the folder if it is older than max days
-        if [ $DIFF -gt $DAYS_TO_KEEP ]; then
-            echo "deleting $FOLDER"
-            rm -rf "$FOLDER"
+        if [ $DIFF -gt "$DAYS_TO_KEEP" ]; then
+            COUNT=$((COUNT + 1))
+            SIZE=$((SIZE + $(du -s "$FOLDER" | cut -f1)))
+            echo "rm -rf $FOLDER"
+            if [ "$DRY" = false ]; then
+                rm -rf "$FOLDER"
+            fi
         fi
     done
+
+echo "$([ "$DRY" = true ] && echo "[WOULD HAVE] ")Deleted $COUNT items, freeing $SIZE kB"
