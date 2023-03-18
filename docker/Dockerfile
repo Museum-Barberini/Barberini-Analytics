@@ -21,10 +21,11 @@ ARG INSTALL='apt-get install -qq --no-install-recommends --fix-missing'
 # Install utilities
 RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget
 RUN $INSTALL git psmisc
-# Code analysis tools
-RUN $INSTALL shellcheck
 # Optional tools for best dev convenience
 RUN $INSTALL bash-completion less nano vim
+
+# Code analysis tools
+RUN ./scripts/setup/install_shellcheck.sh
 
 # Install postgresql
 RUN wget --quiet --no-check-certificate -O - \
