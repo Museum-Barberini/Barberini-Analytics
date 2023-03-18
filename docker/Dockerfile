@@ -15,8 +15,7 @@ RUN apt-get update --fix-missing
 RUN apt-get upgrade -y --no-install-recommends apt-utils 2>&1 \
   | grep -v 'debconf: .*apt-utils is not installed'
 
-ARG INSTALL='apt-get update && apt-get install -qq --no-install-recommends --fix-missing'
-# redundant update is required because layered docker cache might be outdated (https://stackoverflow.com/a/35616001/13994294)
+ARG INSTALL='sh -c "apt-get update `# redundant update: layered cache might be outdated: https://stackoverflow.com/a/35616001/13994294` && apt-get install -qq --no-install-recommends --fix-missing"'
 
 
 # Install utilities
