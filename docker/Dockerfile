@@ -25,7 +25,7 @@ RUN $INSTALL git psmisc
 RUN $INSTALL bash-completion less nano vim
 
 # Code analysis tools
-COPY ../scripts/setup/install_shellcheck.sh /
+COPY ./install_shellcheck.sh /
 RUN /install_shellcheck.sh
 
 # Install postgresql
