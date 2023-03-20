@@ -25,8 +25,8 @@ build:
     - USER="gitlab_runner_${CI_JOB_ID}"
   script:
     - docker build -t ${USER}_test ./docker $(
-        [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_SHA" ]]
-        && git diff --name-only ^${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} | grep -q docker/
+        [[ -n $"CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]] && [[ -n $"CI_MERGE_REQUEST_DIFF_BASE_SHA" ]]
+        && git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} && git diff --name-only "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}" "${CI_COMMIT_SHA}" | grep -q docker/
         && echo '--no-cache'
       )
 
