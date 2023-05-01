@@ -41,4 +41,5 @@ class PostPerformanceToDb(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDb()
         yield IgPostPerformanceToDb()
-        yield TweetPerformanceToDb()
+        # WORKAROUND: Twint is currently defect, see #396.
+        #yield TweetPerformanceToDb()
