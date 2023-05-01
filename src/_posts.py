@@ -27,8 +27,9 @@ class PostsToDb(luigi.WrapperTask):
         yield GoogleMapsReviewsToDb()
         yield GooglePlaystoreReviewsToDb()
         yield IgToDb()
-        yield TweetAuthorsToDb()
-        yield TweetsToDb()
+        # WORKAROUND: Twint is currently defect, see #396.
+        #yield TweetAuthorsToDb()
+        #yield TweetsToDb()
 
         if self.fetch_performance:
             yield PostPerformanceToDb()

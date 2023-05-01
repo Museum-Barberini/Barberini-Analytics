@@ -40,7 +40,8 @@ class FillDbDaily(luigi.WrapperTask):
         yield Diagnostics()
 
         # Extended Tweet Gathering
-        yield TwitterExtendedDatasetToDB()
+        # WORKAROUND: Twint is currently defect, see #396.
+        # yield TwitterExtendedDatasetToDB()
 
 
 class FillDbHourly(luigi.WrapperTask):
