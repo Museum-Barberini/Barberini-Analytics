@@ -17,7 +17,7 @@ SSL_CERT_DIR := /var/barberini-analytics/db-data
 # If the container barberini_analytics_db is being started, start it with ssl encryption if the file '/var/barberini-analytics/db-data/server.key'.
 startup: startup-db
 	# Generate custom hostname for better error logs
-	HOSTNAME="$$(hostname)-$$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
+	HOSTNAME="$$(hostname)-$$(head -c128 /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)" \
 		LUIGI_EMAIL_FORMAT=$$( \
 		`# Enabled luigi mails iff we are in production context.`; [[ \
 			$$BARBERINI_ANALYTICS_CONTEXT = PRODUCTION ]] \
