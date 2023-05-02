@@ -7,7 +7,8 @@ from facebook import FbPostsToDb, FbPostPerformanceToDb
 from google_maps import GoogleMapsReviewsToDb
 from gplay import GooglePlaystoreReviewsToDb
 from instagram import IgToDb, IgPostPerformanceToDb
-from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
+# WORKAROUND: Facebook comments endpoint is currently defect, see #393.
+# from twitter import TweetsToDb, TweetPerformanceToDb, TweetAuthorsToDb
 
 
 class PostsToDb(luigi.WrapperTask):
@@ -27,8 +28,9 @@ class PostsToDb(luigi.WrapperTask):
         yield GoogleMapsReviewsToDb()
         yield GooglePlaystoreReviewsToDb()
         yield IgToDb()
-        yield TweetAuthorsToDb()
-        yield TweetsToDb()
+        # WORKAROUND: Twint is currently defect, see #396.
+        # yield TweetAuthorsToDb()
+        # yield TweetsToDb()
 
         if self.fetch_performance:
             yield PostPerformanceToDb()
@@ -40,4 +42,5 @@ class PostPerformanceToDb(luigi.WrapperTask):
     def requires(self):
         yield FbPostPerformanceToDb()
         yield IgPostPerformanceToDb()
-        yield TweetPerformanceToDb()
+        # WORKAROUND: Twint is currently defect, see #396.
+        # yield TweetPerformanceToDb()
