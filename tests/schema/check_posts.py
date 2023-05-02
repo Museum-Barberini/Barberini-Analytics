@@ -31,7 +31,7 @@ class CheckPosts(DatabaseTestCase):
                 "Google Maps",
                 "Instagram",
                 "Google Play", "Apple Appstore",
-                #"Twitter"  # WORKAROUND: Twint is currently defect, see #396.
+                # "Twitter"  # WORKAROUND: Twint is currently defect, see #396.
             },
             sources,
             msg="Expected sources are not met by post view"

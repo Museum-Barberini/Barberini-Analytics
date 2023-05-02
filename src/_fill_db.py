@@ -5,7 +5,8 @@ import luigi
 from _posts import PostsToDb, PostPerformanceToDb
 from absa import AspectBasedSentimentAnalysis
 from diagnostics import Diagnostics
-from extended_twitter_collection import TwitterExtendedDatasetToDB
+# WORKAROUND: Facebook comments endpoint is currently defect, see #393.
+# from extended_twitter_collection import TwitterExtendedDatasetToDB
 from gomus import GomusToDb
 from topic_modeling import TopicModeling
 from visitor_prediction.predict import PredictionsToDb
