@@ -7,8 +7,8 @@ docutils<0.16,>=0.10  # for botocore
 setuptools>=40.3.0  # for google-auth
 
 # Framework
-luigi==3.1.1
-psycopg2==2.9.4
+luigi==3.2.1
+psycopg2==2.9.5
 
 # Testing tools
 bandit==1.7.1
@@ -20,7 +20,6 @@ flake8-docstrings==1.6.0
 freezegun==1.2.2
 pep8-naming==0.13.1
 python-gitlab==2.10.1
-twython==3.9.1
 validators==0.20.0
 
 # Data sources
@@ -33,7 +32,7 @@ scikit-learn==0.24.2
 pgeocode==0.3.0
 ## ABSA
 gensim==4.1.2,<4.2.0  # requires Python >= 3.8
-spacy==3.4.1
+spacy==3.5.1
 ## topic_modeling
 git+https://github.com/rwalk/gsdmm.git#egg=gsdmm
 langdetect==1.0.9
@@ -42,14 +41,14 @@ sklearn==0.0
 stop-words==2018.7.23
 
 # Helpers
-backports-datetime-fromisoformat==1.0.0
+backports-datetime-fromisoformat==2.0.0
 bs4==0.0.1
 dateparser==1.1.1
-js2py==0.71
+js2py==0.74
 jsonpickle==2.2.0
 jstyleson==0.0.2
 lockfile==0.12.2
-lxml==4.9.1
+lxml==4.9.2
 mmh3==3.0.0
 nptime==1.1
 numpy==1.19.5
@@ -58,7 +57,7 @@ pandas==1.1.5
 PyYAML==6.0
 requests==2.27.1
 tqdm==4.64.1
-tzdata==2022.5  # required for dateparser
+tzdata==2022.7  # required for dateparser
 xlrd==1.2.0,<2.0.0 # v2.x does not support XLSX files:
             # https://stackoverflow.com/questions/65254535/
             # xlrd-biffh-xlrderror-excel-xlsx-file-not-supported

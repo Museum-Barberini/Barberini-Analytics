@@ -366,15 +366,19 @@ class CollectPostOpinionPhrases(DataPreparationTask):
 
         post_pattern_df = cross_join(post_df, pattern_df)
 
-        post_pattern_df['tokens_list'] = post_pattern_df.apply(
-            lambda row: list(self.extract_opinions(row.pattern, row)),
-            axis=1
-        )
-        post_pattern_df = post_pattern_df.explode('tokens_list').dropna(
-            subset=['tokens_list']
-        ).rename(
-            columns={'tokens_list': 'tokens'}
-        )
+        if not post_pattern_df.empty:
+            post_pattern_df['tokens_list'] = post_pattern_df.apply(
+                lambda row: list(self.extract_opinions(row.pattern, row)),
+                axis=1
+            )
+            post_pattern_df = post_pattern_df.explode('tokens_list').dropna(
+                subset=['tokens_list']
+            ).rename(
+                columns={'tokens_list': 'tokens'}
+            )
+        else:
+            logger.warning("No patterns found.")
+            post_pattern_df['tokens'] = []
 
         if not post_pattern_df.empty:
             post_pattern_df['aspect_phrase'] = post_pattern_df.apply(
