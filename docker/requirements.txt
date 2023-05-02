@@ -20,7 +20,6 @@ flake8-docstrings==1.6.0
 freezegun==1.2.2
 pep8-naming==0.13.1
 python-gitlab==2.10.1
-twython==3.9.1
 validators==0.20.0
 
 # Data sources
