@@ -313,8 +313,14 @@ class FetchIgPostThumbnails(DataPreparationTask):
 
         # Current width of downloaded thumbnails is 320 px. If this is
         # changed, we might want to resize it here.
-        with open(filepath, 'rb') as data_file:
-            data = base64.b64encode(data_file.read())
+        try:
+            with open(filepath, 'rb') as data_file:
+                data = base64.b64encode(data_file.read())
+        except FileNotFoundError:
+            # WORKAROUND: Sometimes, Instaloader fails to download the
+            # thumbnail. See #398.
+            logger.warning(f"File {filepath} not found")
+            return None
         return f'data:image/jpeg;base64,{data.decode()}'
 
     def get_thumbnail_url(self, permalink):
