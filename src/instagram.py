@@ -303,6 +303,12 @@ class FetchIgPostThumbnails(DataPreparationTask):
         try:
             self.instaloader.download_pic(filepath, url, dt.datetime.now())
         except instaloader.exceptions.ConnectionException as error:
+            if "429" in str(error):
+                # WORKAROUND: Sometimes, Instaloader fails to download the
+                # thumbnail. See #398.
+                logger.warning(f"Rate limit exceeded for {url}")
+                return None
+
             if "404 when accessing" not in str(error):
                 raise
             # Return a truthy value instead of None to avoid redundant
