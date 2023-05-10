@@ -47,6 +47,14 @@ services:
     barberini_analytics_db:
         container_name: barberini_analytics_db
         image: postgres:14.3
+        command:
+            - bash
+            - -c
+            - >
+              `# fix permissions of postgres user for new log directory`
+              chmod -R ugo+rwx /var/log/postgresql/ && \
+
+              docker-entrypoint.sh config_file=/etc/postgresql.conf
         restart: always
         shm_size: 1g
         ports:
@@ -55,6 +63,8 @@ services:
             - /etc/barberini-analytics/secrets/database.env
         volumes:
             - /var/barberini-analytics/db-data/:/var/lib/postgresql/data/
+            - /var/log/barberini-analytics/postgresql/:/var/log/postgresql/
+            - ./postgresql.conf:/etc/postgresql.conf:ro
         networks:
             - barberini_analytics_database_network
 

@@ -5,13 +5,24 @@ version: "3.7"
 
 services:
     barberini_analytics_db:
-        # -c provides the postgres instance inside the container
-        # with configuration options, equal to setting them in
-        # a 'postgresql.conf' file
         command:
             - bash
             - -c
-            # before starting the postgres server, fix the permissions for key/cert files
-            # see https://stackoverflow.com/a/49859921/13994294 && https://stackoverflow.com/a/55072885/13994294
-            # changing the permissions of the files on the host system didn't work reproducibly for us, in particular because the crt file is recreated perioidically by certbot
-            - chmod 740 /var/lib/postgresql/data/server.{crt,key} && chown root:ssl-cert /var/lib/postgresql/data/server.{crt,key} && docker-entrypoint.sh -c ssl=on -c ssl_cert_file=/var/lib/postgresql/data/server.crt -c ssl_key_file=/var/lib/postgresql/data/server.key
+            - >
+              `# [INHERITED] fix permissions of postgres user for new log directory`
+              chmod -R ugo+rwx /var/log/postgresql/ && \
+
+              `# before starting the postgres server, fix the permissions for key/cert files \
+                 see https://stackoverflow.com/a/49859921/13994294 && https://stackoverflow.com/a/55072885/13994294 \
+                 changing the permissions of the files on the host system didn't work reproducibly for us, in particular because the crt file is recreated perioidically by certbot`
+              chmod 740 /var/lib/postgresql/data/server.{crt,key} &&
+              chown root:ssl-cert /var/lib/postgresql/data/server.{crt,key} && \
+
+              `# [INHERITED] start postgres server`
+              docker-entrypoint.sh
+              -c config_file=/etc/postgresql.conf \
+
+              `#enable ssl`
+              -c ssl=on
+              -c ssl_cert_file=/var/lib/postgresql/data/server.crt
+              -c ssl_key_file=/var/lib/postgresql/data/server.key
