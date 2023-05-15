@@ -135,11 +135,8 @@ class ExtractCapacities(GomusScraperTask):
         """Extract general information from the DOM, e.g. quota ID or date."""
         quota_id = self.parse_int(
             dom,
-            '//body/div[2]/div[2]/div[2]/div/div/ol/li[2]/a/div')
-        min_date = self.parse_date(
-            dom,
-            '//body/div[2]/div[2]/div[3]/div/div[1]/div/div[2]/form/div[2]/'
-            'div/div/input/@value')
+            '//*[contains(@class, "badge-primary")]')
+        min_date = self.parse_date(dom, '//input[@id="start_at"]/@value')
         return quota_id, min_date
 
     def extract_basic_capacities(self, dom: html.HtmlElement):
