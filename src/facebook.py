@@ -94,8 +94,17 @@ class FetchFbPosts(DataPreparationTask):
             i += 1
             url = response_content['paging']['next']
 
-            # next(log_loop)
-            response = try_request_multiple_times(url)
+            try:
+                response = try_request_multiple_times(url)
+            except requests.exceptions.RequestException as e:
+                if e.response.json()['error']['code'] != 1:
+                    raise
+                # "Please reduce the amount of data you're asking for, then
+                # retry your request"
+                logger.warning("Facebook API internal limit hit, won't fetch "
+                               "more posts")
+                # https://developers.facebook.com/support/bugs/1147688208992941/
+                break
             response_content = response.json()
             yield from response_content['data']
 
@@ -451,8 +460,9 @@ def try_request_multiple_times(url, **kwargs) -> requests.Response:
         except requests.RequestException as e:
             logger.error(
                 "An Error occurred requesting the Facebook API.\n"
-                "Trying to request the API again.\n"
-                f"Error message: {e}"
+                f"Error message: {e}\n"
+                f"Content: {e.response.json()}\n"
+                "Trying to request the API again."
             )
     response = requests.get(url, timeout=100, headers=headers, **kwargs)
 
