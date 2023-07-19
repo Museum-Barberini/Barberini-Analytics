@@ -12,7 +12,7 @@ from _utils import utils
 
 BASE_URL = 'https://barberini.gomus.de/'
 EXPECTED_VERSION_LINE_NUMBER = 798
-EXPECTED_VERSION_TAG = '4.1.22.2'
+EXPECTED_VERSION_TAG = '4.1.22.4'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
