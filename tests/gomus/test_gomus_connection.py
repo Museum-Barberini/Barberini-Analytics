@@ -12,7 +12,7 @@ from _utils import utils
 
 BASE_URL = 'https://barberini.gomus.de/'
 EXPECTED_VERSION_LINE_NUMBER = 798
-EXPECTED_VERSION_TAG = '4.1.22.10'
+EXPECTED_VERSION_TAG = '4.1.22.11b'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 
@@ -162,7 +162,7 @@ class TestGomusConnection(DatabaseTestCase):
             utils.strcoord(response.text, match.start(0))[0]: match
             for match in re.finditer(
                 r'''<small class='text-muted' title='go~mus Version'>
-(\d+\.\d+\.\d+(?:\.\d+)*(_\w+)?)\s+- .+ Edition''',
+(\d+\.\d+\.\d+(?:\.\d+)*(\w+)?)\s+- .+ Edition''',
                 response.text
             )
         }
