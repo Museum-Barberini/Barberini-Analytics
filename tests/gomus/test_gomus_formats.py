@@ -244,13 +244,14 @@ class TestEventsFormat(GomusFormatTest):
     def __init__(self, *args, **kwargs):
         super().__init__(
             'events',
-            [("Id", 'FLOAT'),
+            [("ID", 'FLOAT'),
              ("Name", 'STRING'),
              ("Nachname", 'STRING'),
              ("Plätze", 'FLOAT'),
              ("Preis", 'FLOAT'),
-             ("Datum", 'FLOAT'),
-             ("Zeit", 'FLOAT'),
+             ("Kategorie", 'STRING'),
+             ("gebucht am", 'FLOAT'),
+             ("Unnamed: 7", 'FLOAT'),
              ("Kommentar", 'STRING'),
              ("Anschrift", 'STRING'),
              ("Telefon", 'STRING'),
