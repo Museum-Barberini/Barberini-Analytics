@@ -84,10 +84,16 @@ class ExtractEventData(DataPreparationTask):
         event_df = pd.read_csv(event_data.path, skiprows=5)
         event_df['Status'] = status
         event_df['Event_id'] = event_id
+        # TODO: Kategorie is now also specified in the reservations, which one
+        # should we take? Also, get_categories() apparently has been returning
+        # [] since 2022-04, but we might be able to get them through the
+        # /products endpoint. I (ct) lack the appropriate domain knowledge to
+        # answer that question, and further clarification with the
+        # administration would be required.
         event_df['Kategorie'] = category
         event_df = event_df.filter([
-            "Id", "Event_id", "E-Mail", "Plätze",
-            "Datum", "Status", "Kategorie"])
+            "ID", "Event_id", "E-Mail", "Plätze",
+            "gebucht am", "Status", "Kategorie"])
 
         event_df.columns = self.columns
 

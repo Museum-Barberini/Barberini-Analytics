@@ -1,8 +1,8 @@
-6002.0,"","","","","","","","","","",""
-"Ein tolles Datum","","","","","","","","","","",""
-"Museum Barberini","","","","","","","","","","",""
-"Ein beschreibender Titel (Lesung)","","","","","","","","","","",""
-"","","","","","","","","","","",""
-"Id","Name","Nachname","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
-6003.0,"Kunde 11","Kunde",65.0,0.0,11.0,11.0,"No comment","Straße Nr.%
+6002.0,"","","","","","","","","","","",""
+"Ein tolles Datum","","","","","","","","","","","",""
+"Museum Barberini","","","","","","","","","","","",""
+"Ein beschreibender Titel (Lesung)","","","","","","","","","","","",""
+"","","","","","","","","","","","",""
+"ID","Name","Nachname","Plätze","Preis","Kategorie","gebucht am","","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
+6003.0,"Kunde 11","Kunde",65.0,0.0,"Crowley Thoth Session",11.0,11.0,"No comment","Straße Nr.%
 PLZ Stadt%","","","kunde@le1.csv"

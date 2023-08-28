@@ -1,8 +1,8 @@
-3000.0,"","","","","","","","","","",""
-"Ein tolles Datum","","","","","","","","","","",""
-"Museum Barberini","","","","","","","","","","",""
-"Ein beschreibender Titel (Gespräch)","","","","","","","","","","",""
-"","","","","","","","","","","",""
-"Id","Name","Nachname","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
-3001.0,"Kunde 4","Kunde",30.0,0.0,4.0,4.0,"No comment","Straße Nr.%
+3000.0,"","","","","","","","","","","",""
+"Ein tolles Datum","","","","","","","","","","","",""
+"Museum Barberini","","","","","","","","","","","",""
+"Ein beschreibender Titel (Gespräch)","","","","","","","","","","","",""
+"","","","","","","","","","","","",""
+"ID","Name","Nachname","Plätze","Preis","Kategorie","gebucht am","","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
+3001.0,"Kunde 4","Kunde",30.0,0.0,"Öffentliches Gespräch",4.0,4.0,"No comment","Straße Nr.%
 PLZ Stadt%","","","kunde@ge0.csv"

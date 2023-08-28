@@ -148,9 +148,7 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         if all_invalid_bookings is not None:
             for invalid_booking_id in all_invalid_bookings['booking_id']:
                 # Delegate dynamic dependencies in sub-method
-                new_mail = self.fetch_updated_mail(invalid_booking_id)
-                for yielded_task in new_mail:
-                    yield yielded_task
+                yield from self.fetch_updated_mail(invalid_booking_id)
 
         with self.output().open('w') as output_file:
             bookings.to_csv(
@@ -160,8 +158,6 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                 quoting=csv.QUOTE_NONNUMERIC)
 
     def fetch_updated_mail(self, booking_id):
-        # This would be cleaner to put into an extra function,
-        # but dynamic dependencies only work when yielded from 'run()'
         logger.info(f"Fetching new mail for booking {booking_id}")
 
         # First step: Get customer of booking (cannot use customer_id,
