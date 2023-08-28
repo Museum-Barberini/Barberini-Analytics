@@ -251,7 +251,7 @@ class TestEventsFormat(GomusFormatTest):
              ("Preis", 'FLOAT'),
              ("Kategorie", 'STRING'),
              ("gebucht am", 'FLOAT'),
-             ("Unnamed: 7", 'FLOAT'),
+             ("Unnamed: 7", 'FLOAT'),  # time
              ("Kommentar", 'STRING'),
              ("Anschrift", 'STRING'),
              ("Telefon", 'STRING'),
