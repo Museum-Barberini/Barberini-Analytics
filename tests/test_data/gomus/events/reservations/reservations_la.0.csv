@@ -1,8 +1,8 @@
-4000.0,"","","","","","","","","","",""
-"Ein tolles Datum","","","","","","","","","","",""
-"Museum Barberini","","","","","","","","","","",""
-"Ein beschreibender Titel (Kinder-Workshop)","","","","","","","","","","",""
-"","","","","","","","","","","",""
-"Id","Name","Nachname","Plätze","Preis","Datum","Zeit","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
-4001.0,"Kunde 6","Kunde",40.0,0.0,6.0,6.0,"No comment","Straße Nr.%
+4000.0,"","","","","","","","","","","",""
+"Ein tolles Datum","","","","","","","","","","","",""
+"Museum Barberini","","","","","","","","","","","",""
+"Ein beschreibender Titel (Kinder-Workshop)","","","","","","","","","","","",""
+"","","","","","","","","","","","",""
+"ID","Name","Nachname","Plätze","Preis","Kategorie","gebucht am","","Kommentar","Anschrift","Telefon","Mobil","E-Mail"
+4001.0,"Kunde 6","Kunde",40.0,0.0,"Lagerfeuer",6.0,6.0,"No comment","Straße Nr.%
 PLZ Stadt%","","","kunde@ki0.csv"
