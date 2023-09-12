@@ -46,7 +46,7 @@ services:
 
     barberini_analytics_db:
         container_name: barberini_analytics_db
-        image: postgres:14.3
+        image: postgres:14
         entrypoint: [/bin/bash, -c, set -e; for cmd in "$$@"; do eval "$$cmd"; done, --]
         command:
             # fix permissions of postgres user for mounted log directory
