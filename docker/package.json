@@ -1,5 +1,5 @@
 {
-    "name": "bp-barberini",
+    "name": "barberini-analytics",
     "version": "1.0.0",
     "description": "Barberini Analytics",
     "dependencies": {},
@@ -10,7 +10,7 @@
         "remark-validate-links": "^12.1.1",
         "npm-check-updates": "latest"
     },
-    "repository": "https://gitlab.com/Museum-Barberini/Barberini-Analytics",
-    "author": "BP2019FN1@HPI",
+    "repository": "https://github.com/Museum-Barberini/Barberini-Analytics",
+    "author": "Museum Barberini",
     "license": "UNLICENSED"
 }
