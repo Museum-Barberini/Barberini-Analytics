@@ -16,18 +16,19 @@ import luigi.notifications
 logging.basicConfig(level=logging.INFO)
 
 
-def send_error_mail(error_source):
+def send_error_mail(error_source, details=None):
     """Send an error email informing that the data pipeline has failed."""
     luigi.notifications.send_error_email(
         subject=("External error in production pipeline. "
                  f"Host: {socket.gethostname()}"),
         message=("An external error has occured while trying to run the "
-                 "pipeline. For details see the according log.\n"
-                 f"Error source: {error_source}")
+                 "pipeline. For details see the according log.<br>"
+                 f"Error source: {error_source}"
+                 + (f"<br>Details: {details}" if details else ""))
     )
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        raise ValueError(f"Usage: {sys.argv[0]} <error source>")
-    send_error_mail(sys.argv[1])
+        raise ValueError(f"Usage: {sys.argv[0]} <error source> [<details>]")
+    send_error_mail(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
