@@ -1,8 +1,12 @@
 # Barberini Analytics crontab file. See setup_cron.sh for installing this.
 */5 * * * * /root/bp-barberini/scripts/running/pull_repo.sh
+
 30 3 * * * /root/bp-barberini/scripts/running/cron.sh daily
 0 * * * * /root/bp-barberini/scripts/running/cron.sh hourly
 
 0 0 1 * * /root/bp-barberini/scripts/running/backup_db.sh monthly
 0 0 * * 0 /root/bp-barberini/scripts/running/backup_db.sh weekly
 0 0 * * * /root/bp-barberini/scripts/running/backup_db.sh daily
+
+0 8 * * * /root/bp-barberini/scripts/maintenance/housekeep-docker.sh
+0 8 * * * /root/bp-barberini/scripts/maintenance/housekeep-logs.sh

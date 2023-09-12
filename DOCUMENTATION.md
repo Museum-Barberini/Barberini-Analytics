@@ -9,7 +9,8 @@ Overview:
 - **Database**: `/var/barberini-analytics/db-data/`
   * `applied_migrations.txt`: Local version registry of the migration system.
     See [Migration system](#migration-system).
-  * `server.key`: Let's Encrypt certificate.
+  * `server.{crt,key}`: Certificate files.
+    E.g., these can be created using certbot, see [configuration](./CONFIGURATION.md#tls-encryption).
   * `pg-data/`: Postgres internals of the database container.
 - **Logs:** `/var/log/barberini-analytics/`
 
@@ -30,8 +31,15 @@ Overview:
 
   Note that from within the luigi container (`make connect`), you can access these files in `/app/secret_files/`!
   * `absa/`: Large external datasets used for the implementation of the bachelor thesis about ABSA.
+    + `german_word_embeddings.model` (CACHE)
+    + `spacy_models` (CACHE)
+    + `SePL-german-v1.1.csv` (see `FetchSepl`, manually requested from [http://www.opinion-mining.org](https://web.archive.org/web/20201130053311/http://www.opinion-mining.org/))
   * `google_gmb_*.json`: Required for the Google Maps task.
     See implementation.
+  * `ig_session`: Required for instagram thumbnail fetching.
+    See `FetchIgPostThumbnails`.
+
+CACHE files do not need to be provided after installation but will restored automatically.
 
 ## Workflow
 
@@ -163,6 +171,7 @@ This project currently collects and integrates data from the following sources:
     <th>Relevant data</th>
     <th>Access point</th>
     <th>Authentication</th>
+    <th>Current status</th>
   </tr>
 </thead>
 <tbody>
@@ -171,79 +180,117 @@ This project currently collects and integrates data from the following sources:
     <td>Ratings and comments about the app</td>
     <td>RSS feed</td>
     <td>None</td>
+    <td>
+      <i>Fully operational (presumably)</i>
+      <ul>
+        <li>Suspiciously low number of reviews (need to check manually in the app store)</li>
+      </ul>
   </tr>
   <tr>
     <td><b>Facebook</b></td>
     <td>
-       - Posts by the museum<br>
-       - Performance data (likes etc.) for each post<br>
-       - Comments on each post
+      <ul>
+        <li>Posts by the museum</li>
+        <li>Performance data (likes etc.) for each post</li>
+        <li>Comments on each post</li>
+      </ul>
     </td>
     <td>Facebook Graph API</td>
     <td>Facebook Access Token</td>
+    <td>
+      <i>Partially operational</i>
+      <ul>
+        <li>Comments endpoint is broken (see <a href="https://gitlab.com/Museum-Barberini/Barberini-Analytics/-/issues/393">#393</a>); TODO: before committing this, try to reenable it and read error message!)</li>
+      </ul>
   </tr>
   <tr>
     <td><b>Google Maps Reviews</b></td>
     <td>Ratings and comments</td>
     <td>Google My Business API</td>
     <td>GMB API Key</td>
+    <td>
+      <i>Fully operational (presumably)</i>
+      <ul>
+        <li>Suspiciously number of reviews (total number higher than on the website, number of reviews with text lower than on the website)</li>
+      </ul>
   </tr>
   <tr>
     <td><b>Google Play Reviews</b></td>
     <td>Ratings and comments about the app</td>
     <td>Scraper</td>
     <td>None</td>
+    <td><i>Fully operational</i></td>
   </tr>
   <tr>
     <td rowspan="5"><b>Gomus</b></td>
     <td>Exhibitions</td>
     <td>
-      - Gomus API
+      <ul>
+        <li>Gomus API</li>
+      </ul>
     </td>
     <td>None</td>
+    <td rowspan="5"><i>Fully operational</i></td>
   </tr>
   <tr>
     <td>Bookings</td>
     <td>
-      - HTML scraper
+      <ul>
+        <li>HTML scraper</li>
+      </ul>
     </td>
     <td rowspan="4">Gomus session ID</td>
   </tr>
   <tr>
     <td>Customers</td>
     <td>
-      - Excel report
+      <ul>
+        <li>Excel report</li>
+      </ul>
     </td>
   </tr>
   <tr>
     <td>Daily entries</td>
     <td>
-      - Excel report
+      <ul>
+        <li>Excel report</li>
+      </ul>
     </td>
   </tr>
   <tr>
     <td>Orders</td>
     <td>
-      - Excel report<br/>
-      - HTML scraper
+      <ul>
+        <li>Excel report</li>
+        <li>HTML scraper</li>
+      </ul>
     </td>
   </tr>
   <tr>
     <td><b>Instagram</b></td>
     <td>
-       - Posts by the museum<br>
-       - Performance data (likes etc.) for each post<br>
-       - Profile metrics (impressions, clicks, follower count)<br>
-       - Audience data (origin, gender)
-      </td>
+      <ul>
+        <li>Posts by the museum</li>
+        <li>Performance data (likes etc.) for each post</li>
+        <li>Profile metrics (impressions, clicks, follower count)</li>
+        <li>Audience data (origin, gender)</li>
+      </ul>
+    </td>
     <td>Facebook Graph API</td>
     <td>Facebook Access Token</td>
+    <td><i>Fully operational</i></td>
   </tr>
   <tr>
-    <td><b>Twitter</b></td>
+    <td><b>Twitter/X</b></td>
     <td>All tweets related to the museum</td>
     <td>Scraper</td>
     <td>None</td>
+    <td>
+      <i>Out of service</i>
+      <ul>
+        <li>Twitter is currently blocking any scrapers (see <a href="https://gitlab.com/Museum-Barberini/Barberini-Analytics/-/issues/396">#396</a>, last checked for working solutions: 2023-05-01)</li>
+      </ul>
+    </td>
   </tr>
 </tbody>
 </table></div>

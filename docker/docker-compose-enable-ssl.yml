@@ -12,7 +12,7 @@ services:
 
             # before starting the postgres server, fix the permissions for key/cert files
             # see https://stackoverflow.com/a/49859921/13994294 && https://stackoverflow.com/a/55072885/13994294
-            # changing the permissions of the files on the host system didn't work reproducibly for us, in particular because the crt file is recreated perioidically by certbot`
+            # changing the permissions of the files on the host system didn't work reproducibly for us, in particular because the crt file is recreated perioidically by certbot
             - >
                 chmod 740 /var/lib/postgresql/data/server.{crt,key} &&
                 chown root:ssl-cert /var/lib/postgresql/data/server.{crt,key}

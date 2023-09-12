@@ -1,15 +1,15 @@
 #!/bin/bash
-# to be used right after the first 'make startup'
+# Sets up the database from scratch.
+# To be used right after the first 'make startup'.
 set -e
+
+cd "$(dirname "$0")"
 
 # shellcheck disable=SC1091
 source /etc/barberini-analytics/secrets/database.env
 docker exec -it barberini_analytics_db psql -U postgres -a postgres -c "ALTER USER $POSTGRES_USER PASSWORD '$POSTGRES_PASSWORD';"
 docker exec -it barberini_analytics_db psql -U postgres -a postgres -c "CREATE DATABASE $POSTGRES_DB;"
-sudo tee -a /var/barberini-analytics/db-data/pg-data/postgresql.conf <<EOF > /dev/null
-
-include '/etc/postgresql.conf'
-EOF
+./setup_db_config.sh
 
 APPLIED_FILE="/var/barberini-analytics/db-data/applied_migrations.txt"
 sudo mkdir "$(dirname "$APPLIED_FILE")"

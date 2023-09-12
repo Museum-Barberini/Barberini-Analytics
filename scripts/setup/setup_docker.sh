@@ -4,7 +4,12 @@ set -e
 sudo docker network create barberini_analytics_database_network
 sudo usermod -aG docker "$USER"
 echo "Please reboot for user group changes to take effect"
-read -r -n 1 -p "Reboot now? [y/n]" -s && echo
-if [[ "$REPLY" == "y" ]]
-    then sudo reboot
-fi
+while true; do
+    read -r -p "Reboot now (y/n)? " yn
+    case $yn in
+        y|Y ) sudo reboot; break;;
+        n|N ) exit;;
+        * ) echo "Please answer y (for yes) or n (for no).";;
+    esac
+done
+# TODO: Would it be sufficient to just restart the docker daemon?
