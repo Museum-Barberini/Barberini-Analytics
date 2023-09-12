@@ -136,16 +136,16 @@ If no crontab exists before, create it using `crontab -e`.
 
 These instructions assume that you want to use a custom GitLab CI runner:
 
-1. Go to the GitLab CI/CD settings of your repository (e.g., <https://gitlab.com/Museum-Barberini/Barberini-Analytics/-/settings/ci_cd#js-runners-settings>), locate <kbd>New project runner</kbd>~~, and choose <kbd>Show runner instalation and registration instructions</kbd> from the menu~~.
+1. Go to the GitLab CI/CD settings of your repository (e.g., <https://gitlab.com/Museum-Barberini/Barberini-Analytics/-/settings/ci_cd#js-runners-settings>), locate "New project runner"~~, and choose "Show runner instalation and registration instructions" from the menu~~.
    ~~Follow the instructions.~~  
    Follow [these instructions](https://docs.gitlab.com/runner/install/linux-repository.html#installing-gitlab-runner) instead to install the runner via apt with an update path. See <https://gitlab.com/gitlab-org/gitlab/-/issues/424394> for the inconsistency in the docs.
 
    **Configuration:**
 
-   - To set up a new runner, use these options:
-     - executor type: `shell`
-   - To reuse the config of an existing runner, you may need to somehow cancel this dialog and reuse your existing `/etc/gitlab-runner/config.toml` file instead.
-   
+   * To set up a new runner, use these options:
+     + executor type: `shell`
+   * To reuse the config of an existing runner, you may need to somehow cancel this dialog and reuse your existing `/etc/gitlab-runner/config.toml` file instead.
+
    Check whether the runner is displayed in the GitLab CI/CD settings.
 
 2. Add the gitlab-runner user to the docker group:
@@ -182,7 +182,7 @@ Run `scripts/setup/setup_dev.sh` to set up the development environment.
 
 ### Usage
 
-##### Accessing the docker containers
+#### Accessing the docker containers
 
 Have a look at our beautiful `Makefile`!
 To access the luigi docker, do:
@@ -236,7 +236,7 @@ export POSTGRES_DB=barberini_test
 `make connect`:
 
 ```bash
-$ make test
+make test
 ```
 
 ### Running the minimal mining pipeline

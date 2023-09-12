@@ -31,9 +31,9 @@ Overview:
 
   Note that from within the luigi container (`make connect`), you can access these files in `/app/secret_files/`!
   * `absa/`: Large external datasets used for the implementation of the bachelor thesis about ABSA.
-    * `german_word_embeddings.model` (CACHE)
-    * `spacy_models` (CACHE)
-    * `SePL-german-v1.1.csv` (see `FetchSepl`, manually requested from [http://www.opinion-mining.org](https://web.archive.org/web/20201130053311/http://www.opinion-mining.org/))
+    + `german_word_embeddings.model` (CACHE)
+    + `spacy_models` (CACHE)
+    + `SePL-german-v1.1.csv` (see `FetchSepl`, manually requested from [http://www.opinion-mining.org](https://web.archive.org/web/20201130053311/http://www.opinion-mining.org/))
   * `google_gmb_*.json`: Required for the Google Maps task.
     See implementation.
   * `ig_session`: Required for instagram thumbnail fetching.
