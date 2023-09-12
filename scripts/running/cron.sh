@@ -16,6 +16,15 @@ export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
     echo "===================================================================="
     echo "Starting $1 run at [$(date +"%Y-%m-%d %H:%M")]"
 
+    if [ "$(docker ps -q -f name="$USER")" ]; then
+        echo "Container $USER is still running. Aborting."
+        docker-compose -p "$USER" -f "$BASEDIR/docker/docker-compose.yml" \
+            exec -T barberini_analytics_luigi \
+            /app/scripts/running/notify_external_error.py "$1" "Container $USER is still running."
+        echo "===================================================================="
+        exit 1
+    fi
+
     {
         make -C "$BASEDIR" startup
 
