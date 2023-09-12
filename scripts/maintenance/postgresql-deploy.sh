@@ -1,8 +1,8 @@
 #!/bin/bash
 # This file must be located under '/etc/letsencrypt/renewal-hooks/deploy'
-# to enable the TLS certificate to be renewed fully automatically
+# to enable the TLS certificate to be renewed fully automatically.
+# See scripts/setup/setup_letsencrypt.sh for details.
 set -e
-DOMAIN=barberini-analytics.westeurope.cloudapp.azure.com
 DATA_DIR=/var/barberini-analytics/db-data
 SOFTWARE_DIR=/root/bp-barberini
 

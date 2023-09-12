@@ -27,4 +27,4 @@ To configure the mailing service, edit the `/etc/barberini-analytics/secrets/smt
 
 One might want to encrypt the connection to the database so that sensitive information is not sent in the clear via the Internet.
 To do this, we recommend using [LetsEncrypt](https://letsencrypt.org/) since it's free and fairly easy to set up.
-To allow for automatic certificate deployment, please check [`scripts/setup/postgresql-deploy.sh`](./scripts/setup/postgresql-deploy.sh).
+To allow for automatic certificate deployment, please check [`scripts/setup/setup_letsencrypt.sh`](./scripts/setup/setup_letsencrypt.sh).

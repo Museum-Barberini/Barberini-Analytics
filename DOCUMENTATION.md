@@ -9,7 +9,8 @@ Overview:
 - **Database**: `/var/barberini-analytics/db-data/`
   * `applied_migrations.txt`: Local version registry of the migration system.
     See [Migration system](#migration-system).
-  * `server.key`: Let's Encrypt certificate.
+  * `server.{crt,key}`: Certificate files.
+    E.g., these can be created using certbot, see [configuration](./CONFIGURATION.md#tls-encryption).
   * `pg-data/`: Postgres internals of the database container.
 - **Logs:** `/var/log/barberini-analytics/`
 
@@ -30,8 +31,15 @@ Overview:
 
   Note that from within the luigi container (`make connect`), you can access these files in `/app/secret_files/`!
   * `absa/`: Large external datasets used for the implementation of the bachelor thesis about ABSA.
+    * `german_word_embeddings.model` (CACHE)
+    * `spacy_models` (CACHE)
+    * `SePL-german-v1.1.csv` (see `FetchSepl`, from [here](http://www.opinion-mining.org))
   * `google_gmb_*.json`: Required for the Google Maps task.
     See implementation.
+  * `ig_session`: Required for instagram thumbnail fetching.
+    See `FetchIgPostThumbnails`.
+
+CACHE files do not need to be provided after installation but will restored automatically.
 
 ## Workflow
 
