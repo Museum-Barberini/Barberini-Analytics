@@ -4,7 +4,7 @@
 # See scripts/setup/setup_letsencrypt.sh for details.
 set -e
 DATA_DIR=/var/barberini-analytics/db-data
-SOFTWARE_DIR=/root/bp-barberini
+SOFTWARE_DIR=/root/barberini-analytics
 
 # Copy certificates to folder mounted by DB container
 cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$DATA_DIR/server.crt"

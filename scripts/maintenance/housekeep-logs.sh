@@ -11,7 +11,7 @@
 #     3.6 MiB [          ] /output-hourly-run-2022-01-01_21-02
 # we want to delete all of these folders that are older than 90 days
 
-APPPATH="/root/bp-barberini"
+APPPATH="/root/barberini-analytics"
 LOGPATH="/var/log/barberini-analytics"
 DAYS_TO_KEEP=${DAYS_TO_KEEP:-90}
 TYPES=${TYPES:-"log output"}

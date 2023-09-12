@@ -7,4 +7,4 @@ include '/etc/postgresql.conf'
 EOF
 
 # reload config
-sudo make -C /root/bp-barberini shutdown-db startup-db
+sudo make -C /root/barberini-analytics shutdown-db startup-db

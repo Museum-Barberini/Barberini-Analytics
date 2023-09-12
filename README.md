@@ -63,7 +63,7 @@ If you use a different configuration, you may need to adjust the toolchain insta
    git clone https://github.com/Museum-Barberini/Barberini-Analytics.git
    ```
 
-   * For best convenience, clone it into `/root/bp-barberini`.
+   * For best convenience, clone it into `/root/barberini-analytics`.
 
 2. Copy the `secrets` folders (which is not part of the repository) into `/etc/barberini-analytics`.
    From the `secret_files` subdirectory, you may omit files denoted as caches in the [documentation](./DOCUMENTATION.md#secrets).
@@ -129,7 +129,7 @@ scp <oldremote>:/var/barberini-analytics/db-data/applied_migrations.txt /var/bar
 ##### Schedule regular DB updates
 
 Run `sudo scripts/setup/setup_cron.sh`.
-If you cloned the repository in a different folder than `/root/bp-barberini`, you may want to adapt the paths in `scripts/setup/.crontab` first.
+If you cloned the repository in a different folder than `/root/barberini-analytics`, you may want to adapt the paths in `scripts/setup/.crontab` first.
 If no crontab exists before, create it using `crontab -e`.
 
 #### GitLab CI Runner
