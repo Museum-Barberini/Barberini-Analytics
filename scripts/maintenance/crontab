@@ -1,2 +1,0 @@
-0 8 * * * /root/bp-barberini/scripts/maintenance/housekeep-docker.sh
-0 8 * * * /root/bp-barberini/scripts/maintenance/housekeep-logs.sh
