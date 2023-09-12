@@ -7,8 +7,8 @@ DATA_DIR=/var/barberini-analytics/db-data
 SOFTWARE_DIR=/root/bp-barberini
 
 # Copy certificates to folder mounted by DB container
-cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem $DATA_DIR/server.crt
-cp /etc/letsencrypt/live/$DOMAIN/privkey.pem $DATA_DIR/server.key
+cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$DATA_DIR/server.crt"
+cp "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$DATA_DIR/server.key"
 
 # Adjust permissions and ownership of certificates
 chown 0:0 $DATA_DIR/server.crt
