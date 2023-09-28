@@ -188,7 +188,7 @@ class FetchIgPosts(DataPreparationTask):
         all_media.extend(response_json['data'])
 
         logger.info("Fetching Instagram posts ...")
-        while 'next' in response_json['paging']:
+        while 'paging' in response_json and 'next' in response_json['paging']:
             next_url = response_json['paging']['next']
             response = try_request_multiple_times(next_url)
             response_json = response.json()

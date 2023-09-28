@@ -89,7 +89,8 @@ class FetchFbPosts(DataPreparationTask):
         yield from response_content['data']
 
         i = 1
-        while 'next' in response_content['paging']:
+        while 'paging' in response_content and \
+                'next' in response_content['paging']:
             logger.info(f"Fetched approx. {i * limit} Facebook posts")
             i += 1
             url = response_content['paging']['next']
