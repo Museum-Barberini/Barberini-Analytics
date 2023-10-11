@@ -24,10 +24,7 @@ startup: startup-db
 				&& echo "html" || echo "none") \
 		$(DOCKER_COMPOSE) -p ${USER} up --build -d barberini_analytics_luigi barberini_analytics_gplay_api
 
-	echo -e "\e[1m\xf0\x9f\x8f\x84\xe2\x80\x8d`# bash styling magic` To join the" \
-		"party, open http://localhost:8082 and run:\n   ssh -L 8082:localhost:$$( \
-			docker port ${USER}-barberini_analytics_luigi 8082 | cut -d: -f2 \
-		) -fN $$(hostname)\e[0m"
+	echo "Started luigi container ${USER}-barberini_analytics_luigi on host $$(hostname)"
 
 startup-db:
 	if [[ $$($(DOCKER_COMPOSE) ps --filter status=running --services) != "barberini_analytics_db" ]]; then\
@@ -86,12 +83,16 @@ luigi-scheduler:
 	# Waiting for scheduler ...
 	${SHELL} -c "until echo > /dev/tcp/localhost/8082; do sleep 0.01; done" > /dev/null 2>&1
 
+luigi-frontend:
+	echo "Serving luigi frontend at http://localhost:$$(echo "$${PORT:-8000}")"
+	tcpserver localhost $$(echo "$${PORT:-8000}") docker exec -i ${USER}-barberini_analytics_luigi nc localhost 8082
+
 luigi-restart-scheduler:
 	killall luigid || true
 	$(MAKE) luigi-scheduler
 
 luigi:
-	$(MAKE) luigi-task LMODULE=_fill_db LTASK=FillDb
+	$(MAKE) luigi-task LMODULE=_fill_db LTASK=FillDb LARGS='--workers 3'
 
 OUTPUT_DIR ?= output # default output directory is 'output'
 luigi-task: luigi-scheduler output-folder
@@ -102,7 +103,7 @@ luigi-clean:
 	rm -rf $(OUTPUT_DIR)
 
 luigi-minimal: luigi-scheduler luigi-clean output-folder
-	MINIMAL=True $(MAKE) luigi
+	MINIMAL=True LARGS=$(LARGS) $(MAKE) luigi
 
 # this target can be used to simply run one task inside the container
 luigi-task-in-container: startup

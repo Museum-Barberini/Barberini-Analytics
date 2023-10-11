@@ -199,13 +199,14 @@ make shutdown
 
 #### Controlling the pipeline
 
-##### Open the luigi webinterface
+##### Open the luigi web interface
 
 ```bash
 make docker-do do='make luigi-scheduler'
+make luigi-frontend
 ```
 
-This will also start a webserver on <http://localhost:8082> where you can trace all running tasks.
+This will also start a webserver on <http://localhost:8000> where you can trace all running tasks.
 
 ##### Running the pipeline manually
 
