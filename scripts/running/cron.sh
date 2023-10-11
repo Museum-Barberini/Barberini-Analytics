@@ -38,7 +38,10 @@ export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
         || grep -Eq "$EMAIL_STR" "$TMPFILE" \
         || docker-compose -p "$USER" -f "$BASEDIR/docker/docker-compose.yml" \
             exec -T barberini_analytics_luigi \
-            /app/scripts/running/notify_external_error.py "$1"
+            /app/scripts/running/notify_external_error.py "$1" "Log ($LOGFILE):
+
+$([ "$(wc -l < "$TMPFILE")" -gt 15 ] && echo -e "<$(("$(wc -l < "$TMPFILE")" - 15)) lines truncated>" || echo)
+$(tail -n15 "$TMPFILE")"
 
     rm -f "$TMPFILE"
     make -C "$BASEDIR" shutdown

@@ -18,6 +18,9 @@ logging.basicConfig(level=logging.INFO)
 
 def send_error_mail(error_source, details=None):
     """Send an error email informing that the data pipeline has failed."""
+    if details:
+        import django.utils.html
+        details = django.utils.html.escape(details).replace('\n', '<br>')
     luigi.notifications.send_error_email(
         subject=("External error in production pipeline. "
                  f"Host: {socket.gethostname()}"),
