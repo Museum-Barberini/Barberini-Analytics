@@ -19,7 +19,7 @@ ARG INSTALL='apt-get install -qq --no-install-recommends --fix-missing'
 
 
 # Install utilities
-RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget ca-certificates
+RUN $INSTALL bash build-essential curl gnupg iproute2 lsb-release wget ca-certificates netcat
 RUN $INSTALL git psmisc
 # Optional tools for best dev convenience
 RUN $INSTALL bash-completion less nano vim
