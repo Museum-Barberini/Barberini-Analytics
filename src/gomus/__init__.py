@@ -32,7 +32,8 @@ class GomusToDb(luigi.WrapperTask):
             yield CustomersToDb()
             yield EventsToDb()
             yield GomusToCustomerMappingToDb()
-            yield OrderContainsToDb()
+            # WORKAROUND: disabled for now while running it manually
+            #yield OrderContainsToDb()
             yield OrdersToDb()
 
             yield CapacitiesToDb()
