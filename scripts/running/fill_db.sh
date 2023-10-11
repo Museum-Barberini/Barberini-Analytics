@@ -14,14 +14,17 @@ case $1 in
         ;;
 esac
 
+# output directories are unique per run
+export OUTPUT_DIR="$OUTPUT_DIR-$1-run-$(date +"%Y-%m-%d_%H-%M")"
+
 cd /app || exit
 make apply-pending-migrations luigi-task LMODULE=_fill_db LTASK=$TASK
 EXIT_VAL=$?
 
-if [ $EXIT_VAL -ne 0 ]
-    then cp -r "$OUTPUT_DIR" "./output-$1-run-$(date +"%Y-%m-%d_%H-%M")"
+# preserve output directory if task failed (for debugging or manual re-run)
+# in particular, if the script was interrupted, the output directory will not be deleted
+if [ $EXIT_VAL -eq 0 ]
+    then make luigi-clean
 fi
-
-make luigi-clean
 
 exit $EXIT_VAL
