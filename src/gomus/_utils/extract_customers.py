@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import datetime as dt
+import os
+
 import luigi
 import mmh3
 import pandas as pd
@@ -18,7 +20,8 @@ class ExtractCustomerData(DataPreparationTask):
     columns = luigi.parameter.ListParameter(description="Column names")
 
     def requires(self):
-        suffix = '_1day' if self.minimal_mode else '_7days'
+        suffix = '_1day' if self.minimal_mode else \
+            f'_{os.getenv("GOMUS_HISTORIC_DAYS", 7)}days'
 
         return FetchGomusReport(report='customers',
                                 today=self.today,

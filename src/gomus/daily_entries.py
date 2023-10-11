@@ -1,6 +1,7 @@
 """Provides tasks for downloading the daily entries from Gomus into the DB."""
 
 import datetime as dt
+import os
 
 import luigi
 import numpy as np
@@ -49,10 +50,12 @@ class ExtractDailyEntryData(DataPreparationTask):
 
     def requires(self):
 
+        suffix = '_1day' if not os.getenv('GOMUS_HISTORIC_DAYS') else \
+            f'_{os.getenv("GOMUS_HISTORIC_DAYS", 7)}days'
         for report in ['entries', 'entries_unique']:
             yield FetchGomusReport(
                 report=report,
-                suffix='_1day',
+                suffix=suffix,
                 sheet_indices=[0, 1] if not self.expected else [2, 3],
                 today=self.today)
 

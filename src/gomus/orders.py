@@ -1,6 +1,7 @@
 """Provides tasks for downloading all gomus orders into the database."""
 
 import datetime as dt
+import os
 
 import luigi
 from luigi.format import UTF8
@@ -38,7 +39,8 @@ class ExtractOrderData(DataPreparationTask):
         ])
 
     def requires(self):
-        suffix = '_1day' if self.minimal_mode else '_7days'
+        suffix = '_1day' if self.minimal_mode else \
+            f'_{os.getenv("GOMUS_HISTORIC_DAYS", 7)}days'
         return FetchGomusReport(report='orders',
                                 suffix=suffix,
                                 today=self.today)

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 set -o pipefail
+# usage:
+# cron.sh [daily | hourly]
+# [VARS="VAR1=foo VAR2=bar"] TASK=SomeTask cron.sh job-name
 
 export USER=$1-run
 BASEDIR=$(dirname "$0")/../..
@@ -30,7 +33,7 @@ export BARBERINI_ANALYTICS_CONTEXT=PRODUCTION
 
         docker-compose -p "$USER" -f "$BASEDIR/docker/docker-compose.yml" \
             exec -T barberini_analytics_luigi \
-            /app/scripts/running/fill_db.sh "$1"
+            /bin/bash -c "export TASK=$TASK && $([ -n "$VARS" ] && echo "echo \"exporting $VARS\" && export \`echo -e $VARS\`" || echo "true") && /app/scripts/running/fill_db.sh \"$1\""
     } |& tee "$TMPFILE" \
         || grep -Eq "$EMAIL_STR" "$TMPFILE" \
         || docker-compose -p "$USER" -f "$BASEDIR/docker/docker-compose.yml" \

@@ -8,7 +8,8 @@ from .customers import CustomersToDb, GomusToCustomerMappingToDb
 from .daily_entries import DailyEntriesToDb, ExpectedDailyEntriesToDb
 from .exhibitions import ExhibitionTimesToDb
 from .events import EventsToDb
-from .order_contains import OrderContainsToDb
+# WORKAROUND: disabled for now while running it manually
+# from .order_contains import OrderContainsToDb
 from .orders import OrdersToDb
 from .quotas import QuotasToDb
 
@@ -32,7 +33,8 @@ class GomusToDb(luigi.WrapperTask):
             yield CustomersToDb()
             yield EventsToDb()
             yield GomusToCustomerMappingToDb()
-            yield OrderContainsToDb()
+            # WORKAROUND: disabled for now while running it manually
+            # yield OrderContainsToDb()
             yield OrdersToDb()
 
             yield CapacitiesToDb()

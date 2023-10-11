@@ -1,4 +1,8 @@
 #!/bin/bash
+# usage:
+# fill_db.sh [daily | hourly]
+# fill_db.sh  # all tasks
+# TASK=SomeTask fill_db.sh
 
 case $1 in
     daily)
@@ -10,7 +14,7 @@ case $1 in
         export OUTPUT_DIR="output_hourly"
         ;;
     *)
-        TASK=FillDb
+        TASK=${TASK:-FillDb}
         ;;
 esac
 
@@ -19,7 +23,7 @@ OUTPUT_DIR="$OUTPUT_DIR-$1-run-$(date +"%Y-%m-%d_%H-%M")"
 export OUTPUT_DIR
 
 cd /app || exit
-make apply-pending-migrations luigi-task LMODULE=_fill_db LTASK=$TASK
+make apply-pending-migrations luigi-task LMODULE=_fill_db LTASK="$TASK"
 EXIT_VAL=$?
 
 # preserve output directory if task failed (for debugging or manual re-run)
