@@ -15,7 +15,8 @@ case $1 in
 esac
 
 # output directories are unique per run
-export OUTPUT_DIR="$OUTPUT_DIR-$1-run-$(date +"%Y-%m-%d_%H-%M")"
+OUTPUT_DIR="$OUTPUT_DIR-$1-run-$(date +"%Y-%m-%d_%H-%M")"
+export OUTPUT_DIR
 
 cd /app || exit
 make apply-pending-migrations luigi-task LMODULE=_fill_db LTASK=$TASK
