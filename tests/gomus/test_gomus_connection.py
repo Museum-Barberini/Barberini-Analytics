@@ -11,8 +11,8 @@ from db_test import DatabaseTestCase, logger
 from _utils import utils
 
 BASE_URL = 'https://barberini.gomus.de/'
-EXPECTED_VERSION_LINE_NUMBER = 387
-EXPECTED_VERSION_TAG = '4.2.0.15'
+EXPECTED_VERSION_LINE_NUMBER = 84
+EXPECTED_VERSION_TAG = '4.2.1.20'
 GOMUS_SESS_ID = os.environ['GOMUS_SESS_ID']
 
 

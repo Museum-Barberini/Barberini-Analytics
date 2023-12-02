@@ -106,7 +106,12 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
 
                 # Order Date
                 bookings.loc[i, 'order_date'] = self.parse_date(
-                    booking_details, 'div[1]/div[2]/small/dl[1]/dd[2]')
+                    booking_details,
+                    """//div[@class='ibox-content']//dl[dt[
+                        normalize-space(text())='Datum'
+                    ]]//dd[1]
+                    """
+                )
 
                 # Language
                 bookings.loc[i, 'language'] = self.parse_text(
@@ -117,21 +122,50 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                     ]'''
                 ).strip()
 
+                customer_id = 0
                 try:
                     customer_details = tree_details.xpath(
                         '/html/body/div[2]/div[2]/div[3]/'
                         'div[4]/div[2]/div[2]/div[2]')[0]
 
-                    # Customer E-Mail (not necessarily same as in report)
-                    customer_mail = self.extract_from_html(
-                        customer_details,
-                        'div[1]/div[1]/div[2]/small[1]').strip().split('\n')[0]
+                    # ct 2023-11-23: E-mail addresses seem to be no longer
+                    # available in the booking details page. We therefore
+                    # always fall back to fetch_updated_mail().
+                    try:
+                        # Customer E-Mail (not necessarily same as in report)
+                        customer_mail = self.extract_from_html(
+                            customer_details,
+                            'div[1]/div[1]/div[2]/small[1]').strip(
+                            ).split('\n')[0]
 
-                    if re.match(r'^\S+@\S+\.\S+$', customer_mail):
-                        bookings.loc[i, 'customer_id'] = hash_id(customer_mail)
+                        if re.match(r'^\S+@\S+\.\S+$', customer_mail):
+                            customer_id = hash_id(customer_mail)
 
-                except IndexError:  # can't find customer mail
-                    bookings.loc[i, 'customer_id'] = 0
+                    except IndexError:  # can't find customer mail
+                        # get gomus ID
+                        booking_customer = customer_details.xpath(
+                            'div[1]/div[1]/div[1]/a')[0]
+                        gomus_id = int(booking_customer.get('href')\
+                            .split('/')[-1])
+
+                        # get email address for customer
+                        customer_html_task = FetchGomusHTML(
+                            url=f'/admin/customers/{gomus_id}')
+                        # inefficient as hell!
+                        yield customer_html_task
+                        with customer_html_task.output().open('r') as customer_html_fp:
+                            customer_html = html.fromstring(customer_html_fp.read())
+                        customer_email = self.parse_text(
+                            customer_html,
+                            '//body/div[2]/div[2]/div[3]/div/div[2]/div[1]'
+                            '/div/div[3]/div/div[1]/div[1]/div/dl/dd[1]')
+
+                        customer_id = hash_id(customer_email)
+
+                except IndexError:  # really can't find customer details
+                    pass
+
+                bookings.loc[i, 'customer_id'] = customer_id
 
         all_invalid_bookings = None
 
@@ -167,9 +201,15 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
         yield booking_html_task
         with booking_html_task.output().open('r') as booking_html_fp:
             booking_html = html.fromstring(booking_html_fp.read())
-        booking_customer = booking_html.xpath(
-            '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
-            '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
+        try:
+            booking_customer = booking_html.xpath(
+                '//body/div[2]/div[2]/div[3]/div[4]/div[2]'
+                '/div[2]/div[2]/div[1]/div[1]/div[1]/a')[0]
+        except IndexError:  # no customer assigned to booking
+            logger.warning(
+                f"Booking {booking_id} has no customer assigned.\n"
+                "Skipping ...")
+            return
         gomus_id = int(booking_customer.get('href').split('/')[-1])
 
         # Second step: Get current e-mail address for customer

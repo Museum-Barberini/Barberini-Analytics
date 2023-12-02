@@ -101,7 +101,7 @@ class TestCustomersFormat(GomusFormatTest):
              ("Typ", 'STRING'),
              ("Erstellt am", 'DATE'),
              ("Newsletter", 'STRING'),
-             ("Jahreskarte", 'STRING')],
+             ("Geburtstag", 'STRING')],
             *args, **kwargs)
 
     @patch.object(FetchGomusReport, 'output')
@@ -138,7 +138,7 @@ class TestBookingsFormat(GomusFormatTest):
              ("Führungsentgelt / Summe Endkundenpreis ohne Storno", 'STRING'),
              ("Honorar", 'STRING'),
              ("Zahlungsart", 'STRING'),
-             ("Kommentar (Interner Hinweis)", 'STRING'),
+             ("Unnamed: 20", 'STRING'),
              ("Status", 'STRING')],
             *args, **kwargs)
 

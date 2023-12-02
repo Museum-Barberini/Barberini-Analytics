@@ -7,6 +7,7 @@ from luigi.format import UTF8
 from luigi.mock import MockTarget
 
 from db_test import DatabaseTestCase
+from gomus.customers import GomusToCustomerMappingToDb
 from gomus._utils.extract_bookings import ExtractGomusBookings
 from gomus._utils.fetch_htmls import FetchBookingsHTML, FetchGomusHTML
 from gomus._utils.scrape_gomus import (EnhanceBookingsWithScraper,
@@ -28,14 +29,14 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
 
     hash_seed = 666
 
-    @patch.object(EnhanceBookingsWithScraper, 'fetch_updated_mail')
     @patch.object(EnhanceBookingsWithScraper, 'filter_fkey_violations')
+    @patch.object(GomusToCustomerMappingToDb, 'output')
     @patch.object(ExtractGomusBookings, 'output')
     @patch.object(FetchBookingsHTML, 'output')
     @patch.object(EnhanceBookingsWithScraper, 'output')
     def test_scrape_bookings(
-            self, output_mock, all_htmls_mock, input_mock,
-            ensure_foreign_key_mock, new_mail_mock):
+            self, output_mock, all_htmls_mock, input_mock, mapping_mock,
+            ensure_foreign_key_mock):
 
         test_data = pd.read_csv(
             'tests/test_data/gomus/scrape_bookings_data.csv')
@@ -49,6 +50,11 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
         extracted_bookings = test_data.filter(
             ['booking_id',
              'some_other_value'])
+
+        mapping_target = MockTarget('mapping_out', format=UTF8)
+        mapping_mock.return_value = mapping_target
+        with mapping_target.open('w') as mapping_file:
+            mapping_file.write('Done. (mock)')
 
         input_target = MockTarget('extracted_bookings_out', format=UTF8)
         input_mock.return_value = input_target
@@ -72,24 +78,14 @@ class TestEnhanceBookingsWithScraper(DatabaseTestCase):
         output_target = MockTarget('enhanced_bookings_out', format=UTF8)
         output_mock.return_value = output_target
 
-        # Also test that fetch_updated_mail would be called for non-empty
-        # invalid_values (actual functionality tested elsewhere)
-        invalid_values = pd.DataFrame([0], columns=['booking_id'])
-
         def mocked_ensure_foreign_key(df, invalid_handler):
-            invalid_handler(invalid_values, None)
+            invalid_handler(df[df['customer_id'] == 0], None)
             return df
         ensure_foreign_key_mock.side_effect = mocked_ensure_foreign_key
 
-        new_mail_mock.return_value = iter([
-            FetchGomusHTML(url='test1'),
-            FetchGomusHTML(url='test2')])
-
         # -- execute code under test --
         self.task = EnhanceBookingsWithScraper(columns=BOOKING_COLUMNS)
-        run = self.task.run()
-        for yielded_task in run:
-            self.assertIsInstance(yielded_task, FetchGomusHTML)
+        self.run_task(self.task)
 
         # -- inspect results --
         expected_output = test_data.filter(

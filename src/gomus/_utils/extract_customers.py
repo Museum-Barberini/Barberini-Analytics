@@ -61,11 +61,17 @@ class ExtractCustomerData(DataPreparationTask):
             'E-Mail', 'PLZ',
             'Newsletter', 'Anrede', 'Kategorie',
             'Sprache', 'Land', 'Typ',
-            'Erstellt am', 'Jahreskarte',
+            'Erstellt am',
             'Gültige E-Mail', 'Bereinigte PLZ',
             'Bereinigtes Land', 'Tourismus Tags',
             'Breitengrad', 'Längengrad'
             ])
+        # ct: Jahreskarten are no longer available in the customer report. We
+        # could fetch them through the new Jahreskarteninhabendenreport or try
+        # to derive them from the ticket table. For now, we defer this because
+        # the old values in the existing table are implausible anyway.
+        # insert this column after 'Erstellt am'
+        df.insert(9, 'Jahreskarte', None)
 
         df.columns = self.columns
 
@@ -86,8 +92,6 @@ class ExtractCustomerData(DataPreparationTask):
                 raise ValueError("Too many invalid dates! Aborting.")
             df = df[df['register_date'] != pd.NaT]
 
-        df['annual_ticket'] = df['annual_ticket'].apply(self.parse_boolean)
-        # TODO: find a better way to pass an empty list
         df['tourism_tags'] = df['tourism_tags'].fillna('[]')
 
         # Drop duplicate occurences of customers with same mail,
