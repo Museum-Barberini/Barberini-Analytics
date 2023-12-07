@@ -145,7 +145,8 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                         # get gomus ID
                         booking_customer = customer_details.xpath(
                             'div[1]/div[1]/div[1]/a')[0]
-                        gomus_id = int(booking_customer.get('href')\
+                        gomus_id = int(
+                            booking_customer.get('href')
                             .split('/')[-1])
 
                         # get email address for customer
@@ -153,8 +154,10 @@ class EnhanceBookingsWithScraper(GomusScraperTask):
                             url=f'/admin/customers/{gomus_id}')
                         # inefficient as hell!
                         yield customer_html_task
-                        with customer_html_task.output().open('r') as customer_html_fp:
-                            customer_html = html.fromstring(customer_html_fp.read())
+                        with customer_html_task.output().open('r')\
+                                as customer_html_fp:
+                            customer_html = html.fromstring(
+                                customer_html_fp.read())
                         customer_email = self.parse_text(
                             customer_html,
                             '//body/div[2]/div[2]/div[3]/div/div[2]/div[1]'

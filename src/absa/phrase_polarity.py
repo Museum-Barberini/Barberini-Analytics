@@ -59,8 +59,8 @@ class FetchSentiWs(DataPreparationTask):
     """
 
     url = luigi.Parameter(
-        #'http://pcai056.informatik.uni-leipzig.de/downloads/etc/'
-        #'SentiWS/SentiWS_v2.0.zip'
+        # 'http://pcai056.informatik.uni-leipzig.de/downloads/etc/'
+        # 'SentiWS/SentiWS_v2.0.zip'
         # WORKAROUND: Server is down, use local copy instead
         'file:///app/secret_files/absa/SentiWS_v2.0.zip'
     )
