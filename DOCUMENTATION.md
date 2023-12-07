@@ -47,7 +47,7 @@ Our recommended workflow consists of the following policies:
 
 - a **protected `master`** branch
 - a new **merge request** for every change
-- a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/)).
+- a merge policy that rejects every branch unless the **CI has passed** (ideally, use [Pipelines for Merged Results](https://docs.gitlab.com/ee/ci/pipelines/merged_results_pipelines.html)).
   For more information about our CI pipeline, head [here](#continuous-integration)
 
 ## Repository overview
