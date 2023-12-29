@@ -225,7 +225,10 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
             # Reactions
             try:
-                reactions = [data for data in response_content['data'] if data['name'] == 'post_reactions_by_type_total'][0]['values'][0]['value']
+                reactions = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_reactions_by_type_total'
+                ][0]['values'][0]['value']
                 post_perf['react_like'] = int(reactions.get('like', 0))
                 post_perf['react_love'] = int(reactions.get('love', 0))
                 post_perf['react_wow'] = int(reactions.get('wow', 0))
@@ -237,7 +240,10 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
             # Activity
             try:
-                activity = [data for data in response_content['data'] if data['name'] == 'post_activity_by_action_type'][0]['values'][0]['value']
+                activity = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_activity_by_action_type'
+                ][0]['values'][0]['value']
                 post_perf['likes'] = int(activity.get('like', 0))
                 post_perf['shares'] = int(activity.get('share', 0))
                 post_perf['comments'] = int(activity.get('comment', 0))
@@ -246,7 +252,10 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
             # Clicks
             try:
-                clicks = [data for data in response_content['data'] if data['name'] == 'post_clicks_by_type'][0]['values'][0]['value']
+                clicks = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_clicks_by_type'
+                ][0]['values'][0]['value']
                 post_perf['video_clicks'] = int(clicks.get('video play', 0))
                 post_perf['link_clicks'] = int(clicks.get('link clicks', 0))
                 post_perf['other_clicks'] = int(clicks.get('other clicks', 0))
@@ -255,7 +264,10 @@ class FetchFbPostPerformance(FetchFbPostDetails):
 
             # negative feedback (only one field)
             try:
-                negative_feedback = [data for data in response_content['data'] if data['name'] == 'post_negative_feedback'][0]['values'][0]['value']
+                negative_feedback = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_negative_feedback'
+                ][0]['values'][0]['value']
                 post_perf['negative_feedback'] = int(negative_feedback)
             except IndexError:
                 pass
@@ -263,19 +275,28 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             # number of times the post entered a person's screen through
             # paid distribution such as an ad
             try:
-                paid_impressions = [data for data in response_content['data'] if data['name'] == 'post_impressions_paid'][0]['values'][0]['value']
+                paid_impressions = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_impressions_paid'
+                ][0]['values'][0]['value']
                 post_perf['paid_impressions'] = int(paid_impressions)
             except IndexError:
                 pass
 
             try:
-                impressions = [data for data in response_content['data'] if data['name'] == 'post_impressions'][0]['values'][0]['value']
+                impressions = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_impressions'
+                ][0]['values'][0]['value']
                 post_perf['post_impressions'] = int(impressions)
             except IndexError:
                 pass
 
             try:
-                impressions_unique = [data for data in response_content['data'] if data['name'] == 'post_impressions_unique'][0]['values'][0]['value']
+                impressions_unique = [
+                    data for data in response_content['data']
+                    if data['name'] == 'post_impressions_unique'
+                ][0]['values'][0]['value']
                 post_perf['post_impressions_unique'] = int(impressions_unique)
             except IndexError:
                 pass
