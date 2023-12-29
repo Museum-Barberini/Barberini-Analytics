@@ -224,40 +224,61 @@ class FetchFbPostPerformance(FetchFbPostDetails):
             }
 
             # Reactions
-            reactions = response_content['data'][0]['values'][0]['value']
-            post_perf['react_like'] = int(reactions.get('like', 0))
-            post_perf['react_love'] = int(reactions.get('love', 0))
-            post_perf['react_wow'] = int(reactions.get('wow', 0))
-            post_perf['react_haha'] = int(reactions.get('haha', 0))
-            post_perf['react_sorry'] = int(reactions.get('sorry', 0))
-            post_perf['react_anger'] = int(reactions.get('anger', 0))
+            try:
+                reactions = [data for data in response_content['data'] if data['name'] == 'post_reactions_by_type_total'][0]['values'][0]['value']
+                post_perf['react_like'] = int(reactions.get('like', 0))
+                post_perf['react_love'] = int(reactions.get('love', 0))
+                post_perf['react_wow'] = int(reactions.get('wow', 0))
+                post_perf['react_haha'] = int(reactions.get('haha', 0))
+                post_perf['react_sorry'] = int(reactions.get('sorry', 0))
+                post_perf['react_anger'] = int(reactions.get('anger', 0))
+            except IndexError:
+                pass
 
             # Activity
-            activity = response_content['data'][1]['values'][0]['value']
-            post_perf['likes'] = int(activity.get('like', 0))
-            post_perf['shares'] = int(activity.get('share', 0))
-            post_perf['comments'] = int(activity.get('comment', 0))
+            try:
+                activity = [data for data in response_content['data'] if data['name'] == 'post_activity_by_action_type'][0]['values'][0]['value']
+                post_perf['likes'] = int(activity.get('like', 0))
+                post_perf['shares'] = int(activity.get('share', 0))
+                post_perf['comments'] = int(activity.get('comment', 0))
+            except IndexError:
+                pass
 
             # Clicks
-            clicks = response_content['data'][2]['values'][0]['value']
-            post_perf['video_clicks'] = int(clicks.get('video play', 0))
-            post_perf['link_clicks'] = int(clicks.get('link clicks', 0))
-            post_perf['other_clicks'] = int(clicks.get('other clicks', 0))
+            try:
+                clicks = [data for data in response_content['data'] if data['name'] == 'post_clicks_by_type'][0]['values'][0]['value']
+                post_perf['video_clicks'] = int(clicks.get('video play', 0))
+                post_perf['link_clicks'] = int(clicks.get('link clicks', 0))
+                post_perf['other_clicks'] = int(clicks.get('other clicks', 0))
+            except IndexError:
+                pass
 
             # negative feedback (only one field)
-            post_perf['negative_feedback'] = \
-                response_content['data'][3]['values'][0]['value']
+            try:
+                negative_feedback = [data for data in response_content['data'] if data['name'] == 'post_negative_feedback'][0]['values'][0]['value']
+                post_perf['negative_feedback'] = int(negative_feedback)
+            except IndexError:
+                pass
 
             # number of times the post entered a person's screen through
             # paid distribution such as an ad
-            post_perf['paid_impressions'] = \
-                response_content['data'][4]['values'][0]['value']
+            try:
+                paid_impressions = [data for data in response_content['data'] if data['name'] == 'post_impressions_paid'][0]['values'][0]['value']
+                post_perf['paid_impressions'] = int(paid_impressions)
+            except IndexError:
+                pass
 
-            post_perf['post_impressions'] = \
-                response_content['data'][5]['values'][0]['value']
+            try:
+                impressions = [data for data in response_content['data'] if data['name'] == 'post_impressions'][0]['values'][0]['value']
+                post_perf['post_impressions'] = int(impressions)
+            except IndexError:
+                pass
 
-            post_perf['post_impressions_unique'] = \
-                response_content['data'][6]['values'][0]['value']
+            try:
+                impressions_unique = [data for data in response_content['data'] if data['name'] == 'post_impressions_unique'][0]['values'][0]['value']
+                post_perf['post_impressions_unique'] = int(impressions_unique)
+            except IndexError:
+                pass
 
             post_perf.update(
                 page_id=page_id,
