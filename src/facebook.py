@@ -17,7 +17,7 @@ from luigi.format import UTF8
 
 from _utils import CsvToDb, DataPreparationTask, MuseumFacts, logger
 
-API_VER = 'v17.0'
+API_VER = 'v18.0'
 API_BASE = f'https://graph.facebook.com/{API_VER}'
 
 # ======= ToDb Tasks =======

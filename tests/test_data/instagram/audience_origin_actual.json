@@ -1,21 +1,40 @@
 {
-    "data": [
-      {
-        "name": "audience_city",
-        "period": "lifetime",
-        "values": [
+  "data": [
+    {
+      "name": "follower_demographics",
+      "period": "lifetime",
+      "title": "Follower demographics",
+      "description": "The demographic characteristics of followers, including countries, cities and gender distribution.",
+      "total_value": {
+        "breakdowns": [
           {
-            "value": {
-              "City1, State1": 123,
-              "City2, State2": 456,
-              "City3, State1": 789
-            },
-            "end_time": "2020-04-30T07:00:00+0000"
+            "dimension_keys": [
+              "city"
+            ],
+            "results": [
+              {
+                "dimension_values": [
+                  "City1, State1"
+                ],
+                "value": 123
+              },
+              {
+                "dimension_values": [
+                  "City2, State2"
+                ],
+                "value": 456
+              },
+              {
+                "dimension_values": [
+                  "City3, State1"
+                ],
+                "value": 789
+              }
+            ]
           }
-        ],
-        "title": "Audience City",
-        "description": "The cities of this profile's followers",
-        "id": "01234567899876543210/insights/audience_city/lifetime"
-      }
-    ]
-  }
+        ]
+      },
+      "id": "01234567899876543210/insights/follower_demographics/lifetime"
+    }
+  ]
+}
