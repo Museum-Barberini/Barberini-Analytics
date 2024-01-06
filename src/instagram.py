@@ -399,7 +399,7 @@ class FetchIgPostPerformance(DataPreparationTask):
         generic_metrics = [
             'impressions',
             'reach',
-            'engagement',
+            'total_interactions',
             'saved'
         ]
 
@@ -429,7 +429,7 @@ class FetchIgPostPerformance(DataPreparationTask):
 
             impressions = response_data[0]['values'][0]['value']
             reach = response_data[1]['values'][0]['value']
-            engagement = response_data[2]['values'][0]['value']
+            total_interactions = response_data[2]['values'][0]['value']
             saved = response_data[3]['values'][0]['value']
 
             video_views = response_data[4]['values'][0]['value']\
@@ -441,7 +441,7 @@ class FetchIgPostPerformance(DataPreparationTask):
                 fetch_time,
                 impressions,
                 reach,
-                engagement,
+                total_interactions,
                 saved,
                 video_views
             ]
