@@ -25,16 +25,16 @@
         "id": "9876542310/insights/reach/lifetime"
       },
       {
-        "name": "engagement",
+        "name": "total_interactions",
         "period": "lifetime",
         "values": [
           {
             "value": 332211
           }
         ],
-        "title": "Engagement",
-        "description": "Total number of likes and comments on the media object",
-        "id": "9876543210/insights/engagement/lifetime"
+        "title": "Post interactions",
+        "description": "The number of likes, saves, comments and shares on your post minus the number of unlikes, unsaves and deleted comments.",
+        "id": "9876543210/insights/total_interactions/lifetime"
       },
       {
         "name": "saved",
