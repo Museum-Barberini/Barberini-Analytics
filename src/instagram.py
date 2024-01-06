@@ -632,9 +632,11 @@ def _get_single_metric(page_id, breakdown, period='lifetime'):
         {
             **{
                 dimension: key
-                for (dimension, key) in zip(dimensions, result['dimension_values'])
+                for (dimension, key)
+                in zip(dimensions, result['dimension_values'])
             },
             'value': result['value']
         }
-        for result in breakdown['results']
+        for result
+        in breakdown['results']
     ]
