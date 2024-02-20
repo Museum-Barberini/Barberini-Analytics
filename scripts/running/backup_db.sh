@@ -2,6 +2,7 @@
 set -e
 
 BACKUP_DIR='/var/barberini-analytics/db-backups'
+mkdir -p "$BACKUP_DIR"
 case $1 in
     monthly)
         INTERVAL='monthly'
