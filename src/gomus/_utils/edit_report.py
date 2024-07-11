@@ -39,7 +39,7 @@ BASE_URL = 'https://barberini.gomus.de'
 REPORT_PARAMS = 'report[report_params]'
 
 UTF8 = '✓'
-METHOD = 'put'
+METHOD = 'patch'
 INFORM_USER = 0
 
 # This task can be used to edit the type of gomus report that
@@ -71,7 +71,6 @@ class EditGomusReport(luigi.Task):
 
     def run(self):
         self.add_to_body(f'_method={METHOD}')
-        self.add_to_body(f'authenticity_token={self.csrf_token}')
 
         report_type = self.get_report_type()
         if report_type == 'Orders':
