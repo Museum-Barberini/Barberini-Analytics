@@ -18,7 +18,6 @@ ORDERS_FIELDS = [
     'customer_id',
     'customer_fullname',
     'total_price',
-    'total_coupon_price',
     'total_still_to_pay_price',
     'is_valid',
     'payment_status',
