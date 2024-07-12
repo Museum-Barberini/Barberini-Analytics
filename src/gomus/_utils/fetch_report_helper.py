@@ -15,8 +15,8 @@ REPORT_IDS = {
     'customers_1day': 1364,
     'customers_7days': 1379,
 
-    'orders_56days': 2411,
-    'orders_7days': 1188,
+    'orders_56days': 2551,
+    'orders_7days': 2552,
     'orders_1day': 2550,
 
     'entries_1day': 1262,
