@@ -11,7 +11,7 @@ luigi==3.3.0
 psycopg2==2.9.7
 
 # Testing tools
-bandit==1.7.1
+bandit==1.7.4
 checksumdir==1.2.0
 coverage==6.1.2
 django==3.2.9
